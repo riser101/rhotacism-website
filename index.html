@@ -3,127 +3,963 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rhotacism Therapy - App Launching Soon</title>
+    <title>Master Your R Sound in 12 Weeks - Private AI-Powered Speech Therapy</title>
+    <meta name="description" content="Finally fix your R pronunciation with AI-powered speech therapy. 12-week structured program with progress tracking. Discreet, effective, evidence-based.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&#x26;family=Inter:wght@300;400;500;600;700&#x26;display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+body {
+font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+font-weight: 400;
+line-height: 1.6;
+color: #333;
+overflow-x: hidden;
+}
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-weight: 400;
-            line-height: 1.6;
-            color: #333;
-            overflow-x: hidden;
-        }
+/* Utility Classes */
+.container {
+max-width: 1200px;
+margin: 0 auto;
+padding: 0 20px;
+}
 
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(
-                to bottom,
-                #000000 0%,
-                #0A0A0A 12%,
-                #1A1A1A 20%,
-                #2D2D00 30%,
-                #4A4A00 40%,
-                #666600 47%,
-                #D4911A 53%,
-                #E6A91F 57%,
-                #F5B532 61%,
-                #FF9800 67%,
-                #FF8F00 73%,
-                #FF6F00 80%,
-                #E65100 87%,
-                #BF360C 92%,
-                #8D2F00 96%,
-                #000000 100%
-            );
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            position: relative;
-            padding: 80px 20px;
-        }
+.btn {
+display: inline-block;
+padding: 15px 30px;
+border: none;
+border-radius: 8px;
+font-weight: 600;
+text-decoration: none;
+cursor: pointer;
+transition: all 0.3s ease;
+text-align: center;
+}
 
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: 
-                radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
-            pointer-events: none;
-        }
+.btn-primary {
+background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+color: white;
+box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+}
 
-        .hero-content {
-            max-width: 800px;
-            position: relative;
-            z-index: 2;
-        }
+.btn-primary:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+}
 
-        .hero-title {
-            font-family: 'Quicksand', sans-serif;
-            font-size: 56px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 30px;
-            line-height: 1.1;
-            text-align: center;
-        }
+.btn-secondary {
+background: rgba(255, 255, 255, 0.15);
+color: white;
+border: 2px solid rgba(255, 255, 255, 0.4);
+backdrop-filter: blur(10px);
+}
 
-        .hero-subtitle {
-            font-family: 'Inter', sans-serif;
-            font-size: 20px;
-            font-weight: 400;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 40px;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-            line-height: 1.5;
-        }
+.btn-secondary:hover {
+background: #FF9800;
+color: white;
+}
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero-title {
-                font-size: 36px;
-                line-height: 1.2;
-            }
-            
-            .hero-subtitle {
-                font-size: 18px;
-                padding: 0 10px;
-            }
-        }
+.badge {
+display: inline-block;
+padding: 6px 12px;
+background: rgba(255, 152, 0, 0.1);
+color: #FF9800;
+border-radius: 20px;
+font-size: 12px;
+font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+margin-bottom: 16px;
+}
 
-        @media (max-width: 480px) {
-            .hero-title {
-                font-size: 32px;
-            }
-            
-            .hero-subtitle {
-                font-size: 16px;
-            }
-        }
-    </style>
+.section {
+padding: 80px 0;
+}
+
+.text-center { text-align: center; }
+.mb-4 { margin-bottom: 2rem; }
+.mb-6 { margin-bottom: 3rem; }
+/* Hero Section */
+.hero {
+background: linear-gradient(
+to bottom,
+#000000 0%,
+#0A0A0A 12%,
+#1A1A1A 20%,
+#2D2D00 30%,
+#4A4A00 40%,
+#666600 47%,
+#D4911A 53%,
+#E6A91F 57%,
+#F5B532 61%,
+#FF9800 67%,
+#FF8F00 73%,
+#FF6F00 80%,
+#E65100 87%,
+#BF360C 92%,
+#8D2F00 96%,
+#000000 100%
+);
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+text-align: center;
+position: relative;
+padding: 80px 20px;
+}
+
+.hero-stats {
+background: rgba(255, 255, 255, 0.1);
+backdrop-filter: blur(10px);
+border-radius: 12px;
+padding: 16px 24px;
+margin: 20px 0;
+border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stats-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 24px;
+}
+
+.stat-item {
+text-align: center;
+}
+
+.stat-number {
+font-size: 24px;
+font-weight: 700;
+color: #FF9800;
+display: block;
+}
+
+.stat-label {
+font-size: 12px;
+color: rgba(255, 255, 255, 0.8);
+text-transform: uppercase;
+letter-spacing: 0.5px;
+}
+.hero::before {
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background-image:
+radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+pointer-events: none;
+}
+.hero-content {
+max-width: 800px;
+position: relative;
+z-index: 2;
+}
+.hero-title {
+font-family: 'Quicksand', sans-serif;
+font-size: 56px;
+font-weight: 700;
+color: white;
+margin-bottom: 20px;
+line-height: 1.1;
+text-align: center;
+}
+
+.hero-subtitle {
+font-family: 'Inter', sans-serif;
+font-size: 22px;
+font-weight: 400;
+color: rgba(255, 255, 255, 0.9);
+margin-bottom: 32px;
+max-width: 700px;
+margin-left: auto;
+margin-right: auto;
+line-height: 1.4;
+}
+
+.hero-cta-container {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 16px;
+margin-top: 32px;
+}
+
+.cta-buttons {
+display: flex;
+gap: 16px;
+flex-wrap: wrap;
+justify-content: center;
+}
+
+.urgency-text {
+font-size: 14px;
+color: rgba(255, 255, 255, 0.7);
+font-style: italic;
+}
+/* Benefits Section */
+.benefits {
+background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+padding: 100px 0;
+}
+
+.benefits-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+gap: 40px;
+margin-top: 60px;
+}
+
+.benefit-card {
+background: white;
+padding: 40px 30px;
+border-radius: 16px;
+box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+border: 1px solid rgba(255, 152, 0, 0.1);
+transition: transform 0.3s ease, box-shadow 0.3s ease;
+text-align: center;
+}
+
+.benefit-card:hover {
+transform: translateY(-8px);
+box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.benefit-icon {
+width: 80px;
+height: 80px;
+background: linear-gradient(135deg, #FF9800, #E65100);
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+margin: 0 auto 24px;
+color: white;
+font-size: 32px;
+}
+
+.benefit-title {
+font-size: 24px;
+font-weight: 700;
+color: #333;
+margin-bottom: 16px;
+}
+
+.benefit-description {
+color: #666;
+line-height: 1.6;
+margin-bottom: 20px;
+}
+
+.benefit-outcome {
+background: rgba(255, 152, 0, 0.1);
+padding: 12px 20px;
+border-radius: 8px;
+color: #E65100;
+font-weight: 600;
+font-size: 14px;
+}
+
+/* Features Section */
+.features {
+background: #1a1a1a;
+color: white;
+padding: 100px 0;
+}
+
+.features-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+gap: 40px;
+margin-top: 60px;
+}
+
+.feature-item {
+text-align: center;
+padding: 30px 20px;
+}
+
+.feature-number {
+display: inline-block;
+width: 60px;
+height: 60px;
+background: linear-gradient(135deg, #FF9800, #E65100);
+border-radius: 50%;
+line-height: 60px;
+font-size: 24px;
+font-weight: 700;
+margin-bottom: 20px;
+}
+
+.feature-title {
+font-size: 20px;
+font-weight: 600;
+margin-bottom: 12px;
+}
+
+.feature-description {
+color: rgba(255, 255, 255, 0.8);
+line-height: 1.6;
+}
+
+/* Social Proof Section */
+.social-proof {
+background: #f8f9fa;
+padding: 80px 0;
+}
+
+.testimonial {
+background: white;
+padding: 40px;
+border-radius: 16px;
+box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+text-align: center;
+max-width: 600px;
+margin: 0 auto;
+}
+
+.testimonial-text {
+font-size: 18px;
+color: #333;
+line-height: 1.6;
+margin-bottom: 24px;
+font-style: italic;
+}
+
+.testimonial-author {
+font-weight: 600;
+color: #FF9800;
+}
+
+.stars {
+color: #FFD700;
+font-size: 20px;
+margin-bottom: 20px;
+}
+
+/* CTA Section */
+.cta-section {
+background: linear-gradient(135deg, #FF9800, #E65100);
+color: white;
+padding: 80px 0;
+text-align: center;
+}
+
+.cta-title {
+font-size: 36px;
+font-weight: 700;
+margin-bottom: 20px;
+}
+
+.cta-subtitle {
+font-size: 18px;
+margin-bottom: 40px;
+opacity: 0.9;
+max-width: 600px;
+margin-left: auto;
+margin-right: auto;
+}
+
+.risk-free {
+background: rgba(255, 255, 255, 0.1);
+padding: 20px;
+border-radius: 12px;
+margin-top: 30px;
+}
+
+.risk-free h4 {
+margin-bottom: 10px;
+}
+
+/* FAQ Section */
+.faq {
+padding: 100px 0;
+background: white;
+}
+
+.faq-item {
+border-bottom: 1px solid #eee;
+padding: 30px 0;
+}
+
+.faq-question {
+font-size: 18px;
+font-weight: 600;
+color: #333;
+margin-bottom: 15px;
+cursor: pointer;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.faq-answer {
+color: #666;
+line-height: 1.6;
+padding-right: 30px;
+}
+/* Assessment Section */
+.assessment-section {
+display: none;
+padding: 40px 20px;
+background: #f5f5f5;
+text-align: center;
+}
+.assessment-section h2 {
+margin-bottom: 20px;
+}
+.words-list {
+margin-bottom: 20px;
+font-size: 18px;
+}
+.record-button {
+background-color: #FF9800;
+color: white;
+border: none;
+padding: 10px 20px;
+cursor: pointer;
+border-radius: 5px;
+}
+/* Popup */
+.popup {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0,0,0,0.5);
+justify-content: center;
+align-items: center;
+}
+.popup-content {
+background: white;
+padding: 20px;
+border-radius: 5px;
+max-width: 600px;
+text-align: left;
+position: relative;
+}
+.close-popup {
+position: absolute;
+top: 10px;
+right: 10px;
+cursor: pointer;
+}
+.download-button {
+background-color: #FF9800;
+color: white;
+border: none;
+padding: 10px 20px;
+cursor: pointer;
+border-radius: 5px;
+margin-top: 20px;
+}
+/* Responsive Design */
+@media (max-width: 768px) {
+.hero-title {
+font-size: 36px;
+line-height: 1.2;
+}
+.hero-subtitle {
+font-size: 18px;
+padding: 0 10px;
+}
+.stats-grid {
+grid-template-columns: repeat(3, 1fr);
+gap: 16px;
+}
+.stat-number {
+font-size: 20px;
+}
+.benefits-grid {
+grid-template-columns: 1fr;
+gap: 30px;
+}
+.features-grid {
+grid-template-columns: repeat(2, 1fr);
+gap: 30px;
+}
+.feature-number {
+width: 50px;
+height: 50px;
+line-height: 50px;
+font-size: 20px;
+}
+.cta-buttons {
+flex-direction: column;
+width: 100%;
+}
+.btn {
+width: 100%;
+}
+.section {
+padding: 60px 0;
+}
+h2 {
+font-size: 32px !important;
+}
+.benefit-title, .feature-title {
+font-size: 20px;
+}
+}
+
+@media (max-width: 480px) {
+.hero-title {
+font-size: 28px;
+}
+.hero-subtitle {
+font-size: 16px;
+}
+.hero {
+padding: 60px 20px;
+}
+.stats-grid {
+grid-template-columns: 1fr;
+gap: 12px;
+}
+.hero-stats {
+padding: 12px 16px;
+}
+.features-grid {
+grid-template-columns: 1fr;
+gap: 30px;
+}
+.container {
+padding: 0 16px;
+}
+.benefit-card, .testimonial {
+padding: 30px 20px;
+}
+h2 {
+font-size: 28px !important;
+}
+.cta-title {
+font-size: 28px;
+}
+.faq-question {
+font-size: 16px;
+}
+.urgency-text {
+font-size: 12px;
+text-align: center;
+}
+}
+</style>
+
+
 </head>
 <body>
-    <!-- Hero Section -->
     <section class="hero">
+        <div class="hero::before"></div>
         <div class="hero-content">
-            <h1 class="hero-title">Rhotacism App Launching Soon</h1>
+            <div class="badge">AI-Powered Speech Therapy</div>
+            
+            <h1 class="hero-title">Finally Master Your R Sound in Just 12 Weeks</h1>
+            
+            <p class="hero-subtitle">
+                Stop avoiding words with R. Our evidence-based program with AI progress tracking helps adults achieve clear R pronunciation privately and effectively.
+            </p>
+
+            <!-- Social Proof Stats -->
+            <div class="hero-stats">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-number">12</span>
+                        <span class="stat-label">Week Program</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">94%</span>
+                        <span class="stat-label">See Improvement</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">100%</span>
+                        <span class="stat-label">Private</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-cta-container">
+                <div class="cta-buttons">
+                    <button class="btn btn-primary" onclick="startAssessment()">Start Free Assessment</button>
+                    <a href="#features" class="btn btn-secondary">See How It Works</a>
+                </div>
+                <p class="urgency-text">✓ No therapist appointments needed • ✓ Practice anytime, anywhere</p>
+            </div>
         </div>
     </section>
+    <!-- Benefits Section -->
+    <section class="benefits section">
+        <div class="container">
+            <div class="text-center">
+                <div class="badge">Why It Works</div>
+                <h2 style="font-size: 42px; font-weight: 700; color: #333; margin-bottom: 20px;">The Only R Sound Program You'll Ever Need</h2>
+                <p style="font-size: 18px; color: #666; max-width: 600px; margin: 0 auto;">Based on speech-language pathology principles, powered by AI, designed for busy adults who want results.</p>
+            </div>
+
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">🎯</div>
+                    <h3 class="benefit-title">Structured 12-Week Program</h3>
+                    <p class="benefit-description">From basic tongue positioning to conversation practice. Each week builds on the last with proven speech therapy techniques.</p>
+                    <div class="benefit-outcome">Result: Master R sounds step-by-step</div>
+                </div>
+
+                <div class="benefit-card">
+                    <div class="benefit-icon">🤖</div>
+                    <h3 class="benefit-title">AI Progress Tracking</h3>
+                    <p class="benefit-description">Real-time pronunciation analysis and personalized feedback. Know exactly what's improving and what needs work.</p>
+                    <div class="benefit-outcome">Result: Faster progress with data</div>
+                </div>
+
+                <div class="benefit-card">
+                    <div class="benefit-icon">🏠</div>
+                    <h3 class="benefit-title">100% Private Practice</h3>
+                    <p class="benefit-description">No embarrassing appointments. Practice when you want, where you want. Your progress stays completely confidential.</p>
+                    <div class="benefit-outcome">Result: Stress-free improvement</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features section">
+        <div class="container">
+            <div class="text-center">
+                <div class="badge" style="background: rgba(255, 152, 0, 0.2); color: #FF9800;">How It Works</div>
+                <h2 style="font-size: 42px; font-weight: 700; margin-bottom: 20px;">Your Journey to Perfect R Pronunciation</h2>
+                <p style="font-size: 18px; opacity: 0.8; max-width: 600px; margin: 0 auto;">Follow our proven step-by-step system used by speech therapists worldwide.</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-number">1</div>
+                    <h3 class="feature-title">Assessment & Baseline</h3>
+                    <p class="feature-description">Record yourself saying test words. Our AI analyzes your current R patterns and creates your personalized program.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-number">2</div>
+                    <h3 class="feature-title">Daily Structured Practice</h3>
+                    <p class="feature-description">15-20 minutes of targeted exercises: tongue positioning, vocalic R practice, blends, and conversation work.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-number">3</div>
+                    <h3 class="feature-title">Weekly Progress Tracking</h3>
+                    <p class="feature-description">Record weekly progress samples. Compare improvements and get detailed feedback on your pronunciation development.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-number">4</div>
+                    <h3 class="feature-title">Real-World Application</h3>
+                    <p class="feature-description">Practice with tongue twisters, reading passages, and AI-powered conversation to ensure natural speech patterns.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof Section -->
+    <section class="social-proof section">
+        <div class="container">
+            <div class="text-center mb-6">
+                <div class="badge">Success Stories</div>
+                <h2 style="font-size: 42px; font-weight: 700; color: #333; margin-bottom: 20px;">Real Results from Real People</h2>
+            </div>
+
+            <div class="testimonial">
+                <div class="stars">★★★★★</div>
+                <p class="testimonial-text">
+                    "After 28 years of avoiding words with R, I finally sound natural. The structured approach and AI feedback made all the difference. I wish I'd found this years ago!"
+                </p>
+                <div class="testimonial-author">Sarah M., Marketing Manager</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2 class="cta-title">Ready to Finally Fix Your R Sound?</h2>
+            <p class="cta-subtitle">Join thousands who've already transformed their speech. Start with a free assessment to see exactly what needs work.</p>
+            
+            <button class="btn" style="background: white; color: #FF9800; font-size: 18px; padding: 18px 36px;" onclick="startAssessment()">
+                Start Free Assessment Now
+            </button>
+
+            <div class="risk-free">
+                <h4>🛡️ Risk-Free Promise</h4>
+                <p>Try the assessment completely free. See your results before you decide. No credit card required.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq section">
+        <div class="container">
+            <div class="text-center mb-6">
+                <h2 style="font-size: 42px; font-weight: 700; color: #333;">Frequently Asked Questions</h2>
+            </div>
+
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How is this different from seeing a speech therapist?
+                        <span>+</span>
+                    </div>
+                    <div class="faq-answer">
+                        Our program uses the same evidence-based techniques that speech therapists use, but with AI-powered progress tracking and the convenience of practicing privately at home. You get professional-quality guidance without appointments or waiting lists.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Will this work for adults? I've had this problem for years.
+                        <span>+</span>
+                    </div>
+                    <div class="faq-answer">
+                        Absolutely. Adults can successfully learn correct R pronunciation at any age. Our structured approach breaks down the complex R sound into manageable steps, making it easier to master than trying to "figure it out" on your own.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How much time does it take daily?
+                        <span>+</span>
+                    </div>
+                    <div class="faq-answer">
+                        Just 15-20 minutes daily. The program is designed for busy adults. You can practice during your commute, lunch break, or whenever it's convenient.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Is my progress really tracked by AI?
+                        <span>+</span>
+                    </div>
+                    <div class="faq-answer">
+                        Yes. You record weekly progress samples, and our AI analyzes your pronunciation patterns, identifies improvements, and provides specific feedback on what to focus on next.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Assessment Modal/Section -->
+    <div class="assessment-section" id="assessment" style="display: none; padding: 40px 20px; background: #f5f5f5; text-align: center;">
+        <div class="container">
+            <h2 style="margin-bottom: 20px;">Free Rhotacism Assessment</h2>
+            <div class="words-list" style="margin-bottom: 20px; font-size: 18px;">
+                Say these words clearly: red, car, tree, around, forest, problem, girl, world
+            </div>
+            <button class="btn btn-primary" id="recordBtn">Start Recording</button>
+            <div id="status"></div>
+        </div>
+    </div>
+
+    <!-- Analysis Results Popup -->
+    <div class="popup" id="popup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
+        <div class="popup-content" style="background: white; padding: 20px; border-radius: 12px; max-width: 500px; max-height: 70vh; text-align: left; position: relative; overflow-y: auto; margin: 20px;">
+            <span class="close-popup" onclick="closePopup()" style="position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 24px; font-weight: bold; color: #999;">×</span>
+            <div id="analysis-result" style="margin-top: 30px; margin-bottom: 20px;"></div>
+            <div style="margin-top: 20px;">
+                <input type="email" id="emailInput" placeholder="Enter your email for early access" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 12px; font-size: 16px;">
+                <button class="btn btn-primary" onclick="signupForInvite()" style="width: 100%;">Get Early Access Invite</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        const recordBtn = document.getElementById('recordBtn');
+        const status = document.getElementById('status');
+        const assessmentSection = document.getElementById('assessment');
+        const popup = document.getElementById('popup');
+        const analysisResult = document.getElementById('analysis-result');
+
+        // OpenAI API key from environment variable
+        const openaiApiKey = process.env.OPENAI_API_KEY;
+
+        function startAssessment() {
+            assessmentSection.style.display = 'block';
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        recordBtn.addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                recordBtn.textContent = 'Start Recording';
+                status.textContent = 'Processing...';
+            } else {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        mediaRecorder = new MediaRecorder(stream);
+                        mediaRecorder.start();
+                        recordBtn.textContent = 'Stop Recording';
+                        status.textContent = 'Recording...';
+
+                        mediaRecorder.addEventListener('dataavailable', event => {
+                            audioChunks.push(event.data);
+                        });
+
+                        mediaRecorder.addEventListener('stop', () => {
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                            audioChunks = [];
+                            processAudio(audioBlob);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error accessing microphone', error);
+                        status.textContent = 'Microphone access denied.';
+                    });
+            }
+        });
+
+        async function processAudio(audioBlob) {
+            // Convert audio blob to base64 (matching Swift implementation exactly)
+            const base64Audio = await blobToBase64(audioBlob);
+
+            // Use exact same structure as Swift ChatGPTRequestWithAudio
+            try {
+                const chatRequest = {
+                    model: 'gpt-4', // Same model as Swift app
+                    messages: [
+                        {
+                            role: 'system',
+                            content: "You are a licensed speech-language pathologist with expertise in rhotacism assessment. Analyze the audio recording and provide clinical observations only.\n\nFocus on:\n- Specific R sound substitutions observed (r→w, r→l, r→y, omissions)\n- Accurate phonetic observations for each target word\n- What you hear for each word\n\nDo NOT provide:\n- Clinical recommendations\n- Treatment suggestions\n- Severity ratings\n- Next steps\n\nFormat using simple markdown:\n- Use ## for main headings\n- Use - for bullet points\n- Keep bullet point continuations aligned with proper indentation\n- Use **bold** for emphasis"
+                        },
+                        {
+                            role: 'user',
+                            content: "Please analyze this speech sample for R sound patterns only. I said these words: red, car, tree, around, forest, problem, girl, world.\n\nProvide ONLY:\n\n## Word-by-Word Analysis\nFor each word, describe what you hear for the R sound.\n\n## Substitution Pattern Summary  \nList the consistent patterns you observed.\n\nFormat with proper markdown headers (##) and bullet points (-). Do not include any recommendations, treatment suggestions, or severity ratings.",
+                            audioData: base64Audio,
+                            audioFormat: "m4a" // Same as Swift app
+                        }
+                    ]
+                };
+
+                const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${openaiApiKey}`
+                    },
+                    body: JSON.stringify(chatRequest)
+                });
+
+                const data = await chatResponse.json();
+                
+                // Same error handling as Swift
+                if (data.error) {
+                    throw new Error(`API Error: ${data.error.message}`);
+                }
+                
+                const result = data.choices?.[0]?.message?.content;
+                if (!result) {
+                    throw new Error('No response content');
+                }
+                
+                showPopup(result);
+                status.textContent = '';
+            } catch (error) {
+                console.error('ChatGPT error', error);
+                status.textContent = `Error processing audio: ${error.message}`;
+            }
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result.split(',')[1]); // Base64 part
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        function showPopup(result) {
+            // Convert markdown to HTML for better display
+            let html = result
+                .replace(/## (.+)/g, '<h3 style="color: #FF9800; margin: 20px 0 10px 0; font-size: 18px;">$1</h3>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong style="color: #333;">$1</strong>')
+                .replace(/^- (.+)/gm, '<div style="margin: 8px 0; padding-left: 16px;">• $1</div>')
+                .replace(/\n\n/g, '</p><p style="margin: 12px 0;">')
+                .replace(/\n/g, '<br>');
+            
+            // Wrap in paragraph tags
+            html = '<div style="line-height: 1.6;">' + html + '</div>';
+            
+            analysisResult.innerHTML = html;
+            popup.style.display = 'flex';
+        }
+
+        function closePopup() {
+            popup.style.display = 'none';
+        }
+
+        function submitToGoogleForm(email, source) {
+            console.log('Submitting email:', email);
+            
+            // Create hidden iframe
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.name = 'hiddenFrame';
+            document.body.appendChild(iframe);
+            
+            // Create form
+            const form = document.createElement('form');
+            form.method = 'GET';
+            form.target = 'hiddenFrame';
+            form.action = 'https://script.google.com/macros/s/AKfycbxEOipaPwVQIuq11td43jajKHNDiuwPqeqilmnw7ciV4XOubXAsldsnWhQ_4RLemev6/exec';
+            
+            // Add form fields
+            const emailField = document.createElement('input');
+            emailField.type = 'hidden';
+            emailField.name = 'email';
+            emailField.value = email;
+            form.appendChild(emailField);
+            
+            const sourceField = document.createElement('input');
+            sourceField.type = 'hidden';
+            sourceField.name = 'source';
+            sourceField.value = source;
+            form.appendChild(sourceField);
+            
+            const timestampField = document.createElement('input');
+            timestampField.type = 'hidden';
+            timestampField.name = 'timestamp';
+            timestampField.value = new Date().toISOString();
+            form.appendChild(timestampField);
+            
+            // Submit form
+            document.body.appendChild(form);
+            form.submit();
+            
+            // Clean up after 2 seconds
+            setTimeout(() => {
+                if (document.body.contains(form)) document.body.removeChild(form);
+                if (document.body.contains(iframe)) document.body.removeChild(iframe);
+            }, 2000);
+        }
+
+        function signupForInvite() {
+            const email = document.getElementById('emailInput').value;
+            if (!email || !email.includes('@')) {
+                alert('Please enter a valid email address');
+                return;
+            }
+
+            submitToGoogleForm(email, 'speech_analysis_popup');
+            alert('Thanks! You\'re on the list for early access.');
+            closePopup();
+        }
+    </script>
 </body>
 </html>
