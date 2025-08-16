@@ -786,8 +786,8 @@ text-align: center;
         const popup = document.getElementById('popup');
         const analysisResult = document.getElementById('analysis-result');
 
-        // OpenAI API key from environment variable
-        const openaiApiKey = process.env.OPENAI_API_KEY;
+        // OpenAI API key - replace with your actual key
+        const openaiApiKey = '${process.env.NEXT_PUBLIC_OPENAI_API_KEY}' || 'YOUR_OPENAI_API_KEY_HERE';
 
         function startAssessment() {
             assessmentSection.style.display = 'block';
