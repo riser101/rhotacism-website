@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Create dist directory
+mkdir -p dist
+
 # Replace the placeholder with the actual API key
 sed "s/__OPENAI_API_KEY__/$NEXT_PUBLIC_OPENAI_API_KEY/g" index.html > dist/index.html
 
