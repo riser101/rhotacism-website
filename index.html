@@ -777,9 +777,12 @@ text-align: center;
             </div>
         </div>
     </div>
+    <!-- RecorderJS for true WAV recording -->
+    <script src="https://cdn.jsdelivr.net/npm/recorder-js@1.0.7/dist/recorder.min.js"></script>
+    
     <script>
-        let mediaRecorder;
-        let audioChunks = [];
+        let recorder;
+        let audioContext;
         const recordBtn = document.getElementById('recordBtn');
         const status = document.getElementById('status');
         const assessmentSection = document.getElementById('assessment');
@@ -793,46 +796,39 @@ text-align: center;
             window.scrollTo(0, document.body.scrollHeight);
         }
 
-        recordBtn.addEventListener('click', () => {
-            if (mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
+        recordBtn.addEventListener('click', async () => {
+            if (recorder && recorder.state === 'recording') {
+                const audioBlob = await recorder.stop();
                 recordBtn.textContent = 'Start Recording';
                 status.textContent = 'Processing...';
+                processAudio(audioBlob);
             } else {
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => {
-                        // Use MP4 format for Chrome/Safari compatibility with OpenAI
-                        let options = {};
-                        if (MediaRecorder.isTypeSupported('audio/mp4')) {
-                            options.mimeType = 'audio/mp4';
-                        } else if (MediaRecorder.isTypeSupported('audio/mp4;codecs=mp4a.40.2')) {
-                            options.mimeType = 'audio/mp4;codecs=mp4a.40.2';
-                        } else {
-                            // Fallback for older browsers
-                            options.mimeType = 'audio/webm';
-                        }
-                        
-                        console.log('Recording with format:', options.mimeType);
-                        
-                        mediaRecorder = new MediaRecorder(stream, options);
-                        mediaRecorder.start();
-                        recordBtn.textContent = 'Stop Recording';
-                        status.textContent = 'Recording...';
-
-                        mediaRecorder.addEventListener('dataavailable', event => {
-                            audioChunks.push(event.data);
-                        });
-
-                        mediaRecorder.addEventListener('stop', () => {
-                            const audioBlob = new Blob(audioChunks, { type: options.mimeType || 'audio/mp4' });
-                            audioChunks = [];
-                            processAudio(audioBlob);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error accessing microphone', error);
-                        status.textContent = 'Microphone access denied.';
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    
+                    // Initialize audio context if not already done
+                    if (!audioContext) {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    
+                    // Create recorder with proper WAV encoding
+                    recorder = new Recorder(audioContext, {
+                        numChannels: 1,
+                        sampleRate: 16000, // Good for speech recognition
+                        bitDepth: 16
                     });
+                    
+                    await recorder.init(stream);
+                    recorder.start();
+                    
+                    recordBtn.textContent = 'Stop Recording';
+                    status.textContent = 'Recording...';
+                    
+                    console.log('Recording with true WAV format');
+                } catch (error) {
+                    console.error('Error accessing microphone', error);
+                    status.textContent = 'Microphone access denied.';
+                }
             }
         });
 
