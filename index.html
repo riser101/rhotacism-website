@@ -804,22 +804,40 @@ text-align: center;
         // Initialize the extendable media recorder with WAV support
         async function initializeRecorder() {
             try {
+                console.log('🔧 Starting WAV recorder initialization...');
+                console.log('🔧 extendableMediaRecorder available:', !!window.extendableMediaRecorder);
+                console.log('🔧 extendableMediaRecorderWavEncoder available:', !!window.extendableMediaRecorderWavEncoder);
+                
                 // Register the WAV encoder with proper API
                 const { register } = extendableMediaRecorder;
                 const { connect } = extendableMediaRecorderWavEncoder;
                 
-                await register(await connect());
+                console.log('🔧 register function:', typeof register);
+                console.log('🔧 connect function:', typeof connect);
+                
+                console.log('🔧 Connecting WAV encoder...');
+                const encoder = await connect();
+                console.log('🔧 WAV encoder connected:', encoder);
+                
+                console.log('🔧 Registering encoder...');
+                await register(encoder);
+                
                 isRecorderReady = true;
-                console.log('Extendable Media Recorder with WAV encoder initialized');
+                status.textContent = '';
+                console.log('✅ Extendable Media Recorder with WAV encoder initialized successfully');
             } catch (error) {
-                console.error('Failed to initialize WAV recorder:', error);
-                status.textContent = 'Failed to initialize audio recorder';
+                console.error('❌ Failed to initialize WAV recorder:', error);
+                console.error('❌ Error stack:', error.stack);
+                status.textContent = 'Failed to initialize audio recorder: ' + error.message;
                 throw error;
             }
         }
 
         // Initialize when page loads
-        window.addEventListener('load', initializeRecorder);
+        window.addEventListener('load', () => {
+            console.log('🚀 Page loaded, starting recorder initialization...');
+            initializeRecorder();
+        });
 
         recordBtn.addEventListener('click', async () => {
             if (mediaRecorder && mediaRecorder.state === 'recording') {
