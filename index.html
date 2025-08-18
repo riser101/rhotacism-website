@@ -808,16 +808,29 @@ text-align: center;
                 console.log('🔧 extendableMediaRecorder available:', !!window.extendableMediaRecorder);
                 console.log('🔧 extendableMediaRecorderWavEncoder available:', !!window.extendableMediaRecorderWavEncoder);
                 
+                // Check the actual structure of the libraries
+                console.log('🔧 extendableMediaRecorder keys:', Object.keys(extendableMediaRecorder));
+                console.log('🔧 extendableMediaRecorderWavEncoder keys:', Object.keys(extendableMediaRecorderWavEncoder));
+                
                 // Register the WAV encoder with proper API
                 const { register } = extendableMediaRecorder;
-                const { connect } = extendableMediaRecorderWavEncoder;
                 
                 console.log('🔧 register function:', typeof register);
-                console.log('🔧 connect function:', typeof connect);
                 
-                console.log('🔧 Connecting WAV encoder...');
-                const encoder = await connect();
-                console.log('🔧 WAV encoder connected:', encoder);
+                // Try different possible API structures
+                let encoder;
+                if (typeof extendableMediaRecorderWavEncoder.connect === 'function') {
+                    console.log('🔧 Using connect() method...');
+                    encoder = await extendableMediaRecorderWavEncoder.connect();
+                } else if (typeof extendableMediaRecorderWavEncoder === 'function') {
+                    console.log('🔧 Using direct function call...');
+                    encoder = await extendableMediaRecorderWavEncoder();
+                } else {
+                    console.log('🔧 Using default export...');
+                    encoder = extendableMediaRecorderWavEncoder;
+                }
+                
+                console.log('🔧 WAV encoder:', encoder);
                 
                 console.log('🔧 Registering encoder...');
                 await register(encoder);
