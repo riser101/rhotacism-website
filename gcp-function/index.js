@@ -33,10 +33,10 @@ const corsOptions = {
 
 const corsMiddleware = cors(corsOptions);
 
-// Helper function to convert browser WAV/WebM to proper WAV for OpenAI
+// Helper function to convert any browser audio format to proper WAV for OpenAI
 function convertToProperWav(inputBuffer, outputPath) {
   return new Promise((resolve, reject) => {
-    const tempInputPath = `/tmp/input_${Date.now()}.wav`;
+    const tempInputPath = `/tmp/input_${Date.now()}.audio`;
     
     // Write input buffer to temporary file
     fs.writeFileSync(tempInputPath, inputBuffer);
@@ -47,7 +47,7 @@ function convertToProperWav(inputBuffer, outputPath) {
       .audioChannels(1)         // Mono (required by OpenAI)
       .audioFrequency(16000)    // 16kHz sample rate (optimal for OpenAI)
       .on('end', () => {
-        console.log('✅ Browser WAV converted to proper WAV format');
+        console.log('✅ Browser audio converted to proper WAV format');
         // Clean up input file
         fs.unlinkSync(tempInputPath);
         resolve();
@@ -188,7 +188,7 @@ async function processAudio(audioBuffer, res) {
     
     const outputWavPath = `/tmp/output_${Date.now()}.wav`;
     
-    // Convert browser WAV to proper WAV format for OpenAI
+    // Convert browser audio (whatever format) to proper WAV format for OpenAI
     await convertToProperWav(audioBuffer, outputWavPath);
     
     // Read the converted WAV file

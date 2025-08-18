@@ -17,7 +17,7 @@ gcloud functions deploy $FUNCTION_NAME \
   --region=$REGION \
   --source=. \
   --entry-point=analyzeSpeech \
-  --trigger=http \
+  --trigger-http \
   --allow-unauthenticated \
   --set-env-vars="OPENAI_API_KEY=$OPENAI_API_KEY" \
   --memory=1GiB \

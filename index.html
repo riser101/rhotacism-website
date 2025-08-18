@@ -799,27 +799,20 @@ text-align: center;
         let audioChunks = [];
         let isRecorderReady = false;
 
-        // Initialize native MediaRecorder with MP4 support
+        // Initialize native MediaRecorder with browser's default format
         async function initializeRecorder() {
             try {
-                console.log('🔧 Initializing native MediaRecorder for MP4...');
+                console.log('🔧 Initializing native MediaRecorder...');
                 
-                // Test microphone access and MP4 support
+                // Test microphone access
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                
-                // Check if WAV is supported
-                const mimeType = 'audio/wav';
-                if (!MediaRecorder.isTypeSupported(mimeType)) {
-                    console.log('WAV not supported, falling back to WebM');
-                    // Most browsers will fall back to WebM which is fine
-                }
                 
                 // Stop the test stream
                 stream.getTracks().forEach(track => track.stop());
                 
                 isRecorderReady = true;
                 status.textContent = '';
-                console.log('✅ Native MediaRecorder ready for WAV recording');
+                console.log('✅ Native MediaRecorder ready with browser default format');
             } catch (error) {
                 console.error('❌ Failed to initialize recorder:', error);
                 status.textContent = 'Recorder initialization failed: ' + error.message;
@@ -852,10 +845,8 @@ text-align: center;
                         }
                     });
                     
-                    // Use native MediaRecorder with WAV format
-                    mediaRecorder = new MediaRecorder(stream, {
-                        mimeType: 'audio/wav'
-                    });
+                    // Use native MediaRecorder with browser's default format
+                    mediaRecorder = new MediaRecorder(stream);
                     
                     audioChunks = [];
                     
@@ -866,7 +857,8 @@ text-align: center;
                     });
 
                     mediaRecorder.addEventListener('stop', () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        const audioBlob = new Blob(audioChunks);
+                        console.log('🎵 Recorded audio blob type:', audioBlob.type);
                         stream.getTracks().forEach(track => track.stop());
                         processAudio(audioBlob);
                     });
@@ -875,7 +867,7 @@ text-align: center;
                     recordBtn.textContent = 'Stop Recording';
                     status.textContent = 'Recording...';
                     
-                    console.log('Recording with native MediaRecorder (WAV format)');
+                    console.log('Recording with native MediaRecorder (browser default format)');
                 } catch (error) {
                     console.error('Error accessing microphone', error);
                     status.textContent = 'Error: ' + error.message;
