@@ -778,7 +778,7 @@ text-align: center;
         </div>
     </div>
     <!-- RecorderJS for true WAV recording -->
-    <script src="https://cdn.jsdelivr.net/npm/recorder-js@1.0.7/dist/recorder.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/recordrtc@5.6.2/RecordRTC.min.js"></script>
     
     <script>
         let recorder;
@@ -797,34 +797,33 @@ text-align: center;
         }
 
         recordBtn.addEventListener('click', async () => {
-            if (recorder && recorder.state === 'recording') {
-                const audioBlob = await recorder.stop();
-                recordBtn.textContent = 'Start Recording';
-                status.textContent = 'Processing...';
-                processAudio(audioBlob);
+            if (recorder && recorder.getState() === 'recording') {
+                recorder.stopRecording(function() {
+                    const audioBlob = recorder.getBlob();
+                    recordBtn.textContent = 'Start Recording';
+                    status.textContent = 'Processing...';
+                    processAudio(audioBlob);
+                });
             } else {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     
-                    // Initialize audio context if not already done
-                    if (!audioContext) {
-                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    }
-                    
-                    // Create recorder with proper WAV encoding
-                    recorder = new Recorder(audioContext, {
-                        numChannels: 1,
-                        sampleRate: 16000, // Good for speech recognition
-                        bitDepth: 16
+                    // Create RecordRTC recorder with WAV format
+                    recorder = new RecordRTC(stream, {
+                        type: 'audio',
+                        mimeType: 'audio/wav',
+                        sampleRate: 16000,
+                        numberOfAudioChannels: 1,
+                        timeSlice: 1000,
+                        desiredSampRate: 16000
                     });
                     
-                    await recorder.init(stream);
-                    recorder.start();
+                    recorder.startRecording();
                     
                     recordBtn.textContent = 'Stop Recording';
                     status.textContent = 'Recording...';
                     
-                    console.log('Recording with true WAV format');
+                    console.log('Recording with RecordRTC WAV format');
                 } catch (error) {
                     console.error('Error accessing microphone', error);
                     status.textContent = 'Microphone access denied.';
