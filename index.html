@@ -805,13 +805,21 @@ text-align: center;
         async function initializeRecorder() {
             try {
                 console.log('🔧 Starting WAV recorder initialization...');
+                console.log('🔧 Available globals:', Object.keys(window).filter(k => k.includes('extendable')));
                 
-                // Import the register function and connect encoder properly
-                const { register } = await import('extendable-media-recorder');
-                const { connect } = await import('extendable-media-recorder-wav-encoder');
+                // According to the docs, the libraries should expose global functions
+                const register = window.extendableMediaRecorder?.register || window.register;
+                const connect = window.extendableMediaRecorderWavEncoder?.connect || window.connect;
                 
                 console.log('🔧 register function:', typeof register);
                 console.log('🔧 connect function:', typeof connect);
+                
+                if (typeof register !== 'function') {
+                    throw new Error('register function not found');
+                }
+                if (typeof connect !== 'function') {
+                    throw new Error('connect function not found');
+                }
                 
                 console.log('🔧 Connecting WAV encoder...');
                 const port = await connect();
