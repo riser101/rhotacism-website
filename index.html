@@ -801,12 +801,12 @@ text-align: center;
             } else {
                 navigator.mediaDevices.getUserMedia({ audio: true })
                     .then(stream => {
-                        // Try different audio formats based on browser support
+                        // Use webm format and we'll handle conversion on the server
                         let options = {};
-                        if (MediaRecorder.isTypeSupported('audio/webm')) {
+                        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                            options.mimeType = 'audio/webm;codecs=opus';
+                        } else if (MediaRecorder.isTypeSupported('audio/webm')) {
                             options.mimeType = 'audio/webm';
-                        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
-                            options.mimeType = 'audio/mp4';
                         }
                         
                         mediaRecorder = new MediaRecorder(stream, options);
