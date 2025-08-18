@@ -36,6 +36,9 @@ export default async function handler(req, res) {
             ]
         };
 
+        console.log('Sending request to OpenAI with model:', chatRequest.model);
+        console.log('Request body:', JSON.stringify(chatRequest, null, 2));
+
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -45,8 +48,12 @@ export default async function handler(req, res) {
             body: JSON.stringify(chatRequest)
         });
 
+        console.log('OpenAI response status:', response.status);
+        console.log('OpenAI response headers:', Object.fromEntries(response.headers.entries()));
+
         if (!response.ok) {
             const errorText = await response.text();
+            console.log('OpenAI error response:', errorText);
             throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
         }
 
