@@ -11,17 +11,27 @@ export default async function handler(req, res) {
         }
 
         const chatRequest = {
-            model: 'gpt-4',
+            model: 'gpt-4o-audio-preview',
             messages: [
                 {
                     role: 'system',
-                    content: "You are a licensed speech-language pathologist with expertise in rhotacism assessment. Analyze the audio recording and provide clinical observations only.\\n\\nFocus on:\\n- Specific R sound substitutions observed (r→w, r→l, r→y, omissions)\\n- Accurate phonetic observations for each target word\\n- What you hear for each word\\n\\nDo NOT provide:\\n- Clinical recommendations\\n- Treatment suggestions\\n- Severity ratings\\n- Next steps\\n\\nFormat using simple markdown:\\n- Use ## for main headings\\n- Use - for bullet points\\n- Keep bullet point continuations aligned with proper indentation\\n- Use **bold** for emphasis"
+                    content: "You are a licensed speech-language pathologist with expertise in rhotacism assessment. Analyze the audio recording and provide clinical observations only.\n\nFocus on:\n- Specific R sound substitutions observed (r→w, r→l, r→y, omissions)\n- Accurate phonetic observations for each target word\n- What you hear for each word\n\nDo NOT provide:\n- Clinical recommendations\n- Treatment suggestions\n- Severity ratings\n- Next steps\n\nFormat using simple markdown:\n- Use ## for main headings\n- Use - for bullet points\n- Keep bullet point continuations aligned with proper indentation\n- Use **bold** for emphasis"
                 },
                 {
                     role: 'user',
-                    content: "Please analyze this speech sample for R sound patterns only. I said these words: red, car, tree, around, forest, problem, girl, world.\\n\\nProvide ONLY:\\n\\n## Word-by-Word Analysis\\nFor each word, describe what you hear for the R sound.\\n\\n## Substitution Pattern Summary  \\nList the consistent patterns you observed.\\n\\nFormat with proper markdown headers (##) and bullet points (-). Do not include any recommendations, treatment suggestions, or severity ratings.",
-                    audioData: audioData,
-                    audioFormat: "m4a"
+                    content: [
+                        {
+                            type: "text",
+                            text: "Please analyze this speech sample for R sound patterns only. I said these words: red, car, tree, around, forest, problem, girl, world.\n\nProvide ONLY:\n\n## Word-by-Word Analysis\nFor each word, describe what you hear for the R sound.\n\n## Substitution Pattern Summary\nList the consistent patterns you observed.\n\nFormat with proper markdown headers (##) and bullet points (-). Do not include any recommendations, treatment suggestions, or severity ratings."
+                        },
+                        {
+                            type: "input_audio",
+                            input_audio: {
+                                data: audioData,
+                                format: "webm"
+                            }
+                        }
+                    ]
                 }
             ]
         };
