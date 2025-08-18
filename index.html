@@ -801,16 +801,18 @@ text-align: center;
             } else {
                 navigator.mediaDevices.getUserMedia({ audio: true })
                     .then(stream => {
-                        // Record in WAV format
+                        // Use MP4 format for Chrome/Safari compatibility with OpenAI
                         let options = {};
-                        if (MediaRecorder.isTypeSupported('audio/wav')) {
-                            options.mimeType = 'audio/wav';
+                        if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                            options.mimeType = 'audio/mp4';
+                        } else if (MediaRecorder.isTypeSupported('audio/mp4;codecs=mp4a.40.2')) {
+                            options.mimeType = 'audio/mp4;codecs=mp4a.40.2';
                         } else {
-                            // Use browser default which should work
-                            options = {};
+                            // Fallback for older browsers
+                            options.mimeType = 'audio/webm';
                         }
                         
-                        console.log('Recording with format:', options.mimeType || 'browser default');
+                        console.log('Recording with format:', options.mimeType);
                         
                         mediaRecorder = new MediaRecorder(stream, options);
                         mediaRecorder.start();
@@ -822,7 +824,7 @@ text-align: center;
                         });
 
                         mediaRecorder.addEventListener('stop', () => {
-                            const audioBlob = new Blob(audioChunks, { type: options.mimeType || 'audio/wav' });
+                            const audioBlob = new Blob(audioChunks, { type: options.mimeType || 'audio/mp4' });
                             audioChunks = [];
                             processAudio(audioBlob);
                         });
