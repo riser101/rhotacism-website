@@ -35,6 +35,11 @@ export default async function handler(req, res) {
             body: JSON.stringify(chatRequest)
         });
 
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+        }
+
         const data = await response.json();
         
         if (data.error) {
