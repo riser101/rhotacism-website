@@ -777,8 +777,7 @@ text-align: center;
             </div>
         </div>
     </div>
-    <!-- MediaRecorder Polyfill and WAV support -->
-    <script src="https://cdn.jsdelivr.net/npm/audio-recorder-polyfill@0.4.1/index.js"></script>
+    <!-- No external libraries - use built-in APIs -->
     
     <script>
         let recorder;
@@ -798,11 +797,6 @@ text-align: center;
 
         let mediaRecorder;
         let audioChunks = [];
-        
-        // Register WAV polyfill for browsers that don't support it natively
-        if (!MediaRecorder.isTypeSupported('audio/wav')) {
-            window.MediaRecorder = window.AudioRecorderPolyfill;
-        }
 
         recordBtn.addEventListener('click', async () => {
             if (mediaRecorder && mediaRecorder.state === 'recording') {
@@ -811,22 +805,20 @@ text-align: center;
                 status.textContent = 'Processing...';
             } else {
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ 
-                        audio: {
-                            sampleRate: 16000,
-                            channelCount: 1,
-                            echoCancellation: false,
-                            noiseSuppression: false,
-                            autoGainControl: false
-                        } 
-                    });
+                    // Simple audio request without complex constraints
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     
-                    // Use polyfill with explicit WAV format
-                    mediaRecorder = new MediaRecorder(stream, {
-                        mimeType: 'audio/wav',
-                        audioBitsPerSecond: 128000
-                    });
+                    // Try different formats in order of preference for OpenAI
+                    let options = {};
+                    if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                        options.mimeType = 'audio/webm;codecs=opus';
+                    } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+                        options.mimeType = 'audio/webm';
+                    } else {
+                        options = {}; // Use browser default
+                    }
                     
+                    mediaRecorder = new MediaRecorder(stream, options);
                     audioChunks = [];
                     
                     mediaRecorder.addEventListener('dataavailable', event => {
@@ -836,7 +828,7 @@ text-align: center;
                     });
 
                     mediaRecorder.addEventListener('stop', () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        const audioBlob = new Blob(audioChunks, { type: options.mimeType || 'audio/webm' });
                         stream.getTracks().forEach(track => track.stop());
                         processAudio(audioBlob);
                     });
@@ -845,10 +837,10 @@ text-align: center;
                     recordBtn.textContent = 'Stop Recording';
                     status.textContent = 'Recording...';
                     
-                    console.log('Recording with polyfill WAV format');
+                    console.log('Recording with format:', options.mimeType || 'browser default');
                 } catch (error) {
                     console.error('Error accessing microphone', error);
-                    status.textContent = 'Microphone access denied.';
+                    status.textContent = 'Error: ' + error.message;
                 }
             }
         });
