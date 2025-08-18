@@ -801,17 +801,16 @@ text-align: center;
             } else {
                 navigator.mediaDevices.getUserMedia({ audio: true })
                     .then(stream => {
-                        // Try MP3 first, then fall back to other formats
+                        // Record in WAV format
                         let options = {};
-                        if (MediaRecorder.isTypeSupported('audio/mp3')) {
-                            options.mimeType = 'audio/mp3';
-                        } else if (MediaRecorder.isTypeSupported('audio/mpeg')) {
-                            options.mimeType = 'audio/mpeg';
-                        } else if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-                            options.mimeType = 'audio/webm;codecs=opus';
-                        } else if (MediaRecorder.isTypeSupported('audio/webm')) {
-                            options.mimeType = 'audio/webm';
+                        if (MediaRecorder.isTypeSupported('audio/wav')) {
+                            options.mimeType = 'audio/wav';
+                        } else {
+                            // Use browser default which should work
+                            options = {};
                         }
+                        
+                        console.log('Recording with format:', options.mimeType || 'browser default');
                         
                         mediaRecorder = new MediaRecorder(stream, options);
                         mediaRecorder.start();
@@ -823,7 +822,7 @@ text-align: center;
                         });
 
                         mediaRecorder.addEventListener('stop', () => {
-                            const audioBlob = new Blob(audioChunks, { type: options.mimeType || 'audio/webm' });
+                            const audioBlob = new Blob(audioChunks, { type: options.mimeType || 'audio/wav' });
                             audioChunks = [];
                             processAudio(audioBlob);
                         });
