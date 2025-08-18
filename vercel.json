@@ -1,7 +1,7 @@
 {
   "functions": {
-    "api/analyze-speech.js": {
-      "runtime": "@vercel/node@18"
+    "api/*.js": {
+      "runtime": "nodejs18.x"
     }
   }
 }
