@@ -786,8 +786,7 @@ text-align: center;
         const popup = document.getElementById('popup');
         const analysisResult = document.getElementById('analysis-result');
 
-        // OpenAI API key - will be replaced during build 
-        const openaiApiKey = '__OPENAI_API_KEY__';
+        // No API key needed - using serverless function
 
         function startAssessment() {
             assessmentSection.style.display = 'block';
@@ -825,49 +824,29 @@ text-align: center;
         });
 
         async function processAudio(audioBlob) {
-            // Convert audio blob to base64 (matching Swift implementation exactly)
+            // Convert audio blob to base64
             const base64Audio = await blobToBase64(audioBlob);
 
-            // Use exact same structure as Swift ChatGPTRequestWithAudio
             try {
-                const chatRequest = {
-                    model: 'gpt-4', // Same model as Swift app
-                    messages: [
-                        {
-                            role: 'system',
-                            content: "You are a licensed speech-language pathologist with expertise in rhotacism assessment. Analyze the audio recording and provide clinical observations only.\n\nFocus on:\n- Specific R sound substitutions observed (r→w, r→l, r→y, omissions)\n- Accurate phonetic observations for each target word\n- What you hear for each word\n\nDo NOT provide:\n- Clinical recommendations\n- Treatment suggestions\n- Severity ratings\n- Next steps\n\nFormat using simple markdown:\n- Use ## for main headings\n- Use - for bullet points\n- Keep bullet point continuations aligned with proper indentation\n- Use **bold** for emphasis"
-                        },
-                        {
-                            role: 'user',
-                            content: "Please analyze this speech sample for R sound patterns only. I said these words: red, car, tree, around, forest, problem, girl, world.\n\nProvide ONLY:\n\n## Word-by-Word Analysis\nFor each word, describe what you hear for the R sound.\n\n## Substitution Pattern Summary  \nList the consistent patterns you observed.\n\nFormat with proper markdown headers (##) and bullet points (-). Do not include any recommendations, treatment suggestions, or severity ratings.",
-                            audioData: base64Audio,
-                            audioFormat: "m4a" // Same as Swift app
-                        }
-                    ]
-                };
 
-                const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+                // Call our serverless function instead of OpenAI directly
+                const response = await fetch('/api/analyze-speech', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${openaiApiKey}`
                     },
-                    body: JSON.stringify(chatRequest)
+                    body: JSON.stringify({
+                        audioData: base64Audio
+                    })
                 });
 
-                const data = await chatResponse.json();
+                const data = await response.json();
                 
-                // Same error handling as Swift
-                if (data.error) {
-                    throw new Error(`API Error: ${data.error.message}`);
+                if (!response.ok) {
+                    throw new Error(data.error || 'Analysis failed');
                 }
                 
-                const result = data.choices?.[0]?.message?.content;
-                if (!result) {
-                    throw new Error('No response content');
-                }
-                
-                showPopup(result);
+                showPopup(data.result);
                 status.textContent = '';
             } catch (error) {
                 console.error('ChatGPT error', error);
