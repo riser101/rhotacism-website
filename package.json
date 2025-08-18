@@ -1,5 +1,9 @@
 {
   "type": "module",
   "name": "rhotacism-website",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "fluent-ffmpeg": "^2.1.2"
+  }
 }
