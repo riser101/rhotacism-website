@@ -777,8 +777,8 @@ text-align: center;
             </div>
         </div>
     </div>
-    <!-- RecorderJS for true WAV recording -->
-    <script src="https://cdn.jsdelivr.net/npm/recordrtc@5.6.2/RecordRTC.min.js"></script>
+    <!-- MediaRecorder Polyfill and WAV support -->
+    <script src="https://cdn.jsdelivr.net/npm/audio-recorder-polyfill@0.4.1/index.js"></script>
     
     <script>
         let recorder;
@@ -796,34 +796,56 @@ text-align: center;
             window.scrollTo(0, document.body.scrollHeight);
         }
 
+        let mediaRecorder;
+        let audioChunks = [];
+        
+        // Register WAV polyfill for browsers that don't support it natively
+        if (!MediaRecorder.isTypeSupported('audio/wav')) {
+            window.MediaRecorder = window.AudioRecorderPolyfill;
+        }
+
         recordBtn.addEventListener('click', async () => {
-            if (recorder && recorder.getState() === 'recording') {
-                recorder.stopRecording(function() {
-                    const audioBlob = recorder.getBlob();
-                    recordBtn.textContent = 'Start Recording';
-                    status.textContent = 'Processing...';
-                    processAudio(audioBlob);
-                });
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                recordBtn.textContent = 'Start Recording';
+                status.textContent = 'Processing...';
             } else {
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    
-                    // Create RecordRTC recorder with WAV format
-                    recorder = new RecordRTC(stream, {
-                        type: 'audio',
-                        mimeType: 'audio/wav',
-                        sampleRate: 16000,
-                        numberOfAudioChannels: 1,
-                        timeSlice: 1000,
-                        desiredSampRate: 16000
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            sampleRate: 16000,
+                            channelCount: 1,
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: false
+                        } 
                     });
                     
-                    recorder.startRecording();
+                    // Use polyfill with explicit WAV format
+                    mediaRecorder = new MediaRecorder(stream, {
+                        mimeType: 'audio/wav',
+                        audioBitsPerSecond: 128000
+                    });
                     
+                    audioChunks = [];
+                    
+                    mediaRecorder.addEventListener('dataavailable', event => {
+                        if (event.data.size > 0) {
+                            audioChunks.push(event.data);
+                        }
+                    });
+
+                    mediaRecorder.addEventListener('stop', () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        stream.getTracks().forEach(track => track.stop());
+                        processAudio(audioBlob);
+                    });
+                    
+                    mediaRecorder.start();
                     recordBtn.textContent = 'Stop Recording';
                     status.textContent = 'Recording...';
                     
-                    console.log('Recording with RecordRTC WAV format');
+                    console.log('Recording with polyfill WAV format');
                 } catch (error) {
                     console.error('Error accessing microphone', error);
                     status.textContent = 'Microphone access denied.';
