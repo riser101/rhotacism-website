@@ -777,7 +777,9 @@ text-align: center;
             </div>
         </div>
     </div>
-    <!-- No external libraries - use built-in APIs -->
+    <!-- Extendable Media Recorder for true WAV support -->
+    <script src="https://cdn.jsdelivr.net/npm/extendable-media-recorder@9.2.8/build/extendable-media-recorder.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/extendable-media-recorder-wav-encoder@7.0.76/build/extendable-media-recorder-wav-encoder.umd.js"></script>
     
     <script>
         let recorder;
@@ -797,6 +799,22 @@ text-align: center;
 
         let mediaRecorder;
         let audioChunks = [];
+        let isRecorderReady = false;
+
+        // Initialize the extendable media recorder with WAV support
+        async function initializeRecorder() {
+            try {
+                await extendableMediaRecorder.register(await extendableMediaRecorderWavEncoder.connect());
+                isRecorderReady = true;
+                console.log('Extendable Media Recorder with WAV encoder initialized');
+            } catch (error) {
+                console.error('Failed to initialize WAV recorder:', error);
+                status.textContent = 'Failed to initialize audio recorder';
+            }
+        }
+
+        // Initialize when page loads
+        initializeRecorder();
 
         recordBtn.addEventListener('click', async () => {
             if (mediaRecorder && mediaRecorder.state === 'recording') {
@@ -805,20 +823,23 @@ text-align: center;
                 status.textContent = 'Processing...';
             } else {
                 try {
-                    // Simple audio request without complex constraints
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    
-                    // Try different formats in order of preference for OpenAI
-                    let options = {};
-                    if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-                        options.mimeType = 'audio/webm;codecs=opus';
-                    } else if (MediaRecorder.isTypeSupported('audio/webm')) {
-                        options.mimeType = 'audio/webm';
-                    } else {
-                        options = {}; // Use browser default
+                    if (!isRecorderReady) {
+                        status.textContent = 'Recorder not ready, please wait...';
+                        return;
                     }
+
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            sampleRate: 16000,
+                            channelCount: 1
+                        }
+                    });
                     
-                    mediaRecorder = new MediaRecorder(stream, options);
+                    // Use the extendable media recorder with WAV format
+                    mediaRecorder = new MediaRecorder(stream, {
+                        mimeType: 'audio/wav'
+                    });
+                    
                     audioChunks = [];
                     
                     mediaRecorder.addEventListener('dataavailable', event => {
@@ -828,7 +849,7 @@ text-align: center;
                     });
 
                     mediaRecorder.addEventListener('stop', () => {
-                        const audioBlob = new Blob(audioChunks, { type: options.mimeType || 'audio/webm' });
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                         stream.getTracks().forEach(track => track.stop());
                         processAudio(audioBlob);
                     });
@@ -837,7 +858,7 @@ text-align: center;
                     recordBtn.textContent = 'Stop Recording';
                     status.textContent = 'Recording...';
                     
-                    console.log('Recording with format:', options.mimeType || 'browser default');
+                    console.log('Recording with Extendable Media Recorder (WAV format)');
                 } catch (error) {
                     console.error('Error accessing microphone', error);
                     status.textContent = 'Error: ' + error.message;
