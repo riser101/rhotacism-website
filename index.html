@@ -889,8 +889,8 @@ text-align: center;
 
             try {
 
-                // Call our serverless function instead of OpenAI directly
-                const response = await fetch('/api/analyze-speech', {
+                // Call our GCP Cloud Function instead of Vercel
+                const response = await fetch('https://us-central1-detache-platform.cloudfunctions.net/analyzeSpeech', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
