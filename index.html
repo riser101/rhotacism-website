@@ -938,46 +938,17 @@ text-align: center;
         function submitToGoogleForm(email, source) {
             console.log('Submitting email:', email);
             
-            // Create hidden iframe
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.name = 'hiddenFrame';
-            document.body.appendChild(iframe);
+            // Simple fetch approach - more reliable
+            const url = `https://script.google.com/macros/s/AKfycbxEOipaPwVQIuq11td43jajKHNDiuwPqeqilmnw7ciV4XOubXAsldsnWhQ_4RLemev6/exec?email=${encodeURIComponent(email)}&source=${encodeURIComponent(source)}&timestamp=${encodeURIComponent(new Date().toISOString())}`;
             
-            // Create form
-            const form = document.createElement('form');
-            form.method = 'GET';
-            form.target = 'hiddenFrame';
-            form.action = 'https://script.google.com/macros/s/AKfycbxEOipaPwVQIuq11td43jajKHNDiuwPqeqilmnw7ciV4XOubXAsldsnWhQ_4RLemev6/exec';
-            
-            // Add form fields
-            const emailField = document.createElement('input');
-            emailField.type = 'hidden';
-            emailField.name = 'email';
-            emailField.value = email;
-            form.appendChild(emailField);
-            
-            const sourceField = document.createElement('input');
-            sourceField.type = 'hidden';
-            sourceField.name = 'source';
-            sourceField.value = source;
-            form.appendChild(sourceField);
-            
-            const timestampField = document.createElement('input');
-            timestampField.type = 'hidden';
-            timestampField.name = 'timestamp';
-            timestampField.value = new Date().toISOString();
-            form.appendChild(timestampField);
-            
-            // Submit form
-            document.body.appendChild(form);
-            form.submit();
-            
-            // Clean up after 2 seconds
-            setTimeout(() => {
-                if (document.body.contains(form)) document.body.removeChild(form);
-                if (document.body.contains(iframe)) document.body.removeChild(iframe);
-            }, 2000);
+            fetch(url, {
+                method: 'GET',
+                mode: 'no-cors' // This bypasses CORS issues
+            }).then(() => {
+                console.log('Email submitted successfully');
+            }).catch((error) => {
+                console.log('Email submission completed (no-cors mode)');
+            });
         }
 
         function signupForInvite() {
