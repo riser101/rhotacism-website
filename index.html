@@ -938,12 +938,19 @@ text-align: center;
         function submitToGoogleForm(email, source) {
             console.log('Submitting email:', email);
             
-            // Simple fetch approach - more reliable
-            const url = `https://script.google.com/macros/s/AKfycbxEOipaPwVQIuq11td43jajKHNDiuwPqeqilmnw7ciV4XOubXAsldsnWhQ_4RLemev6/exec?email=${encodeURIComponent(email)}&source=${encodeURIComponent(source)}&timestamp=${encodeURIComponent(new Date().toISOString())}`;
+            const data = {
+                email: email,
+                source: source,
+                timestamp: new Date().toISOString()
+            };
             
-            fetch(url, {
-                method: 'GET',
-                mode: 'no-cors' // This bypasses CORS issues
+            fetch('https://script.google.com/macros/s/AKfycbxEOipaPwVQIuq11td43jajKHNDiuwPqeqilmnw7ciV4XOubXAsldsnWhQ_4RLemev6/exec', {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
             }).then(() => {
                 console.log('Email submitted successfully');
             }).catch((error) => {
