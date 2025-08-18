@@ -777,9 +777,7 @@ text-align: center;
             </div>
         </div>
     </div>
-    <!-- Extendable Media Recorder for true WAV support -->
-    <script src="https://unpkg.com/extendable-media-recorder"></script>
-    <script src="https://unpkg.com/extendable-media-recorder-wav-encoder"></script>
+    <!-- Use native MediaRecorder for MP4 audio -->
     
     <script>
         let recorder;
@@ -801,47 +799,37 @@ text-align: center;
         let audioChunks = [];
         let isRecorderReady = false;
 
-        // Initialize the extendable media recorder with WAV support
+        // Initialize native MediaRecorder with MP4 support
         async function initializeRecorder() {
             try {
-                console.log('🔧 Starting WAV recorder initialization...');
-                console.log('🔧 Available globals:', Object.keys(window).filter(k => k.includes('extendable')));
+                console.log('🔧 Initializing native MediaRecorder for MP4...');
                 
-                // According to the docs, the libraries should expose global functions
-                const register = window.extendableMediaRecorder?.register || window.register;
-                const connect = window.extendableMediaRecorderWavEncoder?.connect || window.connect;
+                // Test microphone access and MP4 support
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 
-                console.log('🔧 register function:', typeof register);
-                console.log('🔧 connect function:', typeof connect);
-                
-                if (typeof register !== 'function') {
-                    throw new Error('register function not found');
-                }
-                if (typeof connect !== 'function') {
-                    throw new Error('connect function not found');
+                // Check if MP4 is supported
+                const mimeType = 'audio/mp4';
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    console.log('MP4 not supported, falling back to WebM');
+                    throw new Error('MP4 recording not supported');
                 }
                 
-                console.log('🔧 Connecting WAV encoder...');
-                const port = await connect();
-                console.log('🔧 WAV encoder port connected:', port);
-                
-                console.log('🔧 Registering encoder...');
-                await register(port);
+                // Stop the test stream
+                stream.getTracks().forEach(track => track.stop());
                 
                 isRecorderReady = true;
                 status.textContent = '';
-                console.log('✅ Extendable Media Recorder with WAV encoder initialized successfully');
+                console.log('✅ Native MediaRecorder ready for MP4 recording');
             } catch (error) {
-                console.error('❌ Failed to initialize WAV recorder:', error);
-                console.error('❌ Error stack:', error.stack);
-                status.textContent = 'Failed to initialize audio recorder: ' + error.message;
-                throw error;
+                console.error('❌ Failed to initialize recorder:', error);
+                status.textContent = 'Recorder initialization failed: ' + error.message;
+                isRecorderReady = false;
             }
         }
 
         // Initialize when page loads
         window.addEventListener('load', () => {
-            console.log('🚀 Page loaded, starting recorder initialization...');
+            console.log('🚀 Page loaded, initializing native MediaRecorder...');
             initializeRecorder();
         });
 
@@ -864,9 +852,9 @@ text-align: center;
                         }
                     });
                     
-                    // Use the extendable media recorder with WAV format
+                    // Use native MediaRecorder with MP4 format
                     mediaRecorder = new MediaRecorder(stream, {
-                        mimeType: 'audio/wav'
+                        mimeType: 'audio/mp4'
                     });
                     
                     audioChunks = [];
@@ -878,7 +866,7 @@ text-align: center;
                     });
 
                     mediaRecorder.addEventListener('stop', () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/mp4' });
                         stream.getTracks().forEach(track => track.stop());
                         processAudio(audioBlob);
                     });
@@ -887,7 +875,7 @@ text-align: center;
                     recordBtn.textContent = 'Stop Recording';
                     status.textContent = 'Recording...';
                     
-                    console.log('Recording with Extendable Media Recorder (WAV format)');
+                    console.log('Recording with native MediaRecorder (MP4 format)');
                 } catch (error) {
                     console.error('Error accessing microphone', error);
                     status.textContent = 'Error: ' + error.message;

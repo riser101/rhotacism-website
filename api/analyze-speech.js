@@ -28,7 +28,7 @@ export default async function handler(req, res) {
                             type: "input_audio",
                             input_audio: {
                                 data: audioData,
-                                format: "wav"
+                                format: "mp4"
                             }
                         }
                     ]
