@@ -801,7 +801,9 @@ text-align: center;
             } else {
                 navigator.mediaDevices.getUserMedia({ audio: true })
                     .then(stream => {
-                        mediaRecorder = new MediaRecorder(stream);
+                        mediaRecorder = new MediaRecorder(stream, {
+                            mimeType: 'audio/wav'
+                        });
                         mediaRecorder.start();
                         recordBtn.textContent = 'Stop Recording';
                         status.textContent = 'Recording...';
@@ -811,7 +813,7 @@ text-align: center;
                         });
 
                         mediaRecorder.addEventListener('stop', () => {
-                            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                             audioChunks = [];
                             processAudio(audioBlob);
                         });
