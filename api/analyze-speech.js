@@ -1,35 +1,3 @@
-import ffmpeg from 'fluent-ffmpeg';
-import ffmpegStatic from 'ffmpeg-static';
-import { Buffer } from 'buffer';
-import { Readable } from 'stream';
-
-// Set ffmpeg path
-ffmpeg.setFfmpegPath(ffmpegStatic);
-
-function convertWebmToMp3(inputBuffer) {
-    return new Promise((resolve, reject) => {
-        const chunks = [];
-        const inputStream = new Readable({
-            read() {}
-        });
-        inputStream.push(inputBuffer);
-        inputStream.push(null);
-
-        ffmpeg(inputStream)
-            .inputFormat('webm')
-            .audioCodec('mp3')
-            .format('mp3')
-            .on('error', reject)
-            .on('end', () => {
-                resolve(Buffer.concat(chunks));
-            })
-            .pipe()
-            .on('data', (chunk) => {
-                chunks.push(chunk);
-            });
-    });
-}
-
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -41,11 +9,6 @@ export default async function handler(req, res) {
         if (!audioData) {
             return res.status(400).json({ error: 'Audio data required' });
         }
-
-        // Convert webm to mp3
-        const inputBuffer = Buffer.from(audioData, 'base64');
-        const convertedAudio = await convertWebmToMp3(inputBuffer);
-        const convertedBase64 = convertedAudio.toString('base64');
 
         const chatRequest = {
             model: 'gpt-4o-audio-preview',
@@ -64,7 +27,7 @@ export default async function handler(req, res) {
                         {
                             type: "input_audio",
                             input_audio: {
-                                data: convertedBase64,
+                                data: audioData,
                                 format: "mp3"
                             }
                         }
