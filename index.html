@@ -845,8 +845,15 @@ text-align: center;
                         }
                     });
                     
-                    // Use native MediaRecorder with browser's default format
-                    mediaRecorder = new MediaRecorder(stream);
+                    // Try to force WebM format for better compatibility
+                    const options = { mimeType: 'audio/webm' };
+                    if (MediaRecorder.isTypeSupported('audio/webm')) {
+                        mediaRecorder = new MediaRecorder(stream, options);
+                        console.log('Using WebM format');
+                    } else {
+                        mediaRecorder = new MediaRecorder(stream);
+                        console.log('Using browser default format');
+                    }
                     
                     audioChunks = [];
                     
