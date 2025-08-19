@@ -8,6 +8,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&#x26;family=Inter:wght@300;400;500;600;700&#x26;display=swap" rel="stylesheet">
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-584ZMQTPSE');
+    </script>
     <style>
         * {
             margin: 0;
@@ -811,6 +821,12 @@ text-align: center;
         // No API key needed - using serverless function
 
         function startAssessment() {
+            // Track assessment start event
+            gtag('event', 'start_assessment', {
+                event_category: 'engagement',
+                event_label: 'free_assessment_button'
+            });
+            
             assessmentSection.style.display = 'block';
             window.scrollTo(0, document.body.scrollHeight);
         }
@@ -847,10 +863,22 @@ text-align: center;
 
         recordBtn.addEventListener('click', async () => {
             if (mediaRecorder && mediaRecorder.state === 'recording') {
+                // Track recording completion
+                gtag('event', 'recording_completed', {
+                    event_category: 'engagement',
+                    event_label: 'audio_recording'
+                });
+                
                 mediaRecorder.stop();
                 recordBtn.textContent = 'Start Recording';
                 status.textContent = 'Processing...';
             } else {
+                // Track recording start
+                gtag('event', 'recording_started', {
+                    event_category: 'engagement',
+                    event_label: 'audio_recording'
+                });
+                
                 try {
                     // Request microphone permission only when user clicks record
                     const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -986,6 +1014,12 @@ text-align: center;
                 alert('Please enter a valid email address');
                 return;
             }
+
+            // Track email signup conversion
+            gtag('event', 'email_signup', {
+                event_category: 'conversion',
+                event_label: 'early_access_signup'
+            });
 
             submitToGoogleForm(email, 'speech_analysis_popup');
             alert('Thanks! You\'re on the list for early access.');
