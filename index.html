@@ -52,6 +52,26 @@ transform: translateY(-2px);
 box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
 }
 
+.btn-mega {
+font-size: 20px !important;
+padding: 20px 40px !important;
+font-weight: 700 !important;
+border-radius: 12px !important;
+box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4) !important;
+animation: pulse 2s infinite;
+}
+
+.btn-mega:hover {
+transform: translateY(-3px) !important;
+box-shadow: 0 12px 30px rgba(255, 152, 0, 0.5) !important;
+}
+
+@keyframes pulse {
+0% { box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4); }
+50% { box-shadow: 0 8px 35px rgba(255, 152, 0, 0.6); }
+100% { box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4); }
+}
+
 .btn-secondary {
 background: rgba(255, 255, 255, 0.15);
 color: white;
@@ -590,7 +610,7 @@ text-align: center;
 
             <div class="hero-cta-container">
                 <div class="cta-buttons">
-                    <button class="btn btn-primary" onclick="startAssessment()">Start Free Assessment</button>
+                    <button class="btn btn-primary btn-mega" onclick="startAssessment()">🎯 Start Free Assessment Now</button>
                     <a href="#features" class="btn btn-secondary">See How It Works</a>
                 </div>
                 <p class="urgency-text">✓ No therapist appointments needed • ✓ Practice anytime, anywhere</p>
@@ -692,8 +712,8 @@ text-align: center;
             <h2 class="cta-title">Ready to Finally Fix Your R Sound?</h2>
             <p class="cta-subtitle">Join thousands who've already transformed their speech. Start with a free assessment to see exactly what needs work.</p>
             
-            <button class="btn" style="background: white; color: #FF9800; font-size: 18px; padding: 18px 36px;" onclick="startAssessment()">
-                Start Free Assessment Now
+            <button class="btn btn-mega" style="background: white; color: #FF9800;" onclick="startAssessment()">
+                🎯 Start Free Assessment Now
             </button>
 
             <div class="risk-free">
@@ -799,30 +819,29 @@ text-align: center;
         let audioChunks = [];
         let isRecorderReady = false;
 
-        // Initialize native MediaRecorder with browser's default format
+        // Initialize native MediaRecorder without requesting permissions
         async function initializeRecorder() {
             try {
-                console.log('🔧 Initializing native MediaRecorder...');
+                console.log('🔧 Checking MediaRecorder support...');
                 
-                // Test microphone access
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                
-                // Stop the test stream
-                stream.getTracks().forEach(track => track.stop());
+                // Just check if MediaRecorder is supported, don't request permissions yet
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('MediaRecorder not supported');
+                }
                 
                 isRecorderReady = true;
                 status.textContent = '';
-                console.log('✅ Native MediaRecorder ready with browser default format');
+                console.log('✅ MediaRecorder supported');
             } catch (error) {
-                console.error('❌ Failed to initialize recorder:', error);
-                status.textContent = 'Recorder initialization failed: ' + error.message;
+                console.error('❌ MediaRecorder not supported:', error);
+                status.textContent = 'Audio recording not supported on this device';
                 isRecorderReady = false;
             }
         }
 
-        // Initialize when page loads
+        // Initialize when page loads (no permission request)
         window.addEventListener('load', () => {
-            console.log('🚀 Page loaded, initializing native MediaRecorder...');
+            console.log('🚀 Page loaded, checking MediaRecorder support...');
             initializeRecorder();
         });
 
@@ -833,11 +852,7 @@ text-align: center;
                 status.textContent = 'Processing...';
             } else {
                 try {
-                    if (!isRecorderReady) {
-                        status.textContent = 'Recorder not ready, please wait...';
-                        return;
-                    }
-
+                    // Request microphone permission only when user clicks record
                     const stream = await navigator.mediaDevices.getUserMedia({ 
                         audio: {
                             sampleRate: 16000,
