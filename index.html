@@ -584,11 +584,254 @@ font-size: 12px;
 text-align: center;
 }
 }
+
+/* Navigation Styles - Transparent Design */
+.navbar {
+background: transparent;
+backdrop-filter: blur(8px);
+padding: 20px 0;
+position: fixed;
+top: 0;
+left: 0;
+right: 0;
+z-index: 1000;
+transition: all 0.3s ease, transform 0.3s ease;
+}
+
+.navbar.scrolled {
+background: transparent;
+backdrop-filter: blur(20px);
+box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+padding: 16px 0;
+}
+
+.navbar.hidden {
+transform: translateY(-100%);
+}
+
+.navbar.scrolled .nav-logo {
+color: white;
+}
+
+.navbar.scrolled .nav-menu a {
+color: rgba(255, 255, 255, 0.95);
+}
+
+.navbar.scrolled .nav-menu a:hover {
+color: white;
+}
+
+.nav-container {
+max-width: 1200px;
+margin: 0 auto;
+padding: 0 24px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.nav-logo {
+font-family: 'Quicksand', sans-serif;
+font-size: 28px;
+font-weight: 700;
+color: white;
+text-decoration: none;
+position: relative;
+transition: all 0.3s ease;
+text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.nav-logo::after {
+content: '';
+position: absolute;
+bottom: -2px;
+left: 0;
+right: 0;
+height: 2px;
+background: linear-gradient(90deg, transparent, #FF9800, transparent);
+opacity: 0;
+transition: opacity 0.3s ease;
+}
+
+.nav-logo:hover::after {
+opacity: 1;
+}
+
+.nav-menu {
+display: flex;
+list-style: none;
+margin: 0;
+padding: 0;
+gap: 40px;
+align-items: center;
+}
+
+.nav-menu li {
+margin: 0;
+}
+
+.nav-menu a {
+text-decoration: none;
+color: rgba(255, 255, 255, 0.95);
+font-weight: 500;
+font-size: 16px;
+letter-spacing: 0.3px;
+transition: all 0.3s ease;
+position: relative;
+padding: 10px 0;
+text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.nav-menu a:hover {
+color: white;
+transform: translateY(-1px);
+}
+
+.nav-menu a.nav-cta {
+background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+color: white;
+padding: 12px 24px;
+border-radius: 50px;
+font-weight: 600;
+border: 1px solid rgba(255, 152, 0, 0.3);
+position: relative;
+overflow: hidden;
+}
+
+.nav-menu a.nav-cta::before {
+content: '';
+position: absolute;
+top: 0;
+left: -100%;
+width: 100%;
+height: 100%;
+background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+transition: left 0.6s;
+}
+
+.nav-menu a.nav-cta:hover {
+color: white;
+transform: translateY(-3px) scale(1.05);
+box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+border-color: #FFB74D;
+}
+
+.nav-menu a.nav-cta:hover::before {
+left: 100%;
+}
+
+/* Mobile menu styles - Enhanced */
+.nav-toggle {
+display: none;
+flex-direction: column;
+cursor: pointer;
+padding: 8px;
+border-radius: 6px;
+transition: all 0.3s ease;
+}
+
+.nav-toggle:hover {
+background: rgba(255, 152, 0, 0.1);
+}
+
+.nav-toggle span {
+width: 25px;
+height: 3px;
+background: linear-gradient(90deg, #FFB74D, #FF9800);
+margin: 3px 0;
+border-radius: 2px;
+transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 768px) {
+.nav-menu {
+position: fixed;
+top: 84px;
+left: -100%;
+flex-direction: column;
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(20px);
+width: 100%;
+text-align: center;
+transition: all 0.3s ease;
+box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+padding: 30px 0;
+gap: 24px;
+}
+
+.nav-menu a {
+color: #333 !important;
+text-shadow: none !important;
+}
+
+.nav-menu.active {
+left: 0;
+}
+
+.nav-menu a {
+font-size: 18px;
+padding: 12px 20px;
+border-radius: 8px;
+margin: 0 20px;
+transition: all 0.3s ease;
+}
+
+.nav-menu a:hover {
+background: rgba(255, 152, 0, 0.1);
+}
+
+.nav-toggle {
+display: flex;
+}
+
+.nav-toggle.active span:nth-child(1) {
+transform: rotate(-45deg) translate(-5px, 6px);
+background: linear-gradient(90deg, #FF9800, #E65100);
+}
+
+.nav-toggle.active span:nth-child(2) {
+opacity: 0;
+}
+
+.nav-toggle.active span:nth-child(3) {
+transform: rotate(45deg) translate(-5px, -6px);
+background: linear-gradient(90deg, #FF9800, #E65100);
+}
+}
+
+/* Adjust hero section for fixed navbar */
+.hero {
+padding-top: 120px;
+}
+
+@media (max-width: 768px) {
+.hero {
+padding-top: 100px;
+}
+}
 </style>
 
 
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">The Rollr Academy</a>
+            <ul class="nav-menu">
+                <li><a href="#">Home</a></li>
+                <li><a href="rhotacism-guide.html">Rhotacism Guide</a></li>
+                <li><a href="#assessment" onclick="startAssessment()">Practice Tools</a></li>
+                <li><a href="#assessment" onclick="startAssessment()" class="nav-cta">Start Assessment</a></li>
+            </ul>
+            <div class="nav-toggle" onclick="toggleMobileMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
     <section class="hero">
         <div class="hero::before"></div>
         <div class="hero-content">
@@ -1025,6 +1268,40 @@ text-align: center;
             alert('Thanks! You\'re on the list for early access.');
             closePopup();
         }
+
+        // Mobile menu toggle function
+        function toggleMobileMenu() {
+            const navMenu = document.querySelector('.nav-menu');
+            const navToggle = document.querySelector('.nav-toggle');
+            
+            navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        }
+
+        // Transparent navbar scroll effect with hide/show
+        let lastScrollTop = 0;
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            const currentScroll = window.scrollY;
+            
+            // Add scrolled state when past hero section
+            if (currentScroll > 100) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+            
+            // Hide navbar when scrolling down, show when scrolling up
+            if (currentScroll > lastScrollTop && currentScroll > 200) {
+                // Scrolling down
+                navbar.classList.add('hidden');
+            } else if (currentScroll < lastScrollTop) {
+                // Scrolling up
+                navbar.classList.remove('hidden');
+            }
+            
+            lastScrollTop = currentScroll;
+        });
     </script>
 </body>
 </html>
