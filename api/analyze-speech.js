@@ -22,7 +22,7 @@ export default async function handler(req, res) {
                     content: [
                         {
                             type: "text",
-                            text: "Please analyze this speech sample for R sound patterns only. I said these words: red, car, tree, around, forest, problem, girl, world.\n\nProvide ONLY:\n\n## Word-by-Word Analysis\nFor each word, describe what you hear for the R sound.\n\n## Substitution Pattern Summary\nList the consistent patterns you observed.\n\nFormat with proper markdown headers (##) and bullet points (-). Do not include any recommendations, treatment suggestions, or severity ratings."
+                            text: "Please analyze this speech sample for R sound patterns only. I said these words: red, car, tree, around, forest, problem, girl, world.\n\nProvide ONLY:\n\n## The Rollr Academy Word-by-Word Analysis\nFor each word, describe what you hear for the R sound.\n\n## Substitution Pattern Summary\nList the consistent patterns you observed.\n\nFormat with proper markdown headers (##) and bullet points (-). Do not include any recommendations, treatment suggestions, or severity ratings."
                         },
                         {
                             type: "input_audio",
