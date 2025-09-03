@@ -437,6 +437,127 @@ color: #666;
 line-height: 1.6;
 padding-right: 30px;
 }
+/* Todo List Section */
+.todo-section {
+padding: 80px 0;
+background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.todo-container {
+max-width: 600px;
+margin: 0 auto;
+background: white;
+border-radius: 16px;
+padding: 40px;
+box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.todo-header {
+text-align: center;
+margin-bottom: 30px;
+}
+
+.todo-input-section {
+display: flex;
+gap: 10px;
+margin-bottom: 30px;
+}
+
+.todo-input {
+flex: 1;
+padding: 12px 16px;
+border: 2px solid #e9ecef;
+border-radius: 8px;
+font-size: 16px;
+transition: border-color 0.3s ease;
+}
+
+.todo-input:focus {
+outline: none;
+border-color: #FF9800;
+}
+
+.add-todo-btn {
+padding: 12px 20px;
+background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+color: white;
+border: none;
+border-radius: 8px;
+font-weight: 600;
+cursor: pointer;
+transition: transform 0.2s ease;
+}
+
+.add-todo-btn:hover {
+transform: translateY(-2px);
+}
+
+.todo-list {
+list-style: none;
+padding: 0;
+margin: 0;
+}
+
+.todo-item {
+display: flex;
+align-items: center;
+padding: 16px;
+background: #f8f9fa;
+border-radius: 8px;
+margin-bottom: 10px;
+transition: all 0.3s ease;
+border-left: 4px solid #FF9800;
+}
+
+.todo-item.completed {
+opacity: 0.7;
+background: #e8f5e8;
+border-left-color: #28a745;
+}
+
+.todo-item.completed .todo-text {
+text-decoration: line-through;
+color: #6c757d;
+}
+
+.todo-checkbox {
+margin-right: 16px;
+width: 20px;
+height: 20px;
+cursor: pointer;
+}
+
+.todo-text {
+flex: 1;
+font-size: 16px;
+color: #333;
+}
+
+.todo-delete {
+background: #dc3545;
+color: white;
+border: none;
+padding: 8px 12px;
+border-radius: 6px;
+cursor: pointer;
+font-size: 12px;
+transition: background-color 0.2s ease;
+}
+
+.todo-delete:hover {
+background: #c82333;
+}
+
+.todo-stats {
+display: flex;
+justify-content: space-between;
+margin-top: 20px;
+padding-top: 20px;
+border-top: 1px solid #e9ecef;
+font-size: 14px;
+color: #6c757d;
+}
+
 /* Assessment Section */
 .assessment-section {
 display: none;
@@ -617,9 +738,9 @@ color: white;
 color: rgba(255, 255, 255, 0.95);
 }
 
-.navbar.scrolled .nav-menu a:hover {
+/* .navbar.scrolled .nav-menu a:hover {
 color: white;
-}
+} */
 
 .nav-container {
 max-width: 1200px;
@@ -653,9 +774,9 @@ opacity: 0;
 transition: opacity 0.3s ease;
 }
 
-.nav-logo:hover::after {
-opacity: 1;
-}
+    /* .nav-logo:hover::after {
+    opacity: 1;
+    } */
 
 .nav-menu {
 display: flex;
@@ -682,10 +803,9 @@ padding: 10px 0;
 text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-.nav-menu a:hover {
+/* .nav-menu a:hover {
 color: white;
-transform: translateY(-1px);
-}
+} */
 
 .nav-menu a.nav-cta {
 background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
@@ -709,16 +829,16 @@ background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transp
 transition: left 0.6s;
 }
 
-.nav-menu a.nav-cta:hover {
+/* .nav-menu a.nav-cta:hover {
 color: white;
 transform: translateY(-3px) scale(1.05);
 box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
 border-color: #FFB74D;
-}
+} */
 
-.nav-menu a.nav-cta:hover::before {
+/* .nav-menu a.nav-cta:hover::before {
 left: 100%;
-}
+} */
 
 /* Mobile menu styles - Enhanced */
 .nav-toggle {
@@ -730,9 +850,9 @@ border-radius: 6px;
 transition: all 0.3s ease;
 }
 
-.nav-toggle:hover {
+/* .nav-toggle:hover {
 background: rgba(255, 152, 0, 0.1);
-}
+} */
 
 .nav-toggle span {
 width: 25px;
@@ -776,9 +896,9 @@ margin: 0 20px;
 transition: all 0.3s ease;
 }
 
-.nav-menu a:hover {
+/* .nav-menu a:hover {
 background: rgba(255, 152, 0, 0.1);
-}
+} */
 
 .nav-toggle {
 display: flex;
@@ -819,7 +939,7 @@ padding-top: 100px;
         <div class="nav-container">
             <a href="#" class="nav-logo">The Rollr Academy</a>
             <ul class="nav-menu">
-                <li><a href="#">Home</a></li>
+                <li><a href="index.html">Home</a></li>
                 <li><a href="rhotacism-guide.html">Rhotacism Guide</a></li>
                 <!-- <li><a href="#assessment" onclick="startAssessment()">Practice Tools</a></li> -->
                 <li><a href="#assessment" onclick="startAssessment()" class="nav-cta">Start Assessment</a></li>
@@ -1027,6 +1147,20 @@ padding-top: 100px;
         </div>
     </section>
 
+    <!-- Footer Section -->
+    <footer style="background: #1a1a1a; color: white; padding: 40px 0; text-align: center;">
+        <div class="container">
+            <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; flex-wrap: wrap;">
+                <a href="terms.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Terms of Use</a>
+                <a href="privacy.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Privacy Policy</a>
+                <a href="rhotacism-guide.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Rhotacism Guide</a>
+            </div>
+            <div style="font-size: 14px; color: rgba(255, 255, 255, 0.6);">
+                © 2024 The Rollr Academy. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
     <!-- Assessment Modal/Section -->
     <div class="assessment-section" id="assessment" style="display: none; padding: 40px 20px; background: #f5f5f5; text-align: center;">
         <div class="container">
@@ -1102,6 +1236,7 @@ padding-top: 100px;
         window.addEventListener('load', () => {
             console.log('🚀 Page loaded, checking MediaRecorder support...');
             initializeRecorder();
+            
         });
 
         recordBtn.addEventListener('click', async () => {
