@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found - The Rollr Academy</title>
+    <link rel="icon" type="image/jpeg" href="instagram-icon.jpg">
+    <link rel="canonical" href="https://www.rhotacismtherapy.com/404.html">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(to bottom, 
+                #000000 0%, 
+                #0A0A0A 12%,
+                #1A1A1A 20%,
+                #2D2D00 30%,
+                #4A4A00 40%,
+                #666600 47%,
+                #4A6B2D 53%,
+                #3D5A25 57%,
+                #2F4A1D 61%,
+                #213A15 67%,
+                #132A0D 73%,
+                #0B2007 80%,
+                #041505 87%,
+                #020A02 92%,
+                #010502 96%,
+                #000000 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 72px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #FF9800, #FFB74D);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: white;
+        }
+
+        p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .cta-button {
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+            color: white;
+            padding: 16px 32px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin: 8px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+        }
+
+        .links {
+            margin-top: 40px;
+        }
+
+        .links a {
+            color: #FFB74D;
+            text-decoration: none;
+            margin: 0 16px;
+            font-weight: 500;
+        }
+
+        .links a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 48px; }
+            h2 { font-size: 24px; }
+            p { font-size: 16px; }
+        }
+    </style>
+
+    <script>
+        // Redirect common URLs
+        function handleRedirects() {
+            const path = window.location.pathname.toLowerCase();
+            
+            if (path.includes('/cal')) {
+                window.location.href = '/support.html';
+                return;
+            }
+            
+            if (path.includes('.php')) {
+                window.location.href = '/';
+                return;
+            }
+        }
+
+        window.addEventListener('load', handleRedirects);
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>404</h1>
+        <h2>Page Not Found</h2>
+        <p>Sorry, the page you're looking for doesn't exist. But don't worry - we can help you find what you need!</p>
+        
+        <a href="/" class="cta-button">Go Home</a>
+        <a href="/rhotacism-guide.html" class="cta-button">Browse Guides</a>
+        
+        <div class="links">
+            <a href="/support.html">Support</a>
+            <a href="/guide/rhotacism.html">Main Guide</a>
+            <a href="/guide/how-to-fix-rhotacism.html">How to Fix</a>
+        </div>
+    </div>
+</body>
+</html>

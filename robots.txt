@@ -2,12 +2,14 @@ User-agent: *
 Allow: /
 
 # Sitemaps
-Sitemap: https://rhotacismtherapy.com/sitemap.xml
+Sitemap: https://www.rhotacismtherapy.com/sitemap.xml
 
 # Block access to sensitive files
 Disallow: /gcp-function/
 Disallow: *.sh$
 Disallow: /api/
+Disallow: *.php$
+Disallow: /cal/
 
 # Allow important directories
 Allow: /guide/
