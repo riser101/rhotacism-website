@@ -372,10 +372,10 @@ padding: 100px 0;
 
 .features-grid {
 display: grid;
-grid-template-columns: repeat(2, 1fr);
-gap: 60px 40px;
+grid-template-columns: repeat(4, 1fr);
+gap: 30px;
 margin-top: 60px;
-max-width: 900px;
+max-width: 1200px;
 margin-left: auto;
 margin-right: auto;
 }
@@ -709,8 +709,8 @@ grid-template-columns: 1fr;
 gap: 30px;
 }
 .features-grid {
-grid-template-columns: 1fr;
-gap: 40px;
+grid-template-columns: repeat(2, 1fr);
+gap: 30px;
 }
 .feature-number {
 width: 50px;
@@ -759,8 +759,8 @@ gap: 12px;
 padding: 12px 16px;
 }
 .features-grid {
-grid-template-columns: 1fr;
-gap: 30px;
+grid-template-columns: repeat(2, 1fr);
+gap: 20px;
 }
 .container {
 padding: 0 16px;
@@ -1036,6 +1036,15 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg"]:hover {
     transform: scale(1.1);
 }
 
+img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"] {
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
+    transform: scale(1.1);
+}
+
 /* Testimonials Auto-Scroll Animation */
 @keyframes autoScroll {
     0% {
@@ -1253,7 +1262,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg"]:hover {
             <div style="text-align: center; margin-top: 60px;">
                 <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'features_section' });">
                     <img src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg" 
-                         alt="Download on the App Store" style="height: 60px;">
+                         alt="Download on the App Store" style="height: 80px;">
                 </a>
             </div>
         </div>
