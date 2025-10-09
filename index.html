@@ -383,6 +383,11 @@ margin-right: auto;
 .feature-item {
 text-align: center;
 padding: 30px 20px;
+display: flex;
+flex-direction: column;
+align-items: center;
+height: 100%;
+min-height: 300px;
 }
 
 .feature-number {
@@ -395,18 +400,27 @@ line-height: 60px;
 font-size: 24px;
 font-weight: 700;
 margin-bottom: 20px;
+flex-shrink: 0;
 }
 
 .feature-title {
 font-size: 22px;
 font-weight: 600;
 margin-bottom: 16px;
+flex-shrink: 0;
+min-height: 60px;
+display: flex;
+align-items: center;
+justify-content: center;
 }
 
 .feature-description {
 color: rgba(255, 255, 255, 0.8);
 line-height: 1.6;
 font-size: 16px;
+flex-grow: 1;
+display: flex;
+align-items: flex-start;
 }
 
 .benefit-cta {
@@ -1074,11 +1088,13 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         overflow-y: visible !important;
         -webkit-overflow-scrolling: touch;
         border-radius: 16px;
+        direction: rtl;
     }
     
     .comparison table {
         min-width: 700px;
         font-size: 14px;
+        direction: ltr;
     }
     
     .comparison th,
@@ -1380,7 +1396,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                 <div class="feature-item">
                     <div class="feature-number">4</div>
                     <h3 class="feature-title" style="color: #333;">Real-World Application</h3>
-                    <p class="feature-description" style="color: #666;">Practice with tongue twisters, reading passages, and conversations to ensure natural speech patterns.</p>
+                    <p class="feature-description" style="color: #666;">Practice with tongue twisters, reading passages, and conversations to ensure natural speech patterns. Apply your skills in real-world scenarios.</p>
                 </div>
             </div>
             
