@@ -1045,6 +1045,28 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     transform: scale(1.1);
 }
 
+/* Custom App Store Button */
+.custom-app-store-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+    color: white;
+    padding: 16px 32px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 18px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+    border: none;
+}
+
+.custom-app-store-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(255, 152, 0, 0.5);
+    text-decoration: none;
+    color: white;
+}
+
 /* Testimonials Auto-Scroll Animation */
 @keyframes autoScroll {
     0% {
@@ -1178,7 +1200,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                         <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" 
                              alt="Download on the App Store" style="height: 68px;">
                     </a>
-                    <a class="btn btn-secondary" style="height: 68px; display: flex; align-items: center; justify-content: center; padding: 20px 40px;">See How It Works</a>
+                    <a href="#features" class="btn btn-secondary" style="height: 68px; display: flex; align-items: center; justify-content: center; padding: 20px 40px;">See How It Works</a>
                     <div class="nav-toggle">
                         <span></span>
                         <span></span>
@@ -1243,9 +1265,8 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                 <div style="text-align: center; margin-top: 40px;">
                     <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'comparison_section' });">
                         <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" 
-                             alt="Download on the App Store" style="height: 60px;">
+                             alt="Download on the App Store" style="height: 80px;">
                     </a>
-                    <p style="color: #666; font-size: 14px; margin-top: 16px;">✓ Start your free assessment today</p>
                 </div>
             </div>
         </div>
@@ -1506,6 +1527,13 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                         Yes. You record weekly progress samples, and our AI analyzes your pronunciation patterns, identifies improvements, and provides specific feedback on what to focus on next.
                     </div>
                 </div>
+            </div>
+            
+            <!-- App Store CTA -->
+            <div style="text-align: center; margin-top: 60px;">
+                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="custom-app-store-btn" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'faq_section' });">
+                    Start Your Free Program Now
+                </a>
             </div>
         </div>
     </section>
