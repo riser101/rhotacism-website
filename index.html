@@ -1070,8 +1070,10 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 /* Responsive Table for Mobile */
 @media (max-width: 768px) {
     .comparison .container > div:last-child > div {
-        overflow-x: auto;
+        overflow-x: auto !important;
+        overflow-y: visible !important;
         -webkit-overflow-scrolling: touch;
+        border-radius: 16px;
     }
     
     .comparison table {
