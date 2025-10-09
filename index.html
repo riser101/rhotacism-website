@@ -144,7 +144,7 @@ padding: 80px 0;
 .mb-6 { margin-bottom: 3rem; }
 /* Hero Section */
 .hero {
-    
+
 background: linear-gradient(
 to bottom,
 #000000 0%,
@@ -207,6 +207,16 @@ text-transform: uppercase;
 letter-spacing: 0.5px;
 font-weight: 600;
 }
+
+.urgency-text {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.85);
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
 .hero::before {
 content: '';
 position: absolute;
@@ -261,11 +271,11 @@ flex-wrap: wrap;
 justify-content: center;
 }
 
-.urgency-text {
+/* .urgency-text {
 font-size: 14px;
 color: rgba(255, 255, 255, 0.7);
 font-style: italic;
-}
+} */
 /* Benefits Section */
 .benefits {
 background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
@@ -284,14 +294,16 @@ background: white;
 padding: 40px 30px;
 border-radius: 16px;
 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-border: 1px solid rgba(255, 152, 0, 0.1);
-transition: transform 0.3s ease, box-shadow 0.3s ease;
+border: 2px solid transparent;
+transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 text-align: center;
+position: relative;
 }
 
 .benefit-card:hover {
 transform: translateY(-8px);
 box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+border-color: #FF9800;
 }
 
 .benefit-icon {
@@ -329,6 +341,28 @@ font-weight: 600;
 font-size: 14px;
 }
 
+.benefit-button {
+background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+color: white;
+padding: 12px 24px;
+border: none;
+border-radius: 25px;
+font-weight: 600;
+font-size: 14px;
+text-decoration: none;
+display: inline-block;
+margin-top: 20px;
+transition: transform 0.3s ease, box-shadow 0.3s ease;
+cursor: pointer;
+}
+
+.benefit-button:hover {
+transform: translateY(-2px);
+box-shadow: 0 8px 20px rgba(255, 152, 0, 0.4);
+color: white;
+text-decoration: none;
+}
+
 /* Features Section */
 .features {
 background: #1a1a1a;
@@ -338,9 +372,12 @@ padding: 100px 0;
 
 .features-grid {
 display: grid;
-grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-gap: 40px;
+grid-template-columns: repeat(4, 1fr);
+gap: 30px;
 margin-top: 60px;
+max-width: 1200px;
+margin-left: auto;
+margin-right: auto;
 }
 
 .feature-item {
@@ -361,14 +398,19 @@ margin-bottom: 20px;
 }
 
 .feature-title {
-font-size: 20px;
+font-size: 22px;
 font-weight: 600;
-margin-bottom: 12px;
+margin-bottom: 16px;
 }
 
 .feature-description {
 color: rgba(255, 255, 255, 0.8);
 line-height: 1.6;
+font-size: 16px;
+}
+
+.benefit-cta {
+    margin-top: 20px;
 }
 
 /* Social Proof Section */
@@ -717,8 +759,8 @@ gap: 12px;
 padding: 12px 16px;
 }
 .features-grid {
-grid-template-columns: 1fr;
-gap: 30px;
+grid-template-columns: repeat(2, 1fr);
+gap: 20px;
 }
 .container {
 padding: 0 16px;
@@ -983,6 +1025,58 @@ to bottom,
 );
 }
 }
+
+/* App Store Button Hover Animation */
+img[src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg"] {
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+img[src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg"]:hover {
+    transform: scale(1.1);
+}
+
+img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"] {
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
+    transform: scale(1.1);
+}
+
+/* Custom App Store Button */
+.custom-app-store-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+    color: white;
+    padding: 16px 32px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 18px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+    border: none;
+}
+
+.custom-app-store-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(255, 152, 0, 0.5);
+    text-decoration: none;
+    color: white;
+}
+
+/* Testimonials Auto-Scroll Animation */
+@keyframes autoScroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(calc(-340px * 6));
+    }
+}
+
 </style>
 
     <!-- Structured Data - FAQ Schema -->
@@ -1068,28 +1162,34 @@ to bottom,
     <section class="hero">
         <div class="hero::before"></div>
         <div class="hero-content">
-            <div class="badge">practical pocket speech therapy</div>
+            <div class="badge">✨ NO CREDIT CARD | NO APPOINTMENTS | NO EMBARRASSMENT</div>
+            <div class="badge">Start Free | Premium Optional</div>
             
             <h1 class="hero-title">Rhotacism Treatment: Master Your R Sound in 12 Weeks</h1>
             
             <p class="hero-subtitle">
-                Stop avoiding words with R. Our evidence-based program helps adults achieve clear R pronunciation privately and effectively. Learn more about <a href="guide/rhotacism.html" style="color: #000000; font-weight: 600;">what is rhotacism</a> and <a href="guide/how-to-fix-rhotacism.html" style="color: #000000; font-weight: 600;">how to fix it</a>.
+                Stop cringing every time you say "really" or "world". Our evidence-based program helps adults achieve clear R pronunciation. Learn more about <a href="guide/rhotacism.html" style="color: #000000; font-weight: 600;">what is rhotacism</a> and <a href="guide/how-to-fix-rhotacism.html" style="color: #000000; font-weight: 600;">how to fix it</a>.
             </p>
+
+            <!-- Social Proof Badge -->
+            <div style="background: rgba(255, 255, 255, 0.1); border: 1px solid #b89b14; border-radius: 50px; padding: 8px 20px; margin: 24px auto; display: inline-block; backdrop-filter: blur(10px);">
+                <span style="color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 500;">✓ Used by hundreds of high-agency adults worldwide</span>
+            </div>
 
             <!-- Social Proof Stats -->
             <div class="hero-stats">
                 <div class="stats-grid">
                     <div class="stat-item">
-                        <span class="stat-number">12</span>
-                        <span class="stat-label">Week Program</span>
-                    </div>
-                    <div class="stat-item">
                         <span class="stat-number">94%</span>
-                        <span class="stat-label">See Improvement</span>
+                        <span class="stat-label">See Results in 2 Weeks</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number">100%</span>
-                        <span class="stat-label">Private</span>
+                        <span class="stat-number">$0</span>
+                        <span class="stat-label">12 Weeks Program</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">15 mins </span>
+                        <span class="stat-label">Daily Practice</span>
                     </div>
                 </div>
             </div>
@@ -1100,97 +1200,264 @@ to bottom,
                         <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" 
                              alt="Download on the App Store" style="height: 68px;">
                     </a>
-                    <a href="#features" class="btn btn-secondary" style="height: 68px; display: flex; align-items: center; justify-content: center; padding: 20px 40px;">See How It Works</a>
+                    <a href="#features" class="btn btn-secondary" style="height: 68px; display: flex; align-items: center; justify-content: center; padding: 20px 40px;" onclick="gtag('event', 'see_how_it_works', { event_category: 'engagement', event_label: 'hero_section' });">See How It Works</a>
+                    <div class="nav-toggle">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
                 </div>
-                <p class="urgency-text">✓ No therapist appointments needed • ✓ Practice anytime, anywhere</p>
+                <p class="urgency-text">✓ No appointments needed | ✓ Practice anytime, anywhere | ✓ Confidence boost in 2 Weeks</p>
             </div>
         </div>
     </section>
+    
+    <!-- Comparison Section -->
+    <section class="comparison section" style="background: #f8f9fa; padding: 80px 0;">
+        <div class="container">
+            <div class="text-center" style="margin-bottom: 60px;">
+                <div class="badge">WHY CHOOSE US</div>
+                <h2 style="font-size: 42px; font-weight: 700; color: #333; margin-bottom: 20px;">Traditional Therapy vs. The Rollr Academy</h2>
+                <p style="font-size: 18px; color: #666; max-width: 600px; margin: 0 auto;">See why hundreds choose our modern approach over traditional speech therapy.</p>
+            </div>
+            
+            <div style="max-width: 900px; margin: 0 auto;">
+                <div style="background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: linear-gradient(135deg, #FF9800, #E65100);">
+                                <th style="padding: 24px; text-align: left; color: white; font-size: 18px; font-weight: 600; border: none;">Feature</th>
+                                <th style="padding: 24px; text-align: center; color: white; font-size: 18px; font-weight: 600; border: none;">Traditional Therapy</th>
+                                <th style="padding: 24px; text-align: center; color: white; font-size: 18px; font-weight: 600; border: none;">The Rollr Academy</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td style="padding: 20px 24px; font-weight: 600; color: #333; font-size: 16px;">Cost</td>
+                                <td style="padding: 20px 24px; text-align: center; color: #666; font-size: 16px;">$1,500-$3,000</td>
+                                <td style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 16px;">$0 Program</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f0f0f0; background: #fafafa;">
+                                <td style="padding: 20px 24px; font-weight: 600; color: #333; font-size: 16px;">Time to Results</td>
+                                <td style="padding: 20px 24px; text-align: center; color: #666; font-size: 16px;">6-12 months</td>
+                                <td style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 16px;">12 weeks</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td style="padding: 20px 24px; font-weight: 600; color: #333; font-size: 16px;">Appointments</td>
+                                <td style="padding: 20px 24px; text-align: center; color: #666; font-size: 16px;">Weekly scheduled</td>
+                                <td style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 16px;">Anytime</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f0f0f0; background: #fafafa;">
+                                <td style="padding: 20px 24px; font-weight: 600; color: #333; font-size: 16px;">Privacy</td>
+                                <td style="padding: 20px 24px; text-align: center; color: #666; font-size: 16px;">Face-to-face sessions</td>
+                                <td style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 16px;">100% private</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 20px 24px; font-weight: 600; color: #333; font-size: 16px;">Progress Tracking</td>
+                                <td style="padding: 20px 24px; text-align: center; color: #666; font-size: 16px;">Subjective feedback</td>
+                                <td style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 16px;">AI-powered analysis</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- CTA below table -->
+                <div style="text-align: center; margin-top: 40px;">
+                    <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'comparison_section' });">
+                        <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" 
+                             alt="Download on the App Store" style="height: 80px;">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
     <!-- Benefits Section -->
-    <section class="benefits section">
+    <section class="benefits section" style="background: #1a1a1a; color: white;">
         <div class="container">
             <div class="text-center">
-                <div class="badge">Why It Works</div>
-                <h2 style="font-size: 42px; font-weight: 700; color: #333; margin-bottom: 20px;">The Only R Sound Program You'll Ever Need</h2>
-                <p style="font-size: 18px; color: #666; max-width: 600px; margin: 0 auto;">Based on speech-language pathology principles, powered by AI, designed for busy adults who want results.</p>
+                <div class="badge">RESULTS YOU CAN HEAR</div>
+                <h2 style="font-size: 42px; font-weight: 700; color: white; margin-bottom: 20px;">Stop Avoiding Words. Start Speaking Confidently.</h2>
+                <p style="font-size: 18px; color: rgba(255, 255, 255, 0.8); max-width: 600px; margin: 0 auto;">Imagine saying "really," "world," and "three" without thinking twice. That's what our program delivers.</p>
             </div>
 
             <div class="benefits-grid">
                 <div class="benefit-card">
                     <div class="benefit-icon">🎯</div>
-                    <h3 class="benefit-title">Structured 12-Week Program</h3>
-                    <p class="benefit-description">From basic tongue positioning to conversation practice. Each week builds on the last with proven speech therapy techniques.</p>
-                    <div class="benefit-outcome">Result: Master R sounds step-by-step</div>
+                    <h3 class="benefit-title">Master R Sounds Step-by-Step</h3>
+                    <p class="benefit-description">Start with tongue positioning, progress to words, then conversation. Each week builds on proven speech therapy techniques used by professionals worldwide.</p>
+                    <a href="#features" class="benefit-button">See How It Works →</a>
                 </div>
 
                 <div class="benefit-card">
                     <div class="benefit-icon">🤖</div>
-                    <h3 class="benefit-title">AI Progress Tracking</h3>
-                    <p class="benefit-description">Real-time pronunciation analysis and personalized feedback. Know exactly what's improving and what needs work.</p>
-                    <div class="benefit-outcome">Result: Faster progress with data</div>
+                    <h3 class="benefit-title">Know Exactly What's Improving</h3>
+                    <p class="benefit-description">Record weekly samples. Our algorithm analyzes your pronunciation patterns and shows you measurable progress. No guesswork—just data-driven improvement.</p>
+                    <a href="#features" class="benefit-button">See How It Works →</a>
                 </div>
 
                 <div class="benefit-card">
                     <div class="benefit-icon">🏠</div>
-                    <h3 class="benefit-title">100% Private Practice</h3>
-                    <p class="benefit-description">No embarrassing appointments. Practice when you want, where you want. Your progress stays completely confidential.</p>
-                    <div class="benefit-outcome">Result: Stress-free improvement</div>
+                    <h3 class="benefit-title">Practice Without Embarrassment</h3>
+                    <p class="benefit-description">No awkward appointments. No waiting rooms. Practice when you want, where you want. Your progress stays 100% confidential. Finally feel comfortable improving your speech.</p>
+                    <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" class="benefit-button" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'benefits_section' });">Start Now - It's Free →</a>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="features section">
+    <section id="features" class="features section" style="background: white; color: #333;">
         <div class="container">
             <div class="text-center">
-                <div class="badge" style="background: rgba(255, 152, 0, 0.2); color: #FF9800;">How It Works</div>
-                <h2 style="font-size: 42px; font-weight: 700; margin-bottom: 20px;">Your Journey to Perfect R Pronunciation</h2>
-                <p style="font-size: 18px; opacity: 0.8; max-width: 600px; margin: 0 auto;">Follow our proven step-by-step system used by speech therapists worldwide.</p>
+                <div class="badge">HOW IT WORKS</div>
+                <h2 style="font-size: 42px; font-weight: 700; color: #333; margin-bottom: 20px;">Your Journey to Perfect R Pronunciation</h2>
+                <p style="font-size: 18px; color: #666; max-width: 600px; margin: 0 auto;">Follow the same proven system used by speech therapists worldwide.</p>
             </div>
 
             <div class="features-grid">
                 <div class="feature-item">
                     <div class="feature-number">1</div>
-                    <h3 class="feature-title">Assessment & Baseline</h3>
-                    <p class="feature-description">Record yourself saying test words. Our AI analyzes your current R patterns and creates your personalized program.</p>
+                    <h3 class="feature-title" style="color: #333;">Free Assessment</h3>
+                    <p class="feature-description" style="color: #666;">Record yourself saying test words. Our algorithm analyzes your current R patterns and creates your personalized 12-week program.</p>
                 </div>
 
                 <div class="feature-item">
                     <div class="feature-number">2</div>
-                    <h3 class="feature-title">Daily Structured Practice</h3>
-                    <p class="feature-description">15-20 minutes of targeted exercises: tongue positioning, vocalic R practice, blends, and conversation work.</p>
+                    <h3 class="feature-title" style="color: #333;">Daily Practice (15 min)</h3>
+                    <p class="feature-description" style="color: #666;">Targeted exercises: tongue positioning, vocalic R, blends, and conversation work. Each week builds on the last.</p>
                 </div>
 
                 <div class="feature-item">
                     <div class="feature-number">3</div>
-                    <h3 class="feature-title">Weekly Progress Tracking</h3>
-                    <p class="feature-description">Record weekly progress samples. Compare improvements and get detailed feedback on your pronunciation development.</p>
+                    <h3 class="feature-title" style="color: #333;">Weekly Progress Tracking</h3>
+                    <p class="feature-description" style="color: #666;">Record weekly samples. Compare improvements and get detailed feedback on your pronunciation development.</p>
                 </div>
 
                 <div class="feature-item">
                     <div class="feature-number">4</div>
-                    <h3 class="feature-title">Real-World Application</h3>
-                    <p class="feature-description">Practice with tongue twisters, reading passages, and AI-powered conversation to ensure natural speech patterns.</p>
+                    <h3 class="feature-title" style="color: #333;">Real-World Application</h3>
+                    <p class="feature-description" style="color: #666;">Practice with tongue twisters, reading passages, and conversations to ensure natural speech patterns.</p>
                 </div>
+            </div>
+            
+            <!-- App Store Logo -->
+            <div style="text-align: center; margin-top: 60px;">
+                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'features_section' });">
+                    <img src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg" 
+                         alt="Download on the App Store" style="height: 80px;">
+                </a>
             </div>
         </div>
     </section>
 
     <!-- Social Proof Section -->
-    <section class="social-proof section">
+    <section class="social-proof section" style="background: #1a1a1a;">
         <div class="container">
             <div class="text-center mb-6">
                 <div class="badge">Success Stories</div>
-                <h2 style="font-size: 42px; font-weight: 700; color: #333; margin-bottom: 20px;">Real Results from Real People</h2>
+                <h2 style="font-size: 42px; font-weight: 700; color: white; margin-bottom: 20px;">Real Results from Real People</h2>
             </div>
 
-            <div class="testimonial">
-                <div class="stars">★★★★★</div>
-                <p class="testimonial-text">
-                    "After 28 years of avoiding words with R, I finally sound natural. The structured approach and AI feedback made all the difference. I wish I'd found this years ago!"
-                </p>
-                <div class="testimonial-author">Sarah M., Marketing Manager</div>
+            <div class="testimonials-carousel-container" style="position: relative; margin-top: 40px; overflow: hidden; width: 100%; padding: 0 20px;">
+                <div class="testimonials-carousel" id="testimonialsCarousel" style="display: flex; gap: 20px; animation: autoScroll 25s linear infinite; width: max-content;">
+                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); text-align: center;">
+                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
+                        <p style="font-size: 14px; color: #333; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
+                            "I used to feel like I'm mentally challenged when I spoke words with an 'R' sound in them: 'right', 'there', 'query'. This program brought structure, consistency, and visibility into my progress which brought results for me."
+                        </p>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #FF9800, #E65100); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">M</div>
+                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">Marcus T., Software Engineer</div>
+                        </div>
+                        <div style="background: rgba(255, 152, 0, 0.1); color: #E65100; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Fixed R in 6 weeks</div>
+                    </div>
+
+                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); text-align: center;">
+                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
+                        <p style="font-size: 14px; color: #333; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
+                            "Honestly, I used to be the butt of jokes sometimes because I sounded like a 6 year old kid when speaking words with an 'R' in them. God bless me, I'm a high-agency person & a go-getter: researching into this condition, I found the Rollr Academy and got my situation fixed."
+                        </p>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #2196F3, #1976D2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">A</div>
+                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">Alex R., Business Owner</div>
+                        </div>
+                        <div style="background: rgba(33, 150, 243, 0.1); color: #1976D2; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Saw improvement in 2 weeks</div>
+                    </div>
+
+                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); text-align: center;">
+                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
+                        <p style="font-size: 14px; color: #333; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
+                            "I worked at a call center and could not say 'R'. I replaced it with 'W'. I took escalated calls too. Once I was so angry during a call, I literally wanted to murder because the caller made fun of me. I hope you don't have a job where you have to speak with assholes. Grateful for the guys at the Rollr Academy for building this one out."
+                        </p>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #4CAF50, #388E3C); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">J</div>
+                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">Jessica L., Customer Service Rep</div>
+                        </div>
+                        <div style="background: rgba(76, 175, 80, 0.1); color: #388E3C; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Mastered R in 10 weeks</div>
+                    </div>
+
+                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); text-align: center;">
+                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
+                        <p style="font-size: 14px; color: #333; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
+                            "I was scared of sending WhatsApp audio messages because of my rhotacism but now I'm purposely sending them (even when not needed), just to listen to my perfect speech. Recommend this app."
+                        </p>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #9C27B0, #7B1FA2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">D</div>
+                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">David K., Marketing Specialist</div>
+                        </div>
+                        <div style="background: rgba(156, 39, 176, 0.1); color: #7B1FA2; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Fixed R in 6 weeks</div>
+                    </div>
+
+                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); text-align: center;">
+                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
+                        <p style="font-size: 14px; color: #333; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
+                            "I was skeptical about an app replacing therapy, but this program is incredibly thorough. The privacy aspect was huge for me—I could practice without feeling self-conscious."
+                        </p>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #FF5722, #D84315); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">S</div>
+                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">Sarah P., Teacher</div>
+                        </div>
+                        <div style="background: rgba(255, 87, 34, 0.1); color: #D84315; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Saw improvement in 2 weeks</div>
+                    </div>
+
+                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); text-align: center;">
+                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
+                        <p style="font-size: 14px; color: #333; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
+                            "The feedback is accurate. It caught things I never noticed about my pronunciation. Worth way more than the it's price tag!"
+                        </p>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #607D8B, #455A64); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">R</div>
+                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">Robert H., Sales Manager</div>
+                        </div>
+                        <div style="background: rgba(96, 125, 139, 0.1); color: #455A64; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Mastered R in 10 weeks</div>
+                    </div>
+
+                    <!-- Duplicate cards for seamless loop -->
+                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); text-align: center;">
+                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
+                        <p style="font-size: 14px; color: #333; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
+                            "I used to feel like I'm mentally challenged when I spoke words with an 'R' sound in them: 'right', 'there', 'query'. This program brought structure, consistency, and visibility into my progress which brought results for me."
+                        </p>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #FF9800, #E65100); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">M</div>
+                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">Marcus T., Software Engineer</div>
+                        </div>
+                        <div style="background: rgba(255, 152, 0, 0.1); color: #E65100; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Fixed R in 6 weeks</div>
+                    </div>
+
+                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); text-align: center;">
+                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
+                        <p style="font-size: 14px; color: #333; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
+                            "Honestly, I used to be the butt of jokes sometimes because I sounded like a 6 year old kid when speaking words with an 'R' in them. God bless me, I'm a high-agency person & a go-getter: researching into this condition, I found the Rollr Academy and got my situation fixed."
+                        </p>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #2196F3, #1976D2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">A</div>
+                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">Alex R., Business Owner</div>
+                        </div>
+                        <div style="background: rgba(33, 150, 243, 0.1); color: #1976D2; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Saw improvement in 2 weeks</div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -1260,6 +1527,13 @@ to bottom,
                         Yes. You record weekly progress samples, and our AI analyzes your pronunciation patterns, identifies improvements, and provides specific feedback on what to focus on next.
                     </div>
                 </div>
+            </div>
+            
+            <!-- App Store CTA -->
+            <div style="text-align: center; margin-top: 60px;">
+                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="custom-app-store-btn" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'faq_section' });">
+                    Start Your Free Program Now
+                </a>
             </div>
         </div>
     </section>
@@ -1555,6 +1829,23 @@ to bottom,
             
             lastScrollTop = currentScroll;
         });
+
+        // Testimonial hover pause functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const carousel = document.querySelector('.testimonials-carousel');
+            const testimonials = document.querySelectorAll('.testimonial');
+            
+            testimonials.forEach(testimonial => {
+                testimonial.addEventListener('mouseenter', function() {
+                    carousel.style.animationPlayState = 'paused';
+                });
+                
+                testimonial.addEventListener('mouseleave', function() {
+                    carousel.style.animationPlayState = 'running';
+                });
+            });
+        });
+
     </script>
 </body>
 </html>

@@ -49,7 +49,7 @@
       ]
     },
     {
-      "source": "/(.*\\.(css|js|png|jpg|jpeg|gif|svg|woff|woff2))",
+      "source": "/(.*).(css|js|png|jpg|jpeg|gif|svg|woff|woff2)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -59,19 +59,5 @@
     }
   ],
   "cleanUrls": true,
-  "trailingSlash": false,
-  "routes": [
-    {
-      "src": "/sitemap.xml",
-      "headers": {
-        "Content-Type": "application/xml"
-      }
-    },
-    {
-      "src": "/robots.txt",
-      "headers": {
-        "Content-Type": "text/plain"
-      }
-    }
-  ]
+  "trailingSlash": false
 }
