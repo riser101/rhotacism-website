@@ -1067,6 +1067,47 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     color: white;
 }
 
+/* Responsive Table for Mobile */
+@media (max-width: 768px) {
+    .comparison .container > div:last-child > div {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .comparison table {
+        min-width: 700px;
+        font-size: 14px;
+    }
+    
+    .comparison th,
+    .comparison td {
+        padding: 16px 12px !important;
+        font-size: 14px !important;
+        white-space: nowrap;
+    }
+    
+    .comparison th {
+        font-size: 16px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .comparison table {
+        min-width: 500px;
+        font-size: 12px;
+    }
+    
+    .comparison th,
+    .comparison td {
+        padding: 12px 8px !important;
+        font-size: 12px !important;
+    }
+    
+    .comparison th {
+        font-size: 14px !important;
+    }
+}
+
 /* Testimonials Auto-Scroll Animation */
 @keyframes autoScroll {
     0% {
@@ -1324,7 +1365,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 
                 <div class="feature-item">
                     <div class="feature-number">2</div>
-                    <h3 class="feature-title" style="color: #333;">Daily Practice (15 min)</h3>
+                    <h3 class="feature-title" style="color: #333;">Daily Practice</h3>
                     <p class="feature-description" style="color: #666;">Targeted exercises: tongue positioning, vocalic R, blends, and conversation work. Each week builds on the last.</p>
                 </div>
 
