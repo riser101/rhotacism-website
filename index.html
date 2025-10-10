@@ -122,6 +122,29 @@ background: #FF9800;
 color: white;
 }
 
+.custom-rollr-btn {
+    display: inline-block;
+    padding: 18px 36px;
+    background: #E85700;
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(232, 87, 0, 0.3);
+    border: none;
+    cursor: pointer;
+}
+
+.custom-rollr-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(232, 87, 0, 0.4);
+    background: #FF6B00;
+    color: white;
+    text-decoration: none;
+}
+
 .badge {
 display: inline-block;
 padding: 6px 12px;
@@ -1221,8 +1244,8 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     <section class="hero">
         <div class="hero::before"></div>
         <div class="hero-content">
-            <div class="badge">✨ NO CREDIT CARD | NO APPOINTMENTS | NO EMBARRASSMENT</div>
-            <div class="badge">Start Free | Premium Optional</div>
+            <div class="badge">✨ NO CREDIT CARD • NO APPOINTMENTS • NO EMBARRASSMENT</div>
+            <div class="badge">Start Free • Premium Optional</div>
             
             <h1 class="hero-title">Rhotacism Treatment: Master Your R Sound in 12 Weeks</h1>
             
@@ -1322,9 +1345,8 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                 
                 <!-- CTA below table -->
                 <div style="text-align: center; margin-top: 40px;">
-                    <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'comparison_section' });">
-                        <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" 
-                             alt="Download on the App Store" style="height: 80px;">
+                    <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="custom-rollr-btn" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'comparison_section' });">
+                        See the Rollr Approach
                     </a>
                 </div>
             </div>
