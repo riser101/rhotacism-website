@@ -1162,6 +1162,195 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     }
 }
 
+/* Exit Intent Popup */
+.exit-intent-popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+}
+
+.exit-intent-modal {
+    background: linear-gradient(to bottom, 
+        #c5a732 0%,
+        #d4b73a 50%,
+        #c5a732 100%
+    );
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 520px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    margin: 20px;
+}
+
+.exit-intent-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #666;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.exit-intent-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+.exit-intent-icon {
+    width: 60px;
+    height: 60px;
+    background: #e0e0e0;
+    border-radius: 12px;
+    margin: 0 auto 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #666;
+}
+
+.exit-intent-title {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.exit-intent-subtitle {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+.exit-intent-benefits {
+    text-align: left;
+    margin-bottom: 30px;
+}
+
+.exit-intent-benefit {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    font-size: 15px;
+    color: #333;
+}
+
+.exit-intent-benefit::before {
+    content: '✓';
+    color: #28a745;
+    font-weight: 700;
+    margin-right: 10px;
+    margin-top: 2px;
+}
+
+.exit-intent-form {
+    text-align: center;
+}
+
+.exit-intent-email {
+    width: 100%;
+    padding: 16px 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.exit-intent-email:focus {
+    border-color: #c5a732;
+}
+
+.exit-intent-email::placeholder {
+    color: #999;
+}
+
+.exit-intent-btn {
+    width: 100%;
+    background: #000000;
+    color: white;
+    padding: 18px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.exit-intent-btn:hover {
+    background: #333333;
+}
+
+.exit-intent-disclaimer {
+    font-size: 14px;
+    color: #888;
+    margin-top: 20px;
+    line-height: 1.4;
+}
+
+/* Mobile responsiveness for exit intent popup */
+@media (max-width: 768px) {
+    .exit-intent-modal {
+        padding: 30px 25px;
+        margin: 10px;
+    }
+    
+    .exit-intent-title {
+        font-size: 28px;
+    }
+    
+    .exit-intent-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .exit-intent-modal {
+        padding: 25px 20px;
+    }
+    
+    .exit-intent-title {
+        font-size: 24px;
+    }
+    
+    .exit-intent-subtitle {
+        font-size: 15px;
+    }
+    
+    .exit-intent-benefit {
+        font-size: 14px;
+    }
+}
+
 </style>
 
     <!-- Structured Data - FAQ Schema -->
@@ -1660,6 +1849,44 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
             </div>
         </div>
     </div>
+
+    <!-- Exit Intent Popup -->
+    <div class="exit-intent-popup" id="exitIntentPopup">
+        <div class="exit-intent-modal">
+            <button class="exit-intent-close" onclick="closeExitIntentPopup()">×</button>
+            
+            <div class="exit-intent-icon">✉</div>
+            
+            <h2 class="exit-intent-title">Wait! Get Your Free R Sound Guide</h2>
+            
+            <p class="exit-intent-subtitle">
+                Join <strong>1000+</strong> people improving their R pronunciation.<br>
+                We'll send you:
+            </p>
+            
+            <div class="exit-intent-benefits">
+                <div class="exit-intent-benefit">Free 5-day R sound improvement email course</div>
+                <div class="exit-intent-benefit">3 exercises you can start today</div>
+                <div class="exit-intent-benefit">Success stories from real users</div>
+            </div>
+            
+            <form class="exit-intent-form" onsubmit="submitExitIntentForm(event)">
+                <input 
+                    type="email" 
+                    class="exit-intent-email" 
+                    id="exitIntentEmail"
+                    placeholder="Enter your email address"
+                    required
+                >
+                <button type="submit" class="exit-intent-btn">Send Me the Free Guide</button>
+            </form>
+            
+            <p class="exit-intent-disclaimer">
+                No spam. Unsubscribe anytime.
+            </p>
+        </div>
+    </div>
+
     <!-- Use native MediaRecorder for MP4 audio -->
     
     <script>
@@ -1920,6 +2147,126 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                     carousel.style.animationPlayState = 'running';
                 });
             });
+        });
+
+        // Exit Intent Popup Functionality
+        let exitIntentShown = false;
+        let exitIntentTimer;
+
+        function showExitIntentPopup() {
+            if (!exitIntentShown) {
+                const popup = document.getElementById('exitIntentPopup');
+                popup.style.display = 'flex';
+                exitIntentShown = true;
+                
+                // Track exit intent event
+                gtag('event', 'exit_intent_shown', {
+                    event_category: 'engagement',
+                    event_label: 'exit_intent_popup'
+                });
+            }
+        }
+
+        function closeExitIntentPopup() {
+            const popup = document.getElementById('exitIntentPopup');
+            popup.style.display = 'none';
+            
+            // Track close event
+            gtag('event', 'exit_intent_closed', {
+                event_category: 'engagement',
+                event_label: 'exit_intent_popup'
+            });
+        }
+
+        function submitExitIntentForm(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('exitIntentEmail').value;
+            if (!email || !email.includes('@')) {
+                alert('Please enter a valid email address');
+                return;
+            }
+
+            // Disable button to prevent double submission
+            const submitBtn = event.target.querySelector('.exit-intent-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+
+            // Track email signup conversion
+            gtag('event', 'email_signup', {
+                event_category: 'conversion',
+                event_label: 'exit_intent_signup'
+            });
+
+            // Submit to Formspree
+            fetch('https://formspree.io/f/xovkkekq', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    source: 'exit_intent_popup',
+                    timestamp: new Date().toISOString(),
+                    message: 'Exit intent popup signup for R Sound Guide'
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Show success message and close popup
+                    alert('Thanks! Check your email for the free R sound guide.');
+                    closeExitIntentPopup();
+                } else {
+                    throw new Error('Network response was not ok');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Sorry, there was an error. Please try again.');
+            })
+            .finally(() => {
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            });
+        }
+
+        // Exit intent detection
+        document.addEventListener('mouseleave', function(e) {
+            if (e.clientY <= 0 && !exitIntentShown) {
+                showExitIntentPopup();
+            }
+        });
+
+        // Mobile exit intent - detect scroll up at top of page
+        let lastScrollY = window.scrollY;
+        window.addEventListener('scroll', function() {
+            if (window.innerWidth <= 768) { // Mobile only
+                const currentScrollY = window.scrollY;
+                if (currentScrollY < lastScrollY && currentScrollY < 100 && !exitIntentShown) {
+                    showExitIntentPopup();
+                }
+                lastScrollY = currentScrollY;
+            }
+        });
+
+        // Time-based backup trigger (after 30 seconds if not shown)
+        setTimeout(function() {
+            if (!exitIntentShown) {
+                // Only show if user has scrolled past hero section
+                if (window.scrollY > 800) {
+                    showExitIntentPopup();
+                }
+            }
+        }, 30000);
+
+        // Close popup when clicking outside
+        document.getElementById('exitIntentPopup').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeExitIntentPopup();
+            }
         });
 
     </script>
