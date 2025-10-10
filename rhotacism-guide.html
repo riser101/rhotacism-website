@@ -62,8 +62,11 @@
 
         /* Navigation Styles - Same as homepage */
         .navbar {
-            background: transparent;
-            backdrop-filter: blur(8px);
+            background: linear-gradient(to bottom, 
+                #000000 0%,
+                #1a1a1a 50%,
+                #000000 100%
+            );
             padding: 20px 0;
             position: fixed;
             top: 0;
@@ -74,14 +77,13 @@
         }
 
         .navbar.scrolled {
-            background: transparent;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(to bottom, 
+                #000000 0%,
+                #1a1a1a 50%,
+                #000000 100%
+            );
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             padding: 16px 0;
-        }
-
-        .navbar.hidden {
-            transform: translateY(-100%);
         }
 
         .navbar.scrolled .nav-logo {
@@ -701,14 +703,6 @@
                 navbar.classList.remove('scrolled');
             }
             
-            // Hide navbar when scrolling down, show when scrolling up
-            if (currentScroll > lastScrollTop && currentScroll > 200) {
-                // Scrolling down
-                navbar.classList.add('hidden');
-            } else if (currentScroll < lastScrollTop) {
-                // Scrolling up
-                navbar.classList.remove('hidden');
-            }
             
             lastScrollTop = currentScroll;
         });

@@ -59,26 +59,20 @@
 
         /* Navigation Styles - Same as homepage */
         .navbar {
-            background: transparent;
-            backdrop-filter: blur(8px);
+            background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
             padding: 20px 0;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1000;
-            transition: all 0.3s ease, transform 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         .navbar.scrolled {
-            background: transparent;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             padding: 16px 0;
-        }
-
-        .navbar.hidden {
-            transform: translateY(-100%);
         }
 
         .navbar.scrolled .nav-logo {
@@ -607,8 +601,7 @@
             navToggle.classList.toggle('active');
         }
 
-        // Transparent navbar scroll effect with hide/show
-        let lastScrollTop = 0;
+        // Transparent navbar scroll effect
         window.addEventListener('scroll', function() {
             const navbar = document.querySelector('.navbar');
             const currentScroll = window.scrollY;
@@ -619,17 +612,6 @@
             } else {
                 navbar.classList.remove('scrolled');
             }
-            
-            // Hide navbar when scrolling down, show when scrolling up
-            if (currentScroll > lastScrollTop && currentScroll > 200) {
-                // Scrolling down
-                navbar.classList.add('hidden');
-            } else if (currentScroll < lastScrollTop) {
-                // Scrolling up
-                navbar.classList.remove('hidden');
-            }
-            
-            lastScrollTop = currentScroll;
         });
     </script>
 </body>

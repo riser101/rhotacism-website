@@ -822,8 +822,11 @@ text-align: center;
 
 /* Navigation Styles - Transparent Design */
 .navbar {
-background: transparent;
-backdrop-filter: blur(8px);
+background: linear-gradient(to bottom, 
+    #000000 0%,
+    #1a1a1a 50%,
+    #000000 100%
+);
 padding: 20px 0;
 position: fixed;
 top: 0;
@@ -834,9 +837,12 @@ transition: all 0.3s ease, transform 0.3s ease;
 }
 
 .navbar.scrolled {
-background: transparent;
-backdrop-filter: blur(20px);
-box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+background: linear-gradient(to bottom, 
+    #000000 0%,
+    #1a1a1a 50%,
+    #000000 100%
+);
+box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 padding: 16px 0;
 }
 
