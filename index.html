@@ -840,9 +840,6 @@ box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 padding: 16px 0;
 }
 
-.navbar.hidden {
-transform: translateY(-100%);
-}
 
 .navbar.scrolled .nav-logo {
 color: white;
@@ -1899,14 +1896,6 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                 navbar.classList.remove('scrolled');
             }
             
-            // Hide navbar when scrolling down, show when scrolling up
-            if (currentScroll > lastScrollTop && currentScroll > 200) {
-                // Scrolling down
-                navbar.classList.add('hidden');
-            } else if (currentScroll < lastScrollTop) {
-                // Scrolling up
-                navbar.classList.remove('hidden');
-            }
             
             lastScrollTop = currentScroll;
         });
