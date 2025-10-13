@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free R-Sound Assessment - The Rollr Academy</title>
+    <link rel="icon" type="image/jpeg" href="instagram-icon.jpg">
+    <link rel="apple-touch-icon" href="instagram-icon.jpg">
+    <meta name="description" content="Take your free 2-minute R-sound assessment. Get personalized results and discover exactly what's blocking your perfect R pronunciation.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-584ZMQTPSE');
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
+            padding: 20px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Assessment Page Styles */
+        .assessment-page {
+            background: linear-gradient(to bottom, #000000 0%, #0A0A0A 12%, #1A1A1A 20%, #2D2D00 30%, #4A4A00 40%, #666600 47%, #D4911A 53%, #E6A91F 57%, #F5B532 61%, #FF9800 67%, #FF8F00 73%, #FF6F00 80%, #E65100 87%, #BF360C 92%, #8D2F00 96%, #000000 100%);
+            min-height: 100vh;
+            padding-top: 100px;
+            padding-bottom: 60px;
+        }
+
+        .assessment-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .assessment-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .assessment-title {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 42px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .assessment-subtitle {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 8px;
+        }
+
+        .assessment-tagline {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+            font-style: italic;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin: 40px 0;
+        }
+
+        .progress-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF9800, #E65100);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Assessment Steps */
+        .assessment-step {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .assessment-step.active {
+            display: block;
+        }
+
+        .step-title {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .step-content {
+            margin-bottom: 30px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #FF9800;
+        }
+
+        .form-help {
+            font-size: 14px;
+            color: #666;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        /* Radio and Checkbox Options */
+        .options-group {
+            margin: 20px 0;
+        }
+
+        .option-item {
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+
+        .option-item input[type="radio"],
+        .option-item input[type="checkbox"] {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+
+        .option-item label {
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        /* Recording Section */
+        .recording-section {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid #FF9800;
+        }
+
+        .words-to-say {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #FF9800;
+        }
+
+        .record-button {
+            background: #000000;
+            color: white;
+            padding: 16px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 20px 0;
+        }
+
+        .record-button:hover {
+            background: #333333;
+        }
+
+        .recording-status {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        
+        .recording-status.error {
+            color: #dc3545;
+            background: #fff5f5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .recording-status.success {
+            color: #28a745;
+            background: #f8fff9;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 16px;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #000000;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background: #333333;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #666;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn-secondary:hover {
+            border-color: #FF9800;
+            color: #FF9800;
+        }
+
+        /* Security Badge */
+        .security-badge {
+            text-align: center;
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(40, 167, 69, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+
+        .security-badge .icon {
+            font-size: 18px;
+            margin-right: 8px;
+        }
+
+        .security-text {
+            font-size: 14px;
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .loading-title {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .loading-animation {
+            margin: 30px 0;
+        }
+
+        .loading-dots {
+            display: inline-block;
+            margin: 0 4px;
+            animation: loadingDots 1.4s infinite ease-in-out;
+        }
+
+        .loading-dots:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes loadingDots {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .loading-steps {
+            text-align: left;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .loading-step {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            font-size: 16px;
+            color: #666;
+        }
+
+        .loading-step.completed {
+            color: #28a745;
+        }
+
+        .loading-step .icon {
+            margin-right: 12px;
+            width: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .assessment-title {
+                font-size: 32px;
+            }
+
+            .assessment-subtitle {
+                font-size: 18px;
+            }
+
+            .assessment-step {
+                padding: 30px 20px;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .assessment-title {
+                font-size: 28px;
+            }
+
+            .assessment-container {
+                padding: 0 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index-version-b.html" class="nav-logo">The Rollr Academy</a>
+        </div>
+    </nav>
+
+    <!-- Assessment Page -->
+    <div class="assessment-page">
+        <div class="assessment-container">
+            <div class="assessment-header">
+                <h1 class="assessment-title">Your Free R-Sound Assessment</h1>
+                <p class="assessment-subtitle">See exactly where your R sound needs work</p>
+                <p class="assessment-tagline">(This takes just 2 minutes)</p>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-label">Step <span id="currentStep">1</span> of 5</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 20%"></div>
+                </div>
+            </div>
+
+            <!-- Step 1: Email Capture -->
+            <div class="assessment-step active" id="step1">
+                <h2 class="step-title">Step 1: Basic Information</h2>
+                <div class="step-content">
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address:</label>
+                        <input type="email" id="email" class="form-input" placeholder="your.email@example.com" required>
+                        <div class="form-help">
+                            Why? We'll send your personalized results + a custom practice plan
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <div></div>
+                    <button class="btn btn-primary" onclick="nextStep()">Continue to Assessment →</button>
+                </div>
+                <div class="security-badge">
+                    <span class="icon">🔒</span>
+                    <span class="security-text">Your information is 100% confidential</span>
+                </div>
+            </div>
+
+            <!-- Step 2: Voice Recording -->
+            <div class="assessment-step" id="step2">
+                <h2 class="step-title">Step 2: Voice Recording + Analysis</h2>
+                <div class="step-content">
+                    <div class="recording-section">
+                        <p style="font-size: 18px; margin-bottom: 20px;">📱 Record Yourself Saying These Words</p>
+                        <p>Click 'Record' and clearly say each word:</p>
+                        <div class="words-to-say">
+                            red, car, tree, around, forest, problem, girl, world
+                        </div>
+                        <button class="record-button" id="recordBtn" onclick="toggleRecording()">🎤 Click to Record</button>
+                        <div class="recording-status" id="recordingStatus">Recording time: 0:00</div>
+                        <p style="font-size: 14px; color: #666; margin-top: 15px;">
+                            Don't worry - only you will hear this recording.<br>
+                            Our speech algorithm analyzes patterns, not the actual audio.
+                        </p>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                    <button class="btn btn-primary" onclick="nextStep()" id="step2Continue" disabled>Continue →</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Self-Assessment Questions -->
+            <div class="assessment-step" id="step3">
+                <h2 class="step-title">Step 3: A Few Quick Questions About Your R Sound</h2>
+                <div class="step-content">
+                    <div class="form-group">
+                        <label class="form-label">Q1: Which words give you the MOST trouble?</label>
+                        <div class="options-group">
+                            <div class="option-item">
+                                <input type="radio" id="trouble1" name="troubleWords" value="starting">
+                                <label for="trouble1">Words starting with R ("really", "right")</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="trouble2" name="troubleWords" value="middle">
+                                <label for="trouble2">R in the middle ("very", "sorry")</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="trouble3" name="troubleWords" value="end">
+                                <label for="trouble3">R at the end ("car", "better")</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="trouble4" name="troubleWords" value="all">
+                                <label for="trouble4">All of the above</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Q2: What sound does your R most often come out as?</label>
+                        <div class="options-group">
+                            <div class="option-item">
+                                <input type="radio" id="sound1" name="soundType" value="w">
+                                <label for="sound1">"W" sound (weally instead of really)</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="sound2" name="soundType" value="vowel">
+                                <label for="sound2">Vowel sound (cah instead of car)</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="sound3" name="soundType" value="guttural">
+                                <label for="sound3">Throat-y/guttural sound</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="sound4" name="soundType" value="varies">
+                                <label for="sound4">Not sure / varies</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Q3: How long have you been trying to fix this?</label>
+                        <div class="options-group">
+                            <div class="option-item">
+                                <input type="radio" id="duration1" name="duration" value="6months">
+                                <label for="duration1">Less than 6 months</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="duration2" name="duration" value="6months-2years">
+                                <label for="duration2">6 months - 2 years</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="duration3" name="duration" value="2-5years">
+                                <label for="duration3">2-5 years</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="duration4" name="duration" value="5plus">
+                                <label for="duration4">More than 5 years (I've tried everything!)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                    <button class="btn btn-primary" onclick="nextStep()" id="step3Continue" disabled>Continue →</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Impact Assessment -->
+            <div class="assessment-step" id="step4">
+                <h2 class="step-title">Step 4: How Does This Affect Your Daily Life?</h2>
+                <div class="step-content">
+                    <div class="form-group">
+                        <label class="form-label">Q1: Do you avoid certain words in conversations?</label>
+                        <div class="options-group">
+                            <div class="option-item">
+                                <input type="radio" id="avoid1" name="avoidWords" value="frequently">
+                                <label for="avoid1">Yes, frequently - I plan around it</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="avoid2" name="avoidWords" value="sometimes">
+                                <label for="avoid2">Sometimes - in professional settings</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="avoid3" name="avoidWords" value="rarely">
+                                <label for="avoid3">Rarely</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="avoid4" name="avoidWords" value="no">
+                                <label for="avoid4">No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Q2: Has your speech affected your: (Select all that apply)</label>
+                        <div class="options-group">
+                            <div class="option-item">
+                                <input type="checkbox" id="impact1" name="impact" value="career">
+                                <label for="impact1">Job interviews / Career advancement</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="checkbox" id="impact2" name="impact" value="speaking">
+                                <label for="impact2">Public speaking / Presentations</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="checkbox" id="impact3" name="impact" value="social">
+                                <label for="impact3">Dating / Social situations</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="checkbox" id="impact4" name="impact" value="phone">
+                                <label for="impact4">Phone calls / Customer service</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="checkbox" id="impact5" name="impact" value="confidence">
+                                <label for="impact5">Self-confidence overall</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="checkbox" id="impact6" name="impact" value="none">
+                                <label for="impact6">None of the above</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Q3: If you could fix this completely in 12 weeks, how much would that be worth to you?</label>
+                        <div class="options-group">
+                            <div class="option-item">
+                                <input type="radio" id="value1" name="value" value="priceless">
+                                <label for="value1">Priceless - it would change my life</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="value2" name="value" value="500plus">
+                                <label for="value2">$500+</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="value3" name="value" value="200-500">
+                                <label for="value3">$200-500</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="value4" name="value" value="50-200">
+                                <label for="value4">$50-200</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="value5" name="value" value="under50">
+                                <label for="value5">Under $50</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                    <button class="btn btn-primary" onclick="nextStep()" id="step4Continue" disabled>Continue →</button>
+                </div>
+            </div>
+
+            <!-- Step 5: Processing Screen -->
+            <div class="assessment-step" id="step5">
+                <div class="loading-screen">
+                    <h2 class="loading-title">🔬 Analyzing Your R Sound Patterns<span class="loading-dots">.</span><span class="loading-dots">.</span><span class="loading-dots">.</span></h2>
+                    
+                    <div class="loading-steps">
+                        <div class="loading-step completed" id="loading1">
+                            <span class="icon">⚡</span>
+                            <span>Identifying substitution patterns...</span>
+                        </div>
+                        <div class="loading-step" id="loading2">
+                            <span class="icon">🎯</span>
+                            <span>Calculating tongue placement corrections...</span>
+                        </div>
+                        <div class="loading-step" id="loading3">
+                            <span class="icon">📊</span>
+                            <span>Generating your custom 12-week roadmap...</span>
+                        </div>
+                    </div>
+                    
+                    <p style="margin-top: 30px; color: #666; font-style: italic;">
+                        Your results will appear in <span id="countdown">5</span>... 
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStepNum = 1;
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let recordingTimer;
+        let recordingTime = 0;
+        let audioBlob = null;
+        let hasValidAudio = false;
+
+        // Update progress bar
+        function updateProgress() {
+            const progress = (currentStepNum / 5) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('currentStep').textContent = currentStepNum;
+        }
+
+        // Next step function
+        async function nextStep() {
+            const continueBtn = document.querySelector(`#step${currentStepNum} .btn-primary`);
+            const originalText = continueBtn.textContent;
+            
+            // Show loading state for Step 1 (email registration)
+            if (currentStepNum === 1) {
+                continueBtn.textContent = 'Registering...';
+                continueBtn.disabled = true;
+            }
+            
+            if (await validateCurrentStep()) {
+                document.getElementById(`step${currentStepNum}`).classList.remove('active');
+                currentStepNum++;
+                
+                if (currentStepNum <= 5) {
+                    document.getElementById(`step${currentStepNum}`).classList.add('active');
+                    updateProgress();
+                    
+                    if (currentStepNum === 5) {
+                        startProcessing();
+                    }
+                }
+            } else {
+                // Reset button if validation failed
+                continueBtn.textContent = originalText;
+                continueBtn.disabled = false;
+            }
+        }
+
+        // Previous step function
+        function prevStep() {
+            if (currentStepNum > 1) {
+                document.getElementById(`step${currentStepNum}`).classList.remove('active');
+                currentStepNum--;
+                document.getElementById(`step${currentStepNum}`).classList.add('active');
+                updateProgress();
+            }
+        }
+
+        // Register email with Formspree
+        async function registerEmail(email) {
+            try {
+                // Store email for later use
+                localStorage.setItem('assessmentUserEmail', email);
+                
+                // Extract name from email for personalization
+                const name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
+                localStorage.setItem('assessmentUserName', name);
+                
+                // Submit to Formspree
+                await fetch('https://formspree.io/f/xovkkekq', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        source: 'assessment_step1',
+                        message: 'User started R-sound assessment',
+                        timestamp: new Date().toISOString(),
+                        page: 'assessment.html'
+                    })
+                });
+                
+                // Track email capture event
+                gtag('event', 'email_capture', {
+                    event_category: 'conversion',
+                    event_label: 'assessment_step1'
+                });
+                
+                console.log('Email registered successfully');
+            } catch (error) {
+                console.error('Error registering email:', error);
+                // Don't block the user if email registration fails
+            }
+        }
+
+        // Submit Step 3 responses to Formspree
+        async function submitStep3ToFormspree(troubleWords, soundType, duration) {
+            try {
+                const email = localStorage.getItem('assessmentUserEmail');
+                
+                await fetch('https://formspree.io/f/xovkkekq', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        source: 'assessment_step3',
+                        message: 'Step 3 assessment responses',
+                        troubleWords: troubleWords,
+                        soundType: soundType,
+                        duration: duration,
+                        timestamp: new Date().toISOString(),
+                        page: 'assessment.html'
+                    })
+                });
+                
+                // Track step 3 completion
+                gtag('event', 'assessment_step3_complete', {
+                    event_category: 'assessment',
+                    event_label: 'self_assessment_questions'
+                });
+                
+                console.log('Step 3 responses submitted successfully');
+            } catch (error) {
+                console.error('Error submitting Step 3 responses:', error);
+                // Don't block the user if submission fails
+            }
+        }
+
+        // Submit Step 4 responses to Formspree
+        async function submitStep4ToFormspree(avoidWords, impactValues, value) {
+            try {
+                const email = localStorage.getItem('assessmentUserEmail');
+                
+                await fetch('https://formspree.io/f/xovkkekq', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        source: 'assessment_step4',
+                        message: 'Step 4 assessment responses',
+                        avoidWords: avoidWords,
+                        impactAreas: impactValues.join(', '),
+                        valueEstimate: value,
+                        timestamp: new Date().toISOString(),
+                        page: 'assessment.html'
+                    })
+                });
+                
+                // Track step 4 completion
+                gtag('event', 'assessment_step4_complete', {
+                    event_category: 'assessment',
+                    event_label: 'impact_assessment'
+                });
+                
+                console.log('Step 4 responses submitted successfully');
+            } catch (error) {
+                console.error('Error submitting Step 4 responses:', error);
+                // Don't block the user if submission fails
+            }
+        }
+
+        // Validate current step
+        async function validateCurrentStep() {
+            switch(currentStepNum) {
+                case 1:
+                    const email = document.getElementById('email').value;
+                    if (!email || !email.includes('@')) {
+                        alert('Please enter a valid email address.');
+                        return false;
+                    }
+                    // Register email with Formspree
+                    await registerEmail(email);
+                    return true;
+                
+                case 2:
+                    if (!hasValidAudio) {
+                        alert('Please record yourself saying the words clearly. Make sure to speak for at least 3 seconds.');
+                        return false;
+                    }
+                    return true;
+                
+                case 3:
+                    const troubleWords = document.querySelector('input[name="troubleWords"]:checked');
+                    const soundType = document.querySelector('input[name="soundType"]:checked');
+                    const duration = document.querySelector('input[name="duration"]:checked');
+                    
+                    if (!troubleWords || !soundType || !duration) {
+                        alert('Please answer all questions.');
+                        return false;
+                    }
+                    
+                    // Submit Step 3 responses to Formspree
+                    await submitStep3ToFormspree(troubleWords.value, soundType.value, duration.value);
+                    
+                    document.getElementById('step3Continue').disabled = false;
+                    return true;
+                
+                case 4:
+                    const avoidWords = document.querySelector('input[name="avoidWords"]:checked');
+                    const value = document.querySelector('input[name="value"]:checked');
+                    
+                    // Collect all impact checkboxes
+                    const impactElements = document.querySelectorAll('input[name="impact"]:checked');
+                    
+                    if (!avoidWords || !value) {
+                        alert('Please answer all questions.');
+                        return false;
+                    }
+                    
+                    // Submit Step 4 responses to Formspree
+                    const impactValues = Array.from(impactElements).map(el => el.value);
+                    await submitStep4ToFormspree(avoidWords.value, impactValues, value.value);
+                    
+                    document.getElementById('step4Continue').disabled = false;
+                    return true;
+                
+                default:
+                    return true;
+            }
+        }
+
+        // Audio quality analysis
+        async function analyzeAudioQuality(audioBlob) {
+            try {
+                // Create audio context for analysis
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const arrayBuffer = await audioBlob.arrayBuffer();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                // Check if audio has sufficient length (at least 3 seconds)
+                if (audioBuffer.duration < 3) {
+                    showRecordingError('Recording too short. Please record for at least 3 seconds.');
+                    return;
+                }
+                
+                // Analyze audio levels to detect if there's actual sound
+                const channelData = audioBuffer.getChannelData(0);
+                let sum = 0;
+                let max = 0;
+                
+                for (let i = 0; i < channelData.length; i++) {
+                    const sample = Math.abs(channelData[i]);
+                    sum += sample;
+                    max = Math.max(max, sample);
+                }
+                
+                const averageLevel = sum / channelData.length;
+                const dynamicRange = max;
+                
+                // Check for silence (very low audio levels)
+                if (averageLevel < 0.001 || dynamicRange < 0.01) {
+                    showRecordingError('No sound detected. Please speak louder and try recording again.');
+                    return;
+                }
+                
+                // Check for clipping (audio too loud)
+                if (max > 0.95) {
+                    showRecordingError('Audio is too loud and may be distorted. Please speak at normal volume and try again.');
+                    return;
+                }
+                
+                // Audio passed all checks
+                hasValidAudio = true;
+                document.getElementById('step2Continue').disabled = false;
+                const statusEl = document.getElementById('recordingStatus');
+                statusEl.textContent = '✅ Great recording! You can continue.';
+                statusEl.className = 'recording-status success';
+                
+                // Track successful recording
+                gtag('event', 'recording_success', {
+                    event_category: 'engagement',
+                    event_label: 'assessment_step2'
+                });
+                
+            } catch (error) {
+                console.error('Error analyzing audio:', error);
+                // If analysis fails, allow user to continue but log the error
+                hasValidAudio = true;
+                document.getElementById('step2Continue').disabled = false;
+                document.getElementById('recordingStatus').textContent = '✅ Recording complete. You can continue.';
+            }
+        }
+        
+        // Show recording error and allow re-recording
+        function showRecordingError(message) {
+            hasValidAudio = false;
+            document.getElementById('step2Continue').disabled = true;
+            
+            // Reset recording button to allow re-recording
+            document.getElementById('recordBtn').textContent = '🎤 Try Recording Again';
+            document.getElementById('recordBtn').style.background = '#FF9800';
+            document.getElementById('recordBtn').disabled = false;
+            
+            // Show error message
+            const statusEl = document.getElementById('recordingStatus');
+            statusEl.textContent = `⚠️ ${message}`;
+            statusEl.className = 'recording-status error';
+            
+            // Track recording failure
+            gtag('event', 'recording_error', {
+                event_category: 'engagement',
+                event_label: 'assessment_step2',
+                custom_parameters: {
+                    error_message: message
+                }
+            });
+        }
+
+        // Recording functionality
+        async function toggleRecording() {
+            // If button shows "Try Recording Again", reset first
+            if (document.getElementById('recordBtn').textContent.includes('Try Recording Again')) {
+                resetRecording();
+                return;
+            }
+            
+            if (!isRecording) {
+                await startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    // Analyze audio quality before enabling continue button
+                    analyzeAudioQuality(audioBlob);
+                };
+                
+                mediaRecorder.start();
+                isRecording = true;
+                recordingTime = 0;
+                
+                document.getElementById('recordBtn').textContent = '⏹️ Stop Recording';
+                document.getElementById('recordBtn').style.background = '#dc3545';
+                
+                recordingTimer = setInterval(() => {
+                    recordingTime++;
+                    const minutes = Math.floor(recordingTime / 60);
+                    const seconds = recordingTime % 60;
+                    document.getElementById('recordingStatus').textContent = 
+                        `Recording time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                alert('Unable to access microphone. Please check permissions.');
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                isRecording = false;
+                clearInterval(recordingTimer);
+                
+                // Show processing status while analyzing
+                document.getElementById('recordBtn').textContent = '🔄 Processing...';
+                document.getElementById('recordBtn').style.background = '#6c757d';
+                document.getElementById('recordBtn').disabled = true;
+                document.getElementById('recordingStatus').textContent = 'Analyzing audio quality...';
+                document.getElementById('recordingStatus').style.color = '#666';
+            }
+        }
+        
+        // Reset recording state for re-recording
+        function resetRecording() {
+            audioChunks = [];
+            audioBlob = null;
+            hasValidAudio = false;
+            recordingTime = 0;
+            
+            document.getElementById('recordBtn').textContent = '🎤 Click to Record';
+            document.getElementById('recordBtn').style.background = '#000000';
+            document.getElementById('recordBtn').disabled = false;
+            document.getElementById('recordingStatus').textContent = 'Recording time: 0:00';
+            document.getElementById('recordingStatus').style.color = '#666';
+            document.getElementById('step2Continue').disabled = true;
+        }
+
+        // Processing animation
+        function startProcessing() {
+            let step = 1;
+            const totalSteps = 3;
+            
+            const processInterval = setInterval(() => {
+                if (step <= totalSteps) {
+                    document.getElementById(`loading${step}`).classList.add('completed');
+                    step++;
+                } else {
+                    clearInterval(processInterval);
+                    startCountdown();
+                }
+            }, 1000);
+        }
+
+        function startCountdown() {
+            let count = 5;
+            const countdownInterval = setInterval(() => {
+                count--;
+                document.getElementById('countdown').textContent = count;
+                
+                if (count <= 0) {
+                    clearInterval(countdownInterval);
+                    // Redirect to results page
+                    window.location.href = 'assessment-results.html';
+                }
+            }, 1000);
+        }
+
+        // Enable continue buttons when questions are answered
+        document.addEventListener('change', function(e) {
+            if (e.target.name === 'troubleWords' || e.target.name === 'soundType' || e.target.name === 'duration') {
+                const troubleWords = document.querySelector('input[name="troubleWords"]:checked');
+                const soundType = document.querySelector('input[name="soundType"]:checked');
+                const duration = document.querySelector('input[name="duration"]:checked');
+                
+                if (troubleWords && soundType && duration) {
+                    document.getElementById('step3Continue').disabled = false;
+                }
+            }
+            
+            if (e.target.name === 'avoidWords' || e.target.name === 'value') {
+                const avoidWords = document.querySelector('input[name="avoidWords"]:checked');
+                const value = document.querySelector('input[name="value"]:checked');
+                
+                if (avoidWords && value) {
+                    document.getElementById('step4Continue').disabled = false;
+                }
+            }
+        });
+
+        // Track assessment events
+        gtag('event', 'assessment_started', {
+            event_category: 'engagement',
+            event_label: 'multi_step_assessment'
+        });
+    </script>
+</body>
+</html>

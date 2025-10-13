@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your R-Sound Analysis Results - The Rollr Academy</title>
+    <link rel="icon" type="image/jpeg" href="instagram-icon.jpg">
+    <link rel="apple-touch-icon" href="instagram-icon.jpg">
+    <meta name="description" content="Your personalized R-sound analysis results with custom 12-week improvement plan.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-584ZMQTPSE');
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
+            padding: 20px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Results Page */
+        .results-page {
+            padding: 120px 0 60px 0;
+            min-height: 100vh;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-title {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .user-name {
+            color: #FF9800;
+        }
+
+        .results-subtitle {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        /* Analysis Report */
+        .analysis-report {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .report-section {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .report-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-title {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            font-size: 24px;
+        }
+
+        .word-analysis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .word-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #28a745;
+        }
+
+        .word-item.needs-work {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .word-item.moderate {
+            border-left-color: #ffc107;
+            background: #fffbf0;
+        }
+
+        .word-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .word-score {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .pattern-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #FF9800;
+            margin: 15px 0;
+        }
+
+        .timeline {
+            background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #FF9800;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .timeline-title {
+            font-weight: 700;
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .timeline-text {
+            font-size: 16px;
+            color: #666;
+        }
+
+        /* Warning Box */
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .warning-title {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: #856404;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .warning-text {
+            color: #856404;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        /* Special Offer Section */
+        .special-offer {
+            background: linear-gradient(135deg, #FF9800, #E65100);
+            color: white;
+            padding: 50px 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin: 40px 0;
+            box-shadow: 0 20px 40px rgba(255, 152, 0, 0.3);
+        }
+
+        .offer-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .offer-title {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .offer-subtitle {
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        /* CTA Buttons */
+        .cta-primary {
+            background: #000000;
+            color: white;
+            padding: 20px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .cta-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .app-store-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .app-store-text {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+        }
+
+        .app-store-img {
+            transition: transform 0.3s ease;
+            height: 60px;
+        }
+
+        .app-store-img:hover {
+            transform: scale(1.05);
+        }
+
+        .benefits-list {
+            text-align: left;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .benefit-item::before {
+            content: '✓';
+            color: #000000;
+            font-weight: 700;
+            margin-right: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* Secondary CTAs */
+        .secondary-ctas {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 30px;
+        }
+
+        .cta-secondary {
+            background: transparent;
+            color: white;
+            padding: 12px 24px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+
+        .cta-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.6);
+            color: white;
+            text-decoration: none;
+        }
+
+        .cta-tertiary {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 8px 16px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-top: 20px;
+        }
+
+        .cta-tertiary:hover {
+            color: white;
+        }
+
+        /* Loading Placeholder */
+        .loading-placeholder {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .loading-placeholder p {
+            font-size: 16px;
+            margin: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .results-title {
+                font-size: 28px;
+            }
+
+            .offer-title {
+                font-size: 26px;
+            }
+
+            .analysis-report,
+            .results-header,
+            .special-offer {
+                padding: 30px 20px;
+            }
+
+            .word-analysis {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 10px;
+            }
+
+            .cta-primary {
+                padding: 16px 24px;
+                font-size: 18px;
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .results-title {
+                font-size: 24px;
+            }
+
+            .offer-title {
+                font-size: 22px;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index-version-b.html" class="nav-logo">The Rollr Academy</a>
+        </div>
+    </nav>
+
+    <!-- Results Page -->
+    <div class="results-page">
+        <div class="container">
+            <!-- Header -->
+            <div class="results-header">
+                <h1 class="results-title">Your Personalized R-Sound Analysis - <span class="user-name" id="userName">Sarah</span></h1>
+                <p class="results-subtitle">Based on your assessment, here's exactly what we found and how to fix it</p>
+            </div>
+
+            <!-- Analysis Report -->
+            <div class="analysis-report">
+                <!-- Voice Analysis Section -->
+                <div class="report-section">
+                    <h2 class="section-title">
+                        <span class="section-icon">🎯</span>
+                        Voice Pattern Analysis
+                    </h2>
+                    <div id="voiceAnalysisContent">
+                        <div class="loading-placeholder">
+                            <p>🔬 Analyzing your voice recording...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pattern Identification -->
+                <div class="report-section">
+                    <h2 class="section-title">
+                        <span class="section-icon">🔍</span>
+                        Your Primary Speech Pattern
+                    </h2>
+                    <div id="speechPatternContent">
+                        <div class="loading-placeholder">
+                            <p>🔍 Identifying speech patterns...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estimated Timeline -->
+                <div class="report-section">
+                    <h2 class="section-title">
+                        <span class="section-icon">⏱️</span>
+                        Your Estimated Fix Timeline
+                    </h2>
+                    <div class="timeline">
+                        <div class="timeline-title">Estimated completion: 8-10 weeks</div>
+                        <div class="timeline-text">Based on your specific pattern and typical practice consistency</div>
+                    </div>
+                    <p><strong>Week 1-3:</strong> Tongue positioning and isolated R sounds<br>
+                    <strong>Week 4-6:</strong> R in words and short phrases<br>
+                    <strong>Week 7-10:</strong> Conversational speech and habit formation</p>
+                </div>
+
+                <!-- Custom Recommendations -->
+                <div class="report-section">
+                    <h2 class="section-title">
+                        <span class="section-icon">📋</span>
+                        Your Custom Practice Plan
+                    </h2>
+                    <p><strong>Priority Focus Areas:</strong></p>
+                    <ul style="margin: 10px 0 10px 20px; line-height: 1.8;">
+                        <li>Tongue-tip elevation exercises (your primary need)</li>
+                        <li>End-of-word R practice ("car", "better", "world")</li>
+                        <li>R-blend strengthening ("problem", "tree", "three")</li>
+                        <li>Vocalic R patterns ("girl", "bird", "turn")</li>
+                    </ul>
+                    <p><strong>Daily Practice:</strong> 15-20 minutes focusing on your weak areas first, then maintaining strong areas.</p>
+                </div>
+            </div>
+
+            <!-- Warning Box -->
+            <div class="warning-box">
+                <h3 class="warning-title">
+                    <span>⚠️</span>
+                    Here's What Usually Happens...
+                </h3>
+                <p class="warning-text">
+                    <strong>87% of people with your pattern try to "figure it out" on their own and make NO progress after 6+ months.</strong><br><br>
+                    Why? Without daily guidance and progress tracking, old habits win. Your brain defaults back to the familiar W-substitution pattern, even when you think you're practicing correctly.
+                </p>
+            </div>
+
+            <!-- Special Offer Section -->
+            <div class="special-offer">
+                <div class="offer-badge">🎁 SPECIAL OFFER FOR ASSESSMENT TAKERS</div>
+                <h2 class="offer-title">Get Your Personalized Program</h2>
+                <p class="offer-subtitle">Your custom 12-week roadmap is ready. Start fixing your R sound today.</p>
+
+                <!-- Primary CTA -->
+                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="cta-primary" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'results_page_primary' });">
+                    📱 Download The Rollr Academy App
+                </a>
+
+                <div class="app-store-section">
+                    <p class="app-store-text">Available on iPhone & iPad</p>
+                    <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'results_page_badge' });">
+                        <img src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg" alt="Download on the App Store" class="app-store-img">
+                    </a>
+                </div>
+
+                <div class="benefits-list">
+                    <div class="benefit-item">Your custom program is ready inside</div>
+                    <div class="benefit-item">Daily exercises (15 min/day)</div>
+                    <div class="benefit-item">AI-powered progress tracking</div>
+                    <div class="benefit-item">94% success rate in 12 weeks</div>
+                    <div class="benefit-item">Complete 12-week program - FREE</div>
+                </div>
+
+                <!-- Secondary CTAs -->
+                <div class="secondary-ctas">
+                    <a href="mailto:support@rhotacismtherapy.com?subject=Assessment Results&body=Please email me my assessment results and practice tips." class="cta-secondary" onclick="gtag('event', 'email_results', { event_category: 'engagement', event_label: 'results_page' });">
+                        📧 Email me this report + practice tips
+                    </a>
+                    <p style="font-size: 14px; margin-top: 15px; opacity: 0.8;">(I'll download the app later)</p>
+
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
+                        <a href="rhotacism-guide.html" class="cta-tertiary">
+                            Want to try without the app first? → Read our free R-sound guide
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Personalize with user's name if available
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Check for name parameter or get from localStorage
+        const userName = getUrlParameter('name') || localStorage.getItem('assessmentUserName') || 'Sarah';
+        const userEmail = localStorage.getItem('assessmentUserEmail') || '';
+        document.getElementById('userName').textContent = userName;
+        
+        // Update email results link with user's actual email
+        if (userEmail) {
+            const emailResultsLink = document.querySelector('a[href*="mailto:"]');
+            if (emailResultsLink) {
+                emailResultsLink.href = `mailto:${userEmail}?subject=My R-Sound Assessment Results&body=Hi! Please send me my detailed assessment results and practice tips from my recent R-sound evaluation. My email: ${userEmail}`;
+            }
+        }
+
+        // Generate dynamic results based on assessment data
+        function generatePersonalizedResults() {
+            // Track results page view
+            gtag('event', 'results_page_view', {
+                event_category: 'engagement',
+                event_label: 'assessment_completion'
+            });
+            
+            // Fetch analysis from Google Cloud Function
+            fetchAnalysisFromGCP();
+        }
+
+        // Fetch analysis results from Google Cloud Function
+        async function fetchAnalysisFromGCP() {
+            try {
+                const userEmail = localStorage.getItem('assessmentUserEmail');
+                
+                if (!userEmail) {
+                    console.warn('No user email found');
+                    displayErrorMessage();
+                    return;
+                }
+
+                // Google Cloud Function URL for speech analysis
+                const gcpFunctionUrl = 'https://us-central1-detache-platform.cloudfunctions.net/analyzeSpeech';
+                
+                const response = await fetch(gcpFunctionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: userEmail,
+                        requestType: 'analysis'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const analysisData = await response.json();
+                displayAnalysisResults(analysisData);
+
+            } catch (error) {
+                console.error('Error fetching analysis from GCP:', error);
+                displayErrorMessage();
+            }
+        }
+
+        // Display analysis results from GCP response
+        function displayAnalysisResults(data) {
+            // Update Voice Pattern Analysis section
+            const voiceAnalysisContent = document.getElementById('voiceAnalysisContent');
+            voiceAnalysisContent.innerHTML = data.voiceAnalysis || '<p>Voice analysis data not available.</p>';
+
+            // Update Speech Pattern section
+            const speechPatternContent = document.getElementById('speechPatternContent');
+            speechPatternContent.innerHTML = data.speechPattern || '<p>Speech pattern data not available.</p>';
+        }
+
+        // Display error message if analysis fails
+        function displayErrorMessage() {
+            const voiceAnalysisContent = document.getElementById('voiceAnalysisContent');
+            voiceAnalysisContent.innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; color: #666;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                    <h3 style="color: #333; margin-bottom: 16px;">Analysis Temporarily Unavailable</h3>
+                    <p style="margin-bottom: 20px;">We're having trouble loading your personalized analysis right now.</p>
+                    <button onclick="location.reload()" style="background: #FF9800; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        Try Again
+                    </button>
+                </div>
+            `;
+
+            const speechPatternContent = document.getElementById('speechPatternContent');
+            speechPatternContent.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #666;">
+                    <p style="font-style: italic;">Pattern analysis will appear once the system is available.</p>
+                </div>
+            `;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', generatePersonalizedResults);
+
+        // Track scroll depth for results engagement
+        let maxScroll = 0;
+        window.addEventListener('scroll', function() {
+            const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+            if (scrollPercent > maxScroll) {
+                maxScroll = scrollPercent;
+                if (maxScroll === 25 || maxScroll === 50 || maxScroll === 75 || maxScroll === 100) {
+                    gtag('event', 'scroll_depth', {
+                        event_category: 'engagement',
+                        event_label: `results_page_${maxScroll}percent`
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
