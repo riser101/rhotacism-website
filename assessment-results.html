@@ -602,57 +602,37 @@
                 event_label: 'assessment_completion'
             });
             
-            // Fetch analysis from Google Cloud Function
-            fetchAnalysisFromGCP();
+            // Load analysis from localStorage instead of calling GCP
+            loadAnalysisFromStorage();
         }
 
-        // Fetch analysis results from Google Cloud Function
-        async function fetchAnalysisFromGCP() {
+        // Load analysis results from localStorage
+        function loadAnalysisFromStorage() {
             try {
-                const userEmail = localStorage.getItem('assessmentUserEmail');
+                const storedResult = localStorage.getItem('gcpAnalysisResult');
                 
-                if (!userEmail) {
-                    console.warn('No user email found');
+                if (storedResult) {
+                    const analysisData = JSON.parse(storedResult);
+                    displayAnalysisResults(analysisData);
+                } else {
+                    console.warn('No stored analysis result found');
                     displayErrorMessage();
-                    return;
                 }
-
-                // Google Cloud Function URL for speech analysis
-                const gcpFunctionUrl = 'https://us-central1-detache-platform.cloudfunctions.net/analyzeSpeech';
-                
-                const response = await fetch(gcpFunctionUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: userEmail,
-                        requestType: 'analysis'
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const analysisData = await response.json();
-                displayAnalysisResults(analysisData);
-
             } catch (error) {
-                console.error('Error fetching analysis from GCP:', error);
+                console.error('Error loading analysis from storage:', error);
                 displayErrorMessage();
             }
         }
 
-        // Display analysis results from GCP response
+        // Display analysis results from stored data
         function displayAnalysisResults(data) {
             // Update Voice Pattern Analysis section
             const voiceAnalysisContent = document.getElementById('voiceAnalysisContent');
-            voiceAnalysisContent.innerHTML = data.voiceAnalysis || '<p>Voice analysis data not available.</p>';
+            voiceAnalysisContent.innerHTML = data || '<p>Voice analysis data not available.</p>';
 
-            // Update Speech Pattern section
+            // Update Speech Pattern section  
             const speechPatternContent = document.getElementById('speechPatternContent');
-            speechPatternContent.innerHTML = data.speechPattern || '<p>Speech pattern data not available.</p>';
+            speechPatternContent.innerHTML = data || '<p>Speech pattern data not available.</p>';
         }
 
         // Display error message if analysis fails
