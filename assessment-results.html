@@ -626,13 +626,34 @@
 
         // Display analysis results from stored data
         function displayAnalysisResults(data) {
+            console.log('Displaying analysis results:', data);
+            
             // Update Voice Pattern Analysis section
             const voiceAnalysisContent = document.getElementById('voiceAnalysisContent');
-            voiceAnalysisContent.innerHTML = data || '<p>Voice analysis data not available.</p>';
-
-            // Update Speech Pattern section  
-            const speechPatternContent = document.getElementById('speechPatternContent');
-            speechPatternContent.innerHTML = data || '<p>Speech pattern data not available.</p>';
+            
+            // If data is a string (fallback message), display as is
+            if (typeof data === 'string') {
+                voiceAnalysisContent.innerHTML = `<p>${data}</p>`;
+                const speechPatternContent = document.getElementById('speechPatternContent');
+                speechPatternContent.innerHTML = `<p>${data}</p>`;
+                return;
+            }
+            
+            // If data is an object, extract the analysis content
+            if (typeof data === 'object' && data !== null) {
+                // The GCP function returns the analysis as a string, so display it directly
+                const analysisText = data.analysis || data.result || data.response || JSON.stringify(data, null, 2);
+                
+                voiceAnalysisContent.innerHTML = `<p>${analysisText}</p>`;
+                
+                // Update Speech Pattern section with same content for now
+                const speechPatternContent = document.getElementById('speechPatternContent');
+                speechPatternContent.innerHTML = `<p>${analysisText}</p>`;
+            } else {
+                voiceAnalysisContent.innerHTML = '<p>Voice analysis data not available.</p>';
+                const speechPatternContent = document.getElementById('speechPatternContent');
+                speechPatternContent.innerHTML = '<p>Speech pattern data not available.</p>';
+            }
         }
 
         // Display error message if analysis fails
