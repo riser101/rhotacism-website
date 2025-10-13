@@ -937,6 +937,7 @@
         async function sendAudioToGCP(audioBlob) {
             try {
                 const base64Audio = await blobToBase64(audioBlob);
+                console.log('Sending audio to GCP function...');
                 
                 const response = await fetch('https://us-central1-detache-platform.cloudfunctions.net/analyzeSpeech', {
                     method: 'POST',
@@ -948,10 +949,16 @@
                     })
                 });
 
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
+                console.log('GCP response received:', data);
                 
                 // Store the result in localStorage
                 localStorage.setItem('gcpAnalysisResult', JSON.stringify(data));
+                console.log('Analysis result stored in localStorage');
                 
                 // Update status to show completion
                 const statusEl = document.getElementById('recordingStatus');
@@ -959,7 +966,10 @@
                 
             } catch (error) {
                 console.error('Error sending audio to GCP:', error);
-                // Even if GCP fails, allow user to continue
+                // Even if GCP fails, store a fallback message so results page doesn't break
+                const fallbackData = 'Analysis temporarily unavailable. Please try the assessment again.';
+                localStorage.setItem('gcpAnalysisResult', JSON.stringify(fallbackData));
+                
                 const statusEl = document.getElementById('recordingStatus');
                 statusEl.textContent = '✅ Great recording! You can continue.';
             }
