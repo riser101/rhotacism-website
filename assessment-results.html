@@ -474,18 +474,6 @@
                     </div>
                 </div>
 
-                <!-- Pattern Identification -->
-                <div class="report-section">
-                    <h2 class="section-title">
-                        <span class="section-icon">🔍</span>
-                        Your Primary Speech Pattern
-                    </h2>
-                    <div id="speechPatternContent">
-                        <div class="loading-placeholder">
-                            <p>🔍 Identifying speech patterns...</p>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Estimated Timeline -->
                 <div class="report-section">
@@ -624,6 +612,19 @@
             }
         }
 
+        // Convert markdown to HTML (copied from index.html)
+        function convertMarkdownToHTML(text) {
+            let html = text
+                .replace(/## (.+)/g, '<h3 style="color: #FF9800; margin: 20px 0 10px 0; font-size: 18px;">$1</h3>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong style="color: #333;">$1</strong>')
+                .replace(/^- (.+)/gm, '<div style="margin: 8px 0; padding-left: 16px;">• $1</div>')
+                .replace(/\n\n/g, '</p><p style="margin: 12px 0;">')
+                .replace(/\n/g, '<br>');
+            
+            // Wrap in paragraph tags
+            return '<div style="line-height: 1.6;">' + html + '</div>';
+        }
+
         // Display analysis results from stored data
         function displayAnalysisResults(data) {
             console.log('Displaying analysis results:', data);
@@ -633,9 +634,7 @@
             
             // If data is a string (fallback message), display as is
             if (typeof data === 'string') {
-                voiceAnalysisContent.innerHTML = `<p>${data}</p>`;
-                const speechPatternContent = document.getElementById('speechPatternContent');
-                speechPatternContent.innerHTML = `<p>${data}</p>`;
+                voiceAnalysisContent.innerHTML = convertMarkdownToHTML(data);
                 return;
             }
             
@@ -644,15 +643,9 @@
                 // The GCP function returns the analysis as a string, so display it directly
                 const analysisText = data.analysis || data.result || data.response || JSON.stringify(data, null, 2);
                 
-                voiceAnalysisContent.innerHTML = `<p>${analysisText}</p>`;
-                
-                // Update Speech Pattern section with same content for now
-                const speechPatternContent = document.getElementById('speechPatternContent');
-                speechPatternContent.innerHTML = `<p>${analysisText}</p>`;
+                voiceAnalysisContent.innerHTML = convertMarkdownToHTML(analysisText);
             } else {
                 voiceAnalysisContent.innerHTML = '<p>Voice analysis data not available.</p>';
-                const speechPatternContent = document.getElementById('speechPatternContent');
-                speechPatternContent.innerHTML = '<p>Speech pattern data not available.</p>';
             }
         }
 
