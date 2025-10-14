@@ -667,149 +667,27 @@ font-size: 14px;
 color: #6c757d;
 }
 
-/* Assessment Popup - Using Exit Intent Popup Styling */
-.assessment-popup {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 10001;
-    justify-content: center;
-    align-items: center;
+/* Assessment Section */
+.assessment-section {
+display: none;
+padding: 40px 20px;
+background: #f5f5f5;
+text-align: center;
 }
-
-.assessment-modal {
-    background: linear-gradient(to bottom, 
-        #c5a732 0%,
-        #d4b73a 50%,
-        #c5a732 100%
-    );
-    border-radius: 16px;
-    padding: 40px;
-    max-width: 520px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    position: relative;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    text-align: center;
-    margin: 20px;
+.assessment-section h2 {
+margin-bottom: 20px;
 }
-
-.assessment-close {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    background: none;
-    border: none;
-    font-size: 28px;
-    color: #666;
-    cursor: pointer;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: all 0.3s ease;
+.words-list {
+margin-bottom: 20px;
+font-size: 18px;
 }
-
-.assessment-close:hover {
-    background: rgba(0, 0, 0, 0.1);
-    color: #333;
-}
-
-.assessment-icon {
-    width: 60px;
-    height: 60px;
-    background: #e0e0e0;
-    border-radius: 12px;
-    margin: 0 auto 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: #666;
-}
-
-.assessment-modal h2 {
-    font-family: 'Quicksand', sans-serif;
-    font-size: 32px;
-    font-weight: 700;
-    color: #333;
-    margin-bottom: 20px;
-    line-height: 1.2;
-}
-
-.assessment-modal .words-list {
-    font-size: 16px;
-    color: #666;
-    margin-bottom: 30px;
-    line-height: 1.5;
-    text-align: left;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 16px 20px;
-    border-radius: 8px;
-}
-
-.assessment-modal #recordBtn {
-    width: 100%;
-    background: #000000;
-    color: white;
-    padding: 18px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 18px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.assessment-modal #recordBtn:hover {
-    background: #333333;
-}
-
-.assessment-modal #status {
-    font-size: 14px;
-    color: #888;
-    margin-top: 20px;
-    line-height: 1.4;
-}
-
-/* Mobile responsiveness for assessment popup */
-@media (max-width: 768px) {
-    .assessment-modal {
-        padding: 30px 25px;
-        margin: 10px;
-    }
-    
-    .assessment-modal h2 {
-        font-size: 28px;
-    }
-    
-    .assessment-icon {
-        width: 50px;
-        height: 50px;
-        font-size: 20px;
-        margin-bottom: 20px;
-    }
-}
-
-@media (max-width: 480px) {
-    .assessment-modal {
-        padding: 25px 20px;
-    }
-    
-    .assessment-modal h2 {
-        font-size: 24px;
-    }
-    
-    .assessment-modal .words-list {
-        font-size: 15px;
-    }
+.record-button {
+background-color: #FF9800;
+color: white;
+border: none;
+padding: 10px 20px;
+cursor: pointer;
+border-radius: 5px;
 }
 /* Popup */
 .popup {
@@ -1610,17 +1488,20 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         <div class="hero::before"></div>
         <div class="hero-content">
             <div class="badge">✨ NO CREDIT CARD • NO APPOINTMENTS • NO EMBARRASSMENT</div>
+            <div class="badge">Start Free • Premium Optional</div>
             
             <h1 class="hero-title">Rhotacism Treatment: Master Your R Sound in 12 Weeks</h1>
             
-            <div style="text-align: center; margin: 20px 0; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2);">
-                <p style="margin: 0; font-weight: 600; color: #ffffff; font-size: 16px;">✓ Developed by Licensed Speech Therapists</p>
-                <p style="margin: 8px 0 0 0; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Evidence-based methods used by hundreds of high agency adults</p>
-            </div>
-            
             <p class="hero-subtitle">
-                Stop cringing every time you say "really" or "world". Our program helps adults achieve clear R pronunciation. Learn more about <a href="guide/rhotacism.html" style="color: #000000; font-weight: 600;">what is rhotacism</a> and <a href="guide/how-to-fix-rhotacism.html" style="color: #000000; font-weight: 600;">how to fix it</a>.
+                Stop cringing every time you say "really" or "world". Our evidence-based program helps adults achieve clear R pronunciation. Learn more about <a href="guide/rhotacism.html" style="color: #000000; font-weight: 600;">what is rhotacism</a> and <a href="guide/how-to-fix-rhotacism.html" style="color: #000000; font-weight: 600;">how to fix it</a>.
             </p>
+
+            <!-- Social Proof Badge -->
+            <div style="background: rgba(255, 255, 255, 0.1); border: 1px solid #b89b14; border-radius: 50px; padding: 8px 20px; margin: 24px auto; display: inline-block; backdrop-filter: blur(10px);">
+                <span style="color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 500;">✓ Used by hundreds of high-agency adults worldwide</span>
+            </div>
+
+            <!-- Social Proof Stats -->
             <div class="hero-stats">
                 <div class="stats-grid">
                     <div class="stat-item">
@@ -1640,7 +1521,10 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 
             <div class="hero-cta-container">
                 <div class="cta-buttons">
-                    <a href="assessment.html" class="btn btn-primary" style="height: 68px; display: flex; align-items: center; justify-content: center; padding: 20px 40px; background: #000000; border: none; color: white; font-weight: 600; font-size: 18px; border-radius: 8px; text-decoration: none;" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'hero_cta' });">Take Free 2-Minute Assessment</a>
+                    <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'hero_cta' });">
+                        <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" 
+                             alt="Download on the App Store" style="height: 68px;">
+                    </a>
                     <a href="#features" class="btn btn-secondary" style="height: 68px; display: flex; align-items: center; justify-content: center; padding: 20px 40px;" onclick="gtag('event', 'see_how_it_works', { event_category: 'engagement', event_label: 'hero_section' });">See How It Works</a>
                     <div class="nav-toggle">
                         <span></span>
@@ -1783,7 +1667,10 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
             
             <!-- App Store Logo -->
             <div style="text-align: center; margin-top: 60px;">
-                <a href="assessment.html" class="btn btn-primary" style="background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); border: none; color: white; font-weight: 600; font-size: 18px; padding: 16px 32px; border-radius: 8px; text-decoration: none;" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'features_section' });">Start Your Free Assessment</a>
+                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'features_section' });">
+                    <img src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg" 
+                         alt="Download on the App Store" style="height: 80px;">
+                </a>
             </div>
         </div>
     </section>
@@ -1905,15 +1792,10 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
             <h2 class="cta-title">Ready to Finally Fix Your R Sound?</h2>
             <p class="cta-subtitle">Join thousands who've already transformed their speech. Start with a free assessment to see exactly what needs work.</p>
             
-            <a href="assessment.html" class="btn btn-primary" style="background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); border: none; color: white; font-weight: 600; font-size: 20px; padding: 20px 40px; border-radius: 8px; text-decoration: none; display: inline-block; margin-bottom: 20px;" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'bottom_cta' });">Take Free Assessment Now</a>
-            
-            <div id="download-after-assessment" style="display: none; text-align: center;">
-                <p style="margin: 20px 0 10px 0; color: #666;">Ready to start your personalized program?</p>
-                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'post_assessment_download' });">
-                    <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" 
-                         alt="Download on the App Store" style="height: 80px;">
-                </a>
-            </div>
+            <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'bottom_cta' });">
+                <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" 
+                     alt="Download on the App Store" style="height: 80px;">
+            </a>
 
             <div class="risk-free">
                 <h4>🛡️ Risk-Free Promise</h4>
@@ -1995,20 +1877,14 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         </div>
     </footer>
 
-    <!-- Assessment Popup Modal -->
-    <div class="assessment-popup" id="assessmentPopup">
-        <div class="assessment-modal">
-            <button class="assessment-close" onclick="closeAssessmentPopup()">×</button>
-            
-            <div class="assessment-icon">🎤</div>
-            
-            <h2>Free Rhotacism Assessment</h2>
-            
-            <div class="words-list">
-                Say these words clearly: <strong>red, car, tree, around, forest, problem, girl, world</strong>
+    <!-- Assessment Modal/Section -->
+    <div class="assessment-section" id="assessment" style="display: none; padding: 40px 20px; background: #f5f5f5; text-align: center;">
+        <div class="container">
+            <h2 style="margin-bottom: 20px;">Free Rhotacism Assessment</h2>
+            <div class="words-list" style="margin-bottom: 20px; font-size: 18px;">
+                Say these words clearly: red, car, tree, around, forest, problem, girl, world
             </div>
-            
-            <button id="recordBtn">Start Recording</button>
+            <button class="btn btn-primary" id="recordBtn">Start Recording</button>
             <div id="status"></div>
         </div>
     </div>
@@ -2078,7 +1954,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         let audioContext;
         const recordBtn = document.getElementById('recordBtn');
         const status = document.getElementById('status');
-        const assessmentPopup = document.getElementById('assessmentPopup');
+        const assessmentSection = document.getElementById('assessment');
         const popup = document.getElementById('popup');
         const analysisResult = document.getElementById('analysis-result');
 
@@ -2091,13 +1967,8 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                 event_label: 'free_assessment_button'
             });
             
-            const assessmentPopup = document.getElementById('assessmentPopup');
-            assessmentPopup.style.display = 'flex';
-        }
-        
-        function closeAssessmentPopup() {
-            const assessmentPopup = document.getElementById('assessmentPopup');
-            assessmentPopup.style.display = 'none';
+            assessmentSection.style.display = 'block';
+            window.scrollTo(0, document.body.scrollHeight);
         }
 
         let mediaRecorder;
