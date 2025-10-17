@@ -688,17 +688,19 @@ color: #6c757d;
     background: transparent;
     border-radius: 0;
     padding: 60px 40px 40px 40px;
-    max-width: 600px;
-    width: 100%;
+    width: 100vw;
     min-height: 100vh;
-    overflow-y: visible;
-    position: relative;
+    overflow-y: auto;
+    position: absolute;
+    top: 0;
+    left: 0;
     box-shadow: none;
     text-align: center;
-    margin: 0 auto;
+    margin: 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
 }
 
 .assessment-close {
@@ -1350,7 +1352,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     }
 }
 
-/* Login Modal Styles */
+/* Login Modal Styles - Full Screen */
 .login-modal {
     display: none;
     position: fixed;
@@ -1358,46 +1360,51 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 10002;
-    justify-content: center;
-    align-items: center;
-}
-
-.login-modal-content {
     background: linear-gradient(to bottom, 
         #c5a732 0%,
         #d4b73a 50%,
         #c5a732 100%
     );
-    border-radius: 16px;
-    padding: 40px;
-    max-width: 420px;
-    width: 90%;
-    max-height: 80vh;
+    z-index: 10002;
     overflow-y: auto;
-    position: relative;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.login-modal-content {
+    background: transparent;
+    border-radius: 0;
+    padding: 80px 60px 60px 60px;
+    width: 100vw;
+    min-height: 100vh;
+    overflow-y: auto;
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-shadow: none;
     text-align: center;
-    margin: 20px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .login-close {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    background: none;
+    position: fixed;
+    top: 20px;
+    right: 30px;
+    background: rgba(0, 0, 0, 0.1);
     border: none;
-    font-size: 28px;
-    color: #666;
+    font-size: 32px;
+    color: #333;
     cursor: pointer;
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     transition: all 0.3s ease;
+    z-index: 10003;
 }
 
 .login-close:hover {
@@ -1407,28 +1414,31 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 
 .login-title {
     font-family: 'Quicksand', sans-serif;
-    font-size: 28px;
+    font-size: 56px;
     font-weight: 700;
     color: #333;
-    margin-bottom: 20px;
-    line-height: 1.2;
+    margin-bottom: 50px;
+    margin-top: 80px;
+    line-height: 1.1;
 }
 
 .login-subtitle {
-    font-size: 16px;
+    font-size: 18px;
     color: #666;
-    margin-bottom: 30px;
-    line-height: 1.5;
+    margin-bottom: 40px;
+    line-height: 1.6;
+    max-width: 500px;
 }
 
 .google-login-btn {
+    max-width: 400px;
     width: 100%;
     background: white;
     color: #333;
-    padding: 16px 20px;
+    padding: 20px 24px;
     border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 16px;
+    border-radius: 12px;
+    font-size: 18px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -1436,7 +1446,8 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     align-items: center;
     justify-content: center;
     gap: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .google-login-btn:hover {
@@ -1447,34 +1458,39 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 .login-divider {
     position: relative;
     text-align: center;
-    margin: 20px 0;
+    margin: 25px 0;
     color: #666;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
-.login-divider::before {
+.login-divider::before,
+.login-divider::after {
     content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
+    flex: 1;
     height: 1px;
-    background: #ddd;
+    background: rgba(102, 102, 102, 0.3);
 }
 
 .login-divider span {
-    background: linear-gradient(to bottom, #c5a732 0%, #d4b73a 50%, #c5a732 100%);
-    padding: 0 15px;
+    color: #666;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
 .login-email-input {
+    max-width: 400px;
     width: 100%;
-    padding: 16px 20px;
+    padding: 20px 24px;
     border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 16px;
-    margin-bottom: 20px;
+    border-radius: 12px;
+    font-size: 18px;
+    margin-bottom: 25px;
     outline: none;
     transition: border-color 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .login-email-input:focus {
@@ -1486,16 +1502,18 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 }
 
 .login-submit-btn {
+    max-width: 400px;
     width: 100%;
     background: #000000;
     color: white;
-    padding: 16px 20px;
+    padding: 20px 24px;
     border: none;
-    border-radius: 8px;
-    font-size: 16px;
+    border-radius: 12px;
+    font-size: 18px;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .login-submit-btn:hover {
@@ -1512,26 +1530,42 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 /* Mobile responsiveness for login modal */
 @media (max-width: 768px) {
     .login-modal-content {
-        padding: 30px 25px;
-        margin: 10px;
+        padding: 40px 20px 30px 20px;
+        margin: 0;
     }
     
     .login-title {
-        font-size: 24px;
+        font-size: 36px;
+    }
+    
+    .login-close {
+        top: 15px;
+        right: 20px;
+        width: 35px;
+        height: 35px;
+        font-size: 28px;
     }
 }
 
 @media (max-width: 480px) {
     .login-modal-content {
-        padding: 25px 20px;
+        padding: 30px 15px 20px 15px;
     }
     
     .login-title {
-        font-size: 22px;
+        font-size: 32px;
     }
     
     .login-subtitle {
-        font-size: 15px;
+        font-size: 16px;
+    }
+    
+    .login-close {
+        top: 10px;
+        right: 15px;
+        width: 32px;
+        height: 32px;
+        font-size: 24px;
     }
 }
 
@@ -1834,6 +1868,9 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     <script async type="text/javascript" src="https://a.plerdy.com/public/js/click/plerdy_ab-min.js?v=9e6d87d"></script>
     <!-- END PLERDY A/B TESTING CODE -->
 
+    <!-- Google OAuth 2.0 Script -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -1842,8 +1879,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
             <a href="#" class="nav-logo">The Rollr Academy</a>
             <ul class="nav-menu">
                 <!-- <li><a href="index.html">Home</a></li> -->
-                <li><a href="#" class="login-btn" onclick="openLoginModal()">Login</a></li>
-                <li><a href="rhotacism-guide.html">Rhotacism Guide</a></li>
+                <li><a href="#" class="login-btn" id="loginNavBtn" onclick="openLoginModal()">Login</a></li>
                 <!-- <li><a href="#assessment" onclick="startAssessment()">Practice Tools</a></li> -->
                 <li><a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'nav_menu' }); plerdy_goals('app_store_click');">
                         <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" 
@@ -2326,26 +2362,46 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     <!-- Login Modal -->
     <div id="loginModal" class="login-modal">
         <div class="login-modal-content">
+            <div style="position: absolute; top: 40px; left: 40px; font-family: 'Quicksand', sans-serif; font-size: 22px; font-weight: 700; color: #333; display: flex; align-items: center; gap: 12px;">
+                <img src="instagram-icon.jpg" alt="Logo" style="width: 32px; height: 32px; border-radius: 6px;">
+                The Rollr Academy
+            </div>
             <button class="login-close" onclick="closeLoginModal()">&times;</button>
             
-            <h2 class="login-title">Start Your R Sound Journey</h2>
-            <p class="login-subtitle">Get instant access to 3 powerful practice exercises</p>
+            <h2 class="login-title">Login</h2>
             
-            <button class="google-login-btn" onclick="loginWithGoogle()">
-                <svg width="20" height="20" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Continue with Google
-            </button>
-            
-            <div class="login-divider">
-                <span>or</span>
+            <!-- NOTE: You need to create OAuth 2.0 credentials in Google Cloud Console:
+                 1. Go to console.cloud.google.com
+                 2. Select project: detache-platform
+                 3. APIs & Services > Credentials
+                 4. Create OAuth 2.0 Client ID
+                 5. Add authorized domains: rhotacismtherapy.com, www.rhotacismtherapy.com
+                 6. Replace CLIENT_ID_HERE with your actual client ID -->
+            <div id="g_id_onload"
+                 data-client_id="653307587559-bg7qf4p5h70q4kcrdnircer7ht79c4ha.apps.googleusercontent.com"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-callback="handleCredentialResponse"
+                 data-auto_prompt="false">
             </div>
             
-            <form onsubmit="loginWithEmail(event)">
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-shape="rectangular"
+                 data-theme="outline"
+                 data-text="continue_with"
+                 data-size="large"
+                 data-logo_alignment="left"
+                 data-width="280"
+                 data-height="50"
+                 style="max-width: 280px; width: auto; display: flex; justify-content: center;">
+            </div>
+            
+            <!-- <div class="login-divider">
+                <span>or</span>
+            </div> -->
+            
+            <!-- <form onsubmit="loginWithEmail(event)">
                 <input 
                     type="email" 
                     class="login-email-input" 
@@ -2360,7 +2416,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
             
             <p class="login-disclaimer">
                 By continuing, you agree to receive practice tips and updates. You can unsubscribe anytime.
-            </p>
+            </p> -->
         </div>
     </div>
 
@@ -2764,16 +2820,139 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
             document.getElementById('loginModal').style.display = 'none';
         }
 
-        function loginWithGoogle() {
-            // For demo purposes, we'll redirect to exercises page
-            // In production, implement Google OAuth
-            gtag('event', 'google_login_attempt', {
-                event_category: 'conversion',
-                event_label: 'login_modal'
+        // Google OAuth callback function
+        function handleCredentialResponse(response) {
+            try {
+                // Decode the JWT token to get user information
+                const responsePayload = decodeJwtResponse(response.credential);
+                
+                // Store user data
+                const userData = {
+                    id: responsePayload.sub,
+                    email: responsePayload.email,
+                    name: responsePayload.name,
+                    picture: responsePayload.picture,
+                    loginTime: new Date().toISOString()
+                };
+                
+                // Store in localStorage
+                localStorage.setItem('userAuth', JSON.stringify(userData));
+                localStorage.setItem('userEmail', responsePayload.email);
+                
+                // Track successful login
+                gtag('event', 'google_login_success', {
+                    event_category: 'conversion',
+                    event_label: 'login_modal',
+                    user_id: responsePayload.sub
+                });
+                
+                // Submit to Formspree for email collection
+                fetch('https://formspree.io/f/xovkkekq', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: responsePayload.email,
+                        name: responsePayload.name,
+                        source: 'google_oauth_login',
+                        timestamp: new Date().toISOString(),
+                        message: 'User authenticated with Google OAuth for R Sound exercises'
+                    })
+                }).catch(error => console.log('Formspree error:', error));
+                
+                // Close modal and redirect
+                closeLoginModal();
+                showLoginSuccess(responsePayload.name);
+                
+                // Redirect to exercises page after brief delay
+                setTimeout(() => {
+                    window.location.href = 'exercises.html';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                gtag('event', 'google_login_error', {
+                    event_category: 'error',
+                    event_label: 'login_modal'
+                });
+                alert('Login failed. Please try again.');
+            }
+        }
+        
+        // Function to decode JWT token
+        function decodeJwtResponse(token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+        
+        // Function to show login success message
+        function showLoginSuccess(userName) {
+            const successDiv = document.createElement('div');
+            successDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #28a745;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                z-index: 10000;
+                font-weight: 600;
+                box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+            `;
+            successDiv.textContent = `Welcome back, ${userName}! Redirecting to exercises...`;
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                document.body.removeChild(successDiv);
+            }, 3000);
+        }
+        
+        // Function to check if user is already logged in
+        function checkAuthStatus() {
+            const userAuth = localStorage.getItem('userAuth');
+            if (userAuth) {
+                try {
+                    const userData = JSON.parse(userAuth);
+                    const loginTime = new Date(userData.loginTime);
+                    const now = new Date();
+                    const hoursDiff = (now - loginTime) / (1000 * 60 * 60);
+                    
+                    // Session expires after 24 hours
+                    if (hoursDiff < 24) {
+                        return userData;
+                    } else {
+                        // Clear expired session
+                        localStorage.removeItem('userAuth');
+                        localStorage.removeItem('userEmail');
+                    }
+                } catch (error) {
+                    console.error('Auth check error:', error);
+                    localStorage.removeItem('userAuth');
+                    localStorage.removeItem('userEmail');
+                }
+            }
+            return null;
+        }
+        
+        // Function to logout user
+        function logoutUser() {
+            localStorage.removeItem('userAuth');
+            localStorage.removeItem('userEmail');
+            
+            gtag('event', 'user_logout', {
+                event_category: 'engagement',
+                event_label: 'manual_logout'
             });
             
-            // Simulate Google login success
-            window.location.href = 'exercises.html';
+            // Redirect to home page
+            window.location.href = 'index.html';
         }
 
         function loginWithEmail(event) {
@@ -2823,6 +3002,22 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         document.getElementById('loginModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeLoginModal();
+            }
+        });
+
+        // Initialize authentication status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const userData = checkAuthStatus();
+            const loginNavBtn = document.getElementById('loginNavBtn');
+            
+            if (userData && loginNavBtn) {
+                // User is logged in, update navigation
+                loginNavBtn.textContent = `Hi, ${userData.name.split(' ')[0]}`;
+                loginNavBtn.onclick = function() {
+                    if (confirm('Do you want to logout?')) {
+                        logoutUser();
+                    }
+                };
             }
         });
 
