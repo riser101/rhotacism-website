@@ -667,7 +667,7 @@ font-size: 14px;
 color: #6c757d;
 }
 
-/* Assessment Popup - Using Exit Intent Popup Styling */
+/* Assessment Popup - Full Screen View */
 .assessment-popup {
     display: none;
     position: fixed;
@@ -675,46 +675,49 @@ color: #6c757d;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 10001;
-    justify-content: center;
-    align-items: center;
-}
-
-.assessment-modal {
     background: linear-gradient(to bottom, 
         #c5a732 0%,
         #d4b73a 50%,
         #c5a732 100%
     );
-    border-radius: 16px;
-    padding: 40px;
-    max-width: 520px;
-    width: 90%;
-    max-height: 80vh;
+    z-index: 10001;
     overflow-y: auto;
+}
+
+.assessment-modal {
+    background: transparent;
+    border-radius: 0;
+    padding: 60px 40px 40px 40px;
+    max-width: 600px;
+    width: 100%;
+    min-height: 100vh;
+    overflow-y: visible;
     position: relative;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: none;
     text-align: center;
-    margin: 20px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .assessment-close {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    background: none;
+    position: fixed;
+    top: 20px;
+    right: 30px;
+    background: rgba(0, 0, 0, 0.1);
     border: none;
-    font-size: 28px;
-    color: #666;
+    font-size: 32px;
+    color: #333;
     cursor: pointer;
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     transition: all 0.3s ease;
+    z-index: 10002;
 }
 
 .assessment-close:hover {
@@ -737,35 +740,42 @@ color: #6c757d;
 
 .assessment-modal h2 {
     font-family: 'Quicksand', sans-serif;
-    font-size: 32px;
+    font-size: 48px;
     font-weight: 700;
     color: #333;
-    margin-bottom: 20px;
-    line-height: 1.2;
+    margin-bottom: 30px;
+    line-height: 1.1;
 }
 
 .assessment-modal .words-list {
-    font-size: 16px;
+    font-size: 18px;
     color: #666;
-    margin-bottom: 30px;
-    line-height: 1.5;
+    margin-bottom: 40px;
+    line-height: 1.6;
     text-align: left;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 16px 20px;
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 24px 30px;
+    border-radius: 12px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 40px;
 }
 
 .assessment-modal #recordBtn {
+    max-width: 400px;
     width: 100%;
     background: #000000;
     color: white;
-    padding: 18px 20px;
+    padding: 24px 30px;
     border: none;
-    border-radius: 8px;
-    font-size: 18px;
+    border-radius: 12px;
+    font-size: 22px;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    margin: 0 auto;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .assessment-modal #recordBtn:hover {
@@ -773,42 +783,71 @@ color: #6c757d;
 }
 
 .assessment-modal #status {
-    font-size: 14px;
+    font-size: 16px;
     color: #888;
-    margin-top: 20px;
-    line-height: 1.4;
+    margin-top: 30px;
+    line-height: 1.5;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 30px;
 }
 
 /* Mobile responsiveness for assessment popup */
 @media (max-width: 768px) {
     .assessment-modal {
-        padding: 30px 25px;
-        margin: 10px;
+        padding: 40px 20px 30px 20px;
+        margin: 0;
     }
     
     .assessment-modal h2 {
+        font-size: 36px;
+    }
+    
+    .assessment-close {
+        top: 15px;
+        right: 20px;
+        width: 35px;
+        height: 35px;
         font-size: 28px;
     }
     
-    .assessment-icon {
-        width: 50px;
-        height: 50px;
+    .assessment-modal .words-list {
+        padding: 20px 25px;
+        font-size: 16px;
+    }
+    
+    .assessment-modal #recordBtn {
+        padding: 20px 25px;
         font-size: 20px;
-        margin-bottom: 20px;
     }
 }
 
 @media (max-width: 480px) {
     .assessment-modal {
-        padding: 25px 20px;
+        padding: 30px 15px 20px 15px;
     }
     
     .assessment-modal h2 {
-        font-size: 24px;
+        font-size: 32px;
     }
     
     .assessment-modal .words-list {
         font-size: 15px;
+        padding: 18px 20px;
+    }
+    
+    .assessment-modal #recordBtn {
+        padding: 18px 20px;
+        font-size: 18px;
+    }
+    
+    .assessment-close {
+        top: 10px;
+        right: 15px;
+        width: 32px;
+        height: 32px;
+        font-size: 24px;
     }
 }
 /* Popup */
@@ -975,7 +1014,7 @@ background: linear-gradient(to bottom,
     #1a1a1a 50%,
     #000000 100%
 );
-padding: 20px 0;
+padding: 5.25px 0;
 position: fixed;
 top: 0;
 left: 0;
@@ -991,7 +1030,7 @@ background: linear-gradient(to bottom,
     #000000 100%
 );
 box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-padding: 16px 0;
+padding: 3.15px 0;
 }
 
 
@@ -1010,7 +1049,7 @@ color: white;
 .nav-container {
 max-width: 1200px;
 margin: 0 auto;
-padding: 0 24px;
+padding: 0 12px;
 display: flex;
 justify-content: space-between;
 align-items: center;
@@ -1018,7 +1057,7 @@ align-items: center;
 
 .nav-logo {
 font-family: 'Quicksand', sans-serif;
-font-size: 28px;
+font-size: 20px;
 font-weight: 700;
 color: white;
 text-decoration: none;
@@ -1048,7 +1087,7 @@ display: flex;
 list-style: none;
 margin: 0;
 padding: 0;
-gap: 40px;
+gap: 20px;
 align-items: center;
 }
 
@@ -1060,11 +1099,11 @@ margin: 0;
 text-decoration: none;
 color: rgba(255, 255, 255, 0.95);
 font-weight: 500;
-font-size: 16px;
+font-size: 14px;
 letter-spacing: 0.3px;
 transition: all 0.3s ease;
 position: relative;
-padding: 10px 0;
+padding: 5.25px 0;
 text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
@@ -1075,9 +1114,10 @@ color: white;
 .nav-menu a.nav-cta {
 background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
 color: white;
-padding: 12px 24px;
-border-radius: 50px;
+padding: 6.3px 14.7px;
+border-radius: 20px;
 font-weight: 600;
+font-size: 12px;
 border: 1px solid rgba(255, 152, 0, 0.3);
 position: relative;
 overflow: hidden;
@@ -1131,7 +1171,7 @@ transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 @media (max-width: 768px) {
 .nav-menu {
 position: fixed;
-top: 84px;
+top: 42px;
 left: -100%;
 flex-direction: column;
 background: rgba(255, 255, 255, 0.95);
@@ -1140,8 +1180,8 @@ width: 100%;
 text-align: center;
 transition: all 0.3s ease;
 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-padding: 30px 0;
-gap: 24px;
+padding: 12.6px 0;
+gap: 10.5px;
 }
 
 .nav-menu a {
@@ -1154,10 +1194,10 @@ left: 0;
 }
 
 .nav-menu a {
-font-size: 18px;
-padding: 12px 20px;
-border-radius: 8px;
-margin: 0 20px;
+font-size: 16px;
+padding: 8.4px 16.8px;
+border-radius: 6px;
+margin: 0 16px;
 transition: all 0.3s ease;
 }
 
@@ -1186,12 +1226,12 @@ background: linear-gradient(90deg, #FF9800, #E65100);
 
 /* Adjust hero section for fixed navbar */
 .hero {
-padding-top: 120px;
+padding-top: 52.5px;
 }
 
 @media (max-width: 768px) {
 .hero {
-padding-top: 100px;
+padding-top: 47.25px;
 background: linear-gradient(
 to bottom,
 #000000 0%,
@@ -1307,6 +1347,191 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     }
     100% {
         transform: translateX(calc(-340px * 6));
+    }
+}
+
+/* Login Modal Styles */
+.login-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10002;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-modal-content {
+    background: linear-gradient(to bottom, 
+        #c5a732 0%,
+        #d4b73a 50%,
+        #c5a732 100%
+    );
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 420px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    margin: 20px;
+}
+
+.login-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #666;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.login-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+.login-title {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.login-subtitle {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+.google-login-btn {
+    width: 100%;
+    background: white;
+    color: #333;
+    padding: 16px 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.google-login-btn:hover {
+    background: #f9f9f9;
+    border-color: #bbb;
+}
+
+.login-divider {
+    position: relative;
+    text-align: center;
+    margin: 20px 0;
+    color: #666;
+}
+
+.login-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #ddd;
+}
+
+.login-divider span {
+    background: linear-gradient(to bottom, #c5a732 0%, #d4b73a 50%, #c5a732 100%);
+    padding: 0 15px;
+}
+
+.login-email-input {
+    width: 100%;
+    padding: 16px 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.login-email-input:focus {
+    border-color: #c5a732;
+}
+
+.login-email-input::placeholder {
+    color: #999;
+}
+
+.login-submit-btn {
+    width: 100%;
+    background: #000000;
+    color: white;
+    padding: 16px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.login-submit-btn:hover {
+    background: #333333;
+}
+
+.login-disclaimer {
+    font-size: 12px;
+    color: #888;
+    margin-top: 15px;
+    line-height: 1.4;
+}
+
+/* Mobile responsiveness for login modal */
+@media (max-width: 768px) {
+    .login-modal-content {
+        padding: 30px 25px;
+        margin: 10px;
+    }
+    
+    .login-title {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-modal-content {
+        padding: 25px 20px;
+    }
+    
+    .login-title {
+        font-size: 22px;
+    }
+    
+    .login-subtitle {
+        font-size: 15px;
     }
 }
 
@@ -1617,11 +1842,12 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
             <a href="#" class="nav-logo">The Rollr Academy</a>
             <ul class="nav-menu">
                 <!-- <li><a href="index.html">Home</a></li> -->
+                <li><a href="#" class="login-btn" onclick="openLoginModal()">Login</a></li>
                 <li><a href="rhotacism-guide.html">Rhotacism Guide</a></li>
                 <!-- <li><a href="#assessment" onclick="startAssessment()">Practice Tools</a></li> -->
                 <li><a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'nav_menu' }); plerdy_goals('app_store_click');">
                         <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" 
-                             alt="Download on the App Store" style="height: 48px;">
+                             alt="Download on the App Store" style="height: 44px; margin: -2px 0;">
                     </a></li>
             </ul>
             <div class="nav-toggle" onclick="toggleMobileMenu()">
@@ -2097,6 +2323,47 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         </div>
     </div>
 
+    <!-- Login Modal -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-modal-content">
+            <button class="login-close" onclick="closeLoginModal()">&times;</button>
+            
+            <h2 class="login-title">Start Your R Sound Journey</h2>
+            <p class="login-subtitle">Get instant access to 3 powerful practice exercises</p>
+            
+            <button class="google-login-btn" onclick="loginWithGoogle()">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continue with Google
+            </button>
+            
+            <div class="login-divider">
+                <span>or</span>
+            </div>
+            
+            <form onsubmit="loginWithEmail(event)">
+                <input 
+                    type="email" 
+                    class="login-email-input" 
+                    placeholder="Enter your email address" 
+                    required
+                    id="loginEmail"
+                >
+                <button type="submit" class="login-submit-btn">
+                    Get Started
+                </button>
+            </form>
+            
+            <p class="login-disclaimer">
+                By continuing, you agree to receive practice tips and updates. You can unsubscribe anytime.
+            </p>
+        </div>
+    </div>
+
     <!-- Use native MediaRecorder for MP4 audio -->
     
     <script>
@@ -2481,6 +2748,81 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         document.getElementById('exitIntentPopup').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeExitIntentPopup();
+            }
+        });
+
+        // Login Modal Functions
+        function openLoginModal() {
+            document.getElementById('loginModal').style.display = 'flex';
+            gtag('event', 'login_modal_open', {
+                event_category: 'engagement',
+                event_label: 'navigation_login_button'
+            });
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        function loginWithGoogle() {
+            // For demo purposes, we'll redirect to exercises page
+            // In production, implement Google OAuth
+            gtag('event', 'google_login_attempt', {
+                event_category: 'conversion',
+                event_label: 'login_modal'
+            });
+            
+            // Simulate Google login success
+            window.location.href = 'exercises.html';
+        }
+
+        function loginWithEmail(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            
+            if (!email || !email.includes('@')) {
+                alert('Please enter a valid email address');
+                return;
+            }
+
+            // Track email login
+            gtag('event', 'email_login', {
+                event_category: 'conversion',
+                event_label: 'login_modal'
+            });
+
+            // Store email in localStorage for exercises page
+            localStorage.setItem('userEmail', email);
+            
+            // Submit to Formspree for email collection
+            fetch('https://formspree.io/f/xovkkekq', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    source: 'login_modal',
+                    timestamp: new Date().toISOString(),
+                    message: 'User login for R Sound exercises'
+                })
+            })
+            .then(response => {
+                // Redirect to exercises page regardless of Formspree response
+                window.location.href = 'exercises.html';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Still redirect to exercises page
+                window.location.href = 'exercises.html';
+            });
+        }
+
+        // Close login modal when clicking outside
+        document.getElementById('loginModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeLoginModal();
             }
         });
 
