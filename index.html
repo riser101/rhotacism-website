@@ -2002,6 +2002,8 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         // Logout functionality
         function logout() {
             // Keep localStorage intact - don't clear user data
+            // But set logout state
+            localStorage.setItem('userLoggedOut', 'true');
             
             // Close dropdown
             document.getElementById('profileDropdown').classList.remove('show');
@@ -2023,6 +2025,9 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         
         // Show profile dropdown when logged in
         function showProfileDropdown() {
+            // Clear logout state when showing profile dropdown
+            localStorage.removeItem('userLoggedOut');
+            
             // Hide login button
             const loginNavLi = document.querySelector('.login-nav');
             loginNavLi.style.display = 'none';
@@ -2059,11 +2064,13 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         // Initialize profile display on page load
         document.addEventListener('DOMContentLoaded', function() {
             const userEmail = localStorage.getItem('userEmail');
-            if (userEmail) {
-                // User is logged in, show profile dropdown
+            const userLoggedOut = localStorage.getItem('userLoggedOut');
+            
+            if (userEmail && userLoggedOut !== 'true') {
+                // User is logged in and hasn't logged out, show profile dropdown
                 showProfileDropdown();
             } else {
-                // User is not logged in, show login button
+                // User is not logged in or has logged out, show login button
                 showLoginButton();
             }
         });
