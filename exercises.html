@@ -738,6 +738,44 @@
             visibility: visible;
         }
 
+        /* Sample sound button */
+        .sample-sound-container {
+            margin: 16px 0;
+            text-align: left;
+        }
+
+        .sample-sound-btn {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: #DAA520;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 44px;
+        }
+
+        .sample-sound-btn:hover {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: rgba(255, 215, 0, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .sample-sound-btn:active {
+            transform: translateY(0);
+        }
+
+        .sample-sound-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         /* Image tooltip for teeth diagram */
         .teeth-icon {
             color: #FFD700;
@@ -934,6 +972,12 @@
                         <p class="exercise-description">
                             Make gentle growling sound and gradually quiet it to R sound
                         </p>
+                        
+                        <div class="sample-sound-container">
+                            <button class="sample-sound-btn" onclick="playSampleSound()" id="sampleSoundBtn">
+                                🔊 Listen to sample sound
+                            </button>
+                        </div>
                         
                         <div class="exercise-instructions">
                             <div class="instructions-section">
@@ -1354,7 +1398,7 @@
             if (currentExercise === totalExercises) {
                 // Check if both exercises are completed
                 const allCompleted = Object.values(exerciseCompletion).every(Boolean);
-                nextBtn.textContent = 'Go to the App';
+                nextBtn.textContent = 'See Correct Tongue Positioning Video';
                 nextBtn.disabled = !allCompleted; // Only enable if all exercises are completed
             } else {
                 nextBtn.textContent = 'Next →';
@@ -1364,16 +1408,35 @@
         
         function handleNextButton() {
             if (currentExercise === totalExercises) {
-                // On last exercise, redirect to App Store
-                window.open('https://apps.apple.com/id/app/rollrapp/id6751569088', '_blank');
-                gtag('event', 'app_store_click', {
-                    event_category: 'conversion',
-                    event_label: 'exercise_complete_bottom_cta'
-                });
+                // On last exercise, try to open app resources or fallback to App Store
+                handleDeepLinkToResources();
             } else {
                 // Navigate to next exercise
                 nextExercise();
             }
+        }
+        
+        function handleDeepLinkToResources() {
+            const deepLink = 'rollr://resources';
+            const fallback = 'https://apps.apple.com/id/app/rollrapp/id6751569088';
+            
+            // Track the attempt to open resources
+            gtag('event', 'deep_link_resources', {
+                event_category: 'conversion',
+                event_label: 'exercise_complete_resources_cta'
+            });
+            
+            // Try opening the app
+            window.location = deepLink;
+            
+            // Fallback to App Store after 2.5 seconds if app didn't open
+            setTimeout(() => {
+                window.location = fallback;
+                gtag('event', 'app_store_fallback', {
+                    event_category: 'conversion',
+                    event_label: 'resources_deep_link_fallback'
+                });
+            }, 2500);
         }
 
         function unlockNextExercise(completedExercise) {
@@ -1535,6 +1598,47 @@
         function closeAchievementPanel() {
             document.getElementById('achievementPanel').style.display = 'none';
             // Panel will reappear on page refresh/revisit since we don't save dismissal state
+        }
+
+        // Sample sound functionality
+        function playSampleSound() {
+            const btn = document.getElementById('sampleSoundBtn');
+            
+            // Disable button during playback
+            btn.disabled = true;
+            btn.textContent = '🔊 Playing...';
+            
+            try {
+                // Create and play audio from file
+                const audio = new Audio('grr-audio-sample.mpga');
+                audio.volume = 0.7; // Set volume to 70%
+                
+                // Play the audio
+                audio.play().then(() => {
+                    // Audio started playing successfully
+                }).catch(error => {
+                    console.error('Error playing audio:', error);
+                    btn.disabled = false;
+                    btn.textContent = '🔊 Listen to sample sound';
+                });
+                
+                // Re-enable button when audio ends
+                audio.addEventListener('ended', () => {
+                    btn.disabled = false;
+                    btn.textContent = '🔊 Listen to sample sound';
+                });
+                
+                // Also re-enable button if audio fails to load
+                audio.addEventListener('error', () => {
+                    btn.disabled = false;
+                    btn.textContent = '🔊 Listen to sample sound';
+                });
+                
+            } catch (error) {
+                console.error('Error creating audio:', error);
+                btn.disabled = false;
+                btn.textContent = '🔊 Listen to sample sound';
+            }
         }
 
         // Save progress when exercise is completed
