@@ -116,7 +116,7 @@
 
         /* Exercises Section */
         .exercises-section {
-            padding: 40px 0;
+            padding: 80px 0 40px 0;
             background: #000000;
         }
 
@@ -184,7 +184,7 @@
         }
 
         .exercise-card {
-            background: #1a1a1a;
+            background: #d3b639;
             border-radius: 12px;
             padding: 30px 20px;
             border: 2px solid #333;
@@ -595,6 +595,111 @@
             display: none;
         }
 
+        /* Achievement Panel */
+        .achievement-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #e0f8ea;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            width: 450px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: black;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .panel-toggle {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .panel-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .current-task {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .task-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .task-title {
+            font-size: 14px;
+            color: white;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .task-progress {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 8px;
+            background: white;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-right: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #4caf50;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .achievement-badges {
+            display: flex;
+            gap: 6px;
+        }
+
+
         /* Mobile responsiveness */
         @media (max-width: 768px) {
             .header h1 {
@@ -629,6 +734,31 @@
                 padding: 12px 16px;
                 font-size: 14px;
             }
+            
+            /* Achievement Panel Mobile */
+            .achievement-panel {
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+                width: auto;
+                padding: 14px;
+            }
+            
+            .panel-title {
+                font-size: 13px;
+            }
+            
+            .task-description {
+                font-size: 11px !important;
+            }
+            
+            .progress-percentage {
+                font-size: 11px !important;
+            }
+            
+            .level-text {
+                font-size: 11px !important;
+            }
         }
 
         @media (max-width: 480px) {
@@ -656,6 +786,34 @@
                 width: 10px;
                 height: 10px;
             }
+            
+            /* Achievement Panel Small Mobile */
+            .achievement-panel {
+                bottom: 5px;
+                right: 5px;
+                left: 5px;
+                padding: 12px;
+            }
+            
+            .panel-title {
+                font-size: 12px;
+                line-height: 1.3;
+            }
+            
+            .task-description {
+                font-size: 10px !important;
+                margin: 6px 0 12px 0 !important;
+            }
+            
+            .progress-bar {
+                height: 6px;
+                margin-bottom: 8px;
+            }
+            
+            .progress-percentage,
+            .level-text {
+                font-size: 10px !important;
+            }
         }
     </style>
 </head>
@@ -664,9 +822,6 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">The Rollr Academy</a>
-            <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="app-download-nav" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'exercises_nav' });">
-                📱 Download Full App
-            </a>
         </div>
     </nav>
 
@@ -696,7 +851,6 @@
                 <div class="exercise-display">
                     <!-- Exercise 1: Growling Method -->
                     <div class="exercise-card active" id="exercise1">
-                        <div class="recommended-badge">⭐ Recommended Start</div>
                         <div class="completed-badge" id="badge1">✓ Completed</div>
                         <div class="exercise-status">
                             <div class="status-text">Foundation Exercise</div>
@@ -756,7 +910,7 @@
                     <div class="exercise-card" id="exercise2">
                         <div class="completed-badge" id="badge2">✓ Completed</div>
                         <div class="exercise-status" id="status2">
-                            <div class="status-text">Ready to Practice</div>
+                            <div class="status-text">Foundation Exercise</div>
                         </div>
                         <h3 class="exercise-title">Tongue Positioning</h3>
                         <p class="exercise-description">
@@ -804,6 +958,38 @@
         </div>
     </section>
 
+    <!-- Achievement Panel -->
+    <div class="achievement-panel" id="achievementPanel">
+        <div class="panel-content">
+            <div class="panel-header">
+                <div class="panel-title">
+                    💪 Complete your Day 1 articulation exercise
+                </div>
+                <button class="panel-toggle" onclick="closeAchievementPanel()" style="color: black;">
+                    ✕
+                </button>
+            </div>
+            
+            <div class="task-description" style="color: black; font-size: 12px; margin: 8px 0 16px 0; line-height: 1.4;">
+                Get more value from Rollr Academy and earn credits.
+            </div>
+            
+            <div class="progress-section">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="taskProgressFill" style="width: 0%"></div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-percentage" id="progressPercentage" style="color: black; margin-left: auto; font-size: 12px;">0%</div>
+                </div>
+                <div class="level-text" style="color: black; font-size: 12px;">
+                    Level 1: <span id="taskProgressText">20/60</span> credits earned
+                    <span class="info-icon">ⓘ</span>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
     <!-- Floating App Download CTA -->
     <!-- <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="app-cta-floating" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'exercises_floating_cta' });">
         👑 Go Pro
@@ -829,6 +1015,12 @@
         let reps = 0;
         const maxReps = 10;
         let repTimer = { interval: null, seconds: 10, isRunning: false };
+
+        // Exercise state storage
+        let exerciseStates = {
+            1: { timerSeconds: 60, isTimerRunning: false, isCompleted: false },
+            2: { reps: 0, repTimerSeconds: 10, isRepTimerRunning: false, isCompleted: false }
+        };
 
         function startTimer(exerciseNum) {
             const timer = timers[exerciseNum];
@@ -982,6 +1174,9 @@
             
             // Enable next button if available
             updateNavigationButtons();
+            
+            // Update achievement progress
+            updateAchievementProgress();
         }
 
         // Navigation functions
@@ -998,12 +1193,17 @@
         }
 
         function switchToExercise(exerciseNum) {
+            // Save current exercise state before switching
+            saveExerciseState(currentExercise);
+            
             // Hide current exercise
             document.getElementById(`exercise${currentExercise}`).classList.remove('active');
             
             // Show new exercise
             setTimeout(() => {
                 document.getElementById(`exercise${exerciseNum}`).classList.add('active');
+                // Restore state for the new exercise
+                restoreExerciseState(exerciseNum);
             }, 200);
             
             // Update current exercise
@@ -1055,7 +1255,7 @@
                 // Update status
                 const statusElement = document.getElementById(`status${nextExercise}`);
                 if (statusElement) {
-                    statusElement.innerHTML = '<div class="status-text">Ready to Practice</div>';
+                    statusElement.innerHTML = '<div class="status-text">Foundation Exercise</div>';
                 }
                 
                 // Enable buttons
@@ -1106,7 +1306,105 @@
             
             // Initialize exercise interface
             initializeExercises();
+            
+            // Initialize achievement panel
+            updateAchievementProgress();
         });
+
+        // Exercise state management functions
+        function saveExerciseState(exerciseNum) {
+            if (exerciseNum === 1) {
+                // Save timer state
+                exerciseStates[1].timerSeconds = timers[1].seconds;
+                exerciseStates[1].isTimerRunning = timers[1].isRunning;
+                exerciseStates[1].isCompleted = exerciseCompletion[1];
+                
+                // Pause timer if running
+                if (timers[1].isRunning) {
+                    clearInterval(timers[1].interval);
+                    timers[1].isRunning = false;
+                    document.getElementById('startTimer1').innerHTML = '▶ Start';
+                }
+            } else if (exerciseNum === 2) {
+                // Save rep counter state
+                exerciseStates[2].reps = reps;
+                exerciseStates[2].repTimerSeconds = repTimer.seconds;
+                exerciseStates[2].isRepTimerRunning = repTimer.isRunning;
+                exerciseStates[2].isCompleted = exerciseCompletion[2];
+                
+                // Pause rep timer if running
+                if (repTimer.isRunning) {
+                    clearInterval(repTimer.interval);
+                    repTimer.isRunning = false;
+                    document.getElementById('startRep').innerHTML = '▶ Start';
+                }
+            }
+        }
+
+        function restoreExerciseState(exerciseNum) {
+            if (exerciseNum === 1) {
+                // Restore timer state
+                timers[1].seconds = exerciseStates[1].timerSeconds;
+                timers[1].isRunning = false; // Always restore as paused
+                updateTimerDisplay(1);
+                updateProgressRing(1);
+                
+                // Restore completion state
+                if (exerciseStates[1].isCompleted) {
+                    document.getElementById('badge1').style.display = 'block';
+                    document.getElementById('exercise1').classList.add('exercise-completed');
+                } else {
+                    document.getElementById('badge1').style.display = 'none';
+                    document.getElementById('exercise1').classList.remove('exercise-completed');
+                }
+                
+                document.getElementById('startTimer1').innerHTML = '▶ Start';
+            } else if (exerciseNum === 2) {
+                // Restore rep counter state
+                reps = exerciseStates[2].reps;
+                repTimer.seconds = exerciseStates[2].repTimerSeconds;
+                repTimer.isRunning = false; // Always restore as paused
+                updateRepDisplay();
+                document.getElementById('timer2').textContent = repTimer.seconds + 's';
+                
+                // Reset progress ring
+                document.getElementById('progress-ring2').style.background = 
+                    'conic-gradient(#FFD700 0deg, #FFD700 0deg, transparent 0deg)';
+                
+                // Restore completion state and button state
+                if (exerciseStates[2].isCompleted) {
+                    document.getElementById('badge2').style.display = 'block';
+                    document.getElementById('exercise2').classList.add('exercise-completed');
+                    document.getElementById('startRep').innerHTML = 'Complete!';
+                    document.getElementById('startRep').disabled = true;
+                } else {
+                    document.getElementById('badge2').style.display = 'none';
+                    document.getElementById('exercise2').classList.remove('exercise-completed');
+                    document.getElementById('startRep').innerHTML = '▶ Start';
+                    document.getElementById('startRep').disabled = false;
+                }
+            }
+        }
+
+        // Achievement Panel functionality
+        let completedExercises = 0;
+        
+        function updateAchievementProgress() {
+            completedExercises = Object.values(exerciseCompletion).filter(Boolean).length;
+            const totalExercises = Object.keys(exerciseCompletion).length;
+            const progressPercentage = Math.round((completedExercises / totalExercises) * 100);
+            const creditsEarned = 20 + (completedExercises * 20);
+            
+            // Update progress bar and percentage
+            document.getElementById('taskProgressFill').style.width = progressPercentage + '%';
+            document.getElementById('progressPercentage').textContent = progressPercentage + '%';
+            document.getElementById('taskProgressText').textContent = `${creditsEarned}/60`;
+        }
+        
+        function closeAchievementPanel() {
+            document.getElementById('achievementPanel').style.display = 'none';
+            // Panel will reappear on page refresh/revisit since we don't save dismissal state
+        }
 
         // Save progress when exercise is completed
         window.addEventListener('beforeunload', function() {
