@@ -1978,18 +1978,50 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         
         // Logout functionality
         function logout() {
-            // Clear user data from localStorage
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('exerciseProgress');
-            
-            // Update profile to show login state
-            updateProfileDisplay();
+            // Keep localStorage intact - don't clear user data
             
             // Close dropdown
             document.getElementById('profileDropdown').classList.remove('show');
             
-            // Optional: Show login modal
-            openLoginModal();
+            // Replace profile dropdown with login button
+            showLoginButton();
+        }
+        
+        // Show login button instead of profile dropdown
+        function showLoginButton() {
+            const profileDropdownLi = document.querySelector('.profile-dropdown');
+            profileDropdownLi.innerHTML = `
+                <button class="login-button" onclick="openLoginModal()" style="
+                    background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    font-size: 14px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">Login</button>
+            `;
+        }
+        
+        // Show profile dropdown when logged in
+        function showProfileDropdown() {
+            const profileDropdownLi = document.querySelector('.profile-dropdown');
+            profileDropdownLi.innerHTML = `
+                <div class="profile-circle" onclick="toggleProfileDropdown()">
+                    <span id="profileInitial">U</span>
+                </div>
+                <div class="dropdown-menu" id="profileDropdown">
+                    <a href="exercises.html">Exercises</a>
+                    <a href="#" onclick="logout(); return false;">Logout</a>
+                </div>
+            `;
+            updateProfileDisplay();
         }
         
         // Update profile display based on login state
@@ -1997,10 +2029,10 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
             const userEmail = localStorage.getItem('userEmail');
             const profileInitial = document.getElementById('profileInitial');
             
-            if (userEmail) {
+            if (userEmail && profileInitial) {
                 // Show first letter of email
                 profileInitial.textContent = userEmail.charAt(0).toUpperCase();
-            } else {
+            } else if (profileInitial) {
                 // Show default user icon
                 profileInitial.textContent = 'U';
             }
@@ -2008,7 +2040,14 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         
         // Initialize profile display on page load
         document.addEventListener('DOMContentLoaded', function() {
-            updateProfileDisplay();
+            const userEmail = localStorage.getItem('userEmail');
+            if (userEmail) {
+                // User is logged in, show profile dropdown
+                showProfileDropdown();
+            } else {
+                // User is not logged in, show login button
+                showLoginButton();
+            }
         });
     </script>
 
@@ -2030,7 +2069,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                     </div>
                     <div class="dropdown-menu" id="profileDropdown">
                         <a href="exercises.html">Exercises</a>
-                        <a href="#" onclick="logout()">Logout</a>
+                        <a href="#" onclick="logout(); return false;">Logout</a>
                     </div>
                 </li>
             </ul>
@@ -3014,6 +3053,9 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                 closeLoginModal();
                 showLoginSuccess(responsePayload.name);
                 
+                // Show profile dropdown instead of login button
+                showProfileDropdown();
+                
                 // Redirect to exercises page after brief delay
                 setTimeout(() => {
                     window.location.href = 'exercises.html';
@@ -3136,11 +3178,19 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                 })
             })
             .then(response => {
+                // Close modal and show profile dropdown
+                closeLoginModal();
+                showProfileDropdown();
+                
                 // Redirect to exercises page regardless of Formspree response
                 window.location.href = 'exercises.html';
             })
             .catch(error => {
                 console.error('Error:', error);
+                // Close modal and show profile dropdown
+                closeLoginModal();
+                showProfileDropdown();
+                
                 // Still redirect to exercises page
                 window.location.href = 'exercises.html';
             });
