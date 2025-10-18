@@ -45,7 +45,7 @@
         /* Navigation */
         .navbar {
             background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
-            padding: 10px 0;
+            padding: 12px 0;
             position: fixed;
             top: 0;
             left: 0;
@@ -116,7 +116,7 @@
 
         /* Exercises Section */
         .exercises-section {
-            padding: 80px 0 40px 0;
+            padding: 88px 0 40px 0;
             background: #000000;
         }
 
@@ -170,7 +170,7 @@
         /* Single Exercise Display */
         .exercise-display {
             position: relative;
-            min-height: 350px;
+            min-height: 450px;
         }
 
         .exercises-grid {
@@ -437,13 +437,11 @@
 
         /* Current Focus */
         .current-focus {
-            position: absolute;
-            bottom: 5px;
-            left: 50%;
-            transform: translateX(-50%);
+            position: relative;
             text-align: center;
             width: 90%;
-            margin-top: 25px;
+            margin: 20px auto 0 auto;
+            padding-top: 15px;
         }
 
         .focus-label {
@@ -604,7 +602,7 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 8px;
             padding: 16px;
-            width: 450px;
+            width: 380px;
             color: white;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             z-index: 1000;
@@ -699,6 +697,83 @@
             gap: 6px;
         }
 
+
+        .info-icon {
+            color: #6c757d;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip {
+            position: absolute;
+            bottom: 120%;
+            right: -150px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            width: 320px;
+            line-height: 1.4;
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            right: 16px;
+            border: 6px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .info-icon:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Image tooltip for teeth diagram */
+        .teeth-icon {
+            color: #FFD700;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+            display: inline-block;
+            margin-left: 4px;
+        }
+
+        .image-tooltip {
+            position: absolute;
+            bottom: 120%;
+            right: -100px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 8px;
+            z-index: 1002;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .image-tooltip img {
+            width: 300px;
+            height: auto;
+            border-radius: 4px;
+            display: block;
+        }
+
+        .teeth-icon:hover .image-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
 
         /* Mobile responsiveness */
         @media (max-width: 768px) {
@@ -917,9 +992,38 @@
                             Practice proper tongue placement for R sound
                         </p>
                         
+                        <div class="exercise-instructions">
+                            <div class="instructions-section">
+                                <h4 class="section-title">Instructions:</h4>
+                                <ol class="instruction-list">
+                                    <li>Place tongue tip behind lower teeth</li>
+                                    <li>Raise back of tongue toward soft palate</li>
+                                    <li>Create narrow channel for air flow</li>
+                                    <li>Sustain R sound for 10 seconds</li>
+                                    <li>Repeat 5 times</li>
+                                </ol>
+                            </div>
+                            
+                            <div class="tips-section">
+                                <h4 class="section-title">Tips:</h4>
+                                <ul class="tips-list">
+                                    <li>Use a mirror for visual feedback</li>
+                                    <li>Don't let tongue tip touch roof of mouth</li>
+                                    <li>Keep sides of tongue touching upper molars
+                                        <span class="teeth-icon">
+                                            🦷
+                                            <div class="image-tooltip">
+                                                <img src="upper-molars.png" alt="Upper molars diagram showing different types of teeth">
+                                            </div>
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
                         <div class="practice-tool">
                             <div class="rep-counter" id="repCounter">0</div>
-                            <div class="rep-total">of 10</div>
+                            <div class="rep-total">of 5</div>
                             
                             <div class="timer-container">
                                 <div class="timer-progress" id="progress-ring2"></div>
@@ -950,7 +1054,7 @@
                     <button class="nav-button prev" id="prevBtn" onclick="previousExercise()" disabled>
                         ← Previous
                     </button>
-                    <button class="nav-button next" id="nextBtn" onclick="nextExercise()">
+                    <button class="nav-button next" id="nextBtn" onclick="handleNextButton()">
                         Next →
                     </button>
                 </div>
@@ -983,7 +1087,12 @@
                 </div>
                 <div class="level-text" style="color: black; font-size: 12px;">
                     Level 1: <span id="taskProgressText">20/60</span> credits earned
-                    <span class="info-icon">ⓘ</span>
+                    <span class="info-icon">
+                        ⓘ
+                        <div class="tooltip">
+                            You can use credits to buy paid features. For example: one weekly speech analysis, conversation practice tool and more.
+                        </div>
+                    </span>
                 </div>
             </div>
         </div>
@@ -1013,7 +1122,7 @@
 
         // Rep counter
         let reps = 0;
-        const maxReps = 10;
+        const maxReps = 5;
         let repTimer = { interval: null, seconds: 10, isRunning: false };
 
         // Exercise state storage
@@ -1128,7 +1237,15 @@
                     if (reps >= maxReps) {
                         showCompletion(2);
                         document.getElementById('startRep').innerHTML = 'Complete!';
-                        document.getElementById('startRep').disabled = true;
+                        document.getElementById('startRep').disabled = false; // Enable the button for App Store redirect
+                        document.getElementById('startRep').style.cursor = 'pointer';
+                        document.getElementById('startRep').onclick = function() {
+                            window.open('https://apps.apple.com/id/app/rollrapp/id6751569088', '_blank');
+                            gtag('event', 'app_store_click', {
+                                event_category: 'conversion',
+                                event_label: 'exercise_complete_cta'
+                            });
+                        };
                         
                         // Track completion
                         gtag('event', 'exercise_complete', {
@@ -1241,11 +1358,27 @@
             
             // Next button - always enabled except on last exercise
             if (currentExercise === totalExercises) {
+                // Check if both exercises are completed
+                const allCompleted = Object.values(exerciseCompletion).every(Boolean);
                 nextBtn.textContent = 'Complete!';
-                nextBtn.disabled = true; // Keep disabled on last exercise
+                nextBtn.disabled = !allCompleted; // Only enable if all exercises are completed
             } else {
                 nextBtn.textContent = 'Next →';
                 nextBtn.disabled = false; // Always enable next button
+            }
+        }
+        
+        function handleNextButton() {
+            if (currentExercise === totalExercises) {
+                // On last exercise, redirect to App Store
+                window.open('https://apps.apple.com/id/app/rollrapp/id6751569088', '_blank');
+                gtag('event', 'app_store_click', {
+                    event_category: 'conversion',
+                    event_label: 'exercise_complete_bottom_cta'
+                });
+            } else {
+                // Navigate to next exercise
+                nextExercise();
             }
         }
 
@@ -1376,12 +1509,22 @@
                     document.getElementById('badge2').style.display = 'block';
                     document.getElementById('exercise2').classList.add('exercise-completed');
                     document.getElementById('startRep').innerHTML = 'Complete!';
-                    document.getElementById('startRep').disabled = true;
+                    document.getElementById('startRep').disabled = false; // Enable the button for App Store redirect
+                    document.getElementById('startRep').style.cursor = 'pointer';
+                    document.getElementById('startRep').onclick = function() {
+                        window.open('https://apps.apple.com/id/app/rollrapp/id6751569088', '_blank');
+                        gtag('event', 'app_store_click', {
+                            event_category: 'conversion',
+                            event_label: 'exercise_complete_cta'
+                        });
+                    };
                 } else {
                     document.getElementById('badge2').style.display = 'none';
                     document.getElementById('exercise2').classList.remove('exercise-completed');
                     document.getElementById('startRep').innerHTML = '▶ Start';
                     document.getElementById('startRep').disabled = false;
+                    document.getElementById('startRep').style.cursor = 'pointer';
+                    document.getElementById('startRep').onclick = startRep;
                 }
             }
         }
