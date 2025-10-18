@@ -1237,15 +1237,9 @@
                     if (reps >= maxReps) {
                         showCompletion(2);
                         document.getElementById('startRep').innerHTML = 'Complete!';
-                        document.getElementById('startRep').disabled = false; // Enable the button for App Store redirect
-                        document.getElementById('startRep').style.cursor = 'pointer';
-                        document.getElementById('startRep').onclick = function() {
-                            window.open('https://apps.apple.com/id/app/rollrapp/id6751569088', '_blank');
-                            gtag('event', 'app_store_click', {
-                                event_category: 'conversion',
-                                event_label: 'exercise_complete_cta'
-                            });
-                        };
+                        document.getElementById('startRep').disabled = true; // Disable the button
+                        document.getElementById('startRep').style.cursor = 'not-allowed';
+                        document.getElementById('startRep').onclick = null; // Remove click functionality
                         
                         // Track completion
                         gtag('event', 'exercise_complete', {
@@ -1360,7 +1354,7 @@
             if (currentExercise === totalExercises) {
                 // Check if both exercises are completed
                 const allCompleted = Object.values(exerciseCompletion).every(Boolean);
-                nextBtn.textContent = 'Complete!';
+                nextBtn.textContent = 'Go to the App';
                 nextBtn.disabled = !allCompleted; // Only enable if all exercises are completed
             } else {
                 nextBtn.textContent = 'Next →';
@@ -1509,15 +1503,9 @@
                     document.getElementById('badge2').style.display = 'block';
                     document.getElementById('exercise2').classList.add('exercise-completed');
                     document.getElementById('startRep').innerHTML = 'Complete!';
-                    document.getElementById('startRep').disabled = false; // Enable the button for App Store redirect
-                    document.getElementById('startRep').style.cursor = 'pointer';
-                    document.getElementById('startRep').onclick = function() {
-                        window.open('https://apps.apple.com/id/app/rollrapp/id6751569088', '_blank');
-                        gtag('event', 'app_store_click', {
-                            event_category: 'conversion',
-                            event_label: 'exercise_complete_cta'
-                        });
-                    };
+                    document.getElementById('startRep').disabled = true; // Disable the button
+                    document.getElementById('startRep').style.cursor = 'not-allowed';
+                    document.getElementById('startRep').onclick = null; // Remove click functionality
                 } else {
                     document.getElementById('badge2').style.display = 'none';
                     document.getElementById('exercise2').classList.remove('exercise-completed');

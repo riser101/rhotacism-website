@@ -1569,6 +1569,92 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     }
 }
 
+/* Profile Dropdown Styles */
+.profile-dropdown {
+    position: relative;
+}
+
+.profile-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-circle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+}
+
+.profile-circle span {
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    min-width: 120px;
+    z-index: 1001;
+    margin-top: 8px;
+}
+
+.dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 12px 16px;
+    color: #333 !important;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    border-radius: 6px;
+    margin: 4px;
+}
+
+.dropdown-menu a:hover {
+    background: #f8f9fa;
+    color: #FF9800 !important;
+}
+
+/* Mobile adjustments for profile dropdown */
+@media (max-width: 768px) {
+    .profile-circle {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .profile-circle span {
+        font-size: 12px;
+    }
+    
+    .dropdown-menu {
+        right: -10px;
+    }
+}
+
 /* Exit Intent Popup */
 .exit-intent-popup {
     display: none;
@@ -1870,6 +1956,59 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 
     <!-- Google OAuth 2.0 Script -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <script>
+        // Profile dropdown functionality
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.toggle('show');
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            const dropdown = document.getElementById('profileDropdown');
+            
+            if (!profileDropdown.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+        
+        // Logout functionality
+        function logout() {
+            // Clear user data from localStorage
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('exerciseProgress');
+            
+            // Update profile to show login state
+            updateProfileDisplay();
+            
+            // Close dropdown
+            document.getElementById('profileDropdown').classList.remove('show');
+            
+            // Optional: Show login modal
+            openLoginModal();
+        }
+        
+        // Update profile display based on login state
+        function updateProfileDisplay() {
+            const userEmail = localStorage.getItem('userEmail');
+            const profileInitial = document.getElementById('profileInitial');
+            
+            if (userEmail) {
+                // Show first letter of email
+                profileInitial.textContent = userEmail.charAt(0).toUpperCase();
+            } else {
+                // Show default user icon
+                profileInitial.textContent = 'U';
+            }
+        }
+        
+        // Initialize profile display on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProfileDisplay();
+        });
+    </script>
 
 </head>
 <body>
@@ -1879,12 +2018,18 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
             <a href="#" class="nav-logo">The Rollr Academy</a>
             <ul class="nav-menu">
                 <!-- <li><a href="index.html">Home</a></li> -->
-                <li><a href="#" class="login-btn" id="loginNavBtn" onclick="openLoginModal()">Login</a></li>
-                <!-- <li><a href="#assessment" onclick="startAssessment()">Practice Tools</a></li> -->
                 <li><a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'nav_menu' }); plerdy_goals('app_store_click');">
                         <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" 
                              alt="Download on the App Store" style="height: 44px; margin: -2px 0;">
                     </a></li>
+                <li class="profile-dropdown">
+                    <div class="profile-circle" onclick="toggleProfileDropdown()">
+                        <span id="profileInitial">U</span>
+                    </div>
+                    <div class="dropdown-menu" id="profileDropdown">
+                        <a href="#" onclick="logout()">Logout</a>
+                    </div>
+                </li>
             </ul>
             <div class="nav-toggle" onclick="toggleMobileMenu()">
                 <span></span>
