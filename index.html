@@ -1149,6 +1149,49 @@ border-color: #FFB74D;
 left: 100%;
 } */
 
+/* Logo Display Controls */
+.nav-logo-text {
+    display: inline;
+}
+
+.nav-logo-mobile {
+    display: none;
+}
+
+/* Mobile Navigation */
+.mobile-nav {
+    display: none;
+    align-items: center;
+    gap: 12px;
+}
+
+.mobile-get-started {
+    background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mobile-get-started:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.mobile-download-btn {
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
+
+.mobile-download-btn:hover {
+    transform: scale(1.05);
+}
+
 /* Mobile menu styles - Enhanced */
 .nav-toggle {
 display: none;
@@ -1173,44 +1216,32 @@ transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (max-width: 768px) {
-.nav-menu {
-position: fixed;
-top: 42px;
-left: -100%;
-flex-direction: column;
-background: rgba(255, 255, 255, 0.95);
-backdrop-filter: blur(20px);
-width: 100%;
-text-align: center;
-transition: all 0.3s ease;
-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-padding: 12.6px 0;
-gap: 10.5px;
+
+/* Switch logo to image on mobile */
+.nav-logo-text {
+    display: none;
 }
 
-.nav-menu a {
-color: #333 !important;
-text-shadow: none !important;
-}
-
-.nav-menu.active {
-left: 0;
-}
-
-.nav-menu a {
-font-size: 16px;
-padding: 8.4px 16.8px;
-border-radius: 6px;
-margin: 0 16px;
-transition: all 0.3s ease;
+.nav-logo-mobile {
+    display: inline;
 }
 
 /* .nav-menu a:hover {
 background: rgba(255, 152, 0, 0.1);
 } */
 
+/* Hide hamburger menu on mobile, show mobile nav instead */
 .nav-toggle {
+display: none;
+}
+
+.mobile-nav {
 display: flex;
+}
+
+/* Hide regular nav menu on mobile */
+.nav-menu {
+display: none;
 }
 
 .nav-toggle.active span:nth-child(1) {
@@ -1643,20 +1674,25 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 
 /* Login nav button styles */
 .login-nav-button {
-    background: none;
+    background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+    color: white;
     border: none;
-    color: rgba(255, 255, 255, 0.95);
-    font-weight: 500;
-    font-size: 14px;
-    letter-spacing: 0.3px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    padding: 5.25px 0;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    text-shadow: none;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .login-nav-button:hover {
-    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
 }
 
 /* Mobile adjustments for profile dropdown */
@@ -1674,10 +1710,6 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         right: -10px;
     }
     
-    .login-nav-button {
-        color: #333 !important;
-        text-shadow: none !important;
-    }
 }
 
 /* Floating Banner */
@@ -1713,15 +1745,17 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: space-between;
     gap: 15px;
-    flex-wrap: wrap;
+    position: relative;
 }
 
 .banner-text {
     flex: 1;
     min-width: 300px;
+    padding-right: 40px;
+    text-align: center;
 }
 
 .banner-cta {
@@ -1754,7 +1788,11 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     padding: 4px 8px;
     border-radius: 4px;
     transition: background-color 0.3s ease;
-    margin-left: 10px;
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    z-index: 1;
 }
 
 .banner-close:hover {
@@ -1778,13 +1816,15 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     }
     
     .banner-content {
-        flex-direction: column;
+        flex-direction: row;
         gap: 10px;
+        align-items: center;
     }
     
     .banner-text {
         min-width: auto;
         text-align: center;
+        padding-right: 40px;
     }
     
     .banner-cta {
@@ -2214,9 +2254,8 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     <!-- Floating Banner -->
     <div class="floating-banner" id="floatingBanner">
         <div class="banner-content">
-            <span class="banner-text">The Academy is going subscription-only from 2026. 
-                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="banner-link" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'floating_banner' }); plerdy_goals('banner_app_store_click');">Download Now</a> 
-                to get it for free, before it's gone!
+            <span class="banner-text">The Rollr Academy is going subscription-only. Free download ends Dec 2025 → $80/month after.
+                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="banner-link" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'floating_banner' }); plerdy_goals('banner_app_store_click');"> Complete your program free now.</a> 
             </span>
             <button class="banner-close" onclick="dismissBanner()" aria-label="Close banner">×</button>
         </div>
@@ -2225,7 +2264,10 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="nav-container">
-            <a href="#" class="nav-logo">The Rollr Academy</a>
+            <a href="#" class="nav-logo">
+                <span class="nav-logo-text">The Rollr Academy</span>
+                <img src="instagram-icon.jpg" alt="The Rollr Academy" class="nav-logo-mobile" style="height: 40px; width: 40px; border-radius: 50%;">
+            </a>
             <ul class="nav-menu">
                 <!-- <li><a href="index.html">Home</a></li> -->
                 <li class="login-nav" style="display: none;">
@@ -2245,6 +2287,15 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                     </div>
                 </li>
             </ul>
+            <!-- Mobile Navigation -->
+            <div class="mobile-nav">
+                <button class="mobile-get-started" onclick="openLoginModal()">Get Started</button>
+                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="mobile-download-btn" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'mobile_nav' }); plerdy_goals('mobile_nav_download');">
+                    <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store" style="height: 32px;">
+                </a>
+            </div>
+            
+            <!-- Desktop hamburger menu (hidden on mobile) -->
             <div class="nav-toggle" onclick="toggleMobileMenu()">
                 <span></span>
                 <span></span>
@@ -3140,7 +3191,8 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         // Mobile exit intent - detect scroll up at top of page
         let lastScrollY = window.scrollY;
         window.addEventListener('scroll', function() {
-            if (window.innerWidth <= 768) { // Mobile only
+            // Exit intent disabled for mobile (width <= 768px)
+            if (window.innerWidth > 768) { // Desktop only
                 const currentScrollY = window.scrollY;
                 if (currentScrollY < lastScrollY && currentScrollY < 100 && !exitIntentShown) {
                     showExitIntentPopup();
