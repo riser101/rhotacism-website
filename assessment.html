@@ -505,70 +505,29 @@
 
             <!-- Step 3: Self-Assessment Questions -->
             <div class="assessment-step" id="step3">
-                <h2 class="step-title">Step 3: A Few Quick Questions About Your R Sound</h2>
                 <div class="step-content">
                     <div class="form-group">
-                        <label class="form-label">Q1: Which words give you the MOST trouble?</label>
+                        <label class="form-label">How would you describe your comfort level with making the 'R' sound?</label>
                         <div class="options-group">
                             <div class="option-item">
-                                <input type="radio" id="trouble1" name="troubleWords" value="starting">
-                                <label for="trouble1">Words starting with R ("really", "right")</label>
+                                <input type="radio" id="trouble1" name="troubleWords" value="slight">
+                                <label for="trouble1">I have slight trouble with R sounds</label>
                             </div>
                             <div class="option-item">
-                                <input type="radio" id="trouble2" name="troubleWords" value="middle">
-                                <label for="trouble2">R in the middle ("very", "sorry")</label>
+                                <input type="radio" id="trouble2" name="troubleWords" value="noticeable">
+                                <label for="trouble2">I have noticeable difficulty with R sounds</label>
                             </div>
                             <div class="option-item">
-                                <input type="radio" id="trouble3" name="troubleWords" value="end">
-                                <label for="trouble3">R at the end ("car", "better")</label>
+                                <input type="radio" id="trouble3" name="troubleWords" value="significant">
+                                <label for="trouble3">I have significant trouble pronouncing R sounds</label>
                             </div>
                             <div class="option-item">
-                                <input type="radio" id="trouble4" name="troubleWords" value="all">
-                                <label for="trouble4">All of the above</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Q2: What sound does your R most often come out as?</label>
-                        <div class="options-group">
-                            <div class="option-item">
-                                <input type="radio" id="sound1" name="soundType" value="w">
-                                <label for="sound1">"W" sound (weally instead of really)</label>
+                                <input type="radio" id="trouble4" name="troubleWords" value="no_trouble">
+                                <label for="trouble4">I don't have trouble with R sounds</label>
                             </div>
                             <div class="option-item">
-                                <input type="radio" id="sound2" name="soundType" value="vowel">
-                                <label for="sound2">Vowel sound (cah instead of car)</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="sound3" name="soundType" value="guttural">
-                                <label for="sound3">Throat-y/guttural sound</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="sound4" name="soundType" value="varies">
-                                <label for="sound4">Not sure / varies</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Q3: How long have you been trying to fix this?</label>
-                        <div class="options-group">
-                            <div class="option-item">
-                                <input type="radio" id="duration1" name="duration" value="6months">
-                                <label for="duration1">Less than 6 months</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="duration2" name="duration" value="6months-2years">
-                                <label for="duration2">6 months - 2 years</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="duration3" name="duration" value="2-5years">
-                                <label for="duration3">2-5 years</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="duration4" name="duration" value="5plus">
-                                <label for="duration4">More than 5 years (I've tried everything!)</label>
+                                <input type="radio" id="trouble5" name="troubleWords" value="unsure">
+                                <label for="trouble5">Not sure/want assessment</label>
                             </div>
                         </div>
                     </div>
@@ -579,84 +538,51 @@
                 </div>
             </div>
 
-            <!-- Step 4: Impact Assessment -->
+            <!-- Step 4: Visit Reason -->
             <div class="assessment-step" id="step4">
-                <h2 class="step-title">Step 4: How Does This Affect Your Daily Life?</h2>
                 <div class="step-content">
                     <div class="form-group">
-                        <label class="form-label">Q1: Do you avoid certain words in conversations?</label>
+                        <label class="form-label">Why did you come to Rollr Academy today?</label>
                         <div class="options-group">
                             <div class="option-item">
-                                <input type="radio" id="avoid1" name="avoidWords" value="frequently">
-                                <label for="avoid1">Yes, frequently - I plan around it</label>
+                                <input type="radio" id="reason1" name="visitReason" value="improve_r_sound">
+                                <label for="reason1">Improve R sound pronunciation</label>
                             </div>
                             <div class="option-item">
-                                <input type="radio" id="avoid2" name="avoidWords" value="sometimes">
-                                <label for="avoid2">Sometimes - in professional settings</label>
+                                <input type="radio" id="reason2" name="visitReason" value="speech_assessment">
+                                <label for="reason2">Speech therapy assessment</label>
                             </div>
                             <div class="option-item">
-                                <input type="radio" id="avoid3" name="avoidWords" value="rarely">
-                                <label for="avoid3">Rarely</label>
+                                <input type="radio" id="reason3" name="visitReason" value="practice_exercises">
+                                <label for="reason3">Practice speech exercises</label>
                             </div>
                             <div class="option-item">
-                                <input type="radio" id="avoid4" name="avoidWords" value="no">
-                                <label for="avoid4">No</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Q2: Has your speech affected your: (Select all that apply)</label>
-                        <div class="options-group">
-                            <div class="option-item">
-                                <input type="checkbox" id="impact1" name="impact" value="career">
-                                <label for="impact1">Job interviews / Career advancement</label>
+                                <input type="radio" id="reason4" name="visitReason" value="researching_options">
+                                <label for="reason4">Just researching options</label>
                             </div>
                             <div class="option-item">
-                                <input type="checkbox" id="impact2" name="impact" value="speaking">
-                                <label for="impact2">Public speaking / Presentations</label>
+                                <input type="radio" id="reason5" name="visitReason" value="google_ad">
+                                <label for="reason5">Saw a Google search ad</label>
                             </div>
                             <div class="option-item">
-                                <input type="checkbox" id="impact3" name="impact" value="social">
-                                <label for="impact3">Dating / Social situations</label>
+                                <input type="radio" id="reason6" name="visitReason" value="social_media">
+                                <label for="reason6">Saw on social media</label>
                             </div>
                             <div class="option-item">
-                                <input type="checkbox" id="impact4" name="impact" value="phone">
-                                <label for="impact4">Phone calls / Customer service</label>
+                                <input type="radio" id="reason7" name="visitReason" value="google_search">
+                                <label for="reason7">Found through Google search</label>
                             </div>
                             <div class="option-item">
-                                <input type="checkbox" id="impact5" name="impact" value="confidence">
-                                <label for="impact5">Self-confidence overall</label>
+                                <input type="radio" id="reason8" name="visitReason" value="for_child">
+                                <label for="reason8">I'm researching for my child</label>
                             </div>
                             <div class="option-item">
-                                <input type="checkbox" id="impact6" name="impact" value="none">
-                                <label for="impact6">None of the above</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Q3: If you could fix this completely in 12 weeks, how much would that be worth to you?</label>
-                        <div class="options-group">
-                            <div class="option-item">
-                                <input type="radio" id="value1" name="value" value="priceless">
-                                <label for="value1">Priceless - it would change my life</label>
+                                <input type="radio" id="reason9" name="visitReason" value="for_someone_else">
+                                <label for="reason9">I'm researching for someone else</label>
                             </div>
                             <div class="option-item">
-                                <input type="radio" id="value2" name="value" value="500plus">
-                                <label for="value2">$500+</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="value3" name="value" value="200-500">
-                                <label for="value3">$200-500</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="value4" name="value" value="50-200">
-                                <label for="value4">$50-200</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="value5" name="value" value="under50">
-                                <label for="value5">Under $50</label>
+                                <input type="radio" id="reason10" name="visitReason" value="other">
+                                <label for="reason10">Other</label>
                             </div>
                         </div>
                     </div>
@@ -792,7 +718,7 @@
         }
 
         // Submit Step 3 responses to Formspree
-        async function submitStep3ToFormspree(troubleWords, soundType, duration) {
+        async function submitStep3ToFormspree(comfortLevel) {
             try {
                 const email = localStorage.getItem('assessmentUserEmail');
                 
@@ -806,9 +732,7 @@
                         email: email,
                         source: 'assessment_step3',
                         message: 'Step 3 assessment responses',
-                        troubleWords: troubleWords,
-                        soundType: soundType,
-                        duration: duration,
+                        comfortLevel: comfortLevel,
                         timestamp: new Date().toISOString(),
                         page: 'assessment.html'
                     })
@@ -817,7 +741,7 @@
                 // Track step 3 completion
                 gtag('event', 'assessment_step3_complete', {
                     event_category: 'assessment',
-                    event_label: 'self_assessment_questions'
+                    event_label: 'comfort_level_question'
                 });
                 
                 console.log('Step 3 responses submitted successfully');
@@ -828,7 +752,7 @@
         }
 
         // Submit Step 4 responses to Formspree
-        async function submitStep4ToFormspree(avoidWords, impactValues, value) {
+        async function submitStep4ToFormspree(visitReason) {
             try {
                 const email = localStorage.getItem('assessmentUserEmail');
                 
@@ -842,9 +766,7 @@
                         email: email,
                         source: 'assessment_step4',
                         message: 'Step 4 assessment responses',
-                        avoidWords: avoidWords,
-                        impactAreas: impactValues.join(', '),
-                        valueEstimate: value,
+                        visitReason: visitReason,
                         timestamp: new Date().toISOString(),
                         page: 'assessment.html'
                     })
@@ -853,7 +775,7 @@
                 // Track step 4 completion
                 gtag('event', 'assessment_step4_complete', {
                     event_category: 'assessment',
-                    event_label: 'impact_assessment'
+                    event_label: 'visit_reason_question'
                 });
                 
                 console.log('Step 4 responses submitted successfully');
@@ -885,35 +807,28 @@
                 
                 case 3:
                     const troubleWords = document.querySelector('input[name="troubleWords"]:checked');
-                    const soundType = document.querySelector('input[name="soundType"]:checked');
-                    const duration = document.querySelector('input[name="duration"]:checked');
                     
-                    if (!troubleWords || !soundType || !duration) {
-                        alert('Please answer all questions.');
+                    if (!troubleWords) {
+                        alert('Please answer the question.');
                         return false;
                     }
                     
                     // Submit Step 3 responses to Formspree
-                    await submitStep3ToFormspree(troubleWords.value, soundType.value, duration.value);
+                    await submitStep3ToFormspree(troubleWords.value);
                     
                     document.getElementById('step3Continue').disabled = false;
                     return true;
                 
                 case 4:
-                    const avoidWords = document.querySelector('input[name="avoidWords"]:checked');
-                    const value = document.querySelector('input[name="value"]:checked');
+                    const visitReason = document.querySelector('input[name="visitReason"]:checked');
                     
-                    // Collect all impact checkboxes
-                    const impactElements = document.querySelectorAll('input[name="impact"]:checked');
-                    
-                    if (!avoidWords || !value) {
-                        alert('Please answer all questions.');
+                    if (!visitReason) {
+                        alert('Please answer the question.');
                         return false;
                     }
                     
                     // Submit Step 4 responses to Formspree
-                    const impactValues = Array.from(impactElements).map(el => el.value);
-                    await submitStep4ToFormspree(avoidWords.value, impactValues, value.value);
+                    await submitStep4ToFormspree(visitReason.value);
                     
                     document.getElementById('step4Continue').disabled = false;
                     return true;
@@ -1180,21 +1095,18 @@
 
         // Enable continue buttons when questions are answered
         document.addEventListener('change', function(e) {
-            if (e.target.name === 'troubleWords' || e.target.name === 'soundType' || e.target.name === 'duration') {
+            if (e.target.name === 'troubleWords') {
                 const troubleWords = document.querySelector('input[name="troubleWords"]:checked');
-                const soundType = document.querySelector('input[name="soundType"]:checked');
-                const duration = document.querySelector('input[name="duration"]:checked');
                 
-                if (troubleWords && soundType && duration) {
+                if (troubleWords) {
                     document.getElementById('step3Continue').disabled = false;
                 }
             }
             
-            if (e.target.name === 'avoidWords' || e.target.name === 'value') {
-                const avoidWords = document.querySelector('input[name="avoidWords"]:checked');
-                const value = document.querySelector('input[name="value"]:checked');
+            if (e.target.name === 'visitReason') {
+                const visitReason = document.querySelector('input[name="visitReason"]:checked');
                 
-                if (avoidWords && value) {
+                if (visitReason) {
                     document.getElementById('step4Continue').disabled = false;
                 }
             }
