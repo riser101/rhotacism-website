@@ -958,12 +958,22 @@ font-size: 28px;
     display: inline;
 }
 
+/* Hide Company dropdown from desktop navigation on mobile */
+.nav-dropdown {
+    display: none;
+}
+
 .mobile-nav {
     display: flex;
 }
 
 /* Hide regular nav menu on mobile */
 .nav-menu {
+    display: none;
+}
+
+/* Hide desktop hamburger menu on mobile */
+.nav-toggle {
     display: none;
 }
 
@@ -975,6 +985,101 @@ font-size: 28px;
 .hero {
     padding-top: 47.25px;
 }
+}
+
+/* Mobile Hamburger Menu Styles */
+.mobile-hamburger-menu {
+    position: relative;
+    display: none;
+}
+
+.mobile-hamburger-toggle {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    background: none;
+    border: none;
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    align-items: center;
+}
+
+.mobile-hamburger-toggle span {
+    width: 20px;
+    height: 2px;
+    background: linear-gradient(90deg, #FFB74D, #FF9800);
+    margin: 2px 0;
+    border-radius: 2px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-hamburger-toggle.active span:nth-child(1) {
+    transform: rotate(-45deg) translate(-4px, 5px);
+    background: linear-gradient(90deg, #FF9800, #E65100);
+}
+
+.mobile-hamburger-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-hamburger-toggle.active span:nth-child(3) {
+    transform: rotate(45deg) translate(-4px, -5px);
+    background: linear-gradient(90deg, #FF9800, #E65100);
+}
+
+.mobile-company-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: linear-gradient(to bottom, 
+        #000000 0%,
+        #1a1a1a 50%,
+        #000000 100%
+    );
+    border: 1px solid rgba(255, 152, 0, 0.2);
+    border-radius: 8px;
+    padding: 8px 0;
+    min-width: 120px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+    margin-top: 8px;
+}
+
+.mobile-company-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.mobile-company-dropdown a {
+    display: block;
+    padding: 12px 16px;
+    color: rgba(255, 255, 255, 0.95) !important;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.mobile-company-dropdown a:hover {
+    background: rgba(255, 152, 0, 0.1);
+    color: white !important;
+    padding-left: 20px;
+}
+
+@media (max-width: 768px) {
+    .mobile-hamburger-menu {
+        display: block;
+    }
 }
 
     </style>
@@ -1019,6 +1124,17 @@ font-size: 28px;
                 <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="mobile-download-btn" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'mobile_nav' }); plerdy_goals('mobile_nav_download');">
                     <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store" style="height: 32px;">
                 </a>
+                <!-- Mobile hamburger menu for Company dropdown -->
+                <div class="mobile-hamburger-menu">
+                    <button class="mobile-hamburger-toggle" onclick="toggleMobileCompanyMenu()" aria-label="Company menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div class="mobile-company-dropdown" id="mobileCompanyDropdown">
+                        <a href="about.html">About</a>
+                    </div>
+                </div>
             </div>
             
             <!-- Desktop hamburger menu (hidden on mobile) -->
@@ -1180,6 +1296,27 @@ font-size: 28px;
             navMenu.classList.toggle('active');
             navToggle.classList.toggle('active');
         }
+
+        // Mobile company menu toggle function
+        function toggleMobileCompanyMenu() {
+            const dropdown = document.getElementById('mobileCompanyDropdown');
+            const toggle = document.querySelector('.mobile-hamburger-toggle');
+            
+            dropdown.classList.toggle('show');
+            toggle.classList.toggle('active');
+        }
+
+        // Close mobile company dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const hamburgerMenu = document.querySelector('.mobile-hamburger-menu');
+            const dropdown = document.getElementById('mobileCompanyDropdown');
+            const toggle = document.querySelector('.mobile-hamburger-toggle');
+            
+            if (!hamburgerMenu.contains(event.target)) {
+                dropdown.classList.remove('show');
+                toggle.classList.remove('active');
+            }
+        });
 
         // Transparent navbar scroll effect
         let lastScrollTop = 0;
