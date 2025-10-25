@@ -1479,7 +1479,7 @@ padding-top: 52.5px;
 
 @media (max-width: 768px) {
 .hero {
-padding-top: 47.25px;
+padding-top: 70px;
 background: linear-gradient(
 to bottom,
 #000000 0%,
@@ -1499,6 +1499,11 @@ to bottom,
 #8D2F00 98%,
 #000000 100%
 );
+}
+
+.hero .badge {
+margin-top: 10px;
+}
 }
 }
 
@@ -2045,8 +2050,14 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 }
 
 .floating-banner.dismissed {
-    max-height: 0;
-    padding: 0 20px;
+    display: none !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    visibility: hidden;
+    opacity: 0;
+    height: 0 !important;
+    overflow: hidden;
 }
 
 .banner-content {
@@ -2123,6 +2134,17 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         font-size: 13px;
     }
     
+    .floating-banner.dismissed {
+        display: none !important;
+        max-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        visibility: hidden;
+        opacity: 0;
+        height: 0 !important;
+        overflow: hidden;
+    }
+    
     .banner-content {
         flex-direction: row;
         gap: 10px;
@@ -2153,6 +2175,17 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     .floating-banner {
         padding: 8px 12px;
         font-size: 12px;
+    }
+    
+    .floating-banner.dismissed {
+        display: none !important;
+        max-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        visibility: hidden;
+        opacity: 0;
+        height: 0 !important;
+        overflow: hidden;
     }
     
     .banner-cta {
@@ -2565,7 +2598,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 </head>
 <body>
     <!-- Floating Banner -->
-    <div class="floating-banner" id="floatingBanner">
+    <div class="floating-banner dismissed" id="floatingBanner">
         <div class="banner-content">
             <span class="banner-text">🔔 The Rollr Academy is going subscription-only. Free download ends Dec 2025 → $80/month after.
                 <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="banner-link" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'floating_banner' }); plerdy_goals('banner_app_store_click');"> Take your program now.</a> 
@@ -3850,6 +3883,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         // Floating Banner Functions
         function showBanner() {
             const banner = document.getElementById('floatingBanner');
+            banner.classList.remove('dismissed');
             banner.classList.add('show');
         }
 
@@ -3869,7 +3903,12 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         // Show banner on page load if not previously dismissed
         document.addEventListener('DOMContentLoaded', function() {
             const wasDismissed = localStorage.getItem('bannerDismissed');
-            if (!wasDismissed) {
+            const banner = document.getElementById('floatingBanner');
+            
+            if (wasDismissed === 'true') {
+                // Keep banner hidden if previously dismissed
+                banner.classList.add('dismissed');
+            } else {
                 // Show banner after a short delay for better UX
                 setTimeout(showBanner, 1000);
             }
