@@ -2259,12 +2259,11 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                 event_label: 'exit_intent_signup'
             });
 
-            // Submit to Formspree
-            fetch('https://formspree.io/f/xovkkekq', {
+            // Submit to FormEasy
+            fetch('https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec', {
                 method: 'POST',
                 headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'text/plain;charset=utf-8'
                 },
                 body: JSON.stringify({
                     email: email,

@@ -688,12 +688,11 @@
                 const name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
                 localStorage.setItem('assessmentUserName', name);
                 
-                // Submit to Formspree
-                await fetch('https://formspree.io/f/xovkkekq', {
+                // Submit to FormEasy
+                await fetch('https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec', {
                     method: 'POST',
                     headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'text/plain;charset=utf-8'
                     },
                     body: JSON.stringify({
                         email: email,
@@ -717,16 +716,15 @@
             }
         }
 
-        // Submit Step 3 responses to Formspree
-        async function submitStep3ToFormspree(comfortLevel) {
+        // Submit Step 3 responses to FormEasy
+        async function submitStep3ToFormEasy(comfortLevel) {
             try {
                 const email = localStorage.getItem('assessmentUserEmail');
                 
-                await fetch('https://formspree.io/f/xovkkekq', {
+                await fetch('https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec', {
                     method: 'POST',
                     headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'text/plain;charset=utf-8'
                     },
                     body: JSON.stringify({
                         email: email,
@@ -751,16 +749,15 @@
             }
         }
 
-        // Submit Step 4 responses to Formspree
-        async function submitStep4ToFormspree(visitReason) {
+        // Submit Step 4 responses to FormEasy
+        async function submitStep4ToFormEasy(visitReason) {
             try {
                 const email = localStorage.getItem('assessmentUserEmail');
                 
-                await fetch('https://formspree.io/f/xovkkekq', {
+                await fetch('https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec', {
                     method: 'POST',
                     headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'text/plain;charset=utf-8'
                     },
                     body: JSON.stringify({
                         email: email,
@@ -794,7 +791,7 @@
                         alert('Please enter a valid email address.');
                         return false;
                     }
-                    // Register email with Formspree
+                    // Register email with FormEasy
                     await registerEmail(email);
                     return true;
                 
@@ -813,8 +810,8 @@
                         return false;
                     }
                     
-                    // Submit Step 3 responses to Formspree
-                    await submitStep3ToFormspree(troubleWords.value);
+                    // Submit Step 3 responses to FormEasy
+                    await submitStep3ToFormEasy(troubleWords.value);
                     
                     document.getElementById('step3Continue').disabled = false;
                     return true;
@@ -827,8 +824,8 @@
                         return false;
                     }
                     
-                    // Submit Step 4 responses to Formspree
-                    await submitStep4ToFormspree(visitReason.value);
+                    // Submit Step 4 responses to FormEasy
+                    await submitStep4ToFormEasy(visitReason.value);
                     
                     document.getElementById('step4Continue').disabled = false;
                     return true;
