@@ -729,8 +729,9 @@
                     body: JSON.stringify({
                         email: email,
                         source: 'assessment_step3',
-                        message: 'Step 3 assessment responses',
-                        comfortLevel: comfortLevel,
+                        message: `Step 3: Trouble words response - ${comfortLevel}`,
+                        trouble_words_response: comfortLevel,
+                        step: 'step3',
                         timestamp: new Date().toISOString(),
                         page: 'assessment.html'
                     })
@@ -762,8 +763,9 @@
                     body: JSON.stringify({
                         email: email,
                         source: 'assessment_step4',
-                        message: 'Step 4 assessment responses',
-                        visitReason: visitReason,
+                        message: `Step 4: Visit reason - ${visitReason}`,
+                        visit_reason_response: visitReason,
+                        step: 'step4',
                         timestamp: new Date().toISOString(),
                         page: 'assessment.html'
                     })
