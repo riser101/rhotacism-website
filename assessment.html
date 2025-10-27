@@ -767,9 +767,9 @@
                     body: JSON.stringify({
                         email: email,
                         source: 'assessment_step4',
-                        message: `Step 4: Visit reason - ${finalReason}`,
-                        visit_reason_response: finalReason,
-                        visit_reason_type: visitReason,
+                        message: `Step 4: Found on - ${finalReason}`,
+                        found_on: finalReason,
+                        found_on_type: visitReason,
                         other_reason_text: otherReasonText,
                         step: 'step4',
                         timestamp: new Date().toISOString(),
@@ -780,7 +780,7 @@
                 // Track step 4 completion
                 gtag('event', 'assessment_step4_complete', {
                     event_category: 'assessment',
-                    event_label: 'visit_reason_question'
+                    event_label: 'found_on_question'
                 });
                 
                 console.log('Step 4 responses submitted successfully');
@@ -1114,8 +1114,8 @@
                         source: 'assessment_completion',
                         message: 'User completed full R-sound assessment',
                         trouble_words_response: troubleWords,
-                        visit_reason_response: visitReason === 'other' ? otherReasonText : visitReason,
-                        visit_reason_type: visitReason,
+                        found_on: visitReason === 'other' ? otherReasonText : visitReason,
+                        found_on_type: visitReason,
                         other_reason_text: otherReasonText,
                         gcp_analysis_result: gcpResult,
                         assessment_completed: true,
