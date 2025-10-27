@@ -189,6 +189,14 @@
             outline: none;
             border-color: #FF9800;
         }
+        
+        #otherReasonGroup {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #FF9800;
+        }
 
         .form-help {
             font-size: 14px;
@@ -542,48 +550,32 @@
             <div class="assessment-step" id="step4">
                 <div class="step-content">
                     <div class="form-group">
-                        <label class="form-label">Why did you come to Rollr Academy today?</label>
+                        <label class="form-label">How did you learn about Rollr Academy?</label>
                         <div class="options-group">
                             <div class="option-item">
-                                <input type="radio" id="reason1" name="visitReason" value="improve_r_sound">
-                                <label for="reason1">Improve R sound pronunciation</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="reason2" name="visitReason" value="speech_assessment">
-                                <label for="reason2">Speech therapy assessment</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="reason3" name="visitReason" value="practice_exercises">
-                                <label for="reason3">Practice speech exercises</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="reason4" name="visitReason" value="researching_options">
-                                <label for="reason4">Just researching options</label>
-                            </div>
-                            <div class="option-item">
                                 <input type="radio" id="reason5" name="visitReason" value="google_ad">
-                                <label for="reason5">Saw a Google search ad</label>
+                                <label for="reason5">Via Google search ad</label>
                             </div>
                             <div class="option-item">
                                 <input type="radio" id="reason6" name="visitReason" value="social_media">
-                                <label for="reason6">Saw on social media</label>
+                                <label for="reason6">Via Google search results</label>
                             </div>
                             <div class="option-item">
                                 <input type="radio" id="reason7" name="visitReason" value="google_search">
-                                <label for="reason7">Found through Google search</label>
+                                <label for="reason7">Via Instagram</label>
                             </div>
                             <div class="option-item">
-                                <input type="radio" id="reason8" name="visitReason" value="for_child">
-                                <label for="reason8">I'm researching for my child</label>
+                                <input type="radio" id="reason8" name="visitReason" value="reddit_community">
+                                <label for="reason8">Via Reddit Community</label>
                             </div>
                             <div class="option-item">
-                                <input type="radio" id="reason9" name="visitReason" value="for_someone_else">
-                                <label for="reason9">I'm researching for someone else</label>
+                                <input type="radio" id="reason9" name="visitReason" value="other">
+                                <label for="reason9">Other</label>
                             </div>
-                            <div class="option-item">
-                                <input type="radio" id="reason10" name="visitReason" value="other">
-                                <label for="reason10">Other</label>
-                            </div>
+                        </div>
+                        <div class="form-group" id="otherReasonGroup" style="display: none;">
+                            <label class="form-label" for="otherReason">Please specify:</label>
+                            <input type="text" id="otherReason" class="form-input" placeholder="Please tell us how you found us...">
                         </div>
                     </div>
                 </div>
@@ -643,10 +635,15 @@
             const continueBtn = document.querySelector(`#step${currentStepNum} .btn-primary`);
             const originalText = continueBtn.textContent;
             
+            // Prevent double-clicking by immediately disabling the button
+            if (continueBtn.disabled) {
+                return;
+            }
+            continueBtn.disabled = true;
+            
             // Show loading state for Step 1 (email registration)
             if (currentStepNum === 1) {
                 continueBtn.textContent = 'Registering...';
-                continueBtn.disabled = true;
             }
             
             if (await validateCurrentStep()) {
@@ -659,6 +656,12 @@
                     
                     if (currentStepNum === 5) {
                         startProcessing();
+                    } else {
+                        // Re-enable button for next step
+                        const nextBtn = document.querySelector(`#step${currentStepNum} .btn-primary`);
+                        if (nextBtn) {
+                            nextBtn.disabled = false;
+                        }
                     }
                 }
             } else {
@@ -751,9 +754,10 @@
         }
 
         // Submit Step 4 responses to FormEasy
-        async function submitStep4ToFormEasy(visitReason) {
+        async function submitStep4ToFormEasy(visitReason, otherReasonText = '') {
             try {
                 const email = localStorage.getItem('assessmentUserEmail');
+                const finalReason = visitReason === 'other' ? otherReasonText : visitReason;
                 
                 await fetch('https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec', {
                     method: 'POST',
@@ -763,8 +767,10 @@
                     body: JSON.stringify({
                         email: email,
                         source: 'assessment_step4',
-                        message: `Step 4: Visit reason - ${visitReason}`,
-                        visit_reason_response: visitReason,
+                        message: `Step 4: Visit reason - ${finalReason}`,
+                        visit_reason_response: finalReason,
+                        visit_reason_type: visitReason,
+                        other_reason_text: otherReasonText,
                         step: 'step4',
                         timestamp: new Date().toISOString(),
                         page: 'assessment.html'
@@ -826,8 +832,19 @@
                         return false;
                     }
                     
-                    // Submit Step 4 responses to FormEasy
-                    await submitStep4ToFormEasy(visitReason.value);
+                    // Check if 'other' is selected and input is provided
+                    if (visitReason.value === 'other') {
+                        const otherReasonText = document.getElementById('otherReason').value.trim();
+                        if (!otherReasonText) {
+                            alert('Please specify how you found us.');
+                            return false;
+                        }
+                        // Submit Step 4 responses to FormEasy with other text
+                        await submitStep4ToFormEasy(visitReason.value, otherReasonText);
+                    } else {
+                        // Submit Step 4 responses to FormEasy
+                        await submitStep4ToFormEasy(visitReason.value);
+                    }
                     
                     document.getElementById('step4Continue').disabled = false;
                     return true;
@@ -1078,6 +1095,48 @@
             }, 1000);
         }
 
+        // Submit final assessment completion to FormEasy
+        async function submitFinalAssessment() {
+            try {
+                const email = localStorage.getItem('assessmentUserEmail');
+                const troubleWords = document.querySelector('input[name="troubleWords"]:checked')?.value || 'not_answered';
+                const visitReason = document.querySelector('input[name="visitReason"]:checked')?.value || 'not_answered';
+                const otherReasonText = visitReason === 'other' ? document.getElementById('otherReason').value : '';
+                const gcpResult = localStorage.getItem('gcpAnalysisResult') || 'no_audio_analysis';
+                
+                await fetch('https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        source: 'assessment_completion',
+                        message: 'User completed full R-sound assessment',
+                        trouble_words_response: troubleWords,
+                        visit_reason_response: visitReason === 'other' ? otherReasonText : visitReason,
+                        visit_reason_type: visitReason,
+                        other_reason_text: otherReasonText,
+                        gcp_analysis_result: gcpResult,
+                        assessment_completed: true,
+                        completion_timestamp: new Date().toISOString(),
+                        page: 'assessment.html'
+                    })
+                });
+                
+                // Track assessment completion
+                gtag('event', 'assessment_completed', {
+                    event_category: 'conversion',
+                    event_label: 'full_assessment_flow'
+                });
+                
+                console.log('Final assessment data submitted successfully');
+            } catch (error) {
+                console.error('Error submitting final assessment:', error);
+                // Don't block redirect if submission fails
+            }
+        }
+        
         function startCountdown() {
             let count = 5;
             const countdownInterval = setInterval(() => {
@@ -1086,8 +1145,10 @@
                 
                 if (count <= 0) {
                     clearInterval(countdownInterval);
-                    // Redirect to results page
-                    window.location.href = 'assessment-results.html';
+                    // Submit final assessment data before redirect
+                    submitFinalAssessment().finally(() => {
+                        window.location.href = 'assessment-results.html';
+                    });
                 }
             }, 1000);
         }
@@ -1104,9 +1165,31 @@
             
             if (e.target.name === 'visitReason') {
                 const visitReason = document.querySelector('input[name="visitReason"]:checked');
+                const otherGroup = document.getElementById('otherReasonGroup');
                 
-                if (visitReason) {
+                // Show/hide other input field
+                if (visitReason && visitReason.value === 'other') {
+                    otherGroup.style.display = 'block';
+                    document.getElementById('step4Continue').disabled = true; // Wait for text input
+                } else {
+                    otherGroup.style.display = 'none';
+                    if (visitReason) {
+                        document.getElementById('step4Continue').disabled = false;
+                    }
+                }
+            }
+        });
+        
+        // Enable step 4 continue when other reason text is provided
+        document.addEventListener('input', function(e) {
+            if (e.target.id === 'otherReason') {
+                const visitReason = document.querySelector('input[name="visitReason"]:checked');
+                const otherText = e.target.value.trim();
+                
+                if (visitReason && visitReason.value === 'other' && otherText.length > 0) {
                     document.getElementById('step4Continue').disabled = false;
+                } else if (visitReason && visitReason.value === 'other') {
+                    document.getElementById('step4Continue').disabled = true;
                 }
             }
         });
