@@ -198,19 +198,56 @@
         }
         
         .country-select {
-            min-width: 120px;
+            min-width: 150px;
             padding: 16px 12px;
             border: 2px solid #e9ecef;
             border-radius: 8px;
             font-size: 16px;
             background: white;
-            cursor: pointer;
+            cursor: text;
             transition: border-color 0.3s ease;
+            position: relative;
         }
         
         .country-select:focus {
             outline: none;
             border-color: #FF9800;
+        }
+        
+        .country-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .country-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .country-option {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+        
+        .country-option:hover,
+        .country-option.highlighted {
+            background: #f8f9fa;
+        }
+        
+        .country-option:last-child {
+            border-bottom: none;
         }
         
         .phone-input {
@@ -631,133 +668,57 @@
                     <div class="form-group">
                         <label class="form-label" for="phoneNumber">Phone Number (Optional):</label>
                         <div class="phone-input-container">
-                            <select id="countryCode" class="country-select">
-                                <option value="+1" data-flag="🇺🇸">🇺🇸 +1</option>
-                                <option value="+44" data-flag="🇬🇧">🇬🇧 +44</option>
-                                <option value="+61" data-flag="🇦🇺">🇦🇺 +61</option>
-                                <option value="+1" data-flag="🇨🇦">🇨🇦 +1</option>
-                                <option value="+49" data-flag="🇩🇪">🇩🇪 +49</option>
-                                <option value="+33" data-flag="🇫🇷">🇫🇷 +33</option>
-                                <option value="+39" data-flag="🇮🇹">🇮🇹 +39</option>
-                                <option value="+34" data-flag="🇪🇸">🇪🇸 +34</option>
-                                <option value="+31" data-flag="🇳🇱">🇳🇱 +31</option>
-                                <option value="+46" data-flag="🇸🇪">🇸🇪 +46</option>
-                                <option value="+47" data-flag="🇳🇴">🇳🇴 +47</option>
-                                <option value="+45" data-flag="🇩🇰">🇩🇰 +45</option>
-                                <option value="+41" data-flag="🇨🇭">🇨🇭 +41</option>
-                                <option value="+43" data-flag="🇦🇹">🇦🇹 +43</option>
-                                <option value="+32" data-flag="🇧🇪">🇧🇪 +32</option>
-                                <option value="+353" data-flag="🇮🇪">🇮🇪 +353</option>
-                                <option value="+351" data-flag="🇵🇹">🇵🇹 +351</option>
-                                <option value="+30" data-flag="🇬🇷">🇬🇷 +30</option>
-                                <option value="+358" data-flag="🇫🇮">🇫🇮 +358</option>
-                                <option value="+48" data-flag="🇵🇱">🇵🇱 +48</option>
-                                <option value="+420" data-flag="🇨🇿">🇨🇿 +420</option>
-                                <option value="+36" data-flag="🇭🇺">🇭🇺 +36</option>
-                                <option value="+421" data-flag="🇸🇰">🇸🇰 +421</option>
-                                <option value="+386" data-flag="🇸🇮">🇸🇮 +386</option>
-                                <option value="+385" data-flag="🇭🇷">🇭🇷 +385</option>
-                                <option value="+381" data-flag="🇷🇸">🇷🇸 +381</option>
-                                <option value="+382" data-flag="🇲🇪">🇲🇪 +382</option>
-                                <option value="+387" data-flag="🇧🇦">🇧🇦 +387</option>
-                                <option value="+389" data-flag="🇲🇰">🇲🇰 +389</option>
-                                <option value="+355" data-flag="🇦🇱">🇦🇱 +355</option>
-                                <option value="+356" data-flag="🇲🇹">🇲🇹 +356</option>
-                                <option value="+357" data-flag="🇨🇾">🇨🇾 +357</option>
-                                <option value="+370" data-flag="🇱🇹">🇱🇹 +370</option>
-                                <option value="+371" data-flag="🇱🇻">🇱🇻 +371</option>
-                                <option value="+372" data-flag="🇪🇪">🇪🇪 +372</option>
-                                <option value="+7" data-flag="🇷🇺">🇷🇺 +7</option>
-                                <option value="+380" data-flag="🇺🇦">🇺🇦 +380</option>
-                                <option value="+375" data-flag="🇧🇾">🇧🇾 +375</option>
-                                <option value="+373" data-flag="🇲🇩">🇲🇩 +373</option>
-                                <option value="+374" data-flag="🇦🇲">🇦🇲 +374</option>
-                                <option value="+995" data-flag="🇬🇪">🇬🇪 +995</option>
-                                <option value="+994" data-flag="🇦🇿">🇦🇿 +994</option>
-                                <option value="+998" data-flag="🇺🇿">🇺🇿 +998</option>
-                                <option value="+996" data-flag="🇰🇬">🇰🇬 +996</option>
-                                <option value="+992" data-flag="🇹🇯">🇹🇯 +992</option>
-                                <option value="+993" data-flag="🇹🇲">🇹🇲 +993</option>
-                                <option value="+7" data-flag="🇰🇿">🇰🇿 +7</option>
-                                <option value="+81" data-flag="🇯🇵">🇯🇵 +81</option>
-                                <option value="+82" data-flag="🇰🇷">🇰🇷 +82</option>
-                                <option value="+86" data-flag="🇨🇳">🇨🇳 +86</option>
-                                <option value="+91" data-flag="🇮🇳">🇮🇳 +91</option>
-                                <option value="+62" data-flag="🇮🇩">🇮🇩 +62</option>
-                                <option value="+60" data-flag="🇲🇾">🇲🇾 +60</option>
-                                <option value="+65" data-flag="🇸🇬">🇸🇬 +65</option>
-                                <option value="+66" data-flag="🇹🇭">🇹🇭 +66</option>
-                                <option value="+84" data-flag="🇻🇳">🇻🇳 +84</option>
-                                <option value="+63" data-flag="🇵🇭">🇵🇭 +63</option>
-                                <option value="+852" data-flag="🇭🇰">🇭🇰 +852</option>
-                                <option value="+853" data-flag="🇲🇴">🇲🇴 +853</option>
-                                <option value="+886" data-flag="🇹🇼">🇹🇼 +886</option>
-                                <option value="+55" data-flag="🇧🇷">🇧🇷 +55</option>
-                                <option value="+54" data-flag="🇦🇷">🇦🇷 +54</option>
-                                <option value="+56" data-flag="🇨🇱">🇨🇱 +56</option>
-                                <option value="+57" data-flag="🇨🇴">🇨🇴 +57</option>
-                                <option value="+58" data-flag="🇻🇪">🇻🇪 +58</option>
-                                <option value="+51" data-flag="🇵🇪">🇵🇪 +51</option>
-                                <option value="+593" data-flag="🇪🇨">🇪🇨 +593</option>
-                                <option value="+591" data-flag="🇧🇴">🇧🇴 +591</option>
-                                <option value="+595" data-flag="🇵🇾">🇵🇾 +595</option>
-                                <option value="+598" data-flag="🇺🇾">🇺🇾 +598</option>
-                                <option value="+597" data-flag="🇸🇷">🇸🇷 +597</option>
-                                <option value="+594" data-flag="🇬🇫">🇬🇫 +594</option>
-                                <option value="+592" data-flag="🇬🇾">🇬🇾 +592</option>
-                                <option value="+27" data-flag="🇿🇦">🇿🇦 +27</option>
-                                <option value="+20" data-flag="🇪🇬">🇪🇬 +20</option>
-                                <option value="+212" data-flag="🇲🇦">🇲🇦 +212</option>
-                                <option value="+216" data-flag="🇹🇳">🇹🇳 +216</option>
-                                <option value="+218" data-flag="🇱🇾">🇱🇾 +218</option>
-                                <option value="+213" data-flag="🇩🇿">🇩🇿 +213</option>
-                                <option value="+234" data-flag="🇳🇬">🇳🇬 +234</option>
-                                <option value="+254" data-flag="🇰🇪">🇰🇪 +254</option>
-                                <option value="+256" data-flag="🇺🇬">🇺🇬 +256</option>
-                                <option value="+255" data-flag="🇹🇿">🇹🇿 +255</option>
-                                <option value="+250" data-flag="🇷🇼">🇷🇼 +250</option>
-                                <option value="+251" data-flag="🇪🇹">🇪🇹 +251</option>
-                                <option value="+233" data-flag="🇬🇭">🇬🇭 +233</option>
-                                <option value="+225" data-flag="🇨🇮">🇨🇮 +225</option>
-                                <option value="+221" data-flag="🇸🇳">🇸🇳 +221</option>
-                                <option value="+223" data-flag="🇲🇱">🇲🇱 +223</option>
-                                <option value="+226" data-flag="🇧🇫">🇧🇫 +226</option>
-                                <option value="+227" data-flag="🇳🇪">🇳🇪 +227</option>
-                                <option value="+228" data-flag="🇹🇬">🇹🇬 +228</option>
-                                <option value="+229" data-flag="🇧🇯">🇧🇯 +229</option>
-                                <option value="+230" data-flag="🇲🇺">🇲🇺 +230</option>
-                                <option value="+231" data-flag="🇱🇷">🇱🇷 +231</option>
-                                <option value="+232" data-flag="🇸🇱">🇸🇱 +232</option>
-                                <option value="+235" data-flag="🇹🇩">🇹🇩 +235</option>
-                                <option value="+236" data-flag="🇨🇫">🇨🇫 +236</option>
-                                <option value="+237" data-flag="🇨🇲">🇨🇲 +237</option>
-                                <option value="+238" data-flag="🇨🇻">🇨🇻 +238</option>
-                                <option value="+239" data-flag="🇸🇹">🇸🇹 +239</option>
-                                <option value="+240" data-flag="🇬🇶">🇬🇶 +240</option>
-                                <option value="+241" data-flag="🇬🇦">🇬🇦 +241</option>
-                                <option value="+242" data-flag="🇨🇬">🇨🇬 +242</option>
-                                <option value="+243" data-flag="🇨🇩">🇨🇩 +243</option>
-                                <option value="+244" data-flag="🇦🇴">🇦🇴 +244</option>
-                                <option value="+245" data-flag="🇬🇼">🇬🇼 +245</option>
-                                <option value="+246" data-flag="🇮🇴">🇮🇴 +246</option>
-                                <option value="+247" data-flag="🇦🇨">🇦🇨 +247</option>
-                                <option value="+248" data-flag="🇸🇨">🇸🇨 +248</option>
-                                <option value="+249" data-flag="🇸🇩">🇸🇩 +249</option>
-                                <option value="+252" data-flag="🇸🇴">🇸🇴 +252</option>
-                                <option value="+253" data-flag="🇩🇯">🇩🇯 +253</option>
-                                <option value="+257" data-flag="🇧🇮">🇧🇮 +257</option>
-                                <option value="+258" data-flag="🇲🇿">🇲🇿 +258</option>
-                                <option value="+260" data-flag="🇿🇲">🇿🇲 +260</option>
-                                <option value="+261" data-flag="🇲🇬">🇲🇬 +261</option>
-                                <option value="+262" data-flag="🇾🇹">🇾🇹 +262</option>
-                                <option value="+263" data-flag="🇿🇼">🇿🇼 +263</option>
-                                <option value="+264" data-flag="🇳🇦">🇳🇦 +264</option>
-                                <option value="+265" data-flag="🇲🇼">🇲🇼 +265</option>
-                                <option value="+266" data-flag="🇱🇸">🇱🇸 +266</option>
-                                <option value="+267" data-flag="🇧🇼">🇧🇼 +267</option>
-                                <option value="+268" data-flag="🇸🇿">🇸🇿 +268</option>
-                                <option value="+269" data-flag="🇰🇲">🇰🇲 +269</option>
-                            </select>
+                            <div class="country-dropdown">
+                                <input type="text" id="countrySelect" class="country-select" placeholder="🇺🇸 United States" value="🇺🇸 United States" readonly>
+                                <input type="hidden" id="countryCode" value="+1">
+                                <div class="country-options" id="countryOptions">
+                                    <div class="country-option" data-code="+1" data-country="United States">🇺🇸 United States</div>
+                                    <div class="country-option" data-code="+44" data-country="United Kingdom">🇬🇧 United Kingdom</div>
+                                    <div class="country-option" data-code="+91" data-country="India">🇮🇳 India</div>
+                                    <div class="country-option" data-code="+61" data-country="Australia">🇦🇺 Australia</div>
+                                    <div class="country-option" data-code="+1" data-country="Canada">🇨🇦 Canada</div>
+                                    <div class="country-option" data-code="+49" data-country="Germany">🇩🇪 Germany</div>
+                                    <div class="country-option" data-code="+33" data-country="France">🇫🇷 France</div>
+                                    <div class="country-option" data-code="+39" data-country="Italy">🇮🇹 Italy</div>
+                                    <div class="country-option" data-code="+34" data-country="Spain">🇪🇸 Spain</div>
+                                    <div class="country-option" data-code="+31" data-country="Netherlands">🇳🇱 Netherlands</div>
+                                    <div class="country-option" data-code="+46" data-country="Sweden">🇸🇪 Sweden</div>
+                                    <div class="country-option" data-code="+47" data-country="Norway">🇳🇴 Norway</div>
+                                    <div class="country-option" data-code="+45" data-country="Denmark">🇩🇰 Denmark</div>
+                                    <div class="country-option" data-code="+41" data-country="Switzerland">🇨🇭 Switzerland</div>
+                                    <div class="country-option" data-code="+43" data-country="Austria">🇦🇹 Austria</div>
+                                    <div class="country-option" data-code="+32" data-country="Belgium">🇧🇪 Belgium</div>
+                                    <div class="country-option" data-code="+353" data-country="Ireland">🇮🇪 Ireland</div>
+                                    <div class="country-option" data-code="+351" data-country="Portugal">🇵🇹 Portugal</div>
+                                    <div class="country-option" data-code="+30" data-country="Greece">🇬🇷 Greece</div>
+                                    <div class="country-option" data-code="+358" data-country="Finland">🇫🇮 Finland</div>
+                                    <div class="country-option" data-code="+48" data-country="Poland">🇵🇱 Poland</div>
+                                    <div class="country-option" data-code="+420" data-country="Czech Republic">🇨🇿 Czech Republic</div>
+                                    <div class="country-option" data-code="+36" data-country="Hungary">🇭🇺 Hungary</div>
+                                    <div class="country-option" data-code="+81" data-country="Japan">🇯🇵 Japan</div>
+                                    <div class="country-option" data-code="+82" data-country="South Korea">🇰🇷 South Korea</div>
+                                    <div class="country-option" data-code="+86" data-country="China">🇨🇳 China</div>
+                                    <div class="country-option" data-code="+62" data-country="Indonesia">🇮🇩 Indonesia</div>
+                                    <div class="country-option" data-code="+60" data-country="Malaysia">🇲🇾 Malaysia</div>
+                                    <div class="country-option" data-code="+65" data-country="Singapore">🇸🇬 Singapore</div>
+                                    <div class="country-option" data-code="+66" data-country="Thailand">🇹🇭 Thailand</div>
+                                    <div class="country-option" data-code="+84" data-country="Vietnam">🇻🇳 Vietnam</div>
+                                    <div class="country-option" data-code="+63" data-country="Philippines">🇵🇭 Philippines</div>
+                                    <div class="country-option" data-code="+55" data-country="Brazil">🇧🇷 Brazil</div>
+                                    <div class="country-option" data-code="+54" data-country="Argentina">🇦🇷 Argentina</div>
+                                    <div class="country-option" data-code="+56" data-country="Chile">🇨🇱 Chile</div>
+                                    <div class="country-option" data-code="+57" data-country="Colombia">🇨🇴 Colombia</div>
+                                    <div class="country-option" data-code="+51" data-country="Peru">🇵🇪 Peru</div>
+                                    <div class="country-option" data-code="+27" data-country="South Africa">🇿🇦 South Africa</div>
+                                    <div class="country-option" data-code="+20" data-country="Egypt">🇪🇬 Egypt</div>
+                                    <div class="country-option" data-code="+234" data-country="Nigeria">🇳🇬 Nigeria</div>
+                                    <div class="country-option" data-code="+254" data-country="Kenya">🇰🇪 Kenya</div>
+                                    <div class="country-option" data-code="+7" data-country="Russia">🇷🇺 Russia</div>
+                                    <div class="country-option" data-code="+380" data-country="Ukraine">🇺🇦 Ukraine</div>
+                                    <div class="country-option" data-code="+852" data-country="Hong Kong">🇭🇰 Hong Kong</div>
+                                    <div class="country-option" data-code="+886" data-country="Taiwan">🇹🇼 Taiwan</div>
+                                </div>
+                            </div>
                             <input type="tel" id="phoneNumber" class="form-input phone-input" placeholder="(000) 000-0000">
                         </div>
                         <div class="form-help">
@@ -1041,8 +1002,8 @@
                         return false;
                     }
                     
-                    // Submit Step 3 responses to FormEasy
-                    await submitStep3ToFormEasy(troubleWords.value, ageGroup.value);
+                    // Submit Step 3 responses to FormEasy (non-blocking)
+                    submitStep3ToFormEasy(troubleWords.value, ageGroup.value);
                     
                     document.getElementById('step3Continue').disabled = false;
                     return true;
@@ -1066,11 +1027,11 @@
                             alert('Please specify how you found us.');
                             return false;
                         }
-                        // Submit Step 4 responses to FormEasy with other text and phone
-                        await submitStep4ToFormEasy(visitReason.value, otherReasonText, phoneNumber, countryCode);
+                        // Submit Step 4 responses to FormEasy with other text and phone (non-blocking)
+                        submitStep4ToFormEasy(visitReason.value, otherReasonText, phoneNumber, countryCode);
                     } else {
-                        // Submit Step 4 responses to FormEasy with phone
-                        await submitStep4ToFormEasy(visitReason.value, '', phoneNumber, countryCode);
+                        // Submit Step 4 responses to FormEasy with phone (non-blocking)
+                        submitStep4ToFormEasy(visitReason.value, '', phoneNumber, countryCode);
                     }
                     
                     document.getElementById('step4Continue').disabled = false;
@@ -1431,6 +1392,145 @@
                 }
             }
         });
+
+        // Country selector functionality
+        let highlightedIndex = -1;
+        let allCountries = [];
+        let filteredCountries = [];
+
+        // Initialize country selector
+        document.addEventListener('DOMContentLoaded', function() {
+            const countrySelect = document.getElementById('countrySelect');
+            const countryOptions = document.getElementById('countryOptions');
+            const countryCode = document.getElementById('countryCode');
+            
+            // Get all country options
+            allCountries = Array.from(document.querySelectorAll('.country-option'));
+            filteredCountries = [...allCountries];
+            
+            // Handle country select click
+            countrySelect.addEventListener('click', function() {
+                countrySelect.readOnly = false;
+                countrySelect.value = '';
+                countrySelect.placeholder = 'Type to search countries...';
+                countryOptions.style.display = 'block';
+                showAllCountries();
+            });
+            
+            // Handle country select input
+            countrySelect.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                filterCountries(searchTerm);
+            });
+            
+            // Handle country select blur
+            countrySelect.addEventListener('blur', function() {
+                setTimeout(() => {
+                    resetCountrySelect();
+                }, 200);
+            });
+            
+            // Handle keyboard navigation
+            countrySelect.addEventListener('keydown', function(e) {
+                const visibleOptions = countryOptions.querySelectorAll('.country-option:not([style*="display: none"])');
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    highlightedIndex = Math.min(highlightedIndex + 1, visibleOptions.length - 1);
+                    updateHighlight(visibleOptions);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    highlightedIndex = Math.max(highlightedIndex - 1, 0);
+                    updateHighlight(visibleOptions);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (highlightedIndex >= 0 && visibleOptions[highlightedIndex]) {
+                        selectCountry(visibleOptions[highlightedIndex]);
+                    }
+                } else if (e.key === 'Escape') {
+                    resetCountrySelect();
+                }
+            });
+            
+            // Handle country option clicks
+            allCountries.forEach(option => {
+                option.addEventListener('click', function() {
+                    selectCountry(this);
+                });
+            });
+        });
+        
+        function filterCountries(searchTerm) {
+            highlightedIndex = -1;
+            let visibleCount = 0;
+            
+            allCountries.forEach(option => {
+                const countryName = option.dataset.country.toLowerCase();
+                if (countryName.includes(searchTerm)) {
+                    option.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+            
+            // Auto-highlight first match
+            if (visibleCount > 0) {
+                const firstVisible = countryOptions.querySelector('.country-option:not([style*="display: none"])');
+                if (firstVisible) {
+                    highlightedIndex = 0;
+                    updateHighlight([firstVisible]);
+                }
+            }
+        }
+        
+        function showAllCountries() {
+            allCountries.forEach(option => {
+                option.style.display = 'block';
+            });
+            highlightedIndex = -1;
+        }
+        
+        function updateHighlight(visibleOptions) {
+            // Remove all highlights
+            allCountries.forEach(option => {
+                option.classList.remove('highlighted');
+            });
+            
+            // Add highlight to current option
+            if (highlightedIndex >= 0 && visibleOptions[highlightedIndex]) {
+                visibleOptions[highlightedIndex].classList.add('highlighted');
+                visibleOptions[highlightedIndex].scrollIntoView({ block: 'nearest' });
+            }
+        }
+        
+        function selectCountry(option) {
+            const countrySelect = document.getElementById('countrySelect');
+            const countryCode = document.getElementById('countryCode');
+            const countryOptions = document.getElementById('countryOptions');
+            
+            countrySelect.value = option.textContent;
+            countryCode.value = option.dataset.code;
+            countrySelect.readOnly = true;
+            countryOptions.style.display = 'none';
+            highlightedIndex = -1;
+        }
+        
+        function resetCountrySelect() {
+            const countrySelect = document.getElementById('countrySelect');
+            const countryOptions = document.getElementById('countryOptions');
+            
+            if (!countrySelect.value || countrySelect.value === '') {
+                countrySelect.value = '🇺🇸 United States';
+                document.getElementById('countryCode').value = '+1';
+            }
+            
+            countrySelect.readOnly = true;
+            countrySelect.placeholder = '🇺🇸 United States';
+            countryOptions.style.display = 'none';
+            highlightedIndex = -1;
+            showAllCountries();
+        }
 
         // Track assessment events
         gtag('event', 'assessment_started', {
