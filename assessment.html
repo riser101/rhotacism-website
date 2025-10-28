@@ -190,6 +190,33 @@
             border-color: #FF9800;
         }
         
+        /* Phone Input Styles */
+        .phone-input-container {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .country-select {
+            min-width: 120px;
+            padding: 16px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+        
+        .country-select:focus {
+            outline: none;
+            border-color: #FF9800;
+        }
+        
+        .phone-input {
+            flex: 1;
+        }
+        
         #otherReasonGroup {
             margin-top: 15px;
             padding: 15px;
@@ -539,6 +566,28 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">What's your age group?</label>
+                        <div class="options-group">
+                            <div class="option-item">
+                                <input type="radio" id="age1" name="ageGroup" value="teen">
+                                <label for="age1">Teen (13-17 years)</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="age2" name="ageGroup" value="young_adult">
+                                <label for="age2">Young Adult (18-25 years)</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="age3" name="ageGroup" value="adult">
+                                <label for="age3">Adult (26-54 years)</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="age4" name="ageGroup" value="senior_adult">
+                                <label for="age4">Adult (55+ years)</label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="btn-group">
                     <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
@@ -576,6 +625,143 @@
                         <div class="form-group" id="otherReasonGroup" style="display: none;">
                             <label class="form-label" for="otherReason">Please specify:</label>
                             <input type="text" id="otherReason" class="form-input" placeholder="Please tell us how you found us...">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="phoneNumber">Phone Number (Optional):</label>
+                        <div class="phone-input-container">
+                            <select id="countryCode" class="country-select">
+                                <option value="+1" data-flag="🇺🇸">🇺🇸 +1</option>
+                                <option value="+44" data-flag="🇬🇧">🇬🇧 +44</option>
+                                <option value="+61" data-flag="🇦🇺">🇦🇺 +61</option>
+                                <option value="+1" data-flag="🇨🇦">🇨🇦 +1</option>
+                                <option value="+49" data-flag="🇩🇪">🇩🇪 +49</option>
+                                <option value="+33" data-flag="🇫🇷">🇫🇷 +33</option>
+                                <option value="+39" data-flag="🇮🇹">🇮🇹 +39</option>
+                                <option value="+34" data-flag="🇪🇸">🇪🇸 +34</option>
+                                <option value="+31" data-flag="🇳🇱">🇳🇱 +31</option>
+                                <option value="+46" data-flag="🇸🇪">🇸🇪 +46</option>
+                                <option value="+47" data-flag="🇳🇴">🇳🇴 +47</option>
+                                <option value="+45" data-flag="🇩🇰">🇩🇰 +45</option>
+                                <option value="+41" data-flag="🇨🇭">🇨🇭 +41</option>
+                                <option value="+43" data-flag="🇦🇹">🇦🇹 +43</option>
+                                <option value="+32" data-flag="🇧🇪">🇧🇪 +32</option>
+                                <option value="+353" data-flag="🇮🇪">🇮🇪 +353</option>
+                                <option value="+351" data-flag="🇵🇹">🇵🇹 +351</option>
+                                <option value="+30" data-flag="🇬🇷">🇬🇷 +30</option>
+                                <option value="+358" data-flag="🇫🇮">🇫🇮 +358</option>
+                                <option value="+48" data-flag="🇵🇱">🇵🇱 +48</option>
+                                <option value="+420" data-flag="🇨🇿">🇨🇿 +420</option>
+                                <option value="+36" data-flag="🇭🇺">🇭🇺 +36</option>
+                                <option value="+421" data-flag="🇸🇰">🇸🇰 +421</option>
+                                <option value="+386" data-flag="🇸🇮">🇸🇮 +386</option>
+                                <option value="+385" data-flag="🇭🇷">🇭🇷 +385</option>
+                                <option value="+381" data-flag="🇷🇸">🇷🇸 +381</option>
+                                <option value="+382" data-flag="🇲🇪">🇲🇪 +382</option>
+                                <option value="+387" data-flag="🇧🇦">🇧🇦 +387</option>
+                                <option value="+389" data-flag="🇲🇰">🇲🇰 +389</option>
+                                <option value="+355" data-flag="🇦🇱">🇦🇱 +355</option>
+                                <option value="+356" data-flag="🇲🇹">🇲🇹 +356</option>
+                                <option value="+357" data-flag="🇨🇾">🇨🇾 +357</option>
+                                <option value="+370" data-flag="🇱🇹">🇱🇹 +370</option>
+                                <option value="+371" data-flag="🇱🇻">🇱🇻 +371</option>
+                                <option value="+372" data-flag="🇪🇪">🇪🇪 +372</option>
+                                <option value="+7" data-flag="🇷🇺">🇷🇺 +7</option>
+                                <option value="+380" data-flag="🇺🇦">🇺🇦 +380</option>
+                                <option value="+375" data-flag="🇧🇾">🇧🇾 +375</option>
+                                <option value="+373" data-flag="🇲🇩">🇲🇩 +373</option>
+                                <option value="+374" data-flag="🇦🇲">🇦🇲 +374</option>
+                                <option value="+995" data-flag="🇬🇪">🇬🇪 +995</option>
+                                <option value="+994" data-flag="🇦🇿">🇦🇿 +994</option>
+                                <option value="+998" data-flag="🇺🇿">🇺🇿 +998</option>
+                                <option value="+996" data-flag="🇰🇬">🇰🇬 +996</option>
+                                <option value="+992" data-flag="🇹🇯">🇹🇯 +992</option>
+                                <option value="+993" data-flag="🇹🇲">🇹🇲 +993</option>
+                                <option value="+7" data-flag="🇰🇿">🇰🇿 +7</option>
+                                <option value="+81" data-flag="🇯🇵">🇯🇵 +81</option>
+                                <option value="+82" data-flag="🇰🇷">🇰🇷 +82</option>
+                                <option value="+86" data-flag="🇨🇳">🇨🇳 +86</option>
+                                <option value="+91" data-flag="🇮🇳">🇮🇳 +91</option>
+                                <option value="+62" data-flag="🇮🇩">🇮🇩 +62</option>
+                                <option value="+60" data-flag="🇲🇾">🇲🇾 +60</option>
+                                <option value="+65" data-flag="🇸🇬">🇸🇬 +65</option>
+                                <option value="+66" data-flag="🇹🇭">🇹🇭 +66</option>
+                                <option value="+84" data-flag="🇻🇳">🇻🇳 +84</option>
+                                <option value="+63" data-flag="🇵🇭">🇵🇭 +63</option>
+                                <option value="+852" data-flag="🇭🇰">🇭🇰 +852</option>
+                                <option value="+853" data-flag="🇲🇴">🇲🇴 +853</option>
+                                <option value="+886" data-flag="🇹🇼">🇹🇼 +886</option>
+                                <option value="+55" data-flag="🇧🇷">🇧🇷 +55</option>
+                                <option value="+54" data-flag="🇦🇷">🇦🇷 +54</option>
+                                <option value="+56" data-flag="🇨🇱">🇨🇱 +56</option>
+                                <option value="+57" data-flag="🇨🇴">🇨🇴 +57</option>
+                                <option value="+58" data-flag="🇻🇪">🇻🇪 +58</option>
+                                <option value="+51" data-flag="🇵🇪">🇵🇪 +51</option>
+                                <option value="+593" data-flag="🇪🇨">🇪🇨 +593</option>
+                                <option value="+591" data-flag="🇧🇴">🇧🇴 +591</option>
+                                <option value="+595" data-flag="🇵🇾">🇵🇾 +595</option>
+                                <option value="+598" data-flag="🇺🇾">🇺🇾 +598</option>
+                                <option value="+597" data-flag="🇸🇷">🇸🇷 +597</option>
+                                <option value="+594" data-flag="🇬🇫">🇬🇫 +594</option>
+                                <option value="+592" data-flag="🇬🇾">🇬🇾 +592</option>
+                                <option value="+27" data-flag="🇿🇦">🇿🇦 +27</option>
+                                <option value="+20" data-flag="🇪🇬">🇪🇬 +20</option>
+                                <option value="+212" data-flag="🇲🇦">🇲🇦 +212</option>
+                                <option value="+216" data-flag="🇹🇳">🇹🇳 +216</option>
+                                <option value="+218" data-flag="🇱🇾">🇱🇾 +218</option>
+                                <option value="+213" data-flag="🇩🇿">🇩🇿 +213</option>
+                                <option value="+234" data-flag="🇳🇬">🇳🇬 +234</option>
+                                <option value="+254" data-flag="🇰🇪">🇰🇪 +254</option>
+                                <option value="+256" data-flag="🇺🇬">🇺🇬 +256</option>
+                                <option value="+255" data-flag="🇹🇿">🇹🇿 +255</option>
+                                <option value="+250" data-flag="🇷🇼">🇷🇼 +250</option>
+                                <option value="+251" data-flag="🇪🇹">🇪🇹 +251</option>
+                                <option value="+233" data-flag="🇬🇭">🇬🇭 +233</option>
+                                <option value="+225" data-flag="🇨🇮">🇨🇮 +225</option>
+                                <option value="+221" data-flag="🇸🇳">🇸🇳 +221</option>
+                                <option value="+223" data-flag="🇲🇱">🇲🇱 +223</option>
+                                <option value="+226" data-flag="🇧🇫">🇧🇫 +226</option>
+                                <option value="+227" data-flag="🇳🇪">🇳🇪 +227</option>
+                                <option value="+228" data-flag="🇹🇬">🇹🇬 +228</option>
+                                <option value="+229" data-flag="🇧🇯">🇧🇯 +229</option>
+                                <option value="+230" data-flag="🇲🇺">🇲🇺 +230</option>
+                                <option value="+231" data-flag="🇱🇷">🇱🇷 +231</option>
+                                <option value="+232" data-flag="🇸🇱">🇸🇱 +232</option>
+                                <option value="+235" data-flag="🇹🇩">🇹🇩 +235</option>
+                                <option value="+236" data-flag="🇨🇫">🇨🇫 +236</option>
+                                <option value="+237" data-flag="🇨🇲">🇨🇲 +237</option>
+                                <option value="+238" data-flag="🇨🇻">🇨🇻 +238</option>
+                                <option value="+239" data-flag="🇸🇹">🇸🇹 +239</option>
+                                <option value="+240" data-flag="🇬🇶">🇬🇶 +240</option>
+                                <option value="+241" data-flag="🇬🇦">🇬🇦 +241</option>
+                                <option value="+242" data-flag="🇨🇬">🇨🇬 +242</option>
+                                <option value="+243" data-flag="🇨🇩">🇨🇩 +243</option>
+                                <option value="+244" data-flag="🇦🇴">🇦🇴 +244</option>
+                                <option value="+245" data-flag="🇬🇼">🇬🇼 +245</option>
+                                <option value="+246" data-flag="🇮🇴">🇮🇴 +246</option>
+                                <option value="+247" data-flag="🇦🇨">🇦🇨 +247</option>
+                                <option value="+248" data-flag="🇸🇨">🇸🇨 +248</option>
+                                <option value="+249" data-flag="🇸🇩">🇸🇩 +249</option>
+                                <option value="+252" data-flag="🇸🇴">🇸🇴 +252</option>
+                                <option value="+253" data-flag="🇩🇯">🇩🇯 +253</option>
+                                <option value="+257" data-flag="🇧🇮">🇧🇮 +257</option>
+                                <option value="+258" data-flag="🇲🇿">🇲🇿 +258</option>
+                                <option value="+260" data-flag="🇿🇲">🇿🇲 +260</option>
+                                <option value="+261" data-flag="🇲🇬">🇲🇬 +261</option>
+                                <option value="+262" data-flag="🇾🇹">🇾🇹 +262</option>
+                                <option value="+263" data-flag="🇿🇼">🇿🇼 +263</option>
+                                <option value="+264" data-flag="🇳🇦">🇳🇦 +264</option>
+                                <option value="+265" data-flag="🇲🇼">🇲🇼 +265</option>
+                                <option value="+266" data-flag="🇱🇸">🇱🇸 +266</option>
+                                <option value="+267" data-flag="🇧🇼">🇧🇼 +267</option>
+                                <option value="+268" data-flag="🇸🇿">🇸🇿 +268</option>
+                                <option value="+269" data-flag="🇰🇲">🇰🇲 +269</option>
+                            </select>
+                            <input type="tel" id="phoneNumber" class="form-input phone-input" placeholder="(000) 000-0000">
+                        </div>
+                        <div class="form-help">
+                            We may send you text reminders about your practice sessions (optional)
                         </div>
                     </div>
                 </div>
@@ -641,9 +827,15 @@
             }
             continueBtn.disabled = true;
             
-            // Show loading state for Step 1 (email registration)
+            // Show loading state with appropriate text
             if (currentStepNum === 1) {
                 continueBtn.textContent = 'Registering...';
+            } else if (currentStepNum === 3) {
+                continueBtn.textContent = 'Saving responses...';
+            } else if (currentStepNum === 4) {
+                continueBtn.textContent = 'Processing...';
+            } else {
+                continueBtn.textContent = 'Loading...';
             }
             
             if (await validateCurrentStep()) {
@@ -691,7 +883,10 @@
                 const name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
                 localStorage.setItem('assessmentUserName', name);
                 
-                // Submit to FormEasy
+                // Submit to FormEasy with timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                
                 await fetch('https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec', {
                     method: 'POST',
                     headers: {
@@ -703,8 +898,11 @@
                         message: 'User started R-sound assessment',
                         timestamp: new Date().toISOString(),
                         page: 'assessment.html'
-                    })
+                    }),
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
                 
                 // Track email capture event
                 gtag('event', 'email_capture', {
@@ -720,9 +918,13 @@
         }
 
         // Submit Step 3 responses to FormEasy
-        async function submitStep3ToFormEasy(comfortLevel) {
+        async function submitStep3ToFormEasy(comfortLevel, ageGroup) {
             try {
                 const email = localStorage.getItem('assessmentUserEmail');
+                
+                // Add timeout to prevent slow loading
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
                 
                 await fetch('https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec', {
                     method: 'POST',
@@ -732,18 +934,22 @@
                     body: JSON.stringify({
                         email: email,
                         source: 'assessment_step3',
-                        message: `Step 3: Trouble words response - ${comfortLevel}`,
+                        message: `Step 3: Trouble words response - ${comfortLevel}, Age group - ${ageGroup}`,
                         trouble_words_response: comfortLevel,
+                        age_group: ageGroup,
                         step: 'step3',
                         timestamp: new Date().toISOString(),
                         page: 'assessment.html'
-                    })
+                    }),
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
                 
                 // Track step 3 completion
                 gtag('event', 'assessment_step3_complete', {
                     event_category: 'assessment',
-                    event_label: 'comfort_level_question'
+                    event_label: 'comfort_level_and_age_questions'
                 });
                 
                 console.log('Step 3 responses submitted successfully');
@@ -754,10 +960,15 @@
         }
 
         // Submit Step 4 responses to FormEasy
-        async function submitStep4ToFormEasy(visitReason, otherReasonText = '') {
+        async function submitStep4ToFormEasy(visitReason, otherReasonText = '', phoneNumber = '', countryCode = '') {
             try {
                 const email = localStorage.getItem('assessmentUserEmail');
                 const finalReason = visitReason === 'other' ? otherReasonText : visitReason;
+                const fullPhoneNumber = phoneNumber && countryCode ? `${countryCode} ${phoneNumber}` : '';
+                
+                // Add timeout to prevent slow loading
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
                 
                 await fetch('https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec', {
                     method: 'POST',
@@ -767,20 +978,26 @@
                     body: JSON.stringify({
                         email: email,
                         source: 'assessment_step4',
-                        message: `Step 4: Found on - ${finalReason}`,
+                        message: `Step 4: Found on - ${finalReason}${fullPhoneNumber ? `, Phone - ${fullPhoneNumber}` : ''}`,
                         found_on: finalReason,
                         found_on_type: visitReason,
                         other_reason_text: otherReasonText,
+                        phone_number: fullPhoneNumber,
+                        country_code: countryCode,
+                        phone_number_raw: phoneNumber,
                         step: 'step4',
                         timestamp: new Date().toISOString(),
                         page: 'assessment.html'
-                    })
+                    }),
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
                 
                 // Track step 4 completion
                 gtag('event', 'assessment_step4_complete', {
                     event_category: 'assessment',
-                    event_label: 'found_on_question'
+                    event_label: 'found_on_and_phone_questions'
                 });
                 
                 console.log('Step 4 responses submitted successfully');
@@ -812,14 +1029,20 @@
                 
                 case 3:
                     const troubleWords = document.querySelector('input[name="troubleWords"]:checked');
+                    const ageGroup = document.querySelector('input[name="ageGroup"]:checked');
                     
                     if (!troubleWords) {
-                        alert('Please answer the question.');
+                        alert('Please answer the R sound comfort level question.');
+                        return false;
+                    }
+                    
+                    if (!ageGroup) {
+                        alert('Please select your age group.');
                         return false;
                     }
                     
                     // Submit Step 3 responses to FormEasy
-                    await submitStep3ToFormEasy(troubleWords.value);
+                    await submitStep3ToFormEasy(troubleWords.value, ageGroup.value);
                     
                     document.getElementById('step3Continue').disabled = false;
                     return true;
@@ -828,9 +1051,13 @@
                     const visitReason = document.querySelector('input[name="visitReason"]:checked');
                     
                     if (!visitReason) {
-                        alert('Please answer the question.');
+                        alert('Please answer how you found us.');
                         return false;
                     }
+                    
+                    // Get phone number fields (optional)
+                    const phoneNumber = document.getElementById('phoneNumber').value.trim();
+                    const countryCode = document.getElementById('countryCode').value;
                     
                     // Check if 'other' is selected and input is provided
                     if (visitReason.value === 'other') {
@@ -839,11 +1066,11 @@
                             alert('Please specify how you found us.');
                             return false;
                         }
-                        // Submit Step 4 responses to FormEasy with other text
-                        await submitStep4ToFormEasy(visitReason.value, otherReasonText);
+                        // Submit Step 4 responses to FormEasy with other text and phone
+                        await submitStep4ToFormEasy(visitReason.value, otherReasonText, phoneNumber, countryCode);
                     } else {
-                        // Submit Step 4 responses to FormEasy
-                        await submitStep4ToFormEasy(visitReason.value);
+                        // Submit Step 4 responses to FormEasy with phone
+                        await submitStep4ToFormEasy(visitReason.value, '', phoneNumber, countryCode);
                     }
                     
                     document.getElementById('step4Continue').disabled = false;
@@ -1100,8 +1327,12 @@
             try {
                 const email = localStorage.getItem('assessmentUserEmail');
                 const troubleWords = document.querySelector('input[name="troubleWords"]:checked')?.value || 'not_answered';
+                const ageGroup = document.querySelector('input[name="ageGroup"]:checked')?.value || 'not_answered';
                 const visitReason = document.querySelector('input[name="visitReason"]:checked')?.value || 'not_answered';
                 const otherReasonText = visitReason === 'other' ? document.getElementById('otherReason').value : '';
+                const phoneNumber = document.getElementById('phoneNumber').value.trim();
+                const countryCode = document.getElementById('countryCode').value;
+                const fullPhoneNumber = phoneNumber && countryCode ? `${countryCode} ${phoneNumber}` : '';
                 const gcpResult = localStorage.getItem('gcpAnalysisResult') || 'no_audio_analysis';
                 
                 await fetch('https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec', {
@@ -1114,9 +1345,13 @@
                         source: 'assessment_completion',
                         message: 'User completed full R-sound assessment',
                         trouble_words_response: troubleWords,
+                        age_group: ageGroup,
                         found_on: visitReason === 'other' ? otherReasonText : visitReason,
                         found_on_type: visitReason,
                         other_reason_text: otherReasonText,
+                        phone_number: fullPhoneNumber,
+                        country_code: countryCode,
+                        phone_number_raw: phoneNumber,
                         gcp_analysis_result: gcpResult,
                         assessment_completed: true,
                         completion_timestamp: new Date().toISOString(),
@@ -1155,11 +1390,14 @@
 
         // Enable continue buttons when questions are answered
         document.addEventListener('change', function(e) {
-            if (e.target.name === 'troubleWords') {
+            if (e.target.name === 'troubleWords' || e.target.name === 'ageGroup') {
                 const troubleWords = document.querySelector('input[name="troubleWords"]:checked');
+                const ageGroup = document.querySelector('input[name="ageGroup"]:checked');
                 
-                if (troubleWords) {
+                if (troubleWords && ageGroup) {
                     document.getElementById('step3Continue').disabled = false;
+                } else {
+                    document.getElementById('step3Continue').disabled = true;
                 }
             }
             
