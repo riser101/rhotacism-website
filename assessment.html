@@ -829,9 +829,9 @@
             
             // Show loading state with appropriate text
             if (currentStepNum === 1) {
-                continueBtn.textContent = 'Registering...';
+                continueBtn.textContent = 'Loading...';
             } else if (currentStepNum === 3) {
-                continueBtn.textContent = 'Saving responses...';
+                continueBtn.textContent = 'Saving...';
             } else if (currentStepNum === 4) {
                 continueBtn.textContent = 'Processing...';
             } else {
@@ -885,7 +885,7 @@
                 
                 // Submit to FormEasy with timeout
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
                 
                 await fetch('https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec', {
                     method: 'POST',
@@ -1016,8 +1016,8 @@
                         alert('Please enter a valid email address.');
                         return false;
                     }
-                    // Register email with FormEasy
-                    await registerEmail(email);
+                    // Register email with FormEasy (non-blocking)
+                    registerEmail(email); // Remove await to make it non-blocking
                     return true;
                 
                 case 2:
