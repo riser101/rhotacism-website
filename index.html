@@ -2039,175 +2039,6 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     
 }
 
-/* Floating Banner */
-.floating-banner {
-    position: relative;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
-    color: white;
-    padding: 0 20px;
-    text-align: center;
-    font-size: 14px;
-    font-weight: 500;
-    z-index: 10005;
-    box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3);
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease, padding 0.3s ease;
-}
-
-.floating-banner.show {
-    max-height: 80px;
-    padding: 12px 20px;
-}
-
-.floating-banner.dismissed {
-    display: none !important;
-    max-height: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    visibility: hidden;
-    opacity: 0;
-    height: 0 !important;
-    overflow: hidden;
-}
-
-.banner-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 15px;
-    position: relative;
-}
-
-.banner-text {
-    flex: 1;
-    min-width: 300px;
-    padding-right: 40px;
-    text-align: center;
-}
-
-.banner-cta {
-    background: #000000;
-    color: white;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.banner-cta:hover {
-    background: #333333;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    color: white;
-    text-decoration: none;
-}
-
-.banner-close {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    z-index: 1;
-}
-
-.banner-close:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-/* Adjust navbar when banner is shown */
-.navbar.banner-visible {
-    top: 48px;
-}
-
-.hero.banner-visible {
-    padding-top: 100px;
-}
-
-/* Mobile responsiveness for banner */
-@media (max-width: 768px) {
-    .floating-banner {
-        padding: 10px 15px;
-        font-size: 13px;
-    }
-    
-    .floating-banner.dismissed {
-        display: none !important;
-        max-height: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        visibility: hidden;
-        opacity: 0;
-        height: 0 !important;
-        overflow: hidden;
-    }
-    
-    .banner-content {
-        flex-direction: row;
-        gap: 10px;
-        align-items: center;
-    }
-    
-    .banner-text {
-        min-width: auto;
-        text-align: center;
-        padding-right: 40px;
-    }
-    
-    .banner-cta {
-        padding: 10px 20px;
-        font-size: 14px;
-    }
-    
-    .navbar.banner-visible {
-        top: 52px;
-    }
-    
-    .hero.banner-visible {
-        padding-top: 100px;
-    }
-}
-
-@media (max-width: 480px) {
-    .floating-banner {
-        padding: 8px 12px;
-        font-size: 12px;
-    }
-    
-    .floating-banner.dismissed {
-        display: none !important;
-        max-height: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        visibility: hidden;
-        opacity: 0;
-        height: 0 !important;
-        overflow: hidden;
-    }
-    
-    .banner-cta {
-        width: 100%;
-        max-width: 250px;
-    }
-}
-
 /* Exit Intent Popup */
 .exit-intent-popup {
     display: none;
@@ -2611,16 +2442,6 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 
 </head>
 <body>
-    <!-- Floating Banner -->
-    <div class="floating-banner dismissed" id="floatingBanner">
-        <div class="banner-content">
-            <span class="banner-text">🔔 The Rollr Academy is going subscription-only. Free download ends Dec 2025 → $80/month after.
-                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="banner-link" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'floating_banner' }); plerdy_goals('banner_app_store_click');"> Take your program now.</a> 
-            </span>
-            <button class="banner-close" onclick="dismissBanner()" aria-label="Close banner">×</button>
-        </div>
-    </div>
-
     <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="nav-container">
@@ -3892,40 +3713,6 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
             }
         });
 
-        // Floating Banner Functions
-        function showBanner() {
-            const banner = document.getElementById('floatingBanner');
-            banner.classList.remove('dismissed');
-            banner.classList.add('show');
-        }
-
-        function dismissBanner() {
-            const banner = document.getElementById('floatingBanner');
-            banner.classList.add('dismissed');
-            // Store dismissal in localStorage so it doesn't show again
-            localStorage.setItem('bannerDismissed', 'true');
-            
-            // Track dismissal event
-            gtag('event', 'banner_dismissed', {
-                event_category: 'engagement',
-                event_label: 'subscription_banner'
-            });
-        }
-
-        // Show banner on page load if not previously dismissed
-        document.addEventListener('DOMContentLoaded', function() {
-            const wasDismissed = localStorage.getItem('bannerDismissed');
-            const banner = document.getElementById('floatingBanner');
-            
-            if (wasDismissed === 'true') {
-                // Keep banner hidden if previously dismissed
-                banner.classList.add('dismissed');
-            } else {
-                // Show banner after a short delay for better UX
-                setTimeout(showBanner, 1000);
-            }
-        });
-        
         // Mobile Carousel Functionality
         let currentCardIndex = 0;
         const totalCards = 3;
@@ -3947,5 +3734,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         }
 
     </script>
+    <!-- Enhanced Analytics -->
+    <script src="js/enhanced-analytics.js"></script>
 </body>
 </html>
