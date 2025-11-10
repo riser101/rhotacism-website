@@ -1595,15 +1595,28 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         min-width: 500px;
         font-size: 12px;
     }
-    
+
     .comparison th,
     .comparison td {
         padding: 12px 8px !important;
         font-size: 12px !important;
     }
-    
+
     .comparison th {
         font-size: 14px !important;
+    }
+
+    /* Reduce font size for $250 complete program text on mobile */
+    .comparison td > div:first-child {
+        font-size: 14px !important;
+        margin-bottom: 8px !important;
+    }
+
+    /* Reduce badge size on mobile */
+    .comparison td > div > span {
+        font-size: 7px !important;
+        padding: 2px 4px !important;
+        letter-spacing: 0.1px !important;
     }
 }
 
