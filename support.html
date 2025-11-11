@@ -151,13 +151,114 @@
             color: #666;
         }
 
+        .support-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #FF9800;
+            box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+            color: white;
+            padding: 16px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .success-message {
+            margin-top: 20px;
+            padding: 16px 20px;
+            background: #E8F5E9;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            color: #2E7D32;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .success-message svg {
+            color: #4CAF50;
+            flex-shrink: 0;
+        }
+
+        .error-message {
+            margin-top: 20px;
+            padding: 16px 20px;
+            background: #FFEBEE;
+            border: 2px solid #F44336;
+            border-radius: 8px;
+            color: #C62828;
+            font-weight: 600;
+            text-align: center;
+        }
+
         @media (max-width: 768px) {
             h1 {
                 font-size: 32px;
             }
-            
+
             .support-card {
                 padding: 24px;
+            }
+
+            .form-group input,
+            .form-group textarea {
+                font-size: 16px; /* Prevent zoom on iOS */
             }
         }
     </style>
@@ -170,14 +271,37 @@
         </div>
 
         <div class="support-card">
-            <div class="contact-info">
-                <div class="contact-item">
-                    <span class="contact-label">Email Support</span>
-                    <div class="contact-value">
-                        <a href="mailto:support@detache.app">support@detache.app</a>
-                    </div>
-                </div>  
-            </div>
+            <form id="supportForm" class="support-form">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required placeholder="Your name">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="your.email@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="message">How can we help you?</label>
+                    <textarea id="message" name="message" rows="6" required placeholder="Describe your question or issue..."></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <span id="btnText">Send Message</span>
+                </button>
+
+                <div id="successMessage" class="success-message" style="display: none;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 6L9 17l-5-5"></path>
+                    </svg>
+                    <span>Thank you! We'll get back to you soon.</span>
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;">
+                    <span>Something went wrong. Please try again or email us at support@detache.app</span>
+                </div>
+            </form>
         </div>
         <div class="back-link">
             <a href="index.html">← Back to Home</a>
@@ -186,5 +310,81 @@
 
     <!-- Enhanced Analytics -->
     <script src="js/enhanced-analytics.js"></script>
+
+    <script>
+        document.getElementById('supportForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const successMessage = document.getElementById('successMessage');
+            const errorMessage = document.getElementById('errorMessage');
+
+            // Get form values
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const message = document.getElementById('message').value.trim();
+
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            btnText.textContent = 'Sending...';
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+
+            try {
+                // Submit to FormEasy with timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+                const response = await fetch('https://script.google.com/macros/s/AKfycbxVyCtSaF409Ozc56wPllHaiR_I7JEoTW4krEOxP5ekUbz4IC4P2TYAihDH_Hug2jya8A/exec', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        message: message,
+                        source: 'support_form',
+                        timestamp: new Date().toISOString(),
+                        page: 'support.html'
+                    }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                // Track form submission in Google Analytics
+                gtag('event', 'support_form_submit', {
+                    event_category: 'engagement',
+                    event_label: 'support_contact'
+                });
+
+                // Show success message
+                successMessage.style.display = 'flex';
+
+                // Reset form
+                document.getElementById('supportForm').reset();
+
+                console.log('Support form submitted successfully');
+
+            } catch (error) {
+                console.error('Error submitting support form:', error);
+
+                // Show error message
+                errorMessage.style.display = 'block';
+
+                // Track error in Google Analytics
+                gtag('event', 'support_form_error', {
+                    event_category: 'error',
+                    event_label: 'form_submission_failed'
+                });
+            } finally {
+                // Re-enable button
+                submitBtn.disabled = false;
+                btnText.textContent = 'Send Message';
+            }
+        });
+    </script>
 </body>
 </html>
