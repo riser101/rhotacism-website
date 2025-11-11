@@ -58,7 +58,26 @@
         .subtitle {
             font-size: 18px;
             color: #666;
+            margin-bottom: 16px;
+        }
+
+        .response-time {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.1) 0%, rgba(230, 81, 0, 0.1) 100%);
+            border: 1.5px solid rgba(255, 152, 0, 0.3);
+            border-radius: 24px;
+            color: #E65100;
+            font-size: 15px;
+            font-weight: 600;
             margin-bottom: 32px;
+        }
+
+        .response-time svg {
+            color: #FF9800;
+            flex-shrink: 0;
         }
 
         .support-card {
@@ -268,6 +287,13 @@
         <div class="support-header">
             <h1>Support</h1>
             <p class="subtitle">Need help with your R sound journey? We're here to help!</p>
+            <div class="response-time">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>We're available 7 days a week and aim to respond to all inquiries within 24 hours.</span>
+            </div>
         </div>
 
         <div class="support-card">
