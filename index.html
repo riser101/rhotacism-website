@@ -1095,6 +1095,10 @@ font-size: 16px;
 }
 .hero {
 padding: 60px 20px;
+padding-top: 95px;
+}
+.body-with-banner .hero {
+padding-top: 165px;
 }
 .stats-grid {
 grid-template-columns: 1fr;
@@ -1491,9 +1495,13 @@ background: linear-gradient(90deg, #FF9800, #E65100);
 padding-top: 52.5px;
 }
 
+.body-with-banner .hero {
+padding-top: 102.5px;
+}
+
 @media (max-width: 768px) {
 .hero {
-padding-top: 70px;
+padding-top: 85px;
 background: linear-gradient(
 to bottom,
 #000000 0%,
@@ -1515,9 +1523,12 @@ to bottom,
 );
 }
 
+.body-with-banner .hero {
+padding-top: 155px;
+}
+
 .hero .badge {
 margin-top: 10px;
-}
 }
 }
 
@@ -2020,19 +2031,25 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 
 @media (max-width: 768px) {
     .floating-banner {
-        padding: 10px 50px 10px 20px;
-        font-size: 13px;
+        padding: 12px 50px 12px 20px;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .navbar {
+        top: 75px;
     }
 
     .body-with-banner .navbar {
-        top: 60px;
+        top: 75px;
     }
 }
 
 @media (max-width: 480px) {
     .floating-banner {
-        padding: 10px 45px 10px 15px;
-        font-size: 12px;
+        padding: 12px 45px 12px 15px;
+        font-size: 11px;
+        line-height: 1.4;
     }
 
     .banner-close {
@@ -2042,8 +2059,12 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         font-size: 16px;
     }
 
+    .navbar {
+        top: 85px;
+    }
+
     .body-with-banner .navbar {
-        top: 60px;
+        top: 85px;
     }
 }
 
