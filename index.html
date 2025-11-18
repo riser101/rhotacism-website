@@ -1783,7 +1783,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     position: absolute;
     top: 100%;
     right: 0;
-    background: linear-gradient(to bottom, 
+    background: linear-gradient(to bottom,
         #000000 0%,
         #1a1a1a 50%,
         #000000 100%
@@ -1791,7 +1791,8 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     border: 1px solid rgba(255, 152, 0, 0.2);
     border-radius: 8px;
     padding: 8px 0;
-    min-width: 120px;
+    min-width: 200px;
+    max-width: 280px;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
@@ -1805,6 +1806,24 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
+}
+
+.mobile-menu-section {
+    border-bottom: 1px solid rgba(255, 152, 0, 0.1);
+    padding: 8px 0;
+}
+
+.mobile-menu-section:last-child {
+    border-bottom: none;
+}
+
+.mobile-menu-title {
+    padding: 8px 16px;
+    color: #FF9800;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .mobile-company-dropdown a {
@@ -2587,7 +2606,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                     <a href="#" class="nav-dropdown-toggle">Research & Education <span class="dropdown-arrow">▼</span></a>
                     <div class="nav-dropdown-menu">
                         <a href="rhotacism-guide.html">Education</a>
-                        <a href="#">Research</a>
+                        <a href="research.html">Research</a>
                     </div>
                 </div>
 
@@ -2631,7 +2650,19 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                         <span></span>
                     </button>
                     <div class="mobile-company-dropdown" id="mobileCompanyDropdown">
-                        <a href="about.html">About</a>
+                        <div class="mobile-menu-section">
+                            <div class="mobile-menu-title">Company</div>
+                            <a href="about.html">About</a>
+                        </div>
+                        <div class="mobile-menu-section">
+                            <div class="mobile-menu-title">Research & Education</div>
+                            <a href="rhotacism-guide.html">Education</a>
+                            <a href="research.html">Research</a>
+                        </div>
+                        <div class="mobile-menu-section">
+                            <div class="mobile-menu-title">For SLPs</div>
+                            <a href="tools.html">Tool</a>
+                        </div>
                     </div>
                 </div>
             </div>

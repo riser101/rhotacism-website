@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Practice Tools - The Rollr Academy</title>
+    <title>Research & Evidence - The Rollr Academy</title>
     <link rel="icon" type="image/jpeg" href="instagram-icon.jpg">
     <link rel="apple-touch-icon" href="instagram-icon.jpg">
-    <meta name="description" content="Free speech therapy practice tools: timer and repetition counter for R sound exercises.">
+    <meta name="description" content="Peer-reviewed research on rhotacism treatment and R sound speech therapy. Evidence-based approaches backed by scientific studies.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -466,7 +466,7 @@
         .header {
             background: #000000;
             color: white;
-            padding: 100px 0 40px;
+            padding: 100px 0 60px;
             text-align: center;
         }
 
@@ -476,78 +476,103 @@
 
         .header h1 {
             font-family: 'Quicksand', sans-serif;
-            font-size: 42px;
+            font-size: 48px;
             font-weight: 700;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             color: white;
         }
 
-        .header p {
-            font-size: 18px;
+        .header .subtitle {
+            font-size: 20px;
             color: rgba(255, 255, 255, 0.7);
-            max-width: 600px;
-            margin: 0 auto;
+            max-width: 800px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
         }
 
-        /* Tools Grid */
-        .tools-section {
-            padding: 60px 0;
+        .trust-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 152, 0, 0.15);
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #FF9800;
+            border: 1px solid rgba(255, 152, 0, 0.3);
+        }
+
+        .trust-badge svg {
+            width: 20px;
+            height: 20px;
+            fill: #FF9800;
+        }
+
+        /* Research Section */
+        .research-section {
+            padding: 80px 0;
             background: #000000;
             flex: 1;
         }
 
-        .tools-grid {
+        .research-intro {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 60px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 18px;
+            line-height: 1.8;
+        }
+
+        .research-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: 1fr;
             gap: 40px;
             max-width: 900px;
             margin: 0 auto;
         }
 
-        .tool-card {
-            background: #1a1a1a;
+        .research-card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
             border-radius: 16px;
-            padding: 40px 30px;
+            padding: 40px;
             border: 2px solid #333;
-            color: white;
-            text-align: center;
             transition: all 0.3s ease;
-            cursor: pointer;
             position: relative;
             overflow: hidden;
         }
 
-        .tool-card:hover {
-            transform: translateY(-4px);
-            border-color: #FF9800;
-            box-shadow: 0 8px 25px rgba(255, 152, 0, 0.3);
+        .research-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #FF9800, #E65100);
         }
 
-        .tool-icon {
-            font-size: 64px;
+        .research-card:hover {
+            transform: translateY(-4px);
+            border-color: #FF9800;
+            box-shadow: 0 12px 40px rgba(255, 152, 0, 0.2);
+        }
+
+        .research-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
             margin-bottom: 20px;
         }
 
-        .tool-title {
-            font-family: 'Quicksand', sans-serif;
-            font-size: 28px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 12px;
-        }
-
-        .tool-description {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 16px;
-            line-height: 1.5;
-            margin-bottom: 24px;
-        }
-
-        .tool-badge {
-            display: inline-block;
-            background: rgba(255, 152, 0, 0.15);
-            color: #FF9800;
+        .meta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             padding: 6px 12px;
+            background: rgba(255, 152, 0, 0.1);
+            color: #FF9800;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
@@ -555,185 +580,142 @@
             letter-spacing: 0.5px;
         }
 
-        /* Tool Modal */
-        .tool-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 10000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+        .meta-badge.peer-reviewed {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
         }
 
-        .tool-modal.active {
-            display: flex;
+        .research-title {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+            line-height: 1.3;
         }
 
-        .modal-content {
-            background: #1a1a1a;
-            border-radius: 16px;
-            padding: 50px 40px;
-            max-width: 500px;
-            width: 100%;
-            position: relative;
-            border: 2px solid #333;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: none;
-            border: none;
+        .research-authors {
             color: rgba(255, 255, 255, 0.6);
-            font-size: 32px;
-            cursor: pointer;
-            transition: color 0.3s ease;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-close:hover {
-            color: white;
-        }
-
-        .modal-title {
-            font-family: 'Quicksand', sans-serif;
-            font-size: 32px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        /* Timer Display */
-        .timer-container {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            margin: 30px auto;
-        }
-
-        .timer-circle {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: #2a2a2a;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-
-        .timer-progress {
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            width: 208px;
-            height: 208px;
-            border-radius: 50%;
-            background: conic-gradient(#FFD700 0deg, #FFD700 0deg, transparent 0deg);
-            transition: background 0.3s ease;
-        }
-
-        .timer-display {
-            font-size: 48px;
-            font-weight: 700;
-            color: white;
-            text-align: center;
-            font-family: 'Quicksand', sans-serif;
-            z-index: 2;
-        }
-
-        .timer-label {
             font-size: 14px;
-            color: rgba(255, 255, 255, 0.6);
-            font-weight: 400;
-            z-index: 2;
+            margin-bottom: 8px;
         }
 
-        /* Rep Counter Display */
-        .rep-counter {
-            font-size: 80px;
+        .research-journal {
+            color: #FF9800;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .research-abstract {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+            margin-bottom: 24px;
+            font-size: 16px;
+        }
+
+        .key-findings {
+            background: rgba(255, 152, 0, 0.05);
+            border-left: 4px solid #FF9800;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .key-findings h3 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 18px;
             font-weight: 700;
             color: #FF9800;
-            text-align: center;
-            margin: 30px 0;
-            font-family: 'Quicksand', sans-serif;
+            margin-bottom: 12px;
         }
 
-        .rep-total {
-            font-size: 24px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: -20px;
-            margin-bottom: 30px;
-            text-align: center;
+        .key-findings ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
 
-        /* Buttons */
-        .button-container {
+        .key-findings li {
+            color: rgba(255, 255, 255, 0.9);
+            padding: 8px 0 8px 28px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .key-findings li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .research-footer {
             display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin: 30px 0;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .practice-button {
-            background: #FF9800;
+        .research-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
             color: white;
-            border: none;
-            border-radius: 12px;
-            padding: 16px 32px;
-            font-size: 16px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
             font-weight: 600;
-            cursor: pointer;
+            font-size: 14px;
             transition: all 0.3s ease;
-            min-width: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
         }
 
-        .practice-button:hover {
-            background: #FFB74D;
+        .research-link:hover {
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+            text-decoration: none;
+            color: white;
         }
 
-        .practice-button:disabled {
-            background: #666;
-            cursor: not-allowed;
-            transform: none;
+        .research-link svg {
+            width: 16px;
+            height: 16px;
+            fill: white;
         }
 
-        .reset-button {
-            background: #3a3a3a;
+        .doi-link {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .doi-link:hover {
+            color: #FF9800;
+        }
+
+        /* Footer Section */
+        footer {
+            background: #1a1a1a;
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        footer a {
             color: rgba(255, 255, 255, 0.8);
-            border: none;
-            border-radius: 12px;
-            padding: 16px 32px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
         }
 
-        .reset-button:hover {
-            background: #4a4a4a;
+        footer a:hover {
             color: white;
         }
 
@@ -793,43 +775,28 @@
             }
 
             .header h1 {
-                font-size: 32px;
+                font-size: 36px;
             }
 
-            .tools-grid {
-                grid-template-columns: 1fr;
-                gap: 24px;
+            .header .subtitle {
+                font-size: 16px;
             }
 
-            .tool-card {
-                padding: 30px 20px;
+            .research-card {
+                padding: 30px 24px;
             }
 
-            .modal-content {
-                padding: 40px 30px;
+            .research-title {
+                font-size: 24px;
             }
 
-            .timer-container {
-                width: 180px;
-                height: 180px;
+            .research-abstract {
+                font-size: 15px;
             }
 
-            .timer-circle {
-                width: 180px;
-                height: 180px;
-            }
-
-            .timer-progress {
-                width: 188px;
-                height: 188px;
-            }
-
-            .timer-display {
-                font-size: 40px;
-            }
-
-            .rep-counter {
-                font-size: 64px;
+            .research-footer {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
 
@@ -860,21 +827,12 @@
                 font-size: 28px;
             }
 
-            .tool-title {
-                font-size: 24px;
+            .research-card {
+                padding: 24px 20px;
             }
 
-            .modal-title {
-                font-size: 28px;
-            }
-
-            .button-container {
-                flex-direction: column;
-            }
-
-            .practice-button,
-            .reset-button {
-                width: 100%;
+            .research-title {
+                font-size: 20px;
             }
         }
     </style>
@@ -907,7 +865,7 @@
                     <a href="#" class="nav-dropdown-toggle">Research & Education <span class="dropdown-arrow">▼</span></a>
                     <div class="nav-dropdown-menu">
                         <a href="rhotacism-guide.html">Education</a>
-                        <a href="#">Research</a>
+                        <a href="research.html">Research</a>
                     </div>
                 </div>
 
@@ -957,7 +915,7 @@
                         <div class="mobile-menu-section">
                             <div class="mobile-menu-title">Research & Education</div>
                             <a href="rhotacism-guide.html">Education</a>
-                            <a href="#">Research</a>
+                            <a href="research.html">Research</a>
                         </div>
                         <div class="mobile-menu-section">
                             <div class="mobile-menu-title">For SLPs</div>
@@ -972,99 +930,95 @@
     <!-- Header -->
     <section class="header" id="headerSection">
         <div class="container">
-            <h1>Practice Tools</h1>
-            <p>Free tools to help you practice speech exercises effectively</p>
+            <h1>Research & Evidence</h1>
+            <p class="subtitle">Our approach is grounded in peer-reviewed scientific research and evidence-based methods for treating persistent rhotic distortions.</p>
+            <div class="trust-badge">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                </svg>
+                Evidence-Based Approach
+            </div>
         </div>
     </section>
 
-    <!-- Tools Grid -->
-    <section class="tools-section">
+    <!-- Research Section -->
+    <section class="research-section">
         <div class="container">
-            <div class="tools-grid">
-                <!-- Timer Tool -->
-                <div class="tool-card" onclick="openTimerModal()">
-                    <div class="tool-icon">⏱️</div>
-                    <h2 class="tool-title">Timer</h2>
-                    <p class="tool-description">5-minute countdown timer for timed speech exercises and practice sessions</p>
-                    <span class="tool-badge">Free Tool</span>
-                </div>
+            <div class="research-intro">
+                This curated collection features high-quality, peer-reviewed research published in leading scientific journals. Each study has been carefully selected to demonstrate effective, evidence-based approaches to treating rhotacism and persistent R sound errors in adolescents and adults.
+            </div>
 
-                <!-- Repetition Counter Tool -->
-                <div class="tool-card" onclick="openRepModal()">
-                    <div class="tool-icon">🔢</div>
-                    <h2 class="tool-title">Repetition Counter</h2>
-                    <p class="tool-description">Count up to 10 repetitions for exercise tracking with 10-second intervals</p>
-                    <span class="tool-badge">Free Tool</span>
-                </div>
+            <div class="research-grid">
+                <!-- Research Card 1 -->
+                <article class="research-card">
+                    <div class="research-meta">
+                        <span class="meta-badge peer-reviewed">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                            </svg>
+                            Peer-Reviewed
+                        </span>
+                        <span class="meta-badge">2017</span>
+                        <span class="meta-badge">Case Series</span>
+                    </div>
+
+                    <h2 class="research-title">Intensive Treatment for Persisting Rhotic Distortions: A Case Series</h2>
+
+                    <p class="research-authors">Jonathan L. Preston, PhD & Megan C. Leece</p>
+                    <p class="research-journal">American Journal of Speech-Language Pathology, 26(4), 1066–1079</p>
+
+                    <div class="research-abstract">
+                        <strong>Purpose:</strong> This study examined whether an intensive 1-week therapy program could improve American English rhotic accuracy in adolescents and young adults with residual speech sound errors that had not resolved with previous treatment.
+                    </div>
+
+                    <div class="key-findings">
+                        <h3>Key Findings</h3>
+                        <ul>
+                            <li>All four participants (ages 13-22) demonstrated statistically significant improvement in R sound accuracy</li>
+                            <li>Word-level accuracy improved from 35% at baseline to 83% post-treatment</li>
+                            <li>Sentence-level accuracy increased from 11% to 66% within one week</li>
+                            <li>Improvements maintained or continued to improve at 3-week follow-up</li>
+                            <li>Treatment delivered over 300 structured practice trials per hour</li>
+                        </ul>
+                    </div>
+
+                    <div class="research-abstract">
+                        <strong>Clinical Implications:</strong> The authors conclude that rapid change in speech sound accuracy can be achieved through intensive treatment incorporating motor learning principles, ultrasound biofeedback, and auditory training. Results demonstrate that sufficient neuroplasticity exists even for long-standing errors in adolescents and young adults.
+                    </div>
+
+                    <div class="research-footer">
+                        <div>
+                            <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5945059/" target="_blank" class="research-link">
+                                Read Full Study
+                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+                                </svg>
+                            </a>
+                        </div>
+                        <a href="https://doi.org/10.1044/2017_AJSLP-16-0232" target="_blank" class="doi-link">
+                            DOI: 10.1044/2017_AJSLP-16-0232
+                        </a>
+                    </div>
+                </article>
+
+                <!-- More research cards will be added here in the future -->
             </div>
         </div>
     </section>
 
     <!-- Footer Section -->
-    <footer style="background: #1a1a1a; color: white; padding: 40px 0; text-align: center;">
+    <footer>
         <div class="container">
             <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; flex-wrap: wrap;">
-                <a href="terms.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Terms of Use</a>
-                <a href="privacy.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Privacy Policy</a>
-                <a href="support.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Contact Us</a>
+                <a href="terms.html">Terms of Use</a>
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="support.html">Contact Us</a>
             </div>
             <div style="font-size: 14px; color: rgba(255, 255, 255, 0.6);">
                 © 2024 The Rollr Academy. All rights reserved.
             </div>
         </div>
     </footer>
-
-    <!-- Timer Modal -->
-    <div class="tool-modal" id="timerModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeTimerModal()">&times;</button>
-            <h2 class="modal-title">5-Minute Timer</h2>
-
-            <div class="timer-container">
-                <div class="timer-progress" id="timerProgress"></div>
-                <div class="timer-circle">
-                    <div class="timer-display" id="timerDisplay">5:00</div>
-                    <div class="timer-label">remaining</div>
-                </div>
-            </div>
-
-            <div class="button-container">
-                <button class="practice-button" id="timerStartBtn" onclick="toggleTimer()">
-                    ▶ Start
-                </button>
-                <button class="reset-button" onclick="resetTimer()">
-                    🔄 Reset
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Repetition Counter Modal -->
-    <div class="tool-modal" id="repModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeRepModal()">&times;</button>
-            <h2 class="modal-title">Repetition Counter</h2>
-
-            <div class="rep-counter" id="repCounter">0</div>
-            <div class="rep-total">of 10</div>
-
-            <div class="timer-container">
-                <div class="timer-progress" id="repTimerProgress"></div>
-                <div class="timer-circle">
-                    <div class="timer-display" id="repTimerDisplay">10s</div>
-                </div>
-            </div>
-
-            <div class="button-container">
-                <button class="practice-button" id="repStartBtn" onclick="startRep()">
-                    ▶ Start Rep
-                </button>
-                <button class="reset-button" onclick="resetReps()">
-                    🔄 Reset
-                </button>
-            </div>
-        </div>
-    </div>
 
     <script>
         // Top bar close functionality
@@ -1180,159 +1134,6 @@
                 document.getElementById('headerSection').classList.add('with-top-bar');
             }
         });
-
-        // Timer functionality
-        let timerSeconds = 300; // 5 minutes
-        let timerInterval = null;
-        let isTimerRunning = false;
-
-        function openTimerModal() {
-            document.getElementById('timerModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeTimerModal() {
-            document.getElementById('timerModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-            if (isTimerRunning) {
-                toggleTimer(); // Pause if running
-            }
-        }
-
-        function toggleTimer() {
-            if (isTimerRunning) {
-                // Pause
-                clearInterval(timerInterval);
-                isTimerRunning = false;
-                document.getElementById('timerStartBtn').innerHTML = '▶ Start';
-            } else {
-                // Start
-                isTimerRunning = true;
-                document.getElementById('timerStartBtn').innerHTML = '⏸ Pause';
-
-                timerInterval = setInterval(() => {
-                    timerSeconds--;
-                    updateTimerDisplay();
-                    updateTimerProgress();
-
-                    if (timerSeconds <= 0) {
-                        clearInterval(timerInterval);
-                        isTimerRunning = false;
-                        document.getElementById('timerStartBtn').innerHTML = '▶ Start';
-                        alert('Timer complete!');
-                    }
-                }, 1000);
-            }
-        }
-
-        function resetTimer() {
-            clearInterval(timerInterval);
-            timerSeconds = 300;
-            isTimerRunning = false;
-            document.getElementById('timerStartBtn').innerHTML = '▶ Start';
-            updateTimerDisplay();
-            updateTimerProgress();
-        }
-
-        function updateTimerDisplay() {
-            const minutes = Math.floor(timerSeconds / 60);
-            const seconds = timerSeconds % 60;
-            document.getElementById('timerDisplay').textContent =
-                `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        }
-
-        function updateTimerProgress() {
-            const progress = ((300 - timerSeconds) / 300) * 360;
-            document.getElementById('timerProgress').style.background =
-                `conic-gradient(#FFD700 0deg, #FFD700 ${progress}deg, transparent ${progress}deg)`;
-        }
-
-        // Repetition counter functionality
-        let reps = 0;
-        let repTimerSeconds = 10;
-        let repTimerInterval = null;
-        let isRepTimerRunning = false;
-
-        function openRepModal() {
-            document.getElementById('repModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeRepModal() {
-            document.getElementById('repModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-            if (isRepTimerRunning) {
-                clearInterval(repTimerInterval);
-                isRepTimerRunning = false;
-            }
-        }
-
-        function startRep() {
-            if (reps >= 10) return;
-            if (isRepTimerRunning) return;
-
-            isRepTimerRunning = true;
-            repTimerSeconds = 10;
-            document.getElementById('repStartBtn').innerHTML = '⏸ Hold...';
-            document.getElementById('repStartBtn').disabled = true;
-
-            repTimerInterval = setInterval(() => {
-                repTimerSeconds--;
-                document.getElementById('repTimerDisplay').textContent = `${repTimerSeconds}s`;
-
-                const progress = ((10 - repTimerSeconds) / 10) * 360;
-                document.getElementById('repTimerProgress').style.background =
-                    `conic-gradient(#FFD700 0deg, #FFD700 ${progress}deg, transparent ${progress}deg)`;
-
-                if (repTimerSeconds <= 0) {
-                    clearInterval(repTimerInterval);
-                    isRepTimerRunning = false;
-                    reps++;
-                    updateRepDisplay();
-                    document.getElementById('repStartBtn').innerHTML = '▶ Start Rep';
-                    document.getElementById('repStartBtn').disabled = false;
-                    document.getElementById('repTimerDisplay').textContent = '10s';
-                    document.getElementById('repTimerProgress').style.background =
-                        'conic-gradient(#FFD700 0deg, #FFD700 0deg, transparent 0deg)';
-
-                    if (reps >= 10) {
-                        document.getElementById('repStartBtn').innerHTML = '✓ Complete!';
-                        document.getElementById('repStartBtn').disabled = true;
-                        alert('All 10 reps completed!');
-                    }
-                }
-            }, 1000);
-        }
-
-        function resetReps() {
-            clearInterval(repTimerInterval);
-            isRepTimerRunning = false;
-            reps = 0;
-            repTimerSeconds = 10;
-            updateRepDisplay();
-            document.getElementById('repTimerDisplay').textContent = '10s';
-            document.getElementById('repStartBtn').innerHTML = '▶ Start Rep';
-            document.getElementById('repStartBtn').disabled = false;
-            document.getElementById('repTimerProgress').style.background =
-                'conic-gradient(#FFD700 0deg, #FFD700 0deg, transparent 0deg)';
-        }
-
-        function updateRepDisplay() {
-            document.getElementById('repCounter').textContent = reps;
-        }
-
-        // Close modals on escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeTimerModal();
-                closeRepModal();
-            }
-        });
-
-        // Initialize displays
-        updateTimerDisplay();
-        updateTimerProgress();
-        updateRepDisplay();
     </script>
 </body>
 </html>
