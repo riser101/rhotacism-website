@@ -751,6 +751,11 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="appVersion">App Version</label>
+                    <input type="text" id="appVersion" name="appVersion" required placeholder="e.g., 1.2.3 or Web">
+                </div>
+
+                <div class="form-group">
                     <label for="message">How can we help you?</label>
                     <textarea id="message" name="message" rows="6" required placeholder="Describe your question or issue..."></textarea>
                 </div>
@@ -788,6 +793,11 @@
     </footer>
 
     <script>
+        // Open login modal (redirect to assessment)
+        function openLoginModal() {
+            window.location.href = 'index.html#assessment';
+        }
+
         // Mobile company menu toggle function
         function toggleMobileCompanyMenu() {
             const dropdown = document.getElementById('mobileCompanyDropdown');
@@ -892,6 +902,7 @@
             // Get form values
             const name = document.getElementById('name').value.trim();
             const email = document.getElementById('email').value.trim();
+            const appVersion = document.getElementById('appVersion').value.trim();
             const message = document.getElementById('message').value.trim();
 
             // Disable button and show loading state
@@ -913,6 +924,7 @@
                     body: JSON.stringify({
                         name: name,
                         email: email,
+                        appVersion: appVersion,
                         message: message,
                         source: 'support_form',
                         timestamp: new Date().toISOString(),

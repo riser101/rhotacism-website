@@ -77,7 +77,19 @@
         }
 
         .navbar.with-top-bar {
-            top: 85px;
+            top: 65px;
+        }
+
+        @media (max-width: 768px) {
+            .navbar.with-top-bar {
+                top: 75px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar.with-top-bar {
+                top: 85px;
+            }
         }
 
         .navbar.scrolled {
@@ -1069,8 +1081,7 @@
         }
 
         function openLoginModal() {
-            // Placeholder function - can be implemented if login modal is needed
-            console.log('Login modal would open here');
+            window.location.href = 'index.html#assessment';
         }
 
         function toggleProfileDropdown() {
