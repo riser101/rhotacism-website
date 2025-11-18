@@ -44,51 +44,6 @@
             padding: 0 20px;
         }
 
-        /* Floating Top Bar Styles */
-        .floating-top-bar {
-            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
-            color: white;
-            padding: 16px 20px;
-            text-align: center;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1001;
-            font-size: 12px;
-            line-height: 1.5;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .floating-top-bar-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        .floating-top-bar-close {
-            position: absolute;
-            top: 50%;
-            right: 20px;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .floating-top-bar-close:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
         /* Navigation Styles */
         .navbar {
             background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
@@ -99,10 +54,6 @@
             right: 0;
             z-index: 1000;
             transition: all 0.3s ease, transform 0.3s ease;
-        }
-
-        .navbar.with-top-bar {
-            top: 85px;
         }
 
         .nav-container {
@@ -470,10 +421,6 @@
             text-align: center;
         }
 
-        .header.with-top-bar {
-            padding-top: 145px;
-        }
-
         .header h1 {
             font-family: 'Quicksand', sans-serif;
             font-size: 48px;
@@ -745,33 +692,8 @@
                 display: block;
             }
 
-            .navbar.with-top-bar {
-                top: 80px;
-            }
-
-            .floating-top-bar {
-                font-size: 10px;
-                padding: 10px 15px;
-                padding-right: 50px;
-            }
-
-            .floating-top-bar-content {
-                padding: 0 10px;
-            }
-
-            .floating-top-bar-close {
-                right: 15px;
-                width: 24px;
-                height: 24px;
-                font-size: 18px;
-            }
-
             .header {
                 padding-top: 100px;
-            }
-
-            .header.with-top-bar {
-                padding-top: 165px;
             }
 
             .header h1 {
@@ -801,24 +723,6 @@
         }
 
         @media (max-width: 480px) {
-            .navbar.with-top-bar {
-                top: 75px;
-            }
-
-            .floating-top-bar {
-                font-size: 9px;
-                padding: 8px 12px;
-                padding-right: 45px;
-                line-height: 1.4;
-            }
-
-            .floating-top-bar-close {
-                right: 10px;
-                width: 22px;
-                height: 22px;
-                font-size: 16px;
-            }
-
             .header {
                 padding: 80px 0 30px;
             }
@@ -838,14 +742,6 @@
     </style>
 </head>
 <body>
-    <!-- Floating Top Bar -->
-    <div class="floating-top-bar" id="floatingTopBar">
-        <div class="floating-top-bar-content">
-            95% people that use our program don't post a review. If you are benefiting from this program, or if you are finding it helpful, or if you are getting any value out of it at all, there's one tiny favour we ask of you. Please leave a <a href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" style="color: #0066cc; font-weight: 600; text-decoration: underline;">review</a>. Takes < 2 mins, but is the single most important thing you can do to help impact more lives.
-        </div>
-        <button class="floating-top-bar-close" onclick="closeTopBar()" aria-label="Close">&times;</button>
-    </div>
-
     <!-- Navigation Bar -->
     <nav class="navbar" id="mainNavbar">
         <div class="nav-container">
@@ -1001,6 +897,58 @@
                     </div>
                 </article>
 
+                <!-- Research Card 2 -->
+                <article class="research-card">
+                    <div class="research-meta">
+                        <span class="meta-badge peer-reviewed">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                            </svg>
+                            Peer-Reviewed
+                        </span>
+                        <span class="meta-badge">2020</span>
+                        <span class="meta-badge">Multisite Study</span>
+                    </div>
+
+                    <h2 class="research-title">Auditory-Perceptual Acuity in Rhotic Misarticulation: Baseline Characteristics and Treatment Response</h2>
+
+                    <p class="research-authors">Laine Cialdella, PhD; Heather Kabakoff, PhD; Jonathan L. Preston, PhD; Sarah Dugan, PhD; Caroline Spencer, PhD; Suzanne Boyce, PhD; Mark Tiede, PhD; Douglas H. Whalen, PhD; Tara McAllister, PhD</p>
+                    <p class="research-journal">Clinical Linguistics & Phonetics, 35(1), 19–42</p>
+
+                    <div class="research-abstract">
+                        <strong>Purpose:</strong> This multisite study examined whether children with residual R sound errors demonstrated reduced auditory-perceptual acuity compared to typically developing peers, and whether perception abilities predicted treatment response following visual biofeedback intervention.
+                    </div>
+
+                    <div class="key-findings">
+                        <h3>Key Findings</h3>
+                        <ul>
+                            <li>Children with R errors showed significantly poorer perception of the /r/-/w/ contrast compared to typically developing children (large effect size: Cohen's d=0.90)</li>
+                            <li>Visual biofeedback treatment (ultrasound and acoustic feedback) was effective across participants</li>
+                            <li>Females with better auditory perception responded significantly better to treatment, while males responded regardless of perception abilities</li>
+                            <li>Large multisite sample: 107 participants (59 with R errors, 48 controls) ages 9-15 across four institutions</li>
+                            <li>Treatment responders showed effect sizes greater than 1.0 in acoustic improvement measures</li>
+                        </ul>
+                    </div>
+
+                    <div class="research-abstract">
+                        <strong>Clinical Implications:</strong> This research demonstrates that visual biofeedback is an evidence-based approach for treating persistent R errors. Importantly, even individuals who struggle to hear the difference between R and W sounds can benefit from treatment. The findings suggest that personalized treatment planning should consider both auditory-perceptual abilities and gender-specific response patterns, highlighting the importance of individualized intervention approaches.
+                    </div>
+
+                    <div class="research-footer">
+                        <div>
+                            <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7541403/" target="_blank" class="research-link">
+                                Read Full Study
+                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+                                </svg>
+                            </a>
+                        </div>
+                        <a href="https://doi.org/10.1080/02699206.2020.1739749" target="_blank" class="doi-link">
+                            DOI: 10.1080/02699206.2020.1739749
+                        </a>
+                    </div>
+                </article>
+
                 <!-- More research cards will be added here in the future -->
             </div>
         </div>
@@ -1021,13 +969,6 @@
     </footer>
 
     <script>
-        // Top bar close functionality
-        function closeTopBar() {
-            document.getElementById('floatingTopBar').style.display = 'none';
-            document.getElementById('mainNavbar').classList.remove('with-top-bar');
-            document.getElementById('headerSection').classList.remove('with-top-bar');
-        }
-
         // Mobile company menu toggle
         function toggleMobileCompanyMenu() {
             const dropdown = document.getElementById('mobileCompanyDropdown');
@@ -1125,13 +1066,6 @@
                 showProfileDropdown();
             } else {
                 showLoginButton();
-            }
-
-            // Check if top bar should be shown
-            const topBar = document.getElementById('floatingTopBar');
-            if (topBar && topBar.style.display !== 'none') {
-                document.getElementById('mainNavbar').classList.add('with-top-bar');
-                document.getElementById('headerSection').classList.add('with-top-bar');
             }
         });
     </script>

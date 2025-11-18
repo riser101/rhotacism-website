@@ -60,14 +60,14 @@
             padding: 0 20px;
         }
 
-        /* Navigation Styles - Same as homepage */
+        /* Navigation Styles */
         .navbar {
-            background: linear-gradient(to bottom, 
+            background: linear-gradient(to bottom,
                 #000000 0%,
                 #1a1a1a 50%,
                 #000000 100%
             );
-            padding: 20px 0;
+            padding: 5.25px 0;
             position: fixed;
             top: 0;
             left: 0;
@@ -76,14 +76,18 @@
             transition: all 0.3s ease, transform 0.3s ease;
         }
 
+        .navbar.with-top-bar {
+            top: 85px;
+        }
+
         .navbar.scrolled {
-            background: linear-gradient(to bottom, 
+            background: linear-gradient(to bottom,
                 #000000 0%,
                 #1a1a1a 50%,
                 #000000 100%
             );
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            padding: 16px 0;
+            padding: 3.15px 0;
         }
 
         .navbar.scrolled .nav-logo {
@@ -94,14 +98,10 @@
             color: rgba(255, 255, 255, 0.95);
         }
 
-        .navbar.scrolled .nav-menu a:hover {
-            color: white;
-        }
-
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 24px;
+            padding: 0 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -109,7 +109,7 @@
 
         .nav-logo {
             font-family: 'Quicksand', sans-serif;
-            font-size: 28px;
+            font-size: 20px;
             font-weight: 700;
             color: white;
             text-decoration: none;
@@ -130,8 +130,12 @@
             transition: opacity 0.3s ease;
         }
 
-        .nav-logo:hover::after {
-            opacity: 1;
+        .nav-logo-text {
+            display: inline;
+        }
+
+        .nav-logo-mobile {
+            display: none;
         }
 
         .nav-menu {
@@ -139,62 +143,336 @@
             list-style: none;
             margin: 0;
             padding: 0;
-            gap: 40px;
+            gap: 20px;
             align-items: center;
         }
 
         .nav-menu li {
             margin: 0;
+            display: flex;
+            align-items: center;
         }
 
         .nav-menu a {
             text-decoration: none;
             color: rgba(255, 255, 255, 0.95);
             font-weight: 500;
-            font-size: 16px;
+            font-size: 14px;
             letter-spacing: 0.3px;
             transition: all 0.3s ease;
             position: relative;
-            padding: 10px 0;
+            padding: 5.25px 0;
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
 
-        .nav-menu a:hover {
-            color: white;
-            transform: translateY(-1px);
+        /* Dropdown Menu Styles */
+        .nav-dropdown {
+            position: relative;
         }
 
-        .nav-menu a.nav-cta {
+        .nav-dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255, 255, 255, 0.95) !important;
+            text-decoration: none !important;
+            font-weight: 500;
+            font-size: 16px;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .dropdown-arrow {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-dropdown:hover .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .nav-dropdown-toggle:hover {
+            color: white !important;
+        }
+
+        .nav-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: linear-gradient(to bottom,
+                #000000 0%,
+                #1a1a1a 50%,
+                #000000 100%
+            );
+            border: 1px solid rgba(255, 152, 0, 0.2);
+            border-radius: 8px;
+            padding: 8px 0;
+            min-width: 160px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+        }
+
+        .nav-dropdown:hover .nav-dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .nav-dropdown-menu a {
+            display: block;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.95) !important;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .nav-dropdown-menu a:hover {
+            background: rgba(255, 152, 0, 0.1);
+            color: white !important;
+            padding-left: 24px;
+        }
+
+        /* Mobile Navigation */
+        .mobile-nav {
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .mobile-get-started {
             background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
             color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
             font-weight: 600;
-            border: 1px solid rgba(255, 152, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-get-started:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+        }
+
+        .mobile-download-btn {
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+
+        .mobile-download-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Mobile Hamburger Menu Styles */
+        .mobile-hamburger-menu {
             position: relative;
-            overflow: hidden;
+            display: none;
         }
 
-        .nav-menu a.nav-cta::before {
-            content: '';
+        .mobile-hamburger-toggle {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mobile-hamburger-toggle span {
+            width: 20px;
+            height: 2px;
+            background: linear-gradient(90deg, #FFB74D, #FF9800);
+            margin: 2px 0;
+            border-radius: 2px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .mobile-hamburger-toggle.active span:nth-child(1) {
+            transform: rotate(-45deg) translate(-4px, 5px);
+            background: linear-gradient(90deg, #FF9800, #E65100);
+        }
+
+        .mobile-hamburger-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .mobile-hamburger-toggle.active span:nth-child(3) {
+            transform: rotate(45deg) translate(-4px, -5px);
+            background: linear-gradient(90deg, #FF9800, #E65100);
+        }
+
+        .mobile-company-dropdown {
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.6s;
+            top: 100%;
+            right: 0;
+            background: linear-gradient(to bottom,
+                #000000 0%,
+                #1a1a1a 50%,
+                #000000 100%
+            );
+            border: 1px solid rgba(255, 152, 0, 0.2);
+            border-radius: 8px;
+            padding: 8px 0;
+            min-width: 200px;
+            max-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            margin-top: 8px;
         }
 
-        .nav-menu a.nav-cta:hover {
+        .mobile-company-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .mobile-menu-section {
+            border-bottom: 1px solid rgba(255, 152, 0, 0.1);
+            padding: 8px 0;
+        }
+
+        .mobile-menu-section:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-menu-title {
+            padding: 8px 16px;
+            color: #FF9800;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .mobile-company-dropdown a {
+            display: block;
+            padding: 12px 16px;
+            color: rgba(255, 255, 255, 0.95) !important;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .mobile-company-dropdown a:hover {
+            background: rgba(255, 152, 0, 0.1);
+            color: white !important;
+            padding-left: 20px;
+        }
+
+        /* Profile Dropdown Styles */
+        .profile-dropdown {
+            position: relative;
+        }
+
+        .profile-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-circle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+        }
+
+        .profile-circle span {
             color: white;
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
-            border-color: #FFB74D;
+            font-weight: 600;
+            font-size: 14px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
 
-        .nav-menu a.nav-cta:hover::before {
-            left: 100%;
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            min-width: 120px;
+            z-index: 1001;
+            margin-top: 8px;
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 12px 16px;
+            color: #333 !important;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            border-radius: 6px;
+            margin: 4px;
+        }
+
+        .dropdown-menu a:hover {
+            background: #f8f9fa;
+            color: #FF9800 !important;
+        }
+
+        /* Login nav button styles */
+        .login-nav-button {
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: none;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
         }
 
         /* Blog Header - Full Width */
@@ -417,54 +695,70 @@
 
         /* Responsive */
         @media (max-width: 768px) {
-            .nav-menu {
-                position: fixed;
-                top: 84px;
-                left: -100%;
-                flex-direction: column;
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(20px);
-                width: 100%;
-                text-align: center;
-                transition: all 0.3s ease;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-                padding: 30px 0;
-                gap: 24px;
+            .floating-top-bar {
+                font-size: 10px;
+                padding: 10px 15px;
+                padding-right: 50px;
             }
 
-            .nav-menu a {
-                color: #333 !important;
-                text-shadow: none !important;
+            .floating-top-bar-content {
+                padding: 0 10px;
+            }
+
+            .floating-top-bar-close {
+                right: 15px;
+                width: 24px;
+                height: 24px;
                 font-size: 18px;
-                padding: 12px 20px;
-                border-radius: 8px;
-                margin: 0 20px;
             }
 
-            .nav-menu a:hover {
-                background: rgba(255, 152, 0, 0.1);
+            .navbar.with-top-bar {
+                top: 80px;
             }
 
-            .nav-menu.active {
-                left: 0;
+            /* Switch logo to image on mobile */
+            .nav-logo-text {
+                display: none;
             }
 
+            .nav-logo-mobile {
+                display: inline;
+            }
+
+            /* Hide Company dropdown from desktop navigation on mobile */
+            .nav-dropdown {
+                display: none;
+            }
+
+            /* Hide hamburger menu on mobile, show mobile nav instead */
             .nav-toggle {
+                display: none;
+            }
+
+            .mobile-nav {
                 display: flex;
             }
 
-            .nav-toggle.active span:nth-child(1) {
-                transform: rotate(-45deg) translate(-5px, 6px);
-                background: linear-gradient(90deg, #FF9800, #E65100);
+            .mobile-hamburger-menu {
+                display: block;
             }
 
-            .nav-toggle.active span:nth-child(2) {
-                opacity: 0;
+            /* Hide regular nav menu on mobile */
+            .nav-menu {
+                display: none;
             }
 
-            .nav-toggle.active span:nth-child(3) {
-                transform: rotate(45deg) translate(-5px, -6px);
-                background: linear-gradient(90deg, #FF9800, #E65100);
+            .profile-circle {
+                width: 32px;
+                height: 32px;
+            }
+
+            .profile-circle span {
+                font-size: 12px;
+            }
+
+            .dropdown-menu {
+                right: -10px;
             }
 
             .main-layout {
@@ -511,18 +805,85 @@
 </head>
 <body>
     <!-- Navigation Bar -->
-    <nav class="navbar">
+    <nav class="navbar" id="mainNavbar">
         <div class="nav-container">
-            <a href="index.html" class="nav-logo">The Rollr Academy</a>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <a href="index.html" class="nav-logo">
+                    <span class="nav-logo-text">The Rollr Academy</span>
+                    <img src="instagram-icon.jpg" alt="The Rollr Academy" class="nav-logo-mobile" style="height: 40px; width: 40px; border-radius: 50%;">
+                </a>
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-dropdown-toggle">Company <span class="dropdown-arrow">▼</span></a>
+                    <div class="nav-dropdown-menu">
+                        <a href="about.html">About</a>
+                    </div>
+                </div>
+
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-dropdown-toggle">Research & Education <span class="dropdown-arrow">▼</span></a>
+                    <div class="nav-dropdown-menu">
+                        <a href="rhotacism-guide.html">Education</a>
+                        <a href="research.html">Research</a>
+                    </div>
+                </div>
+
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-dropdown-toggle">For Speech Language Pathologists <span class="dropdown-arrow">▼</span></a>
+                    <div class="nav-dropdown-menu">
+                        <a href="tools.html">Tools</a>
+                    </div>
+                </div>
+            </div>
             <ul class="nav-menu">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="rhotacism-guide.html">Rhotacism Guide</a></li>
-                <!-- <li><a href="index.html#assessment" onclick="startAssessment()">Practice Tools</a></li> -->
-                <li><a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'nav_menu' });">
-                        <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" 
-                             alt="Download on the App Store" style="height: 48px;">
+                <li class="login-nav" style="display: none;">
+                    <button class="login-nav-button" onclick="openLoginModal()">Get Started</button>
+                </li>
+                <li><a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'nav_menu' }); plerdy_goals('app_store_click');">
+                        <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg"
+                             alt="Download on the App Store" style="height: 44px; margin: -2px 0;">
                     </a></li>
+                <li class="profile-dropdown">
+                    <div class="profile-circle" onclick="toggleProfileDropdown()">
+                        <span id="profileInitial">U</span>
+                    </div>
+                    <div class="dropdown-menu" id="profileDropdown">
+                        <a href="exercises.html">Exercises</a>
+                        <a href="#" onclick="logout(); return false;">Logout</a>
+                    </div>
+                </li>
             </ul>
+            <!-- Mobile Navigation -->
+            <div class="mobile-nav">
+                <button class="mobile-get-started" onclick="openLoginModal()">Get Started</button>
+                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="mobile-download-btn" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'mobile_nav' }); plerdy_goals('mobile_nav_download');">
+                    <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store" style="height: 32px;">
+                </a>
+                <!-- Mobile hamburger menu for Company dropdown -->
+                <div class="mobile-hamburger-menu">
+                    <button class="mobile-hamburger-toggle" onclick="toggleMobileCompanyMenu()" aria-label="Company menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div class="mobile-company-dropdown" id="mobileCompanyDropdown">
+                        <div class="mobile-menu-section">
+                            <div class="mobile-menu-title">Company</div>
+                            <a href="about.html">About</a>
+                        </div>
+                        <div class="mobile-menu-section">
+                            <div class="mobile-menu-title">Research & Education</div>
+                            <a href="rhotacism-guide.html">Education</a>
+                            <a href="research.html">Research</a>
+                        </div>
+                        <div class="mobile-menu-section">
+                            <div class="mobile-menu-title">For SLPs</div>
+                            <a href="tools.html">Tool</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desktop hamburger menu (hidden on mobile) -->
             <div class="nav-toggle" onclick="toggleMobileMenu()">
                 <span></span>
                 <span></span>
@@ -689,34 +1050,189 @@
         </div>
     </section>
 
+    <footer style="background: #1a1a1a; color: white; padding: 40px 0; text-align: center;">
+        <div class="container">
+            <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; flex-wrap: wrap;">
+                <a href="terms.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Terms of Use</a>
+                <a href="privacy.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Privacy Policy</a>
+                <a href="support.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Contact Us</a>
+            </div>
+            <div style="font-size: 14px; color: rgba(255, 255, 255, 0.6);">
+                © 2024 The Rollr Academy. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
     <script>
         function startAssessment() {
             window.location.href = 'index.html#assessment';
         }
 
+        function openLoginModal() {
+            // Placeholder function - can be implemented if login modal is needed
+            console.log('Login modal would open here');
+        }
+
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            const dropdown = document.getElementById('profileDropdown');
+
+            if (profileDropdown && dropdown && !profileDropdown.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Logout functionality
+        function logout() {
+            // Keep localStorage intact - don't clear user data
+            // But set logout state
+            localStorage.setItem('userLoggedOut', 'true');
+
+            // Close dropdown
+            const dropdown = document.getElementById('profileDropdown');
+            if (dropdown) {
+                dropdown.classList.remove('show');
+            }
+
+            // Replace profile dropdown with login button
+            showLoginButton();
+        }
+
+        // Show login button instead of profile dropdown
+        function showLoginButton() {
+            // Hide profile dropdown
+            const profileDropdownLi = document.querySelector('.profile-dropdown');
+            if (profileDropdownLi) {
+                profileDropdownLi.style.display = 'none';
+            }
+
+            // Show login button
+            const loginNavLi = document.querySelector('.login-nav');
+            if (loginNavLi) {
+                loginNavLi.style.display = 'flex';
+            }
+        }
+
+        // Show profile dropdown when logged in
+        function showProfileDropdown() {
+            // Clear logout state when showing profile dropdown
+            localStorage.removeItem('userLoggedOut');
+
+            // Hide login button
+            const loginNavLi = document.querySelector('.login-nav');
+            if (loginNavLi) {
+                loginNavLi.style.display = 'none';
+            }
+
+            // Show profile dropdown
+            const profileDropdownLi = document.querySelector('.profile-dropdown');
+            if (profileDropdownLi) {
+                profileDropdownLi.style.display = 'flex';
+            }
+
+            // Update profile display
+            updateProfileDisplay();
+        }
+
+        function updateProfileDisplay() {
+            const userEmail = localStorage.getItem('userEmail');
+            const profileInitial = document.getElementById('profileInitial');
+
+            if (userEmail && profileInitial) {
+                // Show first letter of email
+                profileInitial.textContent = userEmail.charAt(0).toUpperCase();
+            } else if (profileInitial) {
+                // Show default user icon
+                profileInitial.textContent = 'U';
+            }
+        }
+
+        function toggleMobileCompanyMenu() {
+            const dropdown = document.getElementById('mobileCompanyDropdown');
+            const toggle = document.querySelector('.mobile-hamburger-toggle');
+
+            if (dropdown && toggle) {
+                dropdown.classList.toggle('show');
+                toggle.classList.toggle('active');
+            }
+        }
+
+        // Close mobile company dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const hamburgerMenu = document.querySelector('.mobile-hamburger-menu');
+            const dropdown = document.getElementById('mobileCompanyDropdown');
+            const toggle = document.querySelector('.mobile-hamburger-toggle');
+
+            if (hamburgerMenu && dropdown && toggle && !hamburgerMenu.contains(event.target)) {
+                dropdown.classList.remove('show');
+                toggle.classList.remove('active');
+            }
+        });
+
         // Mobile menu toggle function
         function toggleMobileMenu() {
             const navMenu = document.querySelector('.nav-menu');
             const navToggle = document.querySelector('.nav-toggle');
-            
-            navMenu.classList.toggle('active');
-            navToggle.classList.toggle('active');
+
+            if (navMenu && navToggle) {
+                navMenu.classList.toggle('active');
+                navToggle.classList.toggle('active');
+            }
         }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const userEmail = localStorage.getItem('userEmail');
+            const userLoggedOut = localStorage.getItem('userLoggedOut');
+
+            if (userEmail && userLoggedOut !== 'true') {
+                // User is logged in and hasn't logged out, show profile dropdown
+                showProfileDropdown();
+            } else {
+                // User is not logged in or has logged out, show login button
+                showLoginButton();
+            }
+
+            // Check if top bar was previously closed
+            const topBarClosed = localStorage.getItem('topBarClosed');
+            const topBar = document.getElementById('floatingTopBar');
+            const navbar = document.getElementById('mainNavbar');
+
+            if (topBarClosed === 'true') {
+                if (topBar) {
+                    topBar.style.display = 'none';
+                }
+                if (navbar) {
+                    navbar.classList.remove('with-top-bar');
+                }
+            } else {
+                if (navbar) {
+                    navbar.classList.add('with-top-bar');
+                }
+            }
+        });
 
         // Transparent navbar scroll effect with hide/show
         let lastScrollTop = 0;
         window.addEventListener('scroll', function() {
             const navbar = document.querySelector('.navbar');
             const currentScroll = window.scrollY;
-            
-            // Add scrolled state when past hero section
-            if (currentScroll > 100) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
+
+            if (navbar) {
+                // Add scrolled state when past hero section
+                if (currentScroll > 100) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
             }
-            
-            
+
             lastScrollTop = currentScroll;
         });
     </script>

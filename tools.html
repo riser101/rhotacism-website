@@ -44,51 +44,6 @@
             padding: 0 20px;
         }
 
-        /* Floating Top Bar Styles */
-        .floating-top-bar {
-            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
-            color: white;
-            padding: 16px 20px;
-            text-align: center;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1001;
-            font-size: 12px;
-            line-height: 1.5;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .floating-top-bar-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        .floating-top-bar-close {
-            position: absolute;
-            top: 50%;
-            right: 20px;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .floating-top-bar-close:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
         /* Navigation Styles */
         .navbar {
             background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
@@ -99,10 +54,6 @@
             right: 0;
             z-index: 1000;
             transition: all 0.3s ease, transform 0.3s ease;
-        }
-
-        .navbar.with-top-bar {
-            top: 85px;
         }
 
         .nav-container {
@@ -470,10 +421,6 @@
             text-align: center;
         }
 
-        .header.with-top-bar {
-            padding-top: 145px;
-        }
-
         .header h1 {
             font-family: 'Quicksand', sans-serif;
             font-size: 42px;
@@ -763,33 +710,8 @@
                 display: block;
             }
 
-            .navbar.with-top-bar {
-                top: 80px;
-            }
-
-            .floating-top-bar {
-                font-size: 10px;
-                padding: 10px 15px;
-                padding-right: 50px;
-            }
-
-            .floating-top-bar-content {
-                padding: 0 10px;
-            }
-
-            .floating-top-bar-close {
-                right: 15px;
-                width: 24px;
-                height: 24px;
-                font-size: 18px;
-            }
-
             .header {
                 padding-top: 100px;
-            }
-
-            .header.with-top-bar {
-                padding-top: 165px;
             }
 
             .header h1 {
@@ -834,24 +756,6 @@
         }
 
         @media (max-width: 480px) {
-            .navbar.with-top-bar {
-                top: 75px;
-            }
-
-            .floating-top-bar {
-                font-size: 9px;
-                padding: 8px 12px;
-                padding-right: 45px;
-                line-height: 1.4;
-            }
-
-            .floating-top-bar-close {
-                right: 10px;
-                width: 22px;
-                height: 22px;
-                font-size: 16px;
-            }
-
             .header {
                 padding: 80px 0 30px;
             }
@@ -880,14 +784,6 @@
     </style>
 </head>
 <body>
-    <!-- Floating Top Bar -->
-    <div class="floating-top-bar" id="floatingTopBar">
-        <div class="floating-top-bar-content">
-            95% people that use our program don't post a review. If you are benefiting from this program, or if you are finding it helpful, or if you are getting any value out of it at all, there's one tiny favour we ask of you. Please leave a <a href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" style="color: #0066cc; font-weight: 600; text-decoration: underline;">review</a>. Takes < 2 mins, but is the single most important thing you can do to help impact more lives.
-        </div>
-        <button class="floating-top-bar-close" onclick="closeTopBar()" aria-label="Close">&times;</button>
-    </div>
-
     <!-- Navigation Bar -->
     <nav class="navbar" id="mainNavbar">
         <div class="nav-container">
@@ -1067,13 +963,6 @@
     </div>
 
     <script>
-        // Top bar close functionality
-        function closeTopBar() {
-            document.getElementById('floatingTopBar').style.display = 'none';
-            document.getElementById('mainNavbar').classList.remove('with-top-bar');
-            document.getElementById('headerSection').classList.remove('with-top-bar');
-        }
-
         // Mobile company menu toggle
         function toggleMobileCompanyMenu() {
             const dropdown = document.getElementById('mobileCompanyDropdown');
@@ -1171,13 +1060,6 @@
                 showProfileDropdown();
             } else {
                 showLoginButton();
-            }
-
-            // Check if top bar should be shown
-            const topBar = document.getElementById('floatingTopBar');
-            if (topBar && topBar.style.display !== 'none') {
-                document.getElementById('mainNavbar').classList.add('with-top-bar');
-                document.getElementById('headerSection').classList.add('with-top-bar');
             }
         });
 

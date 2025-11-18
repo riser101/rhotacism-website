@@ -280,9 +280,451 @@
                 font-size: 16px; /* Prevent zoom on iOS */
             }
         }
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
+            padding: 5.25px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            transition: all 0.3s ease, transform 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            padding: 3.15px 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            position: relative;
+            transition: all 0.3s ease;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-menu li {
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-logo-text {
+            display: inline;
+        }
+
+        .nav-logo-mobile {
+            display: none;
+        }
+
+        .nav-dropdown {
+            position: relative;
+        }
+
+        .nav-dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255, 255, 255, 0.95) !important;
+            text-decoration: none !important;
+            font-weight: 500;
+            font-size: 16px;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .dropdown-arrow {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-dropdown:hover .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .nav-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
+            border: 1px solid rgba(255, 152, 0, 0.2);
+            border-radius: 8px;
+            padding: 8px 0;
+            min-width: 160px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+        }
+
+        .nav-dropdown:hover .nav-dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .nav-dropdown-menu a {
+            display: block;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.95) !important;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .nav-dropdown-menu a:hover {
+            background: rgba(255, 152, 0, 0.1);
+            color: white !important;
+            padding-left: 24px;
+        }
+
+        .mobile-nav {
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .mobile-get-started {
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-download-btn {
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-hamburger-menu {
+            position: relative;
+            display: none;
+        }
+
+        .mobile-hamburger-toggle {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mobile-hamburger-toggle span {
+            width: 20px;
+            height: 2px;
+            background: linear-gradient(90deg, #FFB74D, #FF9800);
+            margin: 2px 0;
+            border-radius: 2px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .mobile-hamburger-toggle.active span:nth-child(1) {
+            transform: rotate(-45deg) translate(-4px, 5px);
+            background: linear-gradient(90deg, #FF9800, #E65100);
+        }
+
+        .mobile-hamburger-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .mobile-hamburger-toggle.active span:nth-child(3) {
+            transform: rotate(45deg) translate(-4px, -5px);
+            background: linear-gradient(90deg, #FF9800, #E65100);
+        }
+
+        .mobile-company-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
+            border: 1px solid rgba(255, 152, 0, 0.2);
+            border-radius: 8px;
+            padding: 8px 0;
+            min-width: 120px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            margin-top: 8px;
+        }
+
+        .mobile-company-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .mobile-menu-section {
+            border-bottom: 1px solid rgba(255, 152, 0, 0.1);
+            padding: 8px 0;
+        }
+
+        .mobile-menu-section:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-menu-title {
+            padding: 8px 16px;
+            color: #FF9800;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .mobile-company-dropdown a {
+            display: block;
+            padding: 12px 16px;
+            color: rgba(255, 255, 255, 0.95) !important;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .mobile-company-dropdown a:hover {
+            background: rgba(255, 152, 0, 0.1);
+            color: white !important;
+            padding-left: 20px;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: none;
+        }
+
+        .profile-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-circle span {
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            padding: 8px 0;
+            min-width: 160px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-menu a:hover {
+            background: #f5f5f5;
+            color: #FF9800;
+        }
+
+        .login-nav-button {
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: none;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .nav-logo-text {
+                display: none;
+            }
+
+            .nav-logo-mobile {
+                display: inline;
+            }
+
+            .nav-dropdown {
+                display: none;
+            }
+
+            .mobile-nav {
+                display: flex;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+
+            .profile-dropdown {
+                display: none !important;
+            }
+
+            .mobile-hamburger-menu {
+                display: block;
+            }
+        }
+
+        .support-header {
+            padding-top: 100px;
+        }
     </style>
 </head>
 <body>
+    <!-- Navigation -->
+    <nav class="navbar" id="mainNavbar">
+        <div class="nav-container">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <a href="index.html" class="nav-logo">
+                    <span class="nav-logo-text">The Rollr Academy</span>
+                    <img src="instagram-icon.jpg" alt="The Rollr Academy" class="nav-logo-mobile" style="height: 40px; width: 40px; border-radius: 50%;">
+                </a>
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-dropdown-toggle">Company <span class="dropdown-arrow">▼</span></a>
+                    <div class="nav-dropdown-menu">
+                        <a href="about.html">About</a>
+                    </div>
+                </div>
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-dropdown-toggle">Research & Education <span class="dropdown-arrow">▼</span></a>
+                    <div class="nav-dropdown-menu">
+                        <a href="rhotacism-guide.html">Education</a>
+                        <a href="research.html">Research</a>
+                    </div>
+                </div>
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-dropdown-toggle">For Speech Language Pathologists <span class="dropdown-arrow">▼</span></a>
+                    <div class="nav-dropdown-menu">
+                        <a href="tools.html">Tool</a>
+                    </div>
+                </div>
+            </div>
+            <ul class="nav-menu">
+                <li class="login-nav" style="display: none;">
+                    <button class="login-nav-button" onclick="openLoginModal()">Get Started</button>
+                </li>
+                <li><a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;">
+                        <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg"
+                             alt="Download on the App Store" style="height: 44px; margin: -2px 0;">
+                    </a></li>
+                <li class="profile-dropdown">
+                    <div class="profile-circle" onclick="toggleProfileDropdown()">
+                        <span id="profileInitial">U</span>
+                    </div>
+                    <div class="dropdown-menu" id="profileDropdown">
+                        <a href="exercises.html">Exercises</a>
+                        <a href="#" onclick="logout(); return false;">Logout</a>
+                    </div>
+                </li>
+            </ul>
+            <!-- Mobile Navigation -->
+            <div class="mobile-nav">
+                <button class="mobile-get-started" onclick="openLoginModal()">Get Started</button>
+                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="mobile-download-btn">
+                    <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store" style="height: 32px;">
+                </a>
+                <div class="mobile-hamburger-menu">
+                    <button class="mobile-hamburger-toggle" onclick="toggleMobileCompanyMenu()" aria-label="Menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div class="mobile-company-dropdown" id="mobileCompanyDropdown">
+                        <div class="mobile-menu-section">
+                            <div class="mobile-menu-title">Company</div>
+                            <a href="about.html">About</a>
+                        </div>
+                        <div class="mobile-menu-section">
+                            <div class="mobile-menu-title">Research & Education</div>
+                            <a href="rhotacism-guide.html">Education</a>
+                            <a href="research.html">Research</a>
+                        </div>
+                        <div class="mobile-menu-section">
+                            <div class="mobile-menu-title">For SLPs</div>
+                            <a href="tools.html">Tool</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <div class="support-header">
             <h1>Support</h1>
@@ -329,10 +771,111 @@
                 </div>
             </form>
         </div>
-        <div class="back-link">
-            <a href="index.html">← Back to Home</a>
-        </div>
     </div>
+
+    <!-- Footer Section -->
+    <footer style="background: #1a1a1a; color: white; padding: 40px 0; text-align: center; margin-top: 40px;">
+        <div class="container">
+            <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; flex-wrap: wrap;">
+                <a href="terms.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Terms of Use</a>
+                <a href="privacy.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Privacy Policy</a>
+                <a href="support.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Contact Us</a>
+            </div>
+            <div style="font-size: 14px; color: rgba(255, 255, 255, 0.6);">
+                © 2024 The Rollr Academy. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile company menu toggle function
+        function toggleMobileCompanyMenu() {
+            const dropdown = document.getElementById('mobileCompanyDropdown');
+            const toggle = document.querySelector('.mobile-hamburger-toggle');
+
+            dropdown.classList.toggle('show');
+            toggle.classList.toggle('active');
+        }
+
+        // Close mobile company dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const hamburgerMenu = document.querySelector('.mobile-hamburger-menu');
+            const dropdown = document.getElementById('mobileCompanyDropdown');
+            const toggle = document.querySelector('.mobile-hamburger-toggle');
+
+            if (!hamburgerMenu.contains(event.target)) {
+                dropdown.classList.remove('show');
+                toggle.classList.remove('active');
+            }
+        });
+
+        // Profile dropdown toggle
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Logout functionality
+        function logout() {
+            localStorage.setItem('userLoggedOut', 'true');
+            document.getElementById('profileDropdown').classList.remove('show');
+            showLoginButton();
+        }
+
+        // Show login button instead of profile dropdown
+        function showLoginButton() {
+            const profileDropdownLi = document.querySelector('.profile-dropdown');
+            profileDropdownLi.style.display = 'none';
+
+            const loginNavLi = document.querySelector('.login-nav');
+            loginNavLi.style.display = 'flex';
+        }
+
+        // Show profile dropdown when logged in
+        function showProfileDropdown() {
+            localStorage.removeItem('userLoggedOut');
+
+            const loginNavLi = document.querySelector('.login-nav');
+            loginNavLi.style.display = 'none';
+
+            const profileDropdownLi = document.querySelector('.profile-dropdown');
+            profileDropdownLi.style.display = 'flex';
+            profileDropdownLi.innerHTML = `
+                <div class="profile-circle" onclick="toggleProfileDropdown()">
+                    <span id="profileInitial">U</span>
+                </div>
+                <div class="dropdown-menu" id="profileDropdown">
+                    <a href="exercises.html">Exercises</a>
+                    <a href="#" onclick="logout(); return false;">Logout</a>
+                </div>
+            `;
+            updateProfileDisplay();
+        }
+
+        // Update profile display based on login state
+        function updateProfileDisplay() {
+            const userEmail = localStorage.getItem('userEmail');
+            const profileInitial = document.getElementById('profileInitial');
+
+            if (userEmail && profileInitial) {
+                profileInitial.textContent = userEmail.charAt(0).toUpperCase();
+            } else if (profileInitial) {
+                profileInitial.textContent = 'U';
+            }
+        }
+
+        // Initialize profile display on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const userEmail = localStorage.getItem('userEmail');
+            const userLoggedOut = localStorage.getItem('userLoggedOut');
+
+            if (userEmail && userLoggedOut !== 'true') {
+                showProfileDropdown();
+            } else {
+                showLoginButton();
+            }
+        });
+    </script>
 
     <!-- Enhanced Analytics -->
     <script src="js/enhanced-analytics.js"></script>
