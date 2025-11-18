@@ -1725,6 +1725,130 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     }
 }
 
+/* Reviews Carousel Styles */
+.reviews-carousel-container {
+    position: relative;
+    user-select: none;
+}
+
+.reviews-carousel-track {
+    touch-action: pan-y;
+    cursor: grab;
+}
+
+.reviews-carousel-track:active {
+    cursor: grabbing;
+}
+
+.review-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid #FF9800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    color: #FF9800;
+}
+
+.review-nav-btn:hover {
+    background: #FF9800;
+    color: white;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.3);
+}
+
+.review-nav-prev {
+    left: -24px;
+}
+
+.review-nav-next {
+    right: -24px;
+}
+
+.review-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ddd;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.review-dot:hover {
+    background: #bbb;
+    transform: scale(1.2);
+}
+
+.review-dot.active {
+    background: #FF9800;
+    width: 32px;
+    border-radius: 6px;
+}
+
+/* Mobile responsiveness for reviews carousel */
+@media (max-width: 768px) {
+    .reviews-carousel-container {
+        padding: 0 16px !important;
+    }
+
+    .review-nav-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    .review-nav-prev {
+        left: -8px;
+    }
+
+    .review-nav-next {
+        right: -8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .reviews-carousel-container {
+        padding: 0 12px !important;
+    }
+
+    .review-nav-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .review-nav-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .review-nav-prev {
+        left: -4px;
+    }
+
+    .review-nav-next {
+        right: -4px;
+    }
+
+    .review-dot {
+        width: 10px;
+        height: 10px;
+    }
+
+    .review-dot.active {
+        width: 24px;
+    }
+}
+
 /* Testimonials Auto-Scroll Animation */
 @keyframes autoScroll {
     0% {
@@ -1780,26 +1904,29 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 }
 
 .mobile-company-dropdown {
-    position: absolute;
-    top: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
     right: 0;
+    bottom: 0;
     background: linear-gradient(to bottom,
         #000000 0%,
         #1a1a1a 50%,
         #000000 100%
     );
-    border: 1px solid rgba(255, 152, 0, 0.2);
-    border-radius: 8px;
-    padding: 8px 0;
-    min-width: 200px;
-    max-width: 280px;
+    border: none;
+    border-radius: 0;
+    padding: 80px 20px 20px;
+    min-width: 100vw;
+    max-width: 100vw;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-10px);
+    transform: translateY(-100%);
     transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    z-index: 1001;
-    margin-top: 8px;
+    box-shadow: none;
+    z-index: 1002;
+    margin-top: 0;
+    overflow-y: auto;
 }
 
 .mobile-company-dropdown.show {
@@ -1808,9 +1935,14 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
     transform: translateY(0);
 }
 
+body.menu-open {
+    overflow: hidden;
+}
+
 .mobile-menu-section {
     border-bottom: 1px solid rgba(255, 152, 0, 0.1);
-    padding: 8px 0;
+    padding: 20px 0;
+    margin-bottom: 10px;
 }
 
 .mobile-menu-section:last-child {
@@ -1818,20 +1950,21 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 }
 
 .mobile-menu-title {
-    padding: 8px 16px;
+    padding: 12px 20px;
     color: #FF9800;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
 }
 
 .mobile-company-dropdown a {
     display: block;
-    padding: 12px 16px;
+    padding: 16px 20px;
     color: rgba(255, 255, 255, 0.95) !important;
     text-decoration: none;
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 500;
     transition: all 0.3s ease;
     border: none;
@@ -1840,7 +1973,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 .mobile-company-dropdown a:hover {
     background: rgba(255, 152, 0, 0.1);
     color: white !important;
-    padding-left: 20px;
+    padding-left: 28px;
 }
 
 @media (max-width: 768px) {
@@ -2920,104 +3053,43 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
                 <h2 style="font-size: 42px; font-weight: 700; color: #333; margin-bottom: 20px;">Real Results from Real People</h2>
             </div>
 
-            <div class="testimonials-carousel-container" style="position: relative; margin-top: 40px; overflow: hidden; width: 100%; padding: 0 20px;">
-                <div class="testimonials-carousel" id="testimonialsCarousel" style="display: flex; gap: 20px; animation: autoScroll 25s linear infinite; width: max-content;">
-                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: #000000; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-align: center;">
-                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
-                        <p style="font-size: 14px; color: white; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
-                            "I used to feel like I'm mentally challenged when I spoke words with an 'R' sound in them: 'right', 'there', 'query'. This program brought structure, consistency, and visibility into my progress which brought results for me."
-                        </p>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
-                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #FF9800, #E65100); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">M</div>
-                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">Marcus T., Software Engineer</div>
-                        </div>
-                        <div style="background: rgba(255, 152, 0, 0.1); color: #E65100; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Fixed R in 6 weeks</div>
-                    </div>
+            <div class="reviews-carousel-container" style="max-width: 700px; margin: 40px auto 0; padding: 0 20px; position: relative;">
+                <!-- Navigation Buttons -->
+                <button class="review-nav-btn review-nav-prev" aria-label="Previous review">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <button class="review-nav-btn review-nav-next" aria-label="Next review">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
 
-                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: #000000; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-align: center;">
-                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
-                        <p style="font-size: 14px; color: white; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
-                            "Honestly, I used to be the butt of jokes sometimes because I sounded like a 6 year old kid when speaking words with an 'R' in them. God bless me, I'm a high-agency person & a go-getter: researching into this condition, I found the Rollr Academy and got my situation fixed."
-                        </p>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
-                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #2196F3, #1976D2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">A</div>
-                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">Alex R., Business Owner</div>
+                <!-- Carousel Track -->
+                <div class="reviews-carousel-track" style="overflow: hidden; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.1);">
+                    <div class="reviews-carousel-inner" id="reviewsCarousel" style="display: flex; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);">
+                        <div class="review-slide" style="min-width: 100%; flex-shrink: 0;">
+                            <img src="review-1.png" alt="5-star review: Amazing! - Super helpful app. Thanks for creating something like it. Highly recommend!" style="width: 100%; height: auto; display: block;">
                         </div>
-                        <div style="background: rgba(33, 150, 243, 0.1); color: #1976D2; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Saw improvement in 2 weeks</div>
+                        <div class="review-slide" style="min-width: 100%; flex-shrink: 0;">
+                            <img src="review-2.png" alt="5-star review: Already improving - Used for a month and already noticed improvement. Little growth everyday compounds." style="width: 100%; height: auto; display: block;">
+                        </div>
+                        <div class="review-slide" style="min-width: 100%; flex-shrink: 0;">
+                            <img src="review-3.png" alt="5-star review: Ended humiliation - This is a powerful, emotional testimonial. Match that energy." style="width: 100%; height: auto; display: block;">
+                        </div>
+                        <div class="review-slide" style="min-width: 100%; flex-shrink: 0;">
+                            <img src="review-4.png" alt="1-star review: App asks for password - Critical feedback that was addressed" style="width: 100%; height: auto; display: block;">
+                        </div>
                     </div>
+                </div>
 
-                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: #000000; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-align: center;">
-                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
-                        <p style="font-size: 14px; color: white; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
-                            "I worked at a call center and could not say 'R'. I replaced it with 'W'. I took escalated calls too. Once I was so angry during a call, I literally wanted to murder because the caller made fun of me. I hope you don't have a job where you have to speak with assholes. Grateful for the guys at the Rollr Academy for building this one out."
-                        </p>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
-                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #4CAF50, #388E3C); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">J</div>
-                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">Jessica L., Customer Service Rep</div>
-                        </div>
-                        <div style="background: rgba(76, 175, 80, 0.1); color: #388E3C; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Mastered R in 10 weeks</div>
-                    </div>
-
-                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: #000000; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-align: center;">
-                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
-                        <p style="font-size: 14px; color: white; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
-                            "I was scared of sending WhatsApp audio messages because of my rhotacism but now I'm purposely sending them (even when not needed), just to listen to my perfect speech. Recommend this app."
-                        </p>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
-                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #9C27B0, #7B1FA2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">D</div>
-                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">David K., Marketing Specialist</div>
-                        </div>
-                        <div style="background: rgba(156, 39, 176, 0.1); color: #7B1FA2; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Fixed R in 6 weeks</div>
-                    </div>
-
-                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: #000000; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-align: center;">
-                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
-                        <p style="font-size: 14px; color: white; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
-                            "I was skeptical about an app replacing therapy, but this program is incredibly thorough. The privacy aspect was huge for me—I could practice without feeling self-conscious."
-                        </p>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
-                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #FF5722, #D84315); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">S</div>
-                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">Sarah P., Teacher</div>
-                        </div>
-                        <div style="background: rgba(255, 87, 34, 0.1); color: #D84315; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Saw improvement in 2 weeks</div>
-                    </div>
-
-                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: #000000; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-align: center;">
-                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
-                        <p style="font-size: 14px; color: white; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
-                            "The feedback is accurate. It caught things I never noticed about my pronunciation. Worth way more than the it's price tag!"
-                        </p>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
-                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #607D8B, #455A64); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">R</div>
-                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">Robert H., Sales Manager</div>
-                        </div>
-                        <div style="background: rgba(96, 125, 139, 0.1); color: #455A64; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Mastered R in 10 weeks</div>
-                    </div>
-
-                    <!-- Duplicate cards for seamless loop -->
-                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: #000000; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-align: center;">
-                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
-                        <p style="font-size: 14px; color: white; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
-                            "I used to feel like I'm mentally challenged when I spoke words with an 'R' sound in them: 'right', 'there', 'query'. This program brought structure, consistency, and visibility into my progress which brought results for me."
-                        </p>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
-                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #FF9800, #E65100); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">M</div>
-                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">Marcus T., Software Engineer</div>
-                        </div>
-                        <div style="background: rgba(255, 152, 0, 0.1); color: #E65100; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Fixed R in 6 weeks</div>
-                    </div>
-
-                    <div class="testimonial" style="width: 320px; flex-shrink: 0; padding: 24px; background: #000000; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-align: center;">
-                        <div class="stars" style="color: #FFD700; font-size: 14px; margin-bottom: 12px;">★★★★★</div>
-                        <p style="font-size: 14px; color: white; line-height: 1.4; margin-bottom: 16px; font-style: italic;">
-                            "Honestly, I used to be the butt of jokes sometimes because I sounded like a 6 year old kid when speaking words with an 'R' in them. God bless me, I'm a high-agency person & a go-getter: researching into this condition, I found the Rollr Academy and got my situation fixed."
-                        </p>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
-                            <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #2196F3, #1976D2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">A</div>
-                            <div style="font-size: 13px; font-weight: 600; color: #FF9800;">Alex R., Business Owner</div>
-                        </div>
-                        <div style="background: rgba(33, 150, 243, 0.1); color: #1976D2; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block;">Saw improvement in 2 weeks</div>
-                    </div>
+                <!-- Dots Indicator -->
+                <div class="reviews-dots" style="display: flex; justify-content: center; gap: 8px; margin-top: 24px;">
+                    <button class="review-dot active" data-index="0" aria-label="Go to review 1"></button>
+                    <button class="review-dot" data-index="1" aria-label="Go to review 2"></button>
+                    <button class="review-dot" data-index="2" aria-label="Go to review 3"></button>
+                    <button class="review-dot" data-index="3" aria-label="Go to review 4"></button>
                 </div>
             </div>
         </div>
@@ -3493,9 +3565,10 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         function toggleMobileCompanyMenu() {
             const dropdown = document.getElementById('mobileCompanyDropdown');
             const toggle = document.querySelector('.mobile-hamburger-toggle');
-            
+
             dropdown.classList.toggle('show');
             toggle.classList.toggle('active');
+            document.body.classList.toggle('menu-open');
         }
 
         // Close mobile company dropdown when clicking outside
@@ -3503,10 +3576,11 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
             const hamburgerMenu = document.querySelector('.mobile-hamburger-menu');
             const dropdown = document.getElementById('mobileCompanyDropdown');
             const toggle = document.querySelector('.mobile-hamburger-toggle');
-            
+
             if (!hamburgerMenu.contains(event.target)) {
                 dropdown.classList.remove('show');
                 toggle.classList.remove('active');
+                document.body.classList.remove('menu-open');
             }
         });
 
@@ -3527,21 +3601,6 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
             lastScrollTop = currentScroll;
         });
 
-        // Testimonial hover pause functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const carousel = document.querySelector('.testimonials-carousel');
-            const testimonials = document.querySelectorAll('.testimonial');
-            
-            testimonials.forEach(testimonial => {
-                testimonial.addEventListener('mouseenter', function() {
-                    carousel.style.animationPlayState = 'paused';
-                });
-                
-                testimonial.addEventListener('mouseleave', function() {
-                    carousel.style.animationPlayState = 'running';
-                });
-            });
-        });
 
         // Exit Intent Popup Functionality
         let exitIntentShown = false;
@@ -3907,6 +3966,129 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
             const translateX = -currentCardIndex * 33.333;
             carousel.style.transform = `translateX(${translateX}%)`;
         }
+
+        // Reviews Carousel Functionality
+        (function() {
+            let currentReviewIndex = 0;
+            const carousel = document.getElementById('reviewsCarousel');
+            const dots = document.querySelectorAll('.review-dot');
+            const prevBtn = document.querySelector('.review-nav-prev');
+            const nextBtn = document.querySelector('.review-nav-next');
+            const track = document.querySelector('.reviews-carousel-track');
+            const totalReviews = 4;
+
+            // Touch/Swipe support
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+            let startTranslate = 0;
+
+            function updateReviewCarousel() {
+                const translateX = -currentReviewIndex * 100;
+                carousel.style.transform = `translateX(${translateX}%)`;
+
+                // Update dots
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === currentReviewIndex);
+                });
+            }
+
+            function nextReview() {
+                currentReviewIndex = (currentReviewIndex + 1) % totalReviews;
+                updateReviewCarousel();
+            }
+
+            function prevReview() {
+                currentReviewIndex = (currentReviewIndex - 1 + totalReviews) % totalReviews;
+                updateReviewCarousel();
+            }
+
+            function goToReview(index) {
+                currentReviewIndex = index;
+                updateReviewCarousel();
+            }
+
+            // Button click handlers
+            nextBtn.addEventListener('click', nextReview);
+            prevBtn.addEventListener('click', prevReview);
+
+            // Dot click handlers
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => goToReview(index));
+            });
+
+            // Touch/Mouse drag handlers
+            function getPositionX(event) {
+                return event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+            }
+
+            function dragStart(event) {
+                if (event.type === 'mousedown') {
+                    event.preventDefault();
+                }
+                startX = getPositionX(event);
+                isDragging = true;
+                startTranslate = -currentReviewIndex * track.offsetWidth;
+                carousel.style.transition = 'none';
+            }
+
+            function drag(event) {
+                if (!isDragging) return;
+                currentX = getPositionX(event);
+                const diff = currentX - startX;
+                const translateX = startTranslate + diff;
+                carousel.style.transform = `translateX(${translateX}px)`;
+            }
+
+            function dragEnd() {
+                if (!isDragging) return;
+                isDragging = false;
+                carousel.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+
+                const movedBy = currentX - startX;
+                const threshold = track.offsetWidth * 0.2; // 20% of track width
+
+                if (movedBy < -threshold && currentReviewIndex < totalReviews - 1) {
+                    nextReview();
+                } else if (movedBy > threshold && currentReviewIndex > 0) {
+                    prevReview();
+                } else {
+                    updateReviewCarousel();
+                }
+            }
+
+            // Mouse events
+            track.addEventListener('mousedown', dragStart);
+            track.addEventListener('mousemove', drag);
+            track.addEventListener('mouseup', dragEnd);
+            track.addEventListener('mouseleave', dragEnd);
+
+            // Touch events
+            track.addEventListener('touchstart', dragStart, { passive: true });
+            track.addEventListener('touchmove', drag, { passive: true });
+            track.addEventListener('touchend', dragEnd);
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') {
+                    prevReview();
+                } else if (e.key === 'ArrowRight') {
+                    nextReview();
+                }
+            });
+
+            // Auto-advance every 5 seconds (optional)
+            let autoAdvanceInterval = setInterval(nextReview, 5000);
+
+            // Pause auto-advance on hover
+            track.addEventListener('mouseenter', () => {
+                clearInterval(autoAdvanceInterval);
+            });
+
+            track.addEventListener('mouseleave', () => {
+                autoAdvanceInterval = setInterval(nextReview, 5000);
+            });
+        })();
 
     </script>
 
