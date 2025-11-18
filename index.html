@@ -1129,6 +1129,86 @@ text-align: center;
 }
 }
 
+/* Floating Top Bar Styles */
+.floating-top-bar {
+    background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+    color: white;
+    padding: 16px 20px;
+    text-align: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1001;
+    font-size: 12px;
+    line-height: 1.5;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.floating-top-bar-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.floating-top-bar-close {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.floating-top-bar-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+    .floating-top-bar {
+        font-size: 10px;
+        padding: 10px 15px;
+        padding-right: 50px;
+    }
+
+    .floating-top-bar-content {
+        padding: 0 10px;
+    }
+
+    .floating-top-bar-close {
+        right: 15px;
+        width: 24px;
+        height: 24px;
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .floating-top-bar {
+        font-size: 9px;
+        padding: 8px 12px;
+        padding-right: 45px;
+        line-height: 1.4;
+    }
+
+    .floating-top-bar-close {
+        right: 10px;
+        width: 22px;
+        height: 22px;
+        font-size: 16px;
+    }
+}
+
 /* Navigation Styles - Transparent Design */
 .navbar {
 background: linear-gradient(to bottom,
@@ -1143,6 +1223,22 @@ left: 0;
 right: 0;
 z-index: 1000;
 transition: all 0.3s ease, transform 0.3s ease;
+}
+
+.navbar.with-top-bar {
+    top: 85px;
+}
+
+@media (max-width: 768px) {
+    .navbar.with-top-bar {
+        top: 80px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar.with-top-bar {
+        top: 75px;
+    }
 }
 
 .navbar.scrolled {
@@ -1492,9 +1588,18 @@ background: linear-gradient(90deg, #FF9800, #E65100);
 padding-top: 52.5px;
 }
 
+.hero.with-top-bar {
+    padding-top: 145px;
+}
+
 @media (max-width: 768px) {
 .hero {
 padding-top: 85px;
+}
+
+.hero.with-top-bar {
+    padding-top: 165px;
+}
 background: linear-gradient(
 to bottom,
 #000000 0%,
@@ -2455,8 +2560,16 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
 
 </head>
 <body>
+    <!-- Floating Top Bar -->
+    <div class="floating-top-bar" id="floatingTopBar">
+        <div class="floating-top-bar-content">
+            95% of the people that use our program don't end up posting a review. If you are benefiting from this program, or if you are finding it helpful, or if you are getting any value out of it at all, there's one tiny favour we ask of you. That is to please leave a <a href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" style="color: #0066cc; font-weight: 600; text-decoration: underline;">review</a>. It takes less than 2 mins, but it is the single most important thing you can do to help impact more lives.
+        </div>
+        <button class="floating-top-bar-close" onclick="closeTopBar()" aria-label="Close">&times;</button>
+    </div>
+
     <!-- Navigation Bar -->
-    <nav class="navbar">
+    <nav class="navbar" id="mainNavbar">
         <div class="nav-container">
             <div style="display: flex; align-items: center; gap: 20px;">
                 <a href="#" class="nav-logo">
@@ -2517,7 +2630,7 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         </div>
     </nav>
 
-    <section class="hero">
+    <section class="hero" id="heroSection">
         <div class="hero::before"></div>
         <div class="hero-content">
             <h1 class="hero-title">Rhotacism Treatment: Master Your R Sound in 12 Weeks</h1>
@@ -3751,6 +3864,44 @@ img[src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg"]:hover {
         }
 
     </script>
+
+    <!-- Floating Top Bar Script -->
+    <script>
+        // Function to close the top bar
+        function closeTopBar() {
+            const topBar = document.getElementById('floatingTopBar');
+            const navbar = document.getElementById('mainNavbar');
+            const hero = document.getElementById('heroSection');
+
+            // Hide the top bar
+            topBar.style.display = 'none';
+
+            // Remove the with-top-bar class from navbar and hero
+            navbar.classList.remove('with-top-bar');
+            hero.classList.remove('with-top-bar');
+
+            // Store preference in localStorage
+            localStorage.setItem('topBarClosed', 'true');
+        }
+
+        // Check if top bar was previously closed on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const topBarClosed = localStorage.getItem('topBarClosed');
+            const topBar = document.getElementById('floatingTopBar');
+            const navbar = document.getElementById('mainNavbar');
+            const hero = document.getElementById('heroSection');
+
+            if (topBarClosed === 'true') {
+                // Hide top bar if it was closed before
+                topBar.style.display = 'none';
+            } else {
+                // Show top bar and adjust navbar and hero
+                navbar.classList.add('with-top-bar');
+                hero.classList.add('with-top-bar');
+            }
+        });
+    </script>
+
     <!-- Enhanced Analytics -->
     <script src="js/enhanced-analytics.js"></script>
 </body>
