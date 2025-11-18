@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice Tools - The Rollr Academy</title>
+    <link rel="icon" type="image/jpeg" href="instagram-icon.jpg">
+    <link rel="apple-touch-icon" href="instagram-icon.jpg">
+    <meta name="description" content="Free speech therapy practice tools: timer and repetition counter for R sound exercises.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-584ZMQTPSE');
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+            color: white;
+            background: #000000;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Floating Top Bar Styles */
+        .floating-top-bar {
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+            color: white;
+            padding: 16px 20px;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1001;
+            font-size: 12px;
+            line-height: 1.5;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .floating-top-bar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .floating-top-bar-close {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .floating-top-bar-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Navigation Styles */
+        .navbar {
+            background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
+            padding: 5.25px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            transition: all 0.3s ease, transform 0.3s ease;
+        }
+
+        .navbar.with-top-bar {
+            top: 85px;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            position: relative;
+            transition: all 0.3s ease;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-logo-text {
+            display: inline;
+        }
+
+        .nav-logo-mobile {
+            display: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-menu li {
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 5.25px 0;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Mobile Navigation */
+        .mobile-nav {
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .mobile-get-started {
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-get-started:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+        }
+
+        .mobile-download-btn {
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+
+        .mobile-download-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Dropdown Menu Styles */
+        .nav-dropdown {
+            position: relative;
+        }
+
+        .nav-dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255, 255, 255, 0.95) !important;
+            text-decoration: none !important;
+            font-weight: 500;
+            font-size: 16px;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .dropdown-arrow {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-dropdown:hover .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .nav-dropdown-toggle:hover {
+            color: white !important;
+        }
+
+        .nav-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
+            border: 1px solid rgba(255, 152, 0, 0.2);
+            border-radius: 8px;
+            padding: 8px 0;
+            min-width: 160px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+        }
+
+        .nav-dropdown:hover .nav-dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .nav-dropdown-menu a {
+            display: block;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.95) !important;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .nav-dropdown-menu a:hover {
+            background: rgba(255, 152, 0, 0.1);
+            color: white !important;
+            padding-left: 24px;
+        }
+
+        /* Mobile hamburger menu */
+        .mobile-hamburger-menu {
+            position: relative;
+            display: none;
+        }
+
+        .mobile-hamburger-toggle {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mobile-hamburger-toggle span {
+            width: 20px;
+            height: 2px;
+            background: linear-gradient(90deg, #FFB74D, #FF9800);
+            margin: 2px 0;
+            border-radius: 2px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .mobile-hamburger-toggle.active span:nth-child(1) {
+            transform: rotate(-45deg) translate(-4px, 5px);
+            background: linear-gradient(90deg, #FF9800, #E65100);
+        }
+
+        .mobile-hamburger-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .mobile-hamburger-toggle.active span:nth-child(3) {
+            transform: rotate(45deg) translate(-4px, -5px);
+            background: linear-gradient(90deg, #FF9800, #E65100);
+        }
+
+        .mobile-company-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
+            border: 1px solid rgba(255, 152, 0, 0.2);
+            border-radius: 8px;
+            padding: 8px 0;
+            min-width: 120px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            margin-top: 8px;
+        }
+
+        .mobile-company-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .mobile-company-dropdown a {
+            display: block;
+            padding: 12px 16px;
+            color: rgba(255, 255, 255, 0.95) !important;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .mobile-company-dropdown a:hover {
+            background: rgba(255, 152, 0, 0.1);
+            color: white !important;
+            padding-left: 20px;
+        }
+
+        /* Profile Dropdown Styles */
+        .profile-dropdown {
+            position: relative;
+        }
+
+        .profile-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-circle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+        }
+
+        .profile-circle span {
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            min-width: 120px;
+            z-index: 1001;
+            margin-top: 8px;
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 12px 16px;
+            color: #333 !important;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            border-radius: 6px;
+            margin: 4px;
+        }
+
+        .dropdown-menu a:hover {
+            background: #f8f9fa;
+            color: #FF9800 !important;
+        }
+
+        /* Login nav button styles */
+        .login-nav-button {
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: none;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+        }
+
+        /* Header */
+        .header {
+            background: #000000;
+            color: white;
+            padding: 100px 0 40px;
+            text-align: center;
+        }
+
+        .header.with-top-bar {
+            padding-top: 145px;
+        }
+
+        .header h1 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: white;
+        }
+
+        .header p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Tools Grid */
+        .tools-section {
+            padding: 60px 0;
+            background: #000000;
+            flex: 1;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .tool-card {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 40px 30px;
+            border: 2px solid #333;
+            color: white;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-4px);
+            border-color: #FF9800;
+            box-shadow: 0 8px 25px rgba(255, 152, 0, 0.3);
+        }
+
+        .tool-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .tool-title {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .tool-description {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .tool-badge {
+            display: inline-block;
+            background: rgba(255, 152, 0, 0.15);
+            color: #FF9800;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tool Modal */
+        .tool-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .tool-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 50px 40px;
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+            border: 2px solid #333;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 32px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            color: white;
+        }
+
+        .modal-title {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* Timer Display */
+        .timer-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 30px auto;
+        }
+
+        .timer-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: #2a2a2a;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .timer-progress {
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            width: 208px;
+            height: 208px;
+            border-radius: 50%;
+            background: conic-gradient(#FFD700 0deg, #FFD700 0deg, transparent 0deg);
+            transition: background 0.3s ease;
+        }
+
+        .timer-display {
+            font-size: 48px;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+            font-family: 'Quicksand', sans-serif;
+            z-index: 2;
+        }
+
+        .timer-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 400;
+            z-index: 2;
+        }
+
+        /* Rep Counter Display */
+        .rep-counter {
+            font-size: 80px;
+            font-weight: 700;
+            color: #FF9800;
+            text-align: center;
+            margin: 30px 0;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        .rep-total {
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: -20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* Buttons */
+        .button-container {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .practice-button {
+            background: #FF9800;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .practice-button:hover {
+            background: #FFB74D;
+            transform: translateY(-2px);
+        }
+
+        .practice-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .reset-button {
+            background: #3a3a3a;
+            color: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .reset-button:hover {
+            background: #4a4a4a;
+            color: white;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .nav-logo-text {
+                display: none;
+            }
+
+            .nav-logo-mobile {
+                display: inline;
+            }
+
+            .nav-dropdown {
+                display: none;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+
+            .mobile-nav {
+                display: flex;
+            }
+
+            .mobile-hamburger-menu {
+                display: block;
+            }
+
+            .navbar.with-top-bar {
+                top: 80px;
+            }
+
+            .floating-top-bar {
+                font-size: 10px;
+                padding: 10px 15px;
+                padding-right: 50px;
+            }
+
+            .floating-top-bar-content {
+                padding: 0 10px;
+            }
+
+            .floating-top-bar-close {
+                right: 15px;
+                width: 24px;
+                height: 24px;
+                font-size: 18px;
+            }
+
+            .header {
+                padding-top: 100px;
+            }
+
+            .header.with-top-bar {
+                padding-top: 165px;
+            }
+
+            .header h1 {
+                font-size: 32px;
+            }
+
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .tool-card {
+                padding: 30px 20px;
+            }
+
+            .modal-content {
+                padding: 40px 30px;
+            }
+
+            .timer-container {
+                width: 180px;
+                height: 180px;
+            }
+
+            .timer-circle {
+                width: 180px;
+                height: 180px;
+            }
+
+            .timer-progress {
+                width: 188px;
+                height: 188px;
+            }
+
+            .timer-display {
+                font-size: 40px;
+            }
+
+            .rep-counter {
+                font-size: 64px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar.with-top-bar {
+                top: 75px;
+            }
+
+            .floating-top-bar {
+                font-size: 9px;
+                padding: 8px 12px;
+                padding-right: 45px;
+                line-height: 1.4;
+            }
+
+            .floating-top-bar-close {
+                right: 10px;
+                width: 22px;
+                height: 22px;
+                font-size: 16px;
+            }
+
+            .header {
+                padding: 80px 0 30px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .tool-title {
+                font-size: 24px;
+            }
+
+            .modal-title {
+                font-size: 28px;
+            }
+
+            .button-container {
+                flex-direction: column;
+            }
+
+            .practice-button,
+            .reset-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Top Bar -->
+    <div class="floating-top-bar" id="floatingTopBar">
+        <div class="floating-top-bar-content">
+            95% people that use our program don't post a review. If you are benefiting from this program, or if you are finding it helpful, or if you are getting any value out of it at all, there's one tiny favour we ask of you. Please leave a <a href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" style="color: #0066cc; font-weight: 600; text-decoration: underline;">review</a>. Takes < 2 mins, but is the single most important thing you can do to help impact more lives.
+        </div>
+        <button class="floating-top-bar-close" onclick="closeTopBar()" aria-label="Close">&times;</button>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar" id="mainNavbar">
+        <div class="nav-container">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <a href="index.html" class="nav-logo">
+                    <span class="nav-logo-text">The Rollr Academy</span>
+                    <img src="instagram-icon.jpg" alt="The Rollr Academy" class="nav-logo-mobile" style="height: 40px; width: 40px; border-radius: 50%;">
+                </a>
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-dropdown-toggle">Company <span class="dropdown-arrow">▼</span></a>
+                    <div class="nav-dropdown-menu">
+                        <a href="about.html">About</a>
+                    </div>
+                </div>
+
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-dropdown-toggle">Research & Education <span class="dropdown-arrow">▼</span></a>
+                    <div class="nav-dropdown-menu">
+                        <a href="rhotacism-guide.html">Education</a>
+                        <a href="#">Research</a>
+                    </div>
+                </div>
+
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-dropdown-toggle">For Speech Language Pathologists <span class="dropdown-arrow">▼</span></a>
+                    <div class="nav-dropdown-menu">
+                        <a href="tools.html">Tool</a>
+                    </div>
+                </div>
+            </div>
+            <ul class="nav-menu">
+                <li class="login-nav" style="display: none;">
+                    <button class="login-nav-button" onclick="openLoginModal()">Get Started</button>
+                </li>
+                <li><a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'nav_menu' }); plerdy_goals('app_store_click');">
+                        <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg"
+                             alt="Download on the App Store" style="height: 44px; margin: -2px 0;">
+                    </a></li>
+                <li class="profile-dropdown">
+                    <div class="profile-circle" onclick="toggleProfileDropdown()">
+                        <span id="profileInitial">U</span>
+                    </div>
+                    <div class="dropdown-menu" id="profileDropdown">
+                        <a href="exercises.html">Exercises</a>
+                        <a href="#" onclick="logout(); return false;">Logout</a>
+                    </div>
+                </li>
+            </ul>
+            <!-- Mobile Navigation -->
+            <div class="mobile-nav">
+                <button class="mobile-get-started" onclick="openLoginModal()">Get Started</button>
+                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="mobile-download-btn" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'mobile_nav' }); plerdy_goals('mobile_nav_download');">
+                    <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store" style="height: 32px;">
+                </a>
+                <!-- Mobile hamburger menu for Company dropdown -->
+                <div class="mobile-hamburger-menu">
+                    <button class="mobile-hamburger-toggle" onclick="toggleMobileCompanyMenu()" aria-label="Company menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div class="mobile-company-dropdown" id="mobileCompanyDropdown">
+                        <a href="about.html">About</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <section class="header" id="headerSection">
+        <div class="container">
+            <h1>Practice Tools</h1>
+            <p>Free tools to help you practice speech exercises effectively</p>
+        </div>
+    </section>
+
+    <!-- Tools Grid -->
+    <section class="tools-section">
+        <div class="container">
+            <div class="tools-grid">
+                <!-- Timer Tool -->
+                <div class="tool-card" onclick="openTimerModal()">
+                    <div class="tool-icon">⏱️</div>
+                    <h2 class="tool-title">Timer</h2>
+                    <p class="tool-description">5-minute countdown timer for timed speech exercises and practice sessions</p>
+                    <span class="tool-badge">Free Tool</span>
+                </div>
+
+                <!-- Repetition Counter Tool -->
+                <div class="tool-card" onclick="openRepModal()">
+                    <div class="tool-icon">🔢</div>
+                    <h2 class="tool-title">Repetition Counter</h2>
+                    <p class="tool-description">Count up to 10 repetitions for exercise tracking with 10-second intervals</p>
+                    <span class="tool-badge">Free Tool</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer style="background: #1a1a1a; color: white; padding: 40px 0; text-align: center;">
+        <div class="container">
+            <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; flex-wrap: wrap;">
+                <a href="terms.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Terms of Use</a>
+                <a href="privacy.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Privacy Policy</a>
+                <a href="support.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Contact Us</a>
+            </div>
+            <div style="font-size: 14px; color: rgba(255, 255, 255, 0.6);">
+                © 2024 The Rollr Academy. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Timer Modal -->
+    <div class="tool-modal" id="timerModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeTimerModal()">&times;</button>
+            <h2 class="modal-title">5-Minute Timer</h2>
+
+            <div class="timer-container">
+                <div class="timer-progress" id="timerProgress"></div>
+                <div class="timer-circle">
+                    <div class="timer-display" id="timerDisplay">5:00</div>
+                    <div class="timer-label">remaining</div>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <button class="practice-button" id="timerStartBtn" onclick="toggleTimer()">
+                    ▶ Start
+                </button>
+                <button class="reset-button" onclick="resetTimer()">
+                    🔄 Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repetition Counter Modal -->
+    <div class="tool-modal" id="repModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeRepModal()">&times;</button>
+            <h2 class="modal-title">Repetition Counter</h2>
+
+            <div class="rep-counter" id="repCounter">0</div>
+            <div class="rep-total">of 10</div>
+
+            <div class="timer-container">
+                <div class="timer-progress" id="repTimerProgress"></div>
+                <div class="timer-circle">
+                    <div class="timer-display" id="repTimerDisplay">10s</div>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <button class="practice-button" id="repStartBtn" onclick="startRep()">
+                    ▶ Start Rep
+                </button>
+                <button class="reset-button" onclick="resetReps()">
+                    🔄 Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Top bar close functionality
+        function closeTopBar() {
+            document.getElementById('floatingTopBar').style.display = 'none';
+            document.getElementById('mainNavbar').classList.remove('with-top-bar');
+            document.getElementById('headerSection').classList.remove('with-top-bar');
+        }
+
+        // Mobile company menu toggle
+        function toggleMobileCompanyMenu() {
+            const dropdown = document.getElementById('mobileCompanyDropdown');
+            const toggle = document.querySelector('.mobile-hamburger-toggle');
+
+            dropdown.classList.toggle('show');
+            toggle.classList.toggle('active');
+        }
+
+        // Close mobile company dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const hamburgerMenu = document.querySelector('.mobile-hamburger-menu');
+            const dropdown = document.getElementById('mobileCompanyDropdown');
+            const toggle = document.querySelector('.mobile-hamburger-toggle');
+
+            if (hamburgerMenu && !hamburgerMenu.contains(event.target)) {
+                dropdown.classList.remove('show');
+                toggle.classList.remove('active');
+            }
+        });
+
+        // Profile dropdown functionality
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            const dropdown = document.getElementById('profileDropdown');
+
+            if (profileDropdown && !profileDropdown.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Logout functionality
+        function logout() {
+            localStorage.setItem('userLoggedOut', 'true');
+            document.getElementById('profileDropdown').classList.remove('show');
+            showLoginButton();
+        }
+
+        // Show login button
+        function showLoginButton() {
+            const profileDropdownLi = document.querySelector('.profile-dropdown');
+            if (profileDropdownLi) profileDropdownLi.style.display = 'none';
+
+            const loginNavLi = document.querySelector('.login-nav');
+            if (loginNavLi) loginNavLi.style.display = 'flex';
+        }
+
+        // Show profile dropdown
+        function showProfileDropdown() {
+            localStorage.removeItem('userLoggedOut');
+
+            const loginNavLi = document.querySelector('.login-nav');
+            if (loginNavLi) loginNavLi.style.display = 'none';
+
+            const profileDropdownLi = document.querySelector('.profile-dropdown');
+            if (profileDropdownLi) {
+                profileDropdownLi.style.display = 'flex';
+                profileDropdownLi.innerHTML = `
+                    <div class="profile-circle" onclick="toggleProfileDropdown()">
+                        <span id="profileInitial">U</span>
+                    </div>
+                    <div class="dropdown-menu" id="profileDropdown">
+                        <a href="exercises.html">Exercises</a>
+                        <a href="#" onclick="logout(); return false;">Logout</a>
+                    </div>
+                `;
+                updateProfileDisplay();
+            }
+        }
+
+        // Update profile display
+        function updateProfileDisplay() {
+            const userEmail = localStorage.getItem('userEmail');
+            const profileInitial = document.getElementById('profileInitial');
+
+            if (userEmail && profileInitial) {
+                profileInitial.textContent = userEmail.charAt(0).toUpperCase();
+            } else if (profileInitial) {
+                profileInitial.textContent = 'U';
+            }
+        }
+
+        // Initialize profile display on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const userEmail = localStorage.getItem('userEmail');
+            const userLoggedOut = localStorage.getItem('userLoggedOut');
+
+            if (userEmail && userLoggedOut !== 'true') {
+                showProfileDropdown();
+            } else {
+                showLoginButton();
+            }
+
+            // Check if top bar should be shown
+            const topBar = document.getElementById('floatingTopBar');
+            if (topBar && topBar.style.display !== 'none') {
+                document.getElementById('mainNavbar').classList.add('with-top-bar');
+                document.getElementById('headerSection').classList.add('with-top-bar');
+            }
+        });
+
+        // Timer functionality
+        let timerSeconds = 300; // 5 minutes
+        let timerInterval = null;
+        let isTimerRunning = false;
+
+        function openTimerModal() {
+            document.getElementById('timerModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeTimerModal() {
+            document.getElementById('timerModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+            if (isTimerRunning) {
+                toggleTimer(); // Pause if running
+            }
+        }
+
+        function toggleTimer() {
+            if (isTimerRunning) {
+                // Pause
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                document.getElementById('timerStartBtn').innerHTML = '▶ Start';
+            } else {
+                // Start
+                isTimerRunning = true;
+                document.getElementById('timerStartBtn').innerHTML = '⏸ Pause';
+
+                timerInterval = setInterval(() => {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                    updateTimerProgress();
+
+                    if (timerSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        document.getElementById('timerStartBtn').innerHTML = '▶ Start';
+                        alert('Timer complete!');
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerSeconds = 300;
+            isTimerRunning = false;
+            document.getElementById('timerStartBtn').innerHTML = '▶ Start';
+            updateTimerDisplay();
+            updateTimerProgress();
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timerSeconds / 60);
+            const seconds = timerSeconds % 60;
+            document.getElementById('timerDisplay').textContent =
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateTimerProgress() {
+            const progress = ((300 - timerSeconds) / 300) * 360;
+            document.getElementById('timerProgress').style.background =
+                `conic-gradient(#FFD700 0deg, #FFD700 ${progress}deg, transparent ${progress}deg)`;
+        }
+
+        // Repetition counter functionality
+        let reps = 0;
+        let repTimerSeconds = 10;
+        let repTimerInterval = null;
+        let isRepTimerRunning = false;
+
+        function openRepModal() {
+            document.getElementById('repModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeRepModal() {
+            document.getElementById('repModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+            if (isRepTimerRunning) {
+                clearInterval(repTimerInterval);
+                isRepTimerRunning = false;
+            }
+        }
+
+        function startRep() {
+            if (reps >= 10) return;
+            if (isRepTimerRunning) return;
+
+            isRepTimerRunning = true;
+            repTimerSeconds = 10;
+            document.getElementById('repStartBtn').innerHTML = '⏸ Hold...';
+            document.getElementById('repStartBtn').disabled = true;
+
+            repTimerInterval = setInterval(() => {
+                repTimerSeconds--;
+                document.getElementById('repTimerDisplay').textContent = `${repTimerSeconds}s`;
+
+                const progress = ((10 - repTimerSeconds) / 10) * 360;
+                document.getElementById('repTimerProgress').style.background =
+                    `conic-gradient(#FFD700 0deg, #FFD700 ${progress}deg, transparent ${progress}deg)`;
+
+                if (repTimerSeconds <= 0) {
+                    clearInterval(repTimerInterval);
+                    isRepTimerRunning = false;
+                    reps++;
+                    updateRepDisplay();
+                    document.getElementById('repStartBtn').innerHTML = '▶ Start Rep';
+                    document.getElementById('repStartBtn').disabled = false;
+                    document.getElementById('repTimerDisplay').textContent = '10s';
+                    document.getElementById('repTimerProgress').style.background =
+                        'conic-gradient(#FFD700 0deg, #FFD700 0deg, transparent 0deg)';
+
+                    if (reps >= 10) {
+                        document.getElementById('repStartBtn').innerHTML = '✓ Complete!';
+                        document.getElementById('repStartBtn').disabled = true;
+                        alert('All 10 reps completed!');
+                    }
+                }
+            }, 1000);
+        }
+
+        function resetReps() {
+            clearInterval(repTimerInterval);
+            isRepTimerRunning = false;
+            reps = 0;
+            repTimerSeconds = 10;
+            updateRepDisplay();
+            document.getElementById('repTimerDisplay').textContent = '10s';
+            document.getElementById('repStartBtn').innerHTML = '▶ Start Rep';
+            document.getElementById('repStartBtn').disabled = false;
+            document.getElementById('repTimerProgress').style.background =
+                'conic-gradient(#FFD700 0deg, #FFD700 0deg, transparent 0deg)';
+        }
+
+        function updateRepDisplay() {
+            document.getElementById('repCounter').textContent = reps;
+        }
+
+        // Close modals on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeTimerModal();
+                closeRepModal();
+            }
+        });
+
+        // Initialize displays
+        updateTimerDisplay();
+        updateTimerProgress();
+        updateRepDisplay();
+    </script>
+</body>
+</html>
