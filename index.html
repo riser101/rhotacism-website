@@ -1627,10 +1627,14 @@ text-align: center;
     <script>
         // Immediately add navbar positioning for this page since it has a floating top bar
         (function() {
-            const style = document.createElement('style');
-            style.id = 'nav-position-fix';
-            style.textContent = '.navbar { top: 65px !important; } @media (max-width: 768px) { .navbar { top: 75px !important; } } @media (max-width: 480px) { .navbar { top: 85px !important; } }';
-            document.head.appendChild(style);
+            // Only add positioning if top bar hasn't been closed
+            const topBarClosed = localStorage.getItem('topBarClosed');
+            if (topBarClosed !== 'true') {
+                const style = document.createElement('style');
+                style.id = 'nav-position-fix';
+                style.textContent = '.navbar { top: 65px !important; } @media (max-width: 768px) { .navbar { top: 60px !important; } } @media (max-width: 480px) { .navbar { top: 75px !important; } }';
+                document.head.appendChild(style);
+            }
         })();
     </script>
 
@@ -2672,8 +2676,14 @@ text-align: center;
             topBar.style.display = 'none';
 
             // Remove the with-top-bar class from navbar and hero
-            navbar.classList.remove('with-top-bar');
-            hero.classList.remove('with-top-bar');
+            if (navbar) navbar.classList.remove('with-top-bar');
+            if (hero) hero.classList.remove('with-top-bar');
+
+            // Remove the inline positioning fix style
+            const navPositionFix = document.getElementById('nav-position-fix');
+            if (navPositionFix) {
+                navPositionFix.remove();
+            }
 
             // Store preference in localStorage
             localStorage.setItem('topBarClosed', 'true');
