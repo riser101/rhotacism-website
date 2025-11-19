@@ -22,7 +22,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link rel="stylesheet" href="css/login-modal.css">
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
     <script>
@@ -838,114 +839,6 @@ font-size: 28px;
     display: none;
 }
 
-/* Login Modal Styles - Full Screen */
-.login-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to bottom, 
-        #c5a732 0%,
-        #d4b73a 50%,
-        #c5a732 100%
-    );
-    z-index: 10002;
-    overflow-y: auto;
-}
-
-.login-modal-content {
-    background: transparent;
-    border-radius: 0;
-    padding: 80px 60px 60px 60px;
-    width: 100vw;
-    min-height: 100vh;
-    overflow-y: auto;
-    position: absolute;
-    top: 0;
-    left: 0;
-    box-shadow: none;
-    text-align: center;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.login-close {
-    position: fixed;
-    top: 20px;
-    right: 30px;
-    background: rgba(0, 0, 0, 0.1);
-    border: none;
-    font-size: 32px;
-    color: #333;
-    cursor: pointer;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: all 0.3s ease;
-    z-index: 10003;
-}
-
-.login-close:hover {
-    background: rgba(0, 0, 0, 0.1);
-    color: #333;
-}
-
-.login-title {
-    font-family: 'Quicksand', sans-serif;
-    font-size: 56px;
-    font-weight: 700;
-    color: #333;
-    margin-bottom: 50px;
-    margin-top: 80px;
-    line-height: 1.1;
-}
-
-/* Mobile responsiveness for login modal */
-@media (max-width: 768px) {
-    .login-modal-content {
-        padding: 40px 20px 30px 20px;
-        margin: 0;
-    }
-    
-    .login-title {
-        font-size: 36px;
-    }
-    
-    .login-close {
-        top: 15px;
-        right: 20px;
-        width: 35px;
-        height: 35px;
-        font-size: 28px;
-    }
-}
-
-@media (max-width: 480px) {
-    .login-modal-content {
-        padding: 30px 15px 20px 15px;
-    }
-    
-    .login-title {
-        font-size: 32px;
-    }
-    
-    .login-close {
-        top: 10px;
-        right: 15px;
-        width: 32px;
-        height: 32px;
-        font-size: 24px;
-    }
-}
-
 /* Mobile responsive updates */
 @media (max-width: 768px) {
 
@@ -1450,71 +1343,14 @@ font-size: 28px;
             }
         });
 
-        // Login Modal Functions
-        function openLoginModal() {
-            document.getElementById('loginModal').style.display = 'flex';
-            gtag('event', 'login_modal_open', {
-                event_category: 'engagement',
-                event_label: 'navigation_login_button'
-            });
-        }
-
-        function closeLoginModal() {
-            document.getElementById('loginModal').style.display = 'none';
-        }
-
-        // Google OAuth callback function
-        function handleCredentialResponse(response) {
-            try {
-                const responsePayload = JSON.parse(atob(response.credential.split('.')[1]));
-                console.log("ID: " + responsePayload.sub);
-                console.log('Full Name: ' + responsePayload.name);
-                console.log('Email: ' + responsePayload.email);
-                
-                const userData = {
-                    id: responsePayload.sub,
-                    email: responsePayload.email,
-                    name: responsePayload.name,
-                    picture: responsePayload.picture,
-                    loginTime: new Date().toISOString()
-                };
-                
-                // Store in localStorage
-                localStorage.setItem('userAuth', JSON.stringify(userData));
-                localStorage.setItem('userEmail', responsePayload.email);
-                
-                // Track successful login
-                gtag('event', 'google_login_success', {
-                    event_category: 'conversion',
-                    event_label: 'login_modal',
-                    value: 1
-                });
-                
-                // Close modal
-                closeLoginModal();
-                
-                // Show profile dropdown
-                showProfileDropdown();
-                
-                // Redirect to exercises page
-                window.location.href = 'exercises.html';
-                
-            } catch (error) {
-                console.error('Login error:', error);
-                gtag('event', 'login_error', {
-                    event_category: 'error',
-                    event_label: 'google_oauth'
-                });
-            }
-        }
-
-        // Close login modal when clicking outside
-        document.getElementById('loginModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeLoginModal();
-            }
-        });
     </script>
+
+    <!-- Google OAuth Script -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- Login Modal Functions -->
+    <script src="js/login-modal.js"></script>
+
     <!-- Enhanced Analytics -->
     <script src="js/enhanced-analytics.js"></script>
 </body>
