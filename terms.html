@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/login-modal.css">
 
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
@@ -715,10 +716,6 @@
     </footer>
 
     <script>
-        function openLoginModal() {
-            window.location.href = 'index.html#assessment';
-        }
-
         function toggleMobileCompanyMenu() {
             const dropdown = document.getElementById('mobileCompanyDropdown');
             const toggle = document.querySelector('.mobile-hamburger-toggle');
@@ -792,6 +789,45 @@
             }
         });
     </script>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-modal-content">
+            <div style="position: absolute; top: 40px; left: 40px; font-family: 'Quicksand', sans-serif; font-size: 22px; font-weight: 700; color: #333; display: flex; align-items: center; gap: 12px;">
+                <img src="instagram-icon.jpg" alt="Logo" style="width: 32px; height: 32px; border-radius: 6px;">
+                The Rollr Academy
+            </div>
+            <button class="login-close" onclick="closeLoginModal()">&times;</button>
+
+            <h2 class="login-title">Login</h2>
+
+            <div id="g_id_onload"
+                 data-client_id="653307587559-bg7qf4p5h70q4kcrdnircer7ht79c4ha.apps.googleusercontent.com"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-callback="handleCredentialResponse"
+                 data-auto_prompt="false">
+            </div>
+
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-shape="rectangular"
+                 data-theme="outline"
+                 data-text="continue_with"
+                 data-size="large"
+                 data-logo_alignment="left"
+                 data-width="280"
+                 data-height="50"
+                 style="max-width: 280px; width: auto; display: flex; justify-content: center;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Google OAuth Script -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- Login Modal Functions -->
+    <script src="js/login-modal.js"></script>
 
     <!-- Enhanced Analytics -->
     <script src="js/enhanced-analytics.js"></script>
