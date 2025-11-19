@@ -127,10 +127,22 @@ function initializeNavigation() {
 function updateProfileDisplay() {
     const userEmail = localStorage.getItem('userEmail');
     const profileInitial = document.getElementById('profileInitial');
+    const loginNavButton = document.querySelector('.login-nav');
+    const profileDropdown = document.querySelector('.profile-dropdown');
 
-    if (userEmail && profileInitial) {
-        // Set profile initial to first letter of email
-        profileInitial.textContent = userEmail.charAt(0).toUpperCase();
+    if (userEmail) {
+        // User is logged in
+        if (profileInitial) {
+            profileInitial.textContent = userEmail.charAt(0).toUpperCase();
+        }
+        // Hide login button, show profile
+        if (loginNavButton) loginNavButton.style.display = 'none';
+        if (profileDropdown) profileDropdown.style.display = 'flex';
+    } else {
+        // User is not logged in
+        // Show login button, hide profile
+        if (loginNavButton) loginNavButton.style.display = 'flex';
+        if (profileDropdown) profileDropdown.style.display = 'none';
     }
 }
 
@@ -147,6 +159,9 @@ window.logout = function() {
             event_category: 'user_action'
         });
     }
+
+    // Update the display to show login button and hide profile
+    updateProfileDisplay();
 
     // Redirect to home page
     window.location.href = '/';
