@@ -120,30 +120,43 @@ function initializeNavigation() {
     });
 
     // Update profile display based on login state
+    // Use a more robust approach to wait for elements
     updateProfileDisplay();
 }
 
 // Update profile display based on login state
 function updateProfileDisplay() {
     const userEmail = localStorage.getItem('userEmail');
-    const profileInitial = document.getElementById('profileInitial');
-    const loginNavButton = document.querySelector('.login-nav');
-    const profileDropdown = document.querySelector('.profile-dropdown');
 
-    if (userEmail) {
-        // User is logged in
-        if (profileInitial) {
-            profileInitial.textContent = userEmail.charAt(0).toUpperCase();
+    // Function to try updating the display
+    const attemptUpdate = () => {
+        const profileInitial = document.getElementById('profileInitial');
+        const loginNavButton = document.querySelector('.login-nav');
+        const profileDropdown = document.querySelector('.profile-dropdown');
+
+        // If elements aren't ready yet, try again
+        if (!loginNavButton || !profileDropdown) {
+            setTimeout(attemptUpdate, 50);
+            return;
         }
-        // Hide login button, show profile
-        if (loginNavButton) loginNavButton.style.display = 'none';
-        if (profileDropdown) profileDropdown.style.display = 'flex';
-    } else {
-        // User is not logged in
-        // Show login button, hide profile
-        if (loginNavButton) loginNavButton.style.display = 'flex';
-        if (profileDropdown) profileDropdown.style.display = 'none';
-    }
+
+        if (userEmail) {
+            // User is logged in
+            if (profileInitial) {
+                profileInitial.textContent = userEmail.charAt(0).toUpperCase();
+            }
+            // Hide login button, show profile
+            loginNavButton.style.display = 'none';
+            profileDropdown.style.display = 'flex';
+        } else {
+            // User is not logged in
+            // Show login button, hide profile
+            loginNavButton.style.display = 'flex';
+            profileDropdown.style.display = 'none';
+        }
+    };
+
+    attemptUpdate();
 }
 
 // Logout functionality
