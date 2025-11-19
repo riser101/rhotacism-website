@@ -1,3 +1,18 @@
+// Check for floating top bar BEFORE DOM loads and add styles immediately
+(function() {
+    // Check if we're on a page that should have the top bar offset
+    // This runs immediately to prevent any flash
+    const style = document.createElement('style');
+    style.id = 'nav-position-fix';
+
+    // Check if floating top bar exists in the HTML (even before it's fully parsed)
+    if (document.documentElement.innerHTML.includes('id="floatingTopBar"')) {
+        style.textContent = '.navbar { top: 65px !important; } @media (max-width: 768px) { .navbar { top: 75px !important; } } @media (max-width: 480px) { .navbar { top: 85px !important; } }';
+    }
+
+    document.head.appendChild(style);
+})();
+
 // Load navigation HTML
 document.addEventListener('DOMContentLoaded', function() {
     // Determine the correct path prefix based on current page location
