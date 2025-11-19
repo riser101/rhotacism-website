@@ -2123,15 +2123,21 @@
 
         // Logout functionality
         function logout() {
-            // Keep localStorage intact - don't clear user data
-            // But set logout state
+            // Clear user data from localStorage
+            localStorage.removeItem('userAuth');
+            localStorage.removeItem('userEmail');
             localStorage.setItem('userLoggedOut', 'true');
 
-            // Close dropdown
-            document.getElementById('profileDropdown').classList.remove('show');
+            // Track logout event
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'user_logout', {
+                    event_category: 'engagement',
+                    event_label: 'manual_logout'
+                });
+            }
 
-            // Replace profile dropdown with login button
-            showLoginButton();
+            // Redirect to home page
+            window.location.href = 'index.html';
         }
 
         // Show login button instead of profile dropdown
