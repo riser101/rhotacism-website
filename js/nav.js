@@ -45,6 +45,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Navigation functionality
 function initializeNavigation() {
+    // Check if floating top bar exists and add class to navbar
+    const floatingTopBar = document.getElementById('floatingTopBar');
+    const navbar = document.getElementById('mainNavbar');
+
+    if (floatingTopBar && navbar) {
+        // Check if top bar is visible (not closed)
+        const topBarClosed = localStorage.getItem('topBarClosed');
+        if (!topBarClosed || topBarClosed === 'false') {
+            navbar.classList.add('with-top-bar');
+        }
+    }
+
     // Toggle profile dropdown
     window.toggleProfileDropdown = function() {
         const dropdown = document.getElementById('profileDropdown');
