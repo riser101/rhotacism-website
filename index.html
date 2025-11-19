@@ -1623,6 +1623,17 @@ text-align: center;
         <button class="floating-top-bar-close" onclick="closeTopBar()" aria-label="Close">&times;</button>
     </div>
 
+    <!-- Add navbar positioning fix immediately -->
+    <script>
+        // Immediately add navbar positioning for this page since it has a floating top bar
+        (function() {
+            const style = document.createElement('style');
+            style.id = 'nav-position-fix';
+            style.textContent = '.navbar { top: 65px !important; } @media (max-width: 768px) { .navbar { top: 75px !important; } } @media (max-width: 480px) { .navbar { top: 85px !important; } }';
+            document.head.appendChild(style);
+        })();
+    </script>
+
     <!-- Navigation Bar -->
     <!-- Navigation will be loaded by nav.js -->
     <section class="hero" id="heroSection">
