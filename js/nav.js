@@ -129,33 +129,34 @@ function updateProfileDisplay() {
     const userEmail = localStorage.getItem('userEmail');
     const userAuth = localStorage.getItem('userAuth');
 
-    // Check if user is logged in (either has userEmail or userAuth)
+    // Check if user is logged in
     const isLoggedIn = userEmail || userAuth;
 
-    // Function to try updating the display with retry mechanism
+    // Retry mechanism to wait for elements
     let retryCount = 0;
-    const maxRetries = 20; // Maximum 1 second of retries (20 * 50ms)
+    const maxRetries = 20;
 
     const attemptUpdate = () => {
+        const navMenu = document.querySelector('.nav-menu');
         const profileInitial = document.getElementById('profileInitial');
-        const loginNavButton = document.querySelector('.login-nav');
-        const profileDropdown = document.querySelector('.profile-dropdown');
 
-        // If elements aren't ready yet, retry with a limit
-        if ((!loginNavButton || !profileDropdown) && retryCount < maxRetries) {
+        // Wait for nav-menu to exist
+        if (!navMenu && retryCount < maxRetries) {
             retryCount++;
             setTimeout(attemptUpdate, 50);
             return;
         }
 
-        // If we still don't have elements after retries, log error and exit
-        if (!loginNavButton || !profileDropdown) {
-            console.error('Navigation elements not found after retries');
+        if (!navMenu) {
+            console.error('Navigation menu not found');
             return;
         }
 
         if (isLoggedIn) {
-            // User is logged in - show profile dropdown
+            // Add logged-in class to show profile, hide login button
+            navMenu.classList.add('user-logged-in');
+
+            // Set profile initial
             if (profileInitial && userEmail) {
                 profileInitial.textContent = userEmail.charAt(0).toUpperCase();
             } else if (profileInitial && userAuth) {
@@ -166,13 +167,9 @@ function updateProfileDisplay() {
                     profileInitial.textContent = 'U';
                 }
             }
-            // Hide login button, show profile
-            loginNavButton.style.display = 'none';
-            profileDropdown.style.display = 'flex';
         } else {
-            // User is not logged in - show login button
-            loginNavButton.style.display = 'flex';
-            profileDropdown.style.display = 'none';
+            // Remove logged-in class to show login button, hide profile
+            navMenu.classList.remove('user-logged-in');
         }
     };
 

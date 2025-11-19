@@ -469,6 +469,21 @@ background: linear-gradient(90deg, #FF9800, #E65100);
 /* Profile Dropdown Styles */
 .profile-dropdown {
     position: relative;
+    display: none; /* Hidden by default */
+}
+
+/* Login button - shown by default */
+.login-nav {
+    display: flex;
+}
+
+/* When user is logged in */
+.user-logged-in .profile-dropdown {
+    display: flex !important;
+}
+
+.user-logged-in .login-nav {
+    display: none !important;
 }
 
 .profile-circle {
