@@ -64,16 +64,9 @@ function handleCredentialResponse(response) {
 
         // Close modal and redirect
         closeLoginModal();
-        
-        // Show profile dropdown instead of login button
-        if (typeof showProfileDropdown === 'function') {
-            showProfileDropdown();
-        }
 
-        // Redirect to exercises page after brief delay
-        setTimeout(() => {
-            window.location.href = 'exercises.html';
-        }, 1500);
+        // Redirect to exercises page immediately
+        window.location.href = 'exercises.html';
 
     } catch (error) {
         console.error('Login error:', error);
