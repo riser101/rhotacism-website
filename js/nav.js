@@ -128,46 +128,41 @@ function initializeNavigation() {
 function updateProfileDisplay() {
     const userEmail = localStorage.getItem('userEmail');
     const userAuth = localStorage.getItem('userAuth');
+    const isLoggedIn = !!(userEmail || userAuth);
 
-    // Check if user is logged in
-    const isLoggedIn = userEmail || userAuth;
+    let attempts = 0;
+    const maxAttempts = 50;
 
-    // Retry mechanism to wait for elements
-    let retryCount = 0;
-    const maxRetries = 20;
-
-    const attemptUpdate = () => {
+    const update = () => {
+        const loginButton = document.querySelector('.login-nav');
+        const profileDropdown = document.querySelector('.profile-dropdown');
         const profileInitial = document.getElementById('profileInitial');
 
-        // Wait for profile element to exist
-        if (!profileInitial && retryCount < maxRetries) {
-            retryCount++;
-            setTimeout(attemptUpdate, 50);
+        if ((!loginButton || !profileDropdown) && attempts < maxAttempts) {
+            attempts++;
+            setTimeout(update, 100);
             return;
         }
 
-        if (isLoggedIn) {
-            // Add logged-in class to body
-            document.body.classList.add('user-logged-in');
+        if (loginButton && profileDropdown) {
+            if (isLoggedIn) {
+                // User logged in - hide login, show profile
+                loginButton.style.setProperty('display', 'none', 'important');
+                profileDropdown.style.setProperty('display', 'flex', 'important');
 
-            // Set profile initial
-            if (profileInitial && userEmail) {
-                profileInitial.textContent = userEmail.charAt(0).toUpperCase();
-            } else if (profileInitial && userAuth) {
-                try {
-                    const userData = JSON.parse(userAuth);
-                    profileInitial.textContent = (userData.email || 'U').charAt(0).toUpperCase();
-                } catch (e) {
-                    profileInitial.textContent = 'U';
+                if (profileInitial) {
+                    const email = userEmail || (userAuth ? JSON.parse(userAuth).email : '');
+                    profileInitial.textContent = email ? email.charAt(0).toUpperCase() : 'U';
                 }
+            } else {
+                // User logged out - show login, hide profile
+                loginButton.style.setProperty('display', 'flex', 'important');
+                profileDropdown.style.setProperty('display', 'none', 'important');
             }
-        } else {
-            // Remove logged-in class from body
-            document.body.classList.remove('user-logged-in');
         }
     };
 
-    attemptUpdate();
+    update();
 }
 
 // Logout functionality
