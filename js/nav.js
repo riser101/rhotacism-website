@@ -127,30 +127,50 @@ function initializeNavigation() {
 // Update profile display based on login state
 function updateProfileDisplay() {
     const userEmail = localStorage.getItem('userEmail');
+    const userAuth = localStorage.getItem('userAuth');
 
-    // Function to try updating the display
+    // Check if user is logged in (either has userEmail or userAuth)
+    const isLoggedIn = userEmail || userAuth;
+
+    // Function to try updating the display with retry mechanism
+    let retryCount = 0;
+    const maxRetries = 20; // Maximum 1 second of retries (20 * 50ms)
+
     const attemptUpdate = () => {
         const profileInitial = document.getElementById('profileInitial');
         const loginNavButton = document.querySelector('.login-nav');
         const profileDropdown = document.querySelector('.profile-dropdown');
 
-        // If elements aren't ready yet, try again
-        if (!loginNavButton || !profileDropdown) {
+        // If elements aren't ready yet, retry with a limit
+        if ((!loginNavButton || !profileDropdown) && retryCount < maxRetries) {
+            retryCount++;
             setTimeout(attemptUpdate, 50);
             return;
         }
 
-        if (userEmail) {
-            // User is logged in
-            if (profileInitial) {
+        // If we still don't have elements after retries, log error and exit
+        if (!loginNavButton || !profileDropdown) {
+            console.error('Navigation elements not found after retries');
+            return;
+        }
+
+        if (isLoggedIn) {
+            // User is logged in - show profile dropdown
+            if (profileInitial && userEmail) {
                 profileInitial.textContent = userEmail.charAt(0).toUpperCase();
+            } else if (profileInitial && userAuth) {
+                try {
+                    const userData = JSON.parse(userAuth);
+                    profileInitial.textContent = (userData.email || 'U').charAt(0).toUpperCase();
+                } catch (e) {
+                    profileInitial.textContent = 'U';
+                }
             }
             // Hide login button, show profile
             loginNavButton.style.display = 'none';
             profileDropdown.style.display = 'flex';
         } else {
-            // User is not logged in
-            // Show login button, hide profile
+            // User is not logged in - show login button
             loginNavButton.style.display = 'flex';
             profileDropdown.style.display = 'none';
         }
@@ -161,10 +181,11 @@ function updateProfileDisplay() {
 
 // Logout functionality
 window.logout = function() {
-    // Clear user data
+    // Clear all user data from localStorage
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userName');
     localStorage.removeItem('userToken');
+    localStorage.removeItem('userAuth');
 
     // Track logout event
     if (typeof gtag !== 'undefined') {
