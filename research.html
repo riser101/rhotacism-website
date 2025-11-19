@@ -741,89 +741,11 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="css/nav.css">
 </head>
 <body>
     <!-- Navigation Bar -->
-    <nav class="navbar" id="mainNavbar">
-        <div class="nav-container">
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <a href="index.html" class="nav-logo">
-                    <span class="nav-logo-text">The Rollr Academy</span>
-                    <img src="instagram-icon.jpg" alt="The Rollr Academy" class="nav-logo-mobile" style="height: 40px; width: 40px; border-radius: 50%;">
-                </a>
-                <div class="nav-dropdown">
-                    <a href="#" class="nav-dropdown-toggle">Company <span class="dropdown-arrow">▼</span></a>
-                    <div class="nav-dropdown-menu">
-                        <a href="about.html">About</a>
-                    </div>
-                </div>
-
-                <div class="nav-dropdown">
-                    <a href="#" class="nav-dropdown-toggle">Research & Education <span class="dropdown-arrow">▼</span></a>
-                    <div class="nav-dropdown-menu">
-                        <a href="rhotacism-guide.html">Education</a>
-                        <a href="research.html">Research</a>
-                    </div>
-                </div>
-
-                <div class="nav-dropdown">
-                    <a href="#" class="nav-dropdown-toggle">For Speech Language Pathologists <span class="dropdown-arrow">▼</span></a>
-                    <div class="nav-dropdown-menu">
-                        <a href="tools.html">Tools</a>
-                    </div>
-                </div>
-            </div>
-            <ul class="nav-menu">
-                <li class="login-nav" style="display: none;">
-                    <button class="login-nav-button" onclick="openLoginModal()">Get Started</button>
-                </li>
-                <li><a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'nav_menu' }); plerdy_goals('app_store_click');">
-                        <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg"
-                             alt="Download on the App Store" style="height: 44px; margin: -2px 0;">
-                    </a></li>
-                <li class="profile-dropdown">
-                    <div class="profile-circle" onclick="toggleProfileDropdown()">
-                        <span id="profileInitial">U</span>
-                    </div>
-                    <div class="dropdown-menu" id="profileDropdown">
-                        <a href="exercises.html">Exercises</a>
-                        <a href="#" onclick="logout(); return false;">Logout</a>
-                    </div>
-                </li>
-            </ul>
-            <!-- Mobile Navigation -->
-            <div class="mobile-nav">
-                <button class="mobile-get-started" onclick="openLoginModal()">Get Started</button>
-                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="mobile-download-btn" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'mobile_nav' }); plerdy_goals('mobile_nav_download');">
-                    <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store" style="height: 32px;">
-                </a>
-                <!-- Mobile hamburger menu for all navigation -->
-                <div class="mobile-hamburger-menu">
-                    <button class="mobile-hamburger-toggle" onclick="toggleMobileCompanyMenu()" aria-label="Menu">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </button>
-                    <div class="mobile-company-dropdown" id="mobileCompanyDropdown">
-                        <div class="mobile-menu-section">
-                            <div class="mobile-menu-title">Company</div>
-                            <a href="about.html">About</a>
-                        </div>
-                        <div class="mobile-menu-section">
-                            <div class="mobile-menu-title">Research & Education</div>
-                            <a href="rhotacism-guide.html">Education</a>
-                            <a href="research.html">Research</a>
-                        </div>
-                        <div class="mobile-menu-section">
-                            <div class="mobile-menu-title">For SLPs</div>
-                            <a href="tools.html">Tools</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
-
+    <!-- Navigation will be loaded by nav.js -->
     <!-- Header -->
     <section class="header" id="headerSection">
         <div class="container">
@@ -1109,5 +1031,6 @@
 
     <!-- Login Modal Functions -->
     <script src="js/login-modal.js"></script>
+    <script src="js/nav.js"></script>
 </body>
 </html>
