@@ -64,8 +64,7 @@ function handleCredentialResponse(response) {
 
         // Close modal and redirect
         closeLoginModal();
-        showLoginSuccess(responsePayload.name);
-
+        
         // Show profile dropdown instead of login button
         if (typeof showProfileDropdown === 'function') {
             showProfileDropdown();
@@ -96,31 +95,6 @@ function decodeJwtResponse(token) {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
     return JSON.parse(jsonPayload);
-}
-
-// Function to show login success message
-function showLoginSuccess(userName) {
-    const successDiv = document.createElement('div');
-    successDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #28a745;
-        color: white;
-        padding: 15px 25px;
-        border-radius: 8px;
-        z-index: 10000;
-        font-weight: 600;
-        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
-    `;
-    successDiv.textContent = `Welcome, ${userName}! Redirecting...`;
-    document.body.appendChild(successDiv);
-
-    setTimeout(() => {
-        if (document.body.contains(successDiv)) {
-            document.body.removeChild(successDiv);
-        }
-    }, 3000);
 }
 
 // Function to check if user is already logged in
