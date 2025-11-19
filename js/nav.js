@@ -191,9 +191,7 @@ window.logout = function() {
         });
     }
 
-    // Update the display to show login button and hide profile
-    updateProfileDisplay();
-
-    // Redirect to home page
-    window.location.href = '/';
+    // Redirect to home page (the page will automatically update the display on load)
+    const pathPrefix = window.location.pathname.includes('/guide/') ? '../' : '';
+    window.location.href = pathPrefix + 'index.html';
 };
