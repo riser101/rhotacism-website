@@ -137,24 +137,18 @@ function updateProfileDisplay() {
     const maxRetries = 20;
 
     const attemptUpdate = () => {
-        const navMenu = document.querySelector('.nav-menu');
         const profileInitial = document.getElementById('profileInitial');
 
-        // Wait for nav-menu to exist
-        if (!navMenu && retryCount < maxRetries) {
+        // Wait for profile element to exist
+        if (!profileInitial && retryCount < maxRetries) {
             retryCount++;
             setTimeout(attemptUpdate, 50);
             return;
         }
 
-        if (!navMenu) {
-            console.error('Navigation menu not found');
-            return;
-        }
-
         if (isLoggedIn) {
-            // Add logged-in class to show profile, hide login button
-            navMenu.classList.add('user-logged-in');
+            // Add logged-in class to body
+            document.body.classList.add('user-logged-in');
 
             // Set profile initial
             if (profileInitial && userEmail) {
@@ -168,8 +162,8 @@ function updateProfileDisplay() {
                 }
             }
         } else {
-            // Remove logged-in class to show login button, hide profile
-            navMenu.classList.remove('user-logged-in');
+            // Remove logged-in class from body
+            document.body.classList.remove('user-logged-in');
         }
     };
 

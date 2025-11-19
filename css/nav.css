@@ -477,12 +477,12 @@ background: linear-gradient(90deg, #FF9800, #E65100);
     display: flex !important;
 }
 
-/* When user is logged in */
-.user-logged-in .profile-dropdown {
+/* When user is logged in - class added to body */
+body.user-logged-in .profile-dropdown {
     display: flex !important;
 }
 
-.user-logged-in .login-nav {
+body.user-logged-in .login-nav {
     display: none !important;
 }
 
