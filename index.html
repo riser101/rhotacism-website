@@ -1085,6 +1085,38 @@ font-size: 32px !important;
 .benefit-title, .feature-title {
 font-size: 20px;
 }
+/* Comparison Table Mobile Styles */
+.comparison-table {
+min-width: 100% !important;
+table-layout: fixed !important;
+}
+.comparison-th:first-child,
+.comparison-td:first-child {
+width: 100px !important;
+min-width: 100px !important;
+}
+.comparison-th:nth-child(2),
+.comparison-td:nth-child(2),
+.comparison-th:nth-child(3),
+.comparison-td:nth-child(3) {
+width: 50% !important;
+}
+.comparison-th {
+padding: 12px 10px !important;
+font-size: 13px !important;
+}
+.comparison-td {
+padding: 12px 10px !important;
+font-size: 12px !important;
+}
+.comparison-td div {
+font-size: 13px !important;
+margin-bottom: 6px !important;
+}
+.comparison-badge {
+font-size: 7px !important;
+padding: 2px 4px !important;
+}
 }
 
 @media (max-width: 480px) {
@@ -1127,6 +1159,28 @@ font-size: 16px;
 .urgency-text {
 font-size: 12px;
 text-align: center;
+}
+/* Comparison Table Extra Small Mobile Styles */
+.comparison-th:first-child,
+.comparison-td:first-child {
+width: 90px !important;
+min-width: 90px !important;
+}
+.comparison-th {
+padding: 10px 8px !important;
+font-size: 11px !important;
+}
+.comparison-td {
+padding: 10px 8px !important;
+font-size: 11px !important;
+}
+.comparison-td div {
+font-size: 12px !important;
+margin-bottom: 4px !important;
+}
+.comparison-badge {
+font-size: 6px !important;
+padding: 1px 3px !important;
 }
 }
 
@@ -1787,50 +1841,75 @@ text-align: center;
             </div>
             
             <div style="max-width: 900px; margin: 0 auto;">
-                <div style="background: #000000; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); overflow: hidden;">
-                    <table style="width: 100%; border-collapse: collapse;">
+                <div class="comparison-table-wrapper" style="background: #000000; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <table class="comparison-table" style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="background: linear-gradient(135deg, #FF9800, #E65100);">
-                                <th style="padding: 24px; text-align: left; color: white; font-size: 18px; font-weight: 600; border: none;">Feature</th>
-                                <th style="padding: 24px; text-align: center; color: white; font-size: 18px; font-weight: 600; border: none;">Traditional Therapy</th>
-                                <th style="padding: 24px; text-align: center; color: white; font-size: 18px; font-weight: 600; border: none;">The Rollr Academy</th>
+                                <th class="comparison-th" style="padding: 24px; text-align: left; color: white; font-size: 18px; font-weight: 600; border: none; min-width: 140px;">Feature</th>
+                                <th class="comparison-th" style="padding: 24px; text-align: center; color: white; font-size: 18px; font-weight: 600; border: none; min-width: 180px;">Traditional Therapy</th>
+                                <th class="comparison-th" style="padding: 24px; text-align: center; color: white; font-size: 18px; font-weight: 600; border: none; min-width: 180px;">The Rollr Academy</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr style="border-bottom: 1px solid #333; background: #000000;">
-                                <td style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Cost</td>
-                                <td style="padding: 20px 24px; text-align: center; color: #999; font-size: 16px;">$1,500-$3,000</td>
-                                <td style="padding: 20px 24px; text-align: center;">
+                                <td class="comparison-td" style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Cost</td>
+                                <td class="comparison-td" style="padding: 20px 24px; text-align: center; color: #999; font-size: 16px;">$1,500-$3,000</td>
+                                <td class="comparison-td" style="padding: 20px 24px; text-align: center;">
                                     <div style="color: #FF9800; font-weight: 600; font-size: 18px; margin-bottom: 12px;">$250 complete program</div>
                                     <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
-                                        <span style="background: rgba(255, 152, 0, 0.15); color: #FF9800; padding: 2px 6px; border-radius: 8px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2px; border: 1px solid rgba(255, 152, 0, 0.3);">3-Day Free Trial</span>
-                                        <span style="background: rgba(255, 152, 0, 0.15); color: #FF9800; padding: 2px 6px; border-radius: 8px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2px; border: 1px solid rgba(255, 152, 0, 0.3);">7-Day Money-Back</span>
+                                        <span class="comparison-badge" style="background: rgba(255, 152, 0, 0.15); color: #FF9800; padding: 2px 6px; border-radius: 8px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2px; border: 1px solid rgba(255, 152, 0, 0.3);">3-Day Free Trial</span>
+                                        <span class="comparison-badge" style="background: rgba(255, 152, 0, 0.15); color: #FF9800; padding: 2px 6px; border-radius: 8px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2px; border: 1px solid rgba(255, 152, 0, 0.3);">7-Day Money-Back</span>
                                     </div>
                                 </td>
                             </tr>
                             <tr style="border-bottom: 1px solid #333; background: #000000;">
-                                <td style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Time to Results</td>
-                                <td style="padding: 20px 24px; text-align: center; color: #999; font-size: 16px;">6-12 months</td>
-                                <td style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">12 weeks</td>
+                                <td class="comparison-td" style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Time to Results</td>
+                                <td class="comparison-td" style="padding: 20px 24px; text-align: center; color: #999; font-size: 16px;">6-12 months</td>
+                                <td class="comparison-td" style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">12 weeks</td>
                             </tr>
                             <tr style="border-bottom: 1px solid #333; background: #000000;">
-                                <td style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Appointments</td>
-                                <td style="padding: 20px 24px; text-align: center; color: #999; font-size: 16px;">Weekly scheduled</td>
-                                <td style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">Anytime</td>
+                                <td class="comparison-td" style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Appointments</td>
+                                <td class="comparison-td" style="padding: 20px 24px; text-align: center; color: #999; font-size: 16px;">Weekly scheduled</td>
+                                <td class="comparison-td" style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">Anytime</td>
                             </tr>
                             <tr style="border-bottom: 1px solid #333; background: #000000;">
-                                <td style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Privacy</td>
-                                <td style="padding: 20px 24px; text-align: center; color: #999; font-size: 16px;">Face-to-face sessions</td>
-                                <td style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">100% private</td>
+                                <td class="comparison-td" style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Privacy</td>
+                                <td class="comparison-td" style="padding: 20px 24px; text-align: center; color: #999; font-size: 16px;">Face-to-face sessions</td>
+                                <td class="comparison-td" style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">100% private</td>
                             </tr>
                             <tr style="background: #000000;">
-                                <td style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Progress Tracking</td>
-                                <td style="padding: 20px 24px; text-align: center; color: #999; font-size: 16px;">No progress tracking</td>
-                                <td style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">Weekly Progress Analysis</td>
+                                <td class="comparison-td" style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Progress Tracking</td>
+                                <td class="comparison-td" style="padding: 20px 24px; text-align: center; color: #999; font-size: 16px;">No progress tracking</td>
+                                <td class="comparison-td" style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">Weekly Progress Analysis</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+
+                <script>
+                // Scroll to show last 2 columns on mobile
+                document.addEventListener('DOMContentLoaded', function() {
+                    function scrollComparisonTable() {
+                        if (window.innerWidth <= 768) {
+                            const wrapper = document.querySelector('.comparison-table-wrapper');
+                            const table = document.querySelector('.comparison-table');
+                            if (wrapper && table) {
+                                // Get the width of the first column
+                                const firstColumn = table.querySelector('th:first-child');
+                                if (firstColumn) {
+                                    // Scroll to hide the first column
+                                    setTimeout(() => {
+                                        wrapper.scrollLeft = firstColumn.offsetWidth;
+                                    }, 100);
+                                }
+                            }
+                        }
+                    }
+
+                    scrollComparisonTable();
+                    window.addEventListener('resize', scrollComparisonTable);
+                });
+                </script>
                 
                 <!-- CTA below table -->
                 <div style="text-align: center; margin-top: 40px;">
