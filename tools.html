@@ -797,6 +797,14 @@
                     <p class="tool-description">Count up to 10 repetitions for exercise tracking with 10-second intervals</p>
                     <span class="tool-badge">Free Tool</span>
                 </div>
+
+                <!-- Spectrogram Tool -->
+                <div class="tool-card" onclick="openSpectrogramModal()">
+                    <div class="tool-icon">📊</div>
+                    <h2 class="tool-title">R Sound Spectrogram</h2>
+                    <p class="tool-description">Visual biofeedback tool to practice the 'R' sound using real-time spectrogram analysis</p>
+                    <span class="tool-badge">For SLPs</span>
+                </div>
             </div>
         </div>
     </section>
@@ -836,6 +844,100 @@
                 <button class="reset-button" onclick="resetTimer()">
                     🔄 Reset
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Spectrogram Modal -->
+    <div class="tool-modal" id="spectrogramModal">
+        <div class="modal-content" style="max-width: 900px; padding: 40px 30px;">
+            <button class="modal-close" onclick="closeSpectrogramModal()">&times;</button>
+            <h2 class="modal-title">R Sound Spectrogram</h2>
+
+            <!-- Mode Selection -->
+            <div id="spectrogramModeSelect" style="text-align: center; margin-bottom: 30px;">
+                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 20px;">Choose a mode to get started</p>
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                    <button onclick="startTutorial()" class="practice-button" style="min-width: 160px;">
+                        📚 Tutorial Mode
+                    </button>
+                    <button onclick="startFreePlay()" class="practice-button" style="min-width: 160px;">
+                        🎯 Free Play
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tutorial Mode -->
+            <div id="spectrogramTutorial" style="display: none;">
+                <div style="background: rgba(255, 152, 0, 0.1); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <span style="color: #FF9800; font-weight: 600; font-size: 14px;">TUTORIAL</span>
+                        <span id="tutorialStep" style="color: rgba(255, 255, 255, 0.7); font-size: 14px;">Step 1 of 4</span>
+                    </div>
+                    <p id="tutorialText" style="color: white; font-size: 16px; line-height: 1.6; margin: 0;"></p>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <canvas id="spectrogramCanvasTutorial" width="800" height="300" style="width: 100%; background: #2a2a2a; border-radius: 12px; display: block;"></canvas>
+                </div>
+
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <button id="tutorialBackBtn" onclick="tutorialBack()" class="reset-button" style="min-width: 100px;" disabled>
+                        ← Back
+                    </button>
+                    <button id="tutorialNextBtn" onclick="tutorialNext()" class="practice-button" style="min-width: 100px;">
+                        Next →
+                    </button>
+                    <button onclick="exitToModeSelect()" class="reset-button" style="min-width: 100px;">
+                        Exit Tutorial
+                    </button>
+                </div>
+            </div>
+
+            <!-- Free Play Mode -->
+            <div id="spectrogramFreePlay" style="display: none;">
+                <div style="background: rgba(255, 152, 0, 0.1); padding: 16px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
+                    <p style="color: #FF9800; font-weight: 600; margin: 0; font-size: 14px;">GOAL: Make Peak 3 (orange) reach the green target line</p>
+                </div>
+
+                <div style="margin-bottom: 20px; position: relative;">
+                    <canvas id="spectrogramCanvas" width="800" height="300" style="width: 100%; background: #2a2a2a; border-radius: 12px; display: block;"></canvas>
+                    <div id="targetOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+                        <!-- Target line will be drawn here -->
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+                    <button id="recordBtn" onclick="toggleRecording()" class="practice-button" style="flex: 1; min-width: 140px;">
+                        🎤 Start Recording
+                    </button>
+                    <button onclick="clearSpectrogram()" class="reset-button" style="flex: 1; min-width: 140px;">
+                        🔄 Clear
+                    </button>
+                    <button onclick="toggleTarget()" class="reset-button" style="flex: 1; min-width: 140px;">
+                        <span id="targetBtnText">👁️ Show Target</span>
+                    </button>
+                </div>
+
+                <div style="background: rgba(255, 255, 255, 0.05); padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <label style="color: rgba(255, 255, 255, 0.8); font-size: 14px; font-weight: 500;">Sensitivity</label>
+                        <span id="sensitivityValue" style="color: #FF9800; font-weight: 600;">50%</span>
+                    </div>
+                    <input type="range" id="sensitivitySlider" min="0" max="100" value="50"
+                           style="width: 100%; accent-color: #FF9800;"
+                           oninput="updateSensitivity(this.value)">
+                </div>
+
+                <div id="spectrogramStatus" style="text-align: center; color: rgba(255, 255, 255, 0.6); font-size: 14px;">
+                    Click "Start Recording" and say words with the R sound
+                </div>
+
+                <div style="margin-top: 20px; text-align: center;">
+                    <button onclick="exitToModeSelect()" class="reset-button">
+                        ← Back to Mode Select
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1120,6 +1222,543 @@
         updateTimerDisplay();
         updateTimerProgress();
         updateRepDisplay();
+
+        // Spectrogram functionality
+        let audioContext = null;
+        let analyser = null;
+        let microphone = null;
+        let isRecording = false;
+        let animationId = null;
+        let sensitivity = 50;
+        let showTarget = false;
+        let tutorialCurrentStep = 0;
+
+        const tutorialSteps = [
+            {
+                title: "Welcome to the R Sound Analyzer",
+                text: "This tool analyzes your speech in real-time and shows formant peaks. Each vertical line represents a formant - key frequencies that define speech sounds. For 'R', we focus on 3 peaks."
+            },
+            {
+                title: "Understanding the Peaks",
+                text: "When you speak, you'll see numbered peaks (1, 2, 3) appear. Peak 1 is F1 (lowest), Peak 2 is F2, and Peak 3 is F3. The 'R' sound requires Peak 3 to be lowered, close to Peak 2 in height."
+            },
+            {
+                title: "Using the Target Line",
+                text: "The green target line shows where Peak 3 should reach for a correct 'R' sound. Your goal: make Peak 3 touch or cross this target line by adjusting your tongue position."
+            },
+            {
+                title: "Practice Tips",
+                text: "Say R words like 'red', 'run', 'right'. Watch Peak 3 (orange). If it's too low, curl your tongue more. If Peaks 2 and 3 merge into one tall peak, you're doing it right!"
+            }
+        ];
+
+        function openSpectrogramModal() {
+            document.getElementById('spectrogramModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            resetSpectrogramState();
+        }
+
+        function closeSpectrogramModal() {
+            document.getElementById('spectrogramModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+            stopRecording();
+            resetSpectrogramState();
+        }
+
+        function resetSpectrogramState() {
+            // Show mode select, hide others
+            document.getElementById('spectrogramModeSelect').style.display = 'block';
+            document.getElementById('spectrogramTutorial').style.display = 'none';
+            document.getElementById('spectrogramFreePlay').style.display = 'none';
+            tutorialCurrentStep = 0;
+            showTarget = false;
+        }
+
+        function startTutorial() {
+            document.getElementById('spectrogramModeSelect').style.display = 'none';
+            document.getElementById('spectrogramTutorial').style.display = 'block';
+            tutorialCurrentStep = 0;
+            updateTutorialStep();
+        }
+
+        function startFreePlay() {
+            document.getElementById('spectrogramModeSelect').style.display = 'none';
+            document.getElementById('spectrogramFreePlay').style.display = 'block';
+        }
+
+        function exitToModeSelect() {
+            stopRecording();
+            resetSpectrogramState();
+        }
+
+        function updateTutorialStep() {
+            const step = tutorialSteps[tutorialCurrentStep];
+            document.getElementById('tutorialStep').textContent = `Step ${tutorialCurrentStep + 1} of ${tutorialSteps.length}`;
+            document.getElementById('tutorialText').textContent = step.text;
+
+            // Update buttons
+            document.getElementById('tutorialBackBtn').disabled = tutorialCurrentStep === 0;
+            document.getElementById('tutorialNextBtn').textContent =
+                tutorialCurrentStep === tutorialSteps.length - 1 ? 'Start Free Play →' : 'Next →';
+
+            // Draw example on tutorial canvas
+            drawTutorialExample(tutorialCurrentStep);
+        }
+
+        function tutorialBack() {
+            if (tutorialCurrentStep > 0) {
+                tutorialCurrentStep--;
+                updateTutorialStep();
+            }
+        }
+
+        function tutorialNext() {
+            if (tutorialCurrentStep < tutorialSteps.length - 1) {
+                tutorialCurrentStep++;
+                updateTutorialStep();
+            } else {
+                // Tutorial complete, go to free play
+                startFreePlay();
+            }
+        }
+
+        function drawTutorialExample(step) {
+            const canvas = document.getElementById('spectrogramCanvasTutorial');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw example waveforms based on tutorial step
+            ctx.strokeStyle = '#FF9800';
+            ctx.lineWidth = 3;
+
+            if (step === 0) {
+                // Draw simple waveform
+                drawExampleWaveform(ctx, canvas, false);
+            } else if (step === 1) {
+                // Draw waveform with labeled peaks
+                drawExampleWaveform(ctx, canvas, true);
+            } else if (step === 2 || step === 3) {
+                // Draw waveform with target line
+                drawExampleWaveform(ctx, canvas, true);
+                drawTargetLine(ctx, canvas);
+            }
+        }
+
+        function drawExampleWaveform(ctx, canvas, showPeaks) {
+            // Display range: 200-3000 Hz (same as live view)
+            const minFreq = 200;
+            const maxFreq = 3000;
+            const freqRange = maxFreq - minFreq;
+
+            // Add margins and center the visualization
+            const marginX = canvas.width * 0.1;
+            const marginY = canvas.height * 0.15;
+            const drawWidth = canvas.width - (marginX * 2);
+            const drawHeight = canvas.height - (marginY * 2);
+            const baseY = canvas.height - marginY;
+
+            // Example formant peaks for 'R' sound
+            const examplePeaks = [
+                { frequency: 700, magnitude: 0.5, label: '1' },    // F1
+                { frequency: 1400, magnitude: 0.7, label: '2' },   // F2
+                { frequency: 1750, magnitude: 0.65, label: '3' }   // F3 (lowered for R)
+            ];
+
+            // Draw smooth waveform envelope
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(100, 200, 255, 0.4)';
+            ctx.lineWidth = 2.5;
+            ctx.fillStyle = 'rgba(100, 200, 255, 0.15)';
+            ctx.moveTo(marginX, baseY);
+
+            for (let x = 0; x <= drawWidth; x += 4) {
+                const frequency = minFreq + (x / drawWidth) * freqRange;
+                let amplitude = 0;
+
+                examplePeaks.forEach(peak => {
+                    const distance = Math.abs(frequency - peak.frequency);
+                    const influence = Math.max(0, 1 - (distance / 400));
+                    amplitude += peak.magnitude * influence;
+                });
+
+                const y = baseY - (amplitude * drawHeight);
+                ctx.lineTo(marginX + x, y);
+            }
+
+            ctx.lineTo(marginX + drawWidth, baseY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Draw peak markers
+            examplePeaks.forEach((peak, index) => {
+                const x = marginX + ((peak.frequency - minFreq) / freqRange) * drawWidth;
+                const y = baseY - (peak.magnitude * drawHeight);
+
+                // Draw peak line
+                ctx.strokeStyle = index === 2 ? '#FF9800' : '#4FC3F7';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(x, baseY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+
+                // Draw peak circle
+                ctx.fillStyle = index === 2 ? '#FF9800' : '#4FC3F7';
+                ctx.beginPath();
+                ctx.arc(x, y, 7, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Highlight 3rd peak
+                if (index === 2) {
+                    ctx.strokeStyle = '#FFD700';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 12, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // Labels
+                if (showPeaks) {
+                    ctx.fillStyle = '#FFD700';
+                    ctx.font = 'bold 14px Inter';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    ctx.shadowBlur = 3;
+                    ctx.fillText(peak.label, x - 6, y - 25);
+                    ctx.fillText(`${peak.frequency}Hz`, x - 25, y - 10);
+                    ctx.shadowBlur = 0;
+                }
+            });
+
+            // Add annotation for tutorial
+            if (showPeaks) {
+                ctx.fillStyle = '#FF9800';
+                ctx.font = '12px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('Peak 3 is close to Peak 2 height = Good R sound', canvas.width / 2, 30);
+                ctx.textAlign = 'left';
+            }
+        }
+
+        function drawTargetLine(ctx, canvas) {
+            // Use same coordinate system as waveform
+            const minFreq = 200;
+            const maxFreq = 3000;
+            const freqRange = maxFreq - minFreq;
+            const marginX = canvas.width * 0.1;
+            const marginY = canvas.height * 0.15;
+            const drawWidth = canvas.width - (marginX * 2);
+            const drawHeight = canvas.height - (marginY * 2);
+            const baseY = canvas.height - marginY;
+
+            // Target: 1700 Hz
+            const targetFreq = 1700;
+            const targetX = marginX + ((targetFreq - minFreq) / freqRange) * drawWidth;
+            const targetHeight = drawHeight * 0.65;
+            const targetY = baseY - targetHeight;
+
+            // Draw vertical target line
+            ctx.strokeStyle = '#00FF00';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([8, 6]);
+            ctx.globalAlpha = 0.7;
+            ctx.beginPath();
+            ctx.moveTo(targetX, baseY);
+            ctx.lineTo(targetX, targetY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw target marker
+            ctx.fillStyle = '#00FF00';
+            ctx.globalAlpha = 0.8;
+            ctx.beginPath();
+            ctx.arc(targetX, targetY, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw target box
+            ctx.strokeStyle = '#00FF00';
+            ctx.lineWidth = 2;
+            ctx.globalAlpha = 1.0;
+            ctx.strokeRect(targetX - 35, targetY - 35, 70, 25);
+            ctx.fillStyle = 'rgba(0, 255, 0, 0.2)';
+            ctx.fillRect(targetX - 35, targetY - 35, 70, 25);
+
+            // Label
+            ctx.fillStyle = '#00FF00';
+            ctx.font = 'bold 12px Inter';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 4;
+            ctx.fillText('Target', targetX, targetY - 26);
+            ctx.fillText('1700 Hz', targetX, targetY - 14);
+            ctx.shadowBlur = 0;
+            ctx.textAlign = 'left';
+        }
+
+        async function toggleRecording() {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                await startRecording();
+            }
+        }
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+
+                analyser.fftSize = 4096;
+                analyser.smoothingTimeConstant = 0.8;
+                microphone.connect(analyser);
+
+                isRecording = true;
+                document.getElementById('recordBtn').innerHTML = '⏹️ Stop Recording';
+                document.getElementById('spectrogramStatus').textContent = 'Recording... Say R words like "red", "run", "right"';
+
+                drawSpectrogram();
+            } catch (err) {
+                console.error('Error accessing microphone:', err);
+                document.getElementById('spectrogramStatus').textContent = 'Error: Could not access microphone';
+            }
+        }
+
+        function stopRecording() {
+            if (isRecording) {
+                isRecording = false;
+                if (animationId) cancelAnimationFrame(animationId);
+                if (microphone) microphone.disconnect();
+                if (audioContext) audioContext.close();
+
+                document.getElementById('recordBtn').innerHTML = '🎤 Start Recording';
+                document.getElementById('spectrogramStatus').textContent = 'Click "Start Recording" and say words with the R sound';
+            }
+        }
+
+        function drawSpectrogram() {
+            if (!isRecording) return;
+
+            const canvas = document.getElementById('spectrogramCanvas');
+            const ctx = canvas.getContext('2d');
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            // Get frequency data
+            analyser.getByteFrequencyData(dataArray);
+
+            // Clear canvas
+            ctx.fillStyle = '#2a2a2a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Find formant peaks in the frequency data
+            const peaks = findFormantPeaks(dataArray);
+
+            // Draw waveform-style visualization with peaks
+            drawWaveformWithPeaks(ctx, canvas, peaks);
+
+            // Draw 1700 Hz target marker if enabled
+            if (showTarget) {
+                const minFreq = 200;
+                const maxFreq = 3000;
+                const freqRange = maxFreq - minFreq;
+                const marginX = canvas.width * 0.1;
+                const marginY = canvas.height * 0.15;
+                const drawWidth = canvas.width - (marginX * 2);
+                const drawHeight = canvas.height - (marginY * 2);
+                const baseY = canvas.height - marginY;
+
+                // Target frequency: 1700 Hz
+                const targetFreq = 1700;
+                const targetX = marginX + ((targetFreq - minFreq) / freqRange) * drawWidth;
+                const targetHeight = drawHeight * 0.65; // Target height on canvas
+                const targetY = baseY - targetHeight;
+
+                // Draw vertical target line
+                ctx.strokeStyle = '#00FF00';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([8, 6]);
+                ctx.globalAlpha = 0.7;
+                ctx.beginPath();
+                ctx.moveTo(targetX, baseY);
+                ctx.lineTo(targetX, targetY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Draw target marker circle
+                ctx.fillStyle = '#00FF00';
+                ctx.globalAlpha = 0.8;
+                ctx.beginPath();
+                ctx.arc(targetX, targetY, 8, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw target box/sign
+                ctx.strokeStyle = '#00FF00';
+                ctx.lineWidth = 2;
+                ctx.globalAlpha = 1.0;
+                ctx.strokeRect(targetX - 35, targetY - 35, 70, 25);
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.2)';
+                ctx.fillRect(targetX - 35, targetY - 35, 70, 25);
+
+                // Add label
+                ctx.fillStyle = '#00FF00';
+                ctx.font = 'bold 12px Inter';
+                ctx.textAlign = 'center';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                ctx.shadowBlur = 4;
+                ctx.fillText('Target', targetX, targetY - 26);
+                ctx.fillText('1700 Hz', targetX, targetY - 14);
+                ctx.shadowBlur = 0;
+                ctx.textAlign = 'left';
+            }
+
+            // Label peaks
+            if (peaks.length >= 2) {
+                ctx.font = 'bold 12px Inter';
+                peaks.forEach((peak, index) => {
+                    if (index < 3) {
+                        const x = (peak.frequency / (audioContext.sampleRate / 2)) * canvas.width;
+                        const y = canvas.height - (peak.magnitude * canvas.height);
+
+                        ctx.fillStyle = '#FFD700';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                        ctx.shadowBlur = 3;
+                        ctx.fillText(`${index + 1}`, x - 5, y - 25);
+                        ctx.fillText(`${Math.round(peak.frequency)}Hz`, x - 20, y - 10);
+                        ctx.shadowBlur = 0;
+                    }
+                });
+            }
+
+            animationId = requestAnimationFrame(drawSpectrogram);
+        }
+
+        function findFormantPeaks(dataArray) {
+            const peaks = [];
+            const minPeakDistance = 10; // Bins between peaks
+            const threshold = 50; // Minimum magnitude to be considered
+
+            // Focus on speech range (100-4000 Hz)
+            const sampleRate = audioContext.sampleRate;
+            const binWidth = sampleRate / analyser.fftSize;
+            const startBin = Math.floor(100 / binWidth);
+            const endBin = Math.floor(4000 / binWidth);
+
+            for (let i = startBin + 1; i < endBin - 1; i++) {
+                if (dataArray[i] > threshold &&
+                    dataArray[i] > dataArray[i - 1] &&
+                    dataArray[i] > dataArray[i + 1]) {
+
+                    // Check if far enough from previous peak
+                    const tooClose = peaks.some(p => Math.abs(p.bin - i) < minPeakDistance);
+                    if (!tooClose) {
+                        peaks.push({
+                            bin: i,
+                            frequency: i * binWidth,
+                            magnitude: (dataArray[i] / 255.0) * (sensitivity / 50)
+                        });
+                    }
+                }
+            }
+
+            // Sort by magnitude and take top 3
+            return peaks.sort((a, b) => b.magnitude - a.magnitude).slice(0, 3)
+                        .sort((a, b) => a.frequency - b.frequency);
+        }
+
+        function drawWaveformWithPeaks(ctx, canvas, peaks) {
+            if (peaks.length === 0) return;
+
+            // Display range: 200-3000 Hz (better for speech visualization)
+            const minFreq = 200;
+            const maxFreq = 3000;
+            const freqRange = maxFreq - minFreq;
+
+            // Add margins and center the visualization
+            const marginX = canvas.width * 0.1; // 10% margin on each side
+            const marginY = canvas.height * 0.15; // 15% margin top/bottom
+            const drawWidth = canvas.width - (marginX * 2);
+            const drawHeight = canvas.height - (marginY * 2);
+            const baseY = canvas.height - marginY;
+
+            // Draw smooth waveform envelope
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(100, 200, 255, 0.4)';
+            ctx.lineWidth = 2.5;
+            ctx.fillStyle = 'rgba(100, 200, 255, 0.15)';
+            ctx.moveTo(marginX, baseY);
+
+            // Create smooth curve through peaks
+            for (let x = 0; x <= drawWidth; x += 4) {
+                const frequency = minFreq + (x / drawWidth) * freqRange;
+                let amplitude = 0;
+
+                peaks.forEach(peak => {
+                    if (peak.frequency >= minFreq && peak.frequency <= maxFreq) {
+                        const distance = Math.abs(frequency - peak.frequency);
+                        const influence = Math.max(0, 1 - (distance / 400));
+                        amplitude += peak.magnitude * influence;
+                    }
+                });
+
+                const y = baseY - (amplitude * drawHeight);
+                ctx.lineTo(marginX + x, y);
+            }
+
+            ctx.lineTo(marginX + drawWidth, baseY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Draw individual peak markers
+            peaks.forEach((peak, index) => {
+                if (peak.frequency >= minFreq && peak.frequency <= maxFreq) {
+                    const x = marginX + ((peak.frequency - minFreq) / freqRange) * drawWidth;
+                    const y = baseY - (peak.magnitude * drawHeight);
+
+                    // Draw peak line
+                    ctx.strokeStyle = index === 2 ? '#FF9800' : '#4FC3F7';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(x, baseY);
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+
+                    // Draw peak marker circle
+                    ctx.fillStyle = index === 2 ? '#FF9800' : '#4FC3F7';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 7, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Highlight 3rd peak
+                    if (index === 2) {
+                        ctx.strokeStyle = '#FFD700';
+                        ctx.lineWidth = 2.5;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 12, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                }
+            });
+        }
+
+        function clearSpectrogram() {
+            const canvas = document.getElementById('spectrogramCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#2a2a2a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function toggleTarget() {
+            showTarget = !showTarget;
+            document.getElementById('targetBtnText').textContent = showTarget ? '👁️ Hide Target' : '👁️ Show Target';
+        }
+
+        function updateSensitivity(value) {
+            sensitivity = parseInt(value);
+            document.getElementById('sensitivityValue').textContent = sensitivity + '%';
+        }
     </script>
 
     <!-- Login Modal -->
