@@ -41,12 +41,19 @@
             z-index: 0;
         }
 
-        .container {
+        .privacy-container {
             max-width: 900px;
             margin: 0 auto;
             padding: 0 24px;
             position: relative;
             z-index: 1;
+        }
+
+        /* Footer container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
         .header {
@@ -55,12 +62,13 @@
         }
 
         .header h1 {
-            font-family: 'Quicksand', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 56px;
             font-weight: 700;
             color: white;
             margin-bottom: 24px;
             text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            letter-spacing: -1px;
         }
 
         .header p {
@@ -85,12 +93,13 @@
         }
 
         .content h2 {
-            font-family: 'Quicksand', sans-serif;
-            font-size: 32px;
-            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            font-size: 28px;
+            font-weight: 600;
             color: #FF9800;
             margin: 50px 0 24px 0;
             text-shadow: 0 2px 10px rgba(255, 152, 0, 0.3);
+            letter-spacing: -0.5px;
         }
 
         .content h2:first-of-type {
@@ -98,12 +107,13 @@
         }
 
         .content h3 {
-            font-size: 22px;
+            font-family: 'Inter', sans-serif;
+            font-size: 20px;
             font-weight: 600;
             color: #FFB74D;
             margin: 30px 0 16px 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            text-transform: none;
+            letter-spacing: -0.3px;
         }
 
         .content p {
@@ -166,16 +176,20 @@
         }
 
         .contact-section h2 {
+            font-family: 'Inter', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
             color: #FF9800;
             margin-top: 0;
+            letter-spacing: -0.4px;
         }
 
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 42px;
             }
-            
-            .container {
+
+            .privacy-container {
                 padding: 0 16px;
             }
             
@@ -550,13 +564,13 @@
     <!-- Navigation -->
     <!-- Navigation will be loaded by nav.js -->
     <section class="header">
-        <div class="container">
+        <div class="privacy-container">
             <h1>Privacy Policy</h1>
         </div>
     </section>
 
     <section class="content">
-        <div class="container">
+        <div class="privacy-container">
             <div class="content-card">
                 <div class="effective-date">
                     <strong>Last updated:</strong> December 15, 2024
@@ -609,13 +623,6 @@
                 <h2>Updates to This Policy</h2>
                 <p>We may update this policy occasionally. Changes will be posted here with a new effective date.</p>
             </div>
-
-            <div class="contact-section">
-                <h2>Questions?</h2>
-                <p>If you have any questions about this Privacy Policy:</p>
-                <p><strong>Email:</strong> support@detache.app</p>
-            </div>
-
         </div>
     </section>
 
