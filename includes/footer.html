@@ -1,0 +1,201 @@
+<footer style="background: #1a1a1a; color: white; padding: 40px 0;">
+    <div class="container">
+        <div class="footer-content" style="display: flex; justify-content: space-between; gap: 40px; margin-bottom: 30px; flex-wrap: wrap; align-items: flex-start;">
+            <!-- Brand Section -->
+            <div class="footer-brand" style="min-width: 200px; flex: 0 0 auto;">
+                <a href="index.html" style="text-decoration: none;">
+                    <h2 class="footer-brand-text" style="font-family: 'Quicksand', sans-serif; font-size: 28px; font-weight: 700; color: white; margin: 0; line-height: 1.1; transition: opacity 0.3s ease;">
+                        The Rollr<br>Academy
+                    </h2>
+                </a>
+            </div>
+
+            <!-- Middle: Legal and Support -->
+            <div class="footer-links" style="display: flex; gap: 40px; flex-wrap: wrap; text-align: left; flex: 0 0 auto;">
+                <!-- Legal Section -->
+                <div class="footer-legal" style="min-width: 120px;">
+                    <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 15px; color: white;">Legal</h4>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <a href="terms.html" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Terms of Use</a>
+                        <a href="privacy.html" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Privacy Policy</a>
+                    </div>
+                </div>
+
+                <!-- Support Section -->
+                <div class="footer-support" style="min-width: 180px; max-width: 100%;">
+                    <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 15px; color: white;">Support</h4>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <a href="support.html" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Contact Us</a>
+                        <div style="color: rgba(255, 255, 255, 0.7); font-size: 14px; line-height: 1.6; word-wrap: break-word; overflow-wrap: break-word;">
+                            <div style="font-weight: 500; margin-bottom: 4px;">Mailing Address</div>
+                            <div>The Rollr Academy</div>
+                            <div>10685-B Hazelhurst Dr. # 42038</div>
+                            <div>Houston, TX 77043</div>
+                            <div>USA</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Newsletter Signup -->
+            <div class="footer-newsletter" style="min-width: 280px; max-width: 350px; flex: 1 1 auto;">
+                <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 15px; color: white;">Stay updated with new techniques, exercises & insights from the academy!</h4>
+                <form id="footerNewsletterForm" style="display: flex; flex-direction: column; gap: 10px;" onsubmit="submitFooterNewsletter(event)">
+                    <input
+                        type="email"
+                        id="footerEmailInput"
+                        placeholder="Email address"
+                        required
+                        style="padding: 12px 16px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; font-size: 14px; background: rgba(255, 255, 255, 0.1); color: white; outline: none; transition: all 0.3s ease;"
+                        onfocus="this.style.borderColor='rgba(255, 152, 0, 0.8)'; this.style.background='rgba(255, 255, 255, 0.15)';"
+                        onblur="this.style.borderColor='rgba(255, 255, 255, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)';"
+                    >
+                    <button
+                        type="submit"
+                        style="padding: 12px 24px; background: #000000; color: white; border: 2px solid #FF9800; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px;"
+                        onmouseover="this.style.background='#1a1a1a'; this.style.borderColor='#E65100'; this.style.transform='translateY(-2px)';"
+                        onmouseout="this.style.background='#000000'; this.style.borderColor='#FF9800'; this.style.transform='translateY(0)';"
+                    >
+                        Sign Up
+                    </button>
+                </form>
+                <div id="footerNewsletterMessage" style="display: none; margin-top: 10px; font-size: 13px; color: #4CAF50;"></div>
+            </div>
+        </div>
+
+        <div style="text-align: center; font-size: 14px; color: rgba(255, 255, 255, 0.6); padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            © <span id="copyrightYear"></span> The Rollr Academy. All rights reserved.
+        </div>
+    </div>
+</footer>
+
+<style>
+.footer-brand a:hover h2 {
+    opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column !important;
+        gap: 30px !important;
+    }
+
+    .footer-brand,
+    .footer-links,
+    .footer-newsletter {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        text-align: center !important;
+    }
+
+    .footer-brand h2 {
+        text-align: center !important;
+        font-size: 20px !important;
+    }
+
+    .footer-links {
+        gap: 30px !important;
+        justify-content: center !important;
+    }
+
+    .footer-support,
+    .footer-legal {
+        min-width: 0 !important;
+        flex: 1 1 auto;
+        text-align: center !important;
+    }
+
+    .footer-support > div,
+    .footer-legal > div {
+        align-items: center !important;
+    }
+
+    .footer-support a,
+    .footer-legal a {
+        text-align: center !important;
+    }
+
+    .footer-newsletter {
+        text-align: center !important;
+    }
+
+    .footer-newsletter h4 {
+        text-align: center !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-links {
+        flex-direction: column !important;
+        gap: 20px !important;
+    }
+}
+</style>
+
+<script>
+// Set copyright year
+document.addEventListener('DOMContentLoaded', function() {
+    const yearSpan = document.getElementById('copyrightYear');
+    if (yearSpan) {
+        yearSpan.textContent = new Date().getFullYear();
+    }
+});
+
+function submitFooterNewsletter(event) {
+    event.preventDefault();
+
+    const emailInput = document.getElementById('footerEmailInput');
+    const messageDiv = document.getElementById('footerNewsletterMessage');
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const email = emailInput.value;
+
+    if (!email || !email.includes('@')) {
+        messageDiv.style.display = 'block';
+        messageDiv.style.color = '#f44336';
+        messageDiv.textContent = 'Please enter a valid email address';
+        return;
+    }
+
+    // Disable button during submission
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Signing up...';
+
+    const data = {
+        email: email,
+        source: 'footer_newsletter',
+        timestamp: new Date().toISOString()
+    };
+
+    fetch('https://script.google.com/macros/s/AKfycbxEOipaPwVQIuq11td43jajKHNDiuwPqeqilmnw7ciV4XOubXAsldsnWhQ_4RLemev6/exec', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    }).then(() => {
+        messageDiv.style.display = 'block';
+        messageDiv.style.color = '#4CAF50';
+        messageDiv.textContent = 'Thanks for signing up!';
+        emailInput.value = '';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign Up';
+
+        // Track signup event
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'newsletter_signup', {
+                event_category: 'engagement',
+                event_label: 'footer_newsletter'
+            });
+        }
+    }).catch((error) => {
+        messageDiv.style.display = 'block';
+        messageDiv.style.color = '#4CAF50';
+        messageDiv.textContent = 'Thanks for signing up!';
+        emailInput.value = '';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign Up';
+    });
+}
+</script>

@@ -37,10 +37,17 @@
             background: #f8f9fa;
         }
 
-        .container {
+        .support-container {
             max-width: 800px;
             margin: 0 auto;
             padding: 40px 20px;
+        }
+
+        /* Footer container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
         .support-header {
@@ -651,7 +658,7 @@
 <body>
     <!-- Navigation -->
     <!-- Navigation will be loaded by nav.js -->
-    <div class="container">
+    <div class="support-container">
         <div class="support-header">
             <h1>Support</h1>
             <p class="subtitle">Need help with your R sound journey? We're here to help!</p>
@@ -705,19 +712,29 @@
     </div>
 
     <!-- Footer Section -->
-    <footer style="background: #1a1a1a; color: white; padding: 40px 0; text-align: center; margin-top: 40px;">
-        <div class="container">
-            <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; flex-wrap: wrap;">
-                <a href="terms.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Terms of Use</a>
-                <a href="privacy.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Privacy Policy</a>
-                <a href="support.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">Contact Us</a>
-            </div>
-            <div style="font-size: 14px; color: rgba(255, 255, 255, 0.6);">
-                © <script>document.write(new Date().getFullYear())</script> The Rollr Academy. All rights reserved.
-            </div>
-        </div>
-    </footer>
+    <div id="footer-placeholder"></div>
 
+    <script>
+        // Load footer from includes
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('includes/footer.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('footer-placeholder').innerHTML = data;
+                    // Set copyright year after footer is loaded
+                    const yearSpan = document.getElementById('copyrightYear');
+                    if (yearSpan) {
+                        yearSpan.textContent = new Date().getFullYear();
+                    }
+                    // Execute footer scripts
+                    const scripts = document.getElementById('footer-placeholder').getElementsByTagName('script');
+                    for (let script of scripts) {
+                        eval(script.innerHTML);
+                    }
+                })
+                .catch(error => console.error('Error loading footer:', error));
+        });
+    </script>
     <script>
         // Mobile company menu toggle function
         function toggleMobileCompanyMenu() {
