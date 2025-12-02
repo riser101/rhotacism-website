@@ -41,7 +41,7 @@
             <!-- Right: Newsletter Signup -->
             <div class="footer-newsletter" style="min-width: 280px; max-width: 350px; flex: 1 1 auto;">
                 <h4 style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; margin-bottom: 15px; color: white; letter-spacing: -0.2px;">Stay updated with new techniques, exercises & insights from the academy!</h4>
-                <form id="footerNewsletterForm" style="display: flex; flex-direction: column; gap: 10px;" onsubmit="submitFooterNewsletter(event)">
+                <form id="footerNewsletterForm" style="display: flex; flex-direction: column; gap: 10px;">
                     <input
                         type="email"
                         id="footerEmailInput"
@@ -149,17 +149,24 @@
 </style>
 
 <script>
-// Set copyright year
-document.addEventListener('DOMContentLoaded', function() {
+// Initialize footer immediately when script loads (footer is dynamically loaded)
+(function() {
     const yearSpan = document.getElementById('copyrightYear');
     if (yearSpan) {
         yearSpan.textContent = new Date().getFullYear();
     }
-});
+
+    // Attach form submission handler
+    const form = document.getElementById('footerNewsletterForm');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            submitFooterNewsletter(event);
+        });
+    }
+})();
 
 async function submitFooterNewsletter(event) {
-    event.preventDefault();
-
     const emailInput = document.getElementById('footerEmailInput');
     const messageDiv = document.getElementById('footerNewsletterMessage');
     const submitBtn = event.target.querySelector('button[type="submit"]');
