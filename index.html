@@ -1198,86 +1198,6 @@ padding: 1px 3px !important;
 }
 }
 
-/* Floating Top Bar Styles */
-.floating-top-bar {
-    background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
-    color: white;
-    padding: 16px 20px;
-    text-align: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1001;
-    font-size: 12px;
-    line-height: 1.5;
-    box-shadow: none;
-    border-bottom: none;
-}
-
-.floating-top-bar-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-.floating-top-bar-close {
-    position: absolute;
-    top: 50%;
-    right: 20px;
-    transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    font-size: 20px;
-    cursor: pointer;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-}
-
-.floating-top-bar-close:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-@media (max-width: 768px) {
-    .floating-top-bar {
-        font-size: 10px;
-        padding: 10px 15px;
-        padding-right: 50px;
-    }
-
-    .floating-top-bar-content {
-        padding: 0 10px;
-    }
-
-    .floating-top-bar-close {
-        right: 15px;
-        width: 24px;
-        height: 24px;
-        font-size: 18px;
-    }
-}
-
-@media (max-width: 480px) {
-    .floating-top-bar {
-        font-size: 9px;
-        padding: 8px 12px;
-        padding-right: 45px;
-        line-height: 1.4;
-    }
-
-    .floating-top-bar-close {
-        right: 10px;
-        width: 22px;
-        height: 22px;
-        font-size: 16px;
-    }
-}
 
 </style>
 
@@ -1461,29 +1381,6 @@ padding: 1px 3px !important;
     <link rel="stylesheet" href="css/nav.css">
 </head>
 <body>
-    <!-- Floating Top Bar -->
-    <div class="floating-top-bar" id="floatingTopBar">
-        <div class="floating-top-bar-content">
-            95% people that use our program don't post a review. If you are benefiting from this program, or if you are finding it helpful, or if you are getting any value out of it at all, there's one tiny favour we ask of you. Please leave a <a href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" style="color: #0066cc; font-weight: 600; text-decoration: underline;">review</a>. Takes < 2 mins, but is the single most important thing you can do to help impact more lives.
-        </div>
-        <button class="floating-top-bar-close" onclick="closeTopBar()" aria-label="Close">&times;</button>
-    </div>
-
-    <!-- Add navbar positioning fix immediately -->
-    <script>
-        // Immediately add navbar positioning for this page since it has a floating top bar
-        (function() {
-            // Only add positioning if top bar hasn't been closed
-            const topBarClosed = localStorage.getItem('topBarClosed');
-            if (topBarClosed !== 'true') {
-                const style = document.createElement('style');
-                style.id = 'nav-position-fix';
-                style.textContent = '.navbar { top: 65px !important; } @media (max-width: 768px) { .navbar { top: 60px !important; } } @media (max-width: 480px) { .navbar { top: 75px !important; } }';
-                document.head.appendChild(style);
-            }
-        })();
-    </script>
-
     <!-- Navigation Bar -->
     <!-- Navigation will be loaded by nav.js -->
     <section class="hero" id="heroSection">
@@ -2377,54 +2274,250 @@ padding: 1px 3px !important;
 
     </script>
 
-    <!-- Floating Top Bar Script -->
-    <script>
-        // Function to close the top bar
-        function closeTopBar() {
-            const topBar = document.getElementById('floatingTopBar');
-            const navbar = document.getElementById('mainNavbar');
-            const hero = document.getElementById('heroSection');
-
-            // Hide the top bar
-            topBar.style.display = 'none';
-
-            // Remove the with-top-bar class from navbar and hero
-            if (navbar) navbar.classList.remove('with-top-bar');
-            if (hero) hero.classList.remove('with-top-bar');
-
-            // Remove the inline positioning fix style
-            const navPositionFix = document.getElementById('nav-position-fix');
-            if (navPositionFix) {
-                navPositionFix.remove();
-            }
-
-            // Store preference in localStorage
-            localStorage.setItem('topBarClosed', 'true');
-        }
-
-        // Check if top bar was previously closed on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const topBarClosed = localStorage.getItem('topBarClosed');
-            const topBar = document.getElementById('floatingTopBar');
-            const navbar = document.getElementById('mainNavbar');
-            const hero = document.getElementById('heroSection');
-
-            if (topBarClosed === 'true') {
-                // Hide top bar if it was closed before
-                topBar.style.display = 'none';
-            } else {
-                // Show top bar and adjust navbar and hero
-                navbar.classList.add('with-top-bar');
-                hero.classList.add('with-top-bar');
-            }
-        });
-    </script>
-
     <!-- Login Modal Functions -->
     <script src="js/login-modal.js"></script>
 
     <!-- Enhanced Analytics -->
     <script src="js/enhanced-analytics.js"></script>
     <script src="js/nav.js"></script>
+
+    <!-- Promotional Banner -->
+    <div id="promoModal" class="promo-modal">
+        <div class="promo-header">
+            <div class="promo-logo">THE ROLLR ACADEMY</div>
+            <button class="promo-close-btn" onclick="closePromoModal()">×</button>
+        </div>
+
+        <div class="promo-content">
+            <div class="promo-brand-family">
+                <div class="promo-brand-name">THE ROLLR ACADEMY</div>
+                <div class="promo-brand-subtitle">December</div>
+            </div>
+
+            <div class="promo-offer-text">
+                Unlock 20% Off on your 12-week program when you use code GIFTTOSELF!
+            </div>
+
+            <button class="promo-cta-button" onclick="claimPromoOffer()">Claim Offer</button>
+
+            <div class="promo-terms">
+                * Terms and Conditions apply. Offer Auto-Applies on clicking the button (claim offer), no code necessary.
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .promo-modal {
+            position: fixed;
+            bottom: 0;
+            right: 20px;
+            background: white;
+            max-width: 420px;
+            width: calc(100% - 40px);
+            border-radius: 0;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            border: 3px solid #000;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            pointer-events: none;
+        }
+
+        .promo-modal.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .promo-modal.hide {
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+        }
+
+        .promo-header {
+            background: white;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .promo-logo {
+            font-size: 18px;
+            font-weight: 900;
+            color: #000;
+            letter-spacing: -0.5px;
+        }
+
+        .promo-close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #000;
+            padding: 0;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .promo-close-btn:hover {
+            opacity: 0.7;
+        }
+
+        .promo-content {
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        .promo-brand-family {
+            margin-bottom: 24px;
+        }
+
+        .promo-brand-name {
+            font-size: 24px;
+            font-weight: 900;
+            color: #000;
+            margin-bottom: 0;
+            letter-spacing: -0.5px;
+        }
+
+        .promo-brand-subtitle {
+            font-size: 32px;
+            font-weight: 700;
+            color: #000;
+            font-style: italic;
+            margin-top: -6px;
+            letter-spacing: 0;
+        }
+
+        .promo-offer-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: #000;
+            line-height: 1.3;
+            margin-bottom: 24px;
+        }
+
+        .promo-cta-button {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            border-radius: 0;
+            transition: opacity 0.2s;
+        }
+
+        .promo-cta-button:hover {
+            opacity: 0.85;
+        }
+
+        .promo-terms {
+            margin-top: 20px;
+            font-size: 11px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .promo-modal {
+                bottom: 0;
+                right: 10px;
+                max-width: calc(100% - 20px);
+                width: calc(100% - 20px);
+            }
+
+            .promo-content {
+                padding: 24px 24px;
+            }
+
+            .promo-brand-name {
+                font-size: 20px;
+            }
+
+            .promo-brand-subtitle {
+                font-size: 28px;
+            }
+
+            .promo-offer-text {
+                font-size: 16px;
+            }
+
+            .promo-cta-button {
+                padding: 14px 32px;
+                font-size: 15px;
+            }
+
+            .promo-terms {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .promo-header {
+                padding: 14px 16px;
+            }
+
+            .promo-logo {
+                font-size: 14px;
+            }
+
+            .promo-content {
+                padding: 20px 20px;
+            }
+
+            .promo-brand-name {
+                font-size: 18px;
+            }
+
+            .promo-brand-subtitle {
+                font-size: 24px;
+            }
+
+            .promo-offer-text {
+                font-size: 14px;
+            }
+
+            .promo-cta-button {
+                font-size: 14px;
+                padding: 12px 24px;
+            }
+        }
+    </style>
+
+    <script>
+        // Show promotional modal after 3 seconds
+        setTimeout(function() {
+            // Check if user has already closed the modal in this session
+            if (!sessionStorage.getItem('promoModalClosed')) {
+                document.getElementById('promoModal').classList.add('show');
+            }
+        }, 8000);
+
+        function closePromoModal() {
+            const modal = document.getElementById('promoModal');
+            modal.classList.remove('show');
+            modal.classList.add('hide');
+            // Store in session storage so it doesn't pop up again during this session
+            sessionStorage.setItem('promoModalClosed', 'true');
+        }
+
+        function claimPromoOffer() {
+            // Replace with your actual offer URL or action
+            // For now, it will scroll to the pricing section or redirect
+            window.location.href = 'https://apps.apple.com/redeem?ctx=offercodes&id=6751569088&code=GIFTTOSELF';
+            closePromoModal();
+        }
+    </script>
 </body>
 </html>
