@@ -242,7 +242,7 @@ font-weight: 600;
             color: rgba(255, 255, 255, 0.85);
             display: flex;
             gap: 20px;
-            justify-content: center;
+            justify-content: flex-start;
             flex-wrap: wrap;
         }
 
@@ -258,10 +258,36 @@ radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%
 radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
 pointer-events: none;
 }
-.hero-content {
-max-width: 800px;
+.hero-container {
+max-width: 1200px;
+width: 100%;
+display: flex;
+align-items: center;
+gap: 60px;
 position: relative;
 z-index: 2;
+}
+
+.hero-content {
+flex: 1;
+max-width: 600px;
+position: relative;
+z-index: 2;
+}
+
+.hero-image-wrapper {
+flex: 1;
+max-width: 500px;
+position: relative;
+}
+
+.hero-image {
+width: 100%;
+height: auto;
+border-radius: 12px;
+border: 1px solid rgba(255, 255, 255, 0.2);
+box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+object-fit: cover;
 }
 .hero-title {
 font-family: 'Quicksand', sans-serif;
@@ -270,7 +296,7 @@ font-weight: 700;
 color: white;
 margin-bottom: 20px;
 line-height: 1.1;
-text-align: center;
+text-align: left;
 }
 
 .hero-subtitle {
@@ -279,9 +305,6 @@ font-size: 22px;
 font-weight: 400;
 color: rgba(255, 255, 255, 0.9);
 margin-bottom: 32px;
-max-width: 700px;
-margin-left: auto;
-margin-right: auto;
 line-height: 1.4;
 }
 
@@ -294,7 +317,7 @@ text-decoration: underline;
 .hero-cta-container {
 display: flex;
 flex-direction: column;
-align-items: center;
+align-items: flex-start;
 gap: 16px;
 margin-top: 32px;
 }
@@ -303,7 +326,7 @@ margin-top: 32px;
 display: flex;
 gap: 16px;
 flex-wrap: wrap;
-justify-content: center;
+justify-content: flex-start;
 }
 
 /* .urgency-text {
@@ -1066,13 +1089,35 @@ margin-top: 20px;
 
 /* Responsive Design */
 @media (max-width: 768px) {
+.hero-container {
+flex-direction: column;
+gap: 40px;
+}
+.hero-content {
+max-width: 100%;
+}
+.hero-image-wrapper {
+max-width: 100%;
+order: -1;
+}
 .hero-title {
 font-size: 36px;
 line-height: 1.2;
+text-align: center;
 }
 .hero-subtitle {
 font-size: 18px;
 padding: 0 10px;
+text-align: center;
+}
+.hero-cta-container {
+align-items: center;
+}
+.cta-buttons {
+justify-content: center;
+}
+.urgency-text {
+justify-content: center;
 }
 .hero-link {
 color: #FF9800;
@@ -1405,39 +1450,44 @@ padding: 1px 3px !important;
     <!-- Navigation will be loaded by nav.js -->
     <section class="hero" id="heroSection">
         <div class="hero::before"></div>
-        <div class="hero-content">
-            <h1 class="hero-title">Rhotacism Treatment: Master Your R Sound in 12 Weeks</h1>
-            <p class="hero-subtitle">
-                Stop cringing every time you say "really" or "world". Our program helps adults achieve clear R pronunciation. Learn more about <a href="guide/rhotacism.html" class="hero-link">what is rhotacism</a> and <a href="guide/how-to-fix-rhotacism.html" class="hero-link">how to fix it</a>.
-            </p>
-            <div class="hero-stats">
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <span class="stat-number">94%</span>
-                        <span class="stat-label">See Results in 2 Weeks</span>
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">Rhotacism Treatment: Master Your R Sound in 12 Weeks</h1>
+                <p class="hero-subtitle">
+                    Stop cringing every time you say "really" or "world". Our program helps adults achieve clear R pronunciation. Learn more about <a href="guide/rhotacism.html" class="hero-link">what is rhotacism</a> and <a href="guide/how-to-fix-rhotacism.html" class="hero-link">how to fix it</a>.
+                </p>
+                <div class="hero-stats">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-number">94%</span>
+                            <span class="stat-label">See Results in 2 Weeks</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">12 Weeks</span>
+                            <span class="stat-label">Structured Program</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">15 mins </span>
+                            <span class="stat-label">Daily Practice</span>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-number">12 Weeks</span>
-                        <span class="stat-label">Structured Program</span>
+                </div>
+
+                <div class="hero-cta-container">
+                    <div class="cta-buttons">
+                        <a href="assessment.html" class="btn btn-primary hero-main-cta" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'hero_cta' });">Take Your 2-Minute Assessment</a>
+                        <a href="#features" class="btn btn-secondary" style="height: 68px; display: flex; align-items: center; justify-content: center; padding: 20px 40px;" onclick="gtag('event', 'see_how_it_works', { event_category: 'engagement', event_label: 'hero_section' });">See How It Works</a>
+                        <div class="nav-toggle">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-number">15 mins </span>
-                        <span class="stat-label">Daily Practice</span>
-                    </div>
+                    <p class="urgency-text">✓ No appointments needed | ✓ Practice anytime, anywhere | ✓ Confidence boost in 2 Weeks</p>
                 </div>
             </div>
-
-            <div class="hero-cta-container">
-                <div class="cta-buttons">
-                    <a href="assessment.html" class="btn btn-primary hero-main-cta" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'hero_cta' });">Take Your 2-Minute Assessment</a>
-                    <a href="#features" class="btn btn-secondary" style="height: 68px; display: flex; align-items: center; justify-content: center; padding: 20px 40px;" onclick="gtag('event', 'see_how_it_works', { event_category: 'engagement', event_label: 'hero_section' });">See How It Works</a>
-                    <div class="nav-toggle">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                </div>
-                <p class="urgency-text">✓ No appointments needed | ✓ Practice anytime, anywhere | ✓ Confidence boost in 2 Weeks</p>
+            <div class="hero-image-wrapper">
+                <img src="pexels-tiger-lily-7109063.jpg" alt="Professional team of speech therapists" class="hero-image">
             </div>
         </div>
     </section>
