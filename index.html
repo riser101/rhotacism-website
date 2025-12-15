@@ -277,20 +277,27 @@ z-index: 2;
 
 .hero-image-wrapper {
 flex: 1;
-max-width: 500px;
+max-width: 550px;
 position: relative;
+display: flex;
+gap: 0px;
+align-items: flex-end;
+justify-content: center;
 }
 
 .hero-image {
-width: 100%;
-height: auto;
-border-radius: 12px;
-border: 3px solid #5C5C05;
-box-shadow:
-    0 0 20px rgba(92, 92, 5, 0.4),
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-object-fit: cover;
+height: 450px;
+width: auto;
+object-fit: contain;
+filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+margin-right: -52px;
+z-index: 1;
+}
+
+.hero-image-2 {
+height: 450px;
+width: auto;
+z-index: 2;
 }
 .hero-title {
 font-family: 'Quicksand', sans-serif;
@@ -1500,7 +1507,8 @@ padding: 1px 3px !important;
                 </div>
             </div>
             <div class="hero-image-wrapper">
-                <img src="pexels-tiger-lily-7109063.jpg" alt="Professional team of speech therapists" class="hero-image">
+                <img src="pexels-absior-309495372-15721710.png" alt="Professional speech therapist" class="hero-image">
+                <img src="pexels-george-milton-6953667 (3).png" alt="Speech therapy client" class="hero-image hero-image-2">
             </div>
         </div>
     </section>
