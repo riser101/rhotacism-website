@@ -1086,7 +1086,7 @@ font-size: 28px;
             <h2 class="cta-title">Ready to Start Your R Sound Journey?</h2>
             <p class="cta-subtitle">Join thousands who've already transformed their speech with The Rollr Academy's proven program.</p>
             
-            <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="btn btn-primary" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'about_page_cta' }); plerdy_goals('app_store_click');">
+            <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="btn btn-primary" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'about_page_cta' }); posthog.capture('app_store_click', { section: 'about_page_cta' });">
                 Start Your Free Assessment
             </a>
         </div>

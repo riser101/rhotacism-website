@@ -31,7 +31,7 @@
             <li class="login-nav">
                 <button class="login-nav-button" onclick="openLoginModal()">Get Started</button>
             </li>
-            <li><a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'nav_menu' }); plerdy_goals('app_store_click');">
+            <li><a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'nav_menu' }); posthog.capture('app_store_click', { section: 'navigation' });">
                     <img src="" id="navAppStoreBadge1" alt="Download on the App Store" style="height: 44px; margin: -2px 0;">
                 </a></li>
             <li class="profile-dropdown">
@@ -47,7 +47,7 @@
         <!-- Mobile Navigation -->
         <div class="mobile-nav">
             <button class="mobile-get-started" onclick="openLoginModal()">Get Started</button>
-            <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="mobile-download-btn" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'mobile_nav' }); plerdy_goals('mobile_nav_download');">
+            <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="mobile-download-btn" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'mobile_nav' }); posthog.capture('mobile_nav_download', { section: 'mobile_navigation' });">
                 <img src="" id="navAppStoreBadge2" alt="Download on the App Store" style="height: 32px;">
             </a>
             <!-- Mobile hamburger menu for Company dropdown -->
