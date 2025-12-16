@@ -1353,191 +1353,8 @@ padding: 1px 3px !important;
     </script>
     <!-- END POSTHOG ANALYTICS CODE -->
 
-    <!-- POSTHOG EVENT TRACKING SYSTEM -->
-    <script>
-        // Track page view with detailed info
-        posthog.capture('$pageview', {
-            page_title: document.title,
-            page_url: window.location.href,
-            page_path: window.location.pathname,
-            referrer: document.referrer,
-            viewport_width: window.innerWidth,
-            viewport_height: window.innerHeight
-        });
-
-        // Track all button clicks
-        document.addEventListener('DOMContentLoaded', function() {
-            // Track all button clicks
-            document.addEventListener('click', function(e) {
-                const target = e.target.closest('button, a, .btn, [role="button"]');
-                if (target) {
-                    posthog.capture('button_click', {
-                        button_text: target.innerText.trim(),
-                        button_class: target.className,
-                        button_id: target.id,
-                        button_href: target.href || null,
-                        section: target.closest('section')?.id || target.closest('section')?.className || 'unknown',
-                        page_url: window.location.href
-                    });
-                }
-            });
-
-            // Track all form input interactions
-            const formInputs = document.querySelectorAll('input, textarea, select');
-            formInputs.forEach(input => {
-                // Track when user focuses on input
-                input.addEventListener('focus', function() {
-                    posthog.capture('form_input_focus', {
-                        input_type: this.type,
-                        input_name: this.name,
-                        input_id: this.id,
-                        input_placeholder: this.placeholder,
-                        form_id: this.closest('form')?.id || null,
-                        page_url: window.location.href
-                    });
-                });
-
-                // Track when user changes input value
-                input.addEventListener('change', function() {
-                    posthog.capture('form_input_change', {
-                        input_type: this.type,
-                        input_name: this.name,
-                        input_id: this.id,
-                        has_value: this.value.length > 0,
-                        form_id: this.closest('form')?.id || null,
-                        page_url: window.location.href
-                    });
-                });
-            });
-
-            // Track form submissions
-            const forms = document.querySelectorAll('form');
-            forms.forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    posthog.capture('form_submit', {
-                        form_id: this.id,
-                        form_action: this.action,
-                        form_method: this.method,
-                        page_url: window.location.href
-                    });
-                });
-            });
-
-            // Track video plays
-            const videos = document.querySelectorAll('video');
-            videos.forEach(video => {
-                video.addEventListener('play', function() {
-                    posthog.capture('video_play', {
-                        video_src: this.src,
-                        video_duration: this.duration,
-                        video_currentTime: this.currentTime,
-                        page_url: window.location.href
-                    });
-                });
-
-                video.addEventListener('pause', function() {
-                    posthog.capture('video_pause', {
-                        video_src: this.src,
-                        video_currentTime: this.currentTime,
-                        video_progress_percent: (this.currentTime / this.duration * 100).toFixed(2),
-                        page_url: window.location.href
-                    });
-                });
-
-                video.addEventListener('ended', function() {
-                    posthog.capture('video_complete', {
-                        video_src: this.src,
-                        video_duration: this.duration,
-                        page_url: window.location.href
-                    });
-                });
-            });
-
-            // Track scroll depth
-            let maxScrollDepth = 0;
-            let scrollCheckpoints = [25, 50, 75, 90, 100];
-            let reachedCheckpoints = [];
-
-            window.addEventListener('scroll', function() {
-                const scrollPercent = Math.round((window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100);
-
-                if (scrollPercent > maxScrollDepth) {
-                    maxScrollDepth = scrollPercent;
-                }
-
-                scrollCheckpoints.forEach(checkpoint => {
-                    if (scrollPercent >= checkpoint && !reachedCheckpoints.includes(checkpoint)) {
-                        reachedCheckpoints.push(checkpoint);
-                        posthog.capture('scroll_depth', {
-                            depth_percent: checkpoint,
-                            page_url: window.location.href,
-                            page_title: document.title
-                        });
-                    }
-                });
-            });
-
-            // Track time on page
-            let pageLoadTime = Date.now();
-            let timeCheckpoints = [10, 30, 60, 120, 300]; // seconds
-            let reachedTimeCheckpoints = [];
-
-            setInterval(function() {
-                const timeOnPage = Math.round((Date.now() - pageLoadTime) / 1000);
-
-                timeCheckpoints.forEach(checkpoint => {
-                    if (timeOnPage >= checkpoint && !reachedTimeCheckpoints.includes(checkpoint)) {
-                        reachedTimeCheckpoints.push(checkpoint);
-                        posthog.capture('time_on_page', {
-                            time_seconds: checkpoint,
-                            page_url: window.location.href,
-                            page_title: document.title,
-                            max_scroll_depth: maxScrollDepth
-                        });
-                    }
-                });
-            }, 1000);
-
-            // Track page exit with session summary
-            window.addEventListener('beforeunload', function() {
-                const totalTimeOnPage = Math.round((Date.now() - pageLoadTime) / 1000);
-                posthog.capture('page_exit', {
-                    total_time_seconds: totalTimeOnPage,
-                    max_scroll_depth: maxScrollDepth,
-                    page_url: window.location.href,
-                    page_title: document.title
-                });
-            });
-
-            // Track navigation clicks
-            const navLinks = document.querySelectorAll('nav a, .nav a, [class*="nav"] a');
-            navLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    posthog.capture('navigation_click', {
-                        link_text: this.innerText.trim(),
-                        link_href: this.href,
-                        link_location: 'navigation',
-                        page_url: window.location.href
-                    });
-                });
-            });
-
-            // Track CTA clicks specifically
-            const ctaButtons = document.querySelectorAll('.btn-primary, .cta-button, [class*="cta"]');
-            ctaButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    posthog.capture('cta_click', {
-                        cta_text: this.innerText.trim(),
-                        cta_class: this.className,
-                        cta_href: this.href || null,
-                        section: this.closest('section')?.id || this.closest('section')?.className || 'unknown',
-                        page_url: window.location.href
-                    });
-                });
-            });
-        });
-    </script>
-    <!-- END POSTHOG EVENT TRACKING SYSTEM -->
+    <!-- Load PostHog Event Tracking -->
+    <script src="js/posthog-tracking.js"></script>
 
     <!-- Google OAuth 2.0 Script -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -2518,28 +2335,97 @@ padding: 1px 3px !important;
             carousel.style.transform = `translateX(${translateX}%)`;
         }
 
-        // FAQ Toggle Functionality
+        // FAQ Toggle Functionality with PostHog Tracking
         document.addEventListener('DOMContentLoaded', function() {
             const faqQuestions = document.querySelectorAll('.faq-question');
+            const faqOpenTimes = {}; // Track when each FAQ was opened
 
-            faqQuestions.forEach(function(question) {
+            faqQuestions.forEach(function(question, index) {
                 question.addEventListener('click', function() {
                     const answer = this.nextElementSibling;
                     const isActive = this.classList.contains('active');
+                    const questionText = this.textContent.replace(/\+|\-/g, '').trim();
 
-                    // Close all FAQ items
-                    faqQuestions.forEach(function(q) {
+                    // Track FAQ section entry on first interaction
+                    if (Object.keys(faqOpenTimes).length === 0) {
+                        if (typeof posthog !== 'undefined') {
+                            posthog.capture('faq_section_entered', {
+                                page_url: window.location.href,
+                                first_question: questionText
+                            });
+                        }
+                    }
+
+                    // Close all FAQ items and track close events
+                    faqQuestions.forEach(function(q, qIndex) {
+                        if (q.classList.contains('active')) {
+                            const closedQuestionText = q.textContent.replace(/\+|\-/g, '').trim();
+                            const openTime = faqOpenTimes[qIndex];
+
+                            if (openTime && typeof posthog !== 'undefined') {
+                                const timeOpen = Math.round((Date.now() - openTime) / 1000);
+                                posthog.capture('faq_closed', {
+                                    question: closedQuestionText,
+                                    question_index: qIndex,
+                                    time_open_seconds: timeOpen,
+                                    page_url: window.location.href
+                                });
+                                delete faqOpenTimes[qIndex];
+                            }
+                        }
                         q.classList.remove('active');
                         q.nextElementSibling.classList.remove('active');
                     });
 
-                    // If the clicked item wasn't active, open it
+                    // If the clicked item wasn't active, open it and track
                     if (!isActive) {
                         this.classList.add('active');
                         answer.classList.add('active');
+
+                        // Track FAQ expansion with PostHog
+                        if (typeof posthog !== 'undefined') {
+                            posthog.capture('faq_expanded', {
+                                question: questionText,
+                                question_index: index,
+                                page_url: window.location.href,
+                                section: 'faq'
+                            });
+                        }
+
+                        // Track with Google Analytics
+                        if (typeof gtag !== 'undefined') {
+                            gtag('event', 'faq_click', {
+                                event_category: 'engagement',
+                                event_label: questionText,
+                                custom_parameters: {
+                                    question_index: index
+                                }
+                            });
+                        }
+
+                        // Record open time for duration tracking
+                        faqOpenTimes[index] = Date.now();
                     }
                 });
             });
+
+            // Track if user clicks CTA after reading FAQs
+            const faqSection = document.querySelector('.faq');
+            if (faqSection) {
+                const faqCTAs = faqSection.querySelectorAll('a, button, .btn');
+                faqCTAs.forEach(function(cta) {
+                    cta.addEventListener('click', function() {
+                        if (typeof posthog !== 'undefined') {
+                            posthog.capture('faq_cta_clicked', {
+                                cta_text: this.textContent.trim(),
+                                cta_href: this.href || null,
+                                faqs_viewed: Object.keys(faqOpenTimes).length,
+                                page_url: window.location.href
+                            });
+                        }
+                    });
+                });
+            }
         });
 
     </script>

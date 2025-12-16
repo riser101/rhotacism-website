@@ -3,10 +3,20 @@ function openLoginModal() {
     const loginModal = document.getElementById('loginModal');
     if (loginModal) {
         loginModal.style.display = 'flex';
+
+        // Track with Google Analytics
         if (typeof gtag !== 'undefined') {
             gtag('event', 'login_modal_open', {
                 event_category: 'engagement',
                 event_label: 'navigation_login_button'
+            });
+        }
+
+        // Track with PostHog
+        if (typeof posthog !== 'undefined') {
+            posthog.capture('login_modal_opened', {
+                page_url: window.location.href,
+                trigger: 'get_started_button'
             });
         }
     }
@@ -16,6 +26,13 @@ function closeLoginModal() {
     const loginModal = document.getElementById('loginModal');
     if (loginModal) {
         loginModal.style.display = 'none';
+
+        // Track modal close with PostHog
+        if (typeof posthog !== 'undefined') {
+            posthog.capture('login_modal_closed', {
+                page_url: window.location.href
+            });
+        }
     }
 }
 
@@ -38,12 +55,28 @@ function handleCredentialResponse(response) {
         localStorage.setItem('userAuth', JSON.stringify(userData));
         localStorage.setItem('userEmail', responsePayload.email);
 
-        // Track successful login
+        // Track successful login with Google Analytics
         if (typeof gtag !== 'undefined') {
             gtag('event', 'google_login_success', {
                 event_category: 'conversion',
                 event_label: 'login_modal',
                 user_id: responsePayload.sub
+            });
+        }
+
+        // Track successful login with PostHog
+        if (typeof posthog !== 'undefined') {
+            posthog.capture('user_login_success', {
+                login_method: 'google_oauth',
+                user_email: responsePayload.email,
+                user_name: responsePayload.name,
+                page_url: window.location.href
+            });
+
+            // Identify user in PostHog
+            posthog.identify(responsePayload.sub, {
+                email: responsePayload.email,
+                name: responsePayload.name
             });
         }
 
@@ -70,12 +103,24 @@ function handleCredentialResponse(response) {
 
     } catch (error) {
         console.error('Login error:', error);
+
+        // Track with Google Analytics
         if (typeof gtag !== 'undefined') {
             gtag('event', 'google_login_error', {
                 event_category: 'error',
                 event_label: 'login_modal'
             });
         }
+
+        // Track with PostHog
+        if (typeof posthog !== 'undefined') {
+            posthog.capture('user_login_error', {
+                login_method: 'google_oauth',
+                error_message: error.message || 'Unknown error',
+                page_url: window.location.href
+            });
+        }
+
         alert('Login failed. Please try again.');
     }
 }
