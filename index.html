@@ -69,6 +69,33 @@ background-attachment: fixed;
 min-height: 100vh;
 }
 
+/* Mobile-specific gradient to match desktop appearance */
+@media (max-width: 768px) {
+body {
+background: linear-gradient(
+to bottom,
+#3a3a15 0%,
+#3d3d18 8%,
+#40401a 15%,
+#48481c 22%,
+#50501e 28%,
+#585820 35%,
+#606022 42%,
+#686825 48%,
+#707028 54%,
+#78782a 60%,
+#80802c 66%,
+#88882e 72%,
+#989835 78%,
+#a8a83c 84%,
+#b5b540 90%,
+#c0c045 94%,
+#3a3a15 100%
+);
+background-attachment: fixed;
+}
+}
+
 /* Utility Classes */
 .container {
 max-width: 1200px;
