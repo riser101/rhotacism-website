@@ -45,6 +45,28 @@ font-weight: 400;
 line-height: 1.6;
 color: #333;
 overflow-x: hidden;
+background: linear-gradient(
+to bottom,
+#1a1a1a 0%,
+#1c1c1c 8%,
+#1e1e00 15%,
+#252500 22%,
+#2d2d00 28%,
+#353500 35%,
+#3d3d00 42%,
+#454500 48%,
+#4d4d00 54%,
+#555500 60%,
+#5d5d00 66%,
+#656500 72%,
+#757510 78%,
+#858518 84%,
+#9a901a 90%,
+#b09a1a 94%,
+#1a1a1a 100%
+);
+background-attachment: fixed;
+min-height: 100vh;
 }
 
 /* Utility Classes */
@@ -81,14 +103,13 @@ text-align: center;
         }
 
 .btn-primary {
-background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+background: #000000;
 color: white;
-box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+transition: background 0.3s ease;
 }
 
 .btn-primary:hover {
-transform: translateY(-2px);
-box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+background: #E85600;
 }
 
 .btn-mega {
@@ -96,20 +117,14 @@ font-size: 20px !important;
 padding: 20px 40px !important;
 font-weight: 700 !important;
 border-radius: 12px !important;
-box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4) !important;
-animation: pulse 2s infinite;
+background: #000000 !important;
+transition: background 0.3s ease !important;
 }
 
 .btn-mega:hover {
-transform: translateY(-3px) !important;
-box-shadow: 0 12px 30px rgba(255, 152, 0, 0.5) !important;
+background: #E85600 !important;
 }
 
-@keyframes pulse {
-0% { box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4); }
-50% { box-shadow: 0 8px 35px rgba(255, 152, 0, 0.6); }
-100% { box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4); }
-}
 
 @keyframes autoScroll {
 0% { transform: translateX(0); }
@@ -124,8 +139,16 @@ backdrop-filter: blur(10px);
 }
 
 .btn-secondary:hover {
-background: #FF9800;
+background: #000000;
 color: white;
+}
+
+.app-store-cta:hover {
+background: #000000 !important;
+}
+
+.assessment-cta:hover {
+background: #000000 !important;
 }
 
 .custom-rollr-btn {
@@ -137,16 +160,13 @@ color: white;
     border-radius: 12px;
     font-size: 18px;
     font-weight: 600;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(232, 87, 0, 0.3);
+    transition: background 0.3s ease;
     border: none;
     cursor: pointer;
 }
 
 .custom-rollr-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(232, 87, 0, 0.4);
-    background: #FF6B00;
+    background: #000000;
     color: white;
     text-decoration: none;
 }
@@ -173,26 +193,6 @@ padding: 80px 0;
 .mb-6 { margin-bottom: 3rem; }
 /* Hero Section */
 .hero {
-
-background: linear-gradient(
-to bottom,
-#000000 0%,
-#0A0A0A 12%,
-#1A1A1A 20%,
-#2D2D00 30%,
-#4A4A00 40%,
-#666600 47%,
-#D4911A 53%,
-#E6A91F 57%,
-#F5B532 61%,
-#FF9800 67%,
-#FF8F00 73%,
-#FF6F00 80%,
-#E65100 87%,
-#BF360C 92%,
-#8D2F00 96%,
-#000000 100%
-);
 min-height: 100vh;
 display: flex;
 flex-direction: column;
@@ -246,18 +246,6 @@ font-weight: 600;
             flex-wrap: wrap;
         }
 
-.hero::before {
-content: '';
-position: absolute;
-top: 0;
-left: 0;
-right: 0;
-bottom: 0;
-background-image:
-radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
-radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
-pointer-events: none;
-}
 .hero-container {
 max-width: 1200px;
 width: 100%;
@@ -347,7 +335,6 @@ font-style: italic;
 } */
 /* Benefits Section */
 .benefits {
-background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
 padding: 100px 0;
 }
 
@@ -434,7 +421,6 @@ text-decoration: none;
 
 /* Features Section */
 .features {
-background: #1a1a1a;
 color: white;
 padding: 100px 0;
 }
@@ -498,7 +484,6 @@ align-items: flex-start;
 
 /* Social Proof Section */
 .social-proof {
-background: #f8f9fa;
 padding: 80px 0;
 }
 
@@ -533,7 +518,6 @@ margin-bottom: 20px;
 
 /* CTA Section */
 .cta-section {
-background: linear-gradient(135deg, #FF9800, #E65100);
 color: white;
 padding: 80px 0;
 text-align: center;
@@ -568,18 +552,17 @@ margin-bottom: 10px;
 /* FAQ Section */
 .faq {
 padding: 100px 0;
-background: white;
 }
 
 .faq-item {
-border-bottom: 1px solid #eee;
-padding: 12px 0;
+border-bottom: 1px solid #000000;
+padding: 6px 0;
 }
 
 .faq-question {
 font-size: 18px;
 font-weight: 600;
-color: #333;
+color: white;
 margin-bottom: 15px;
 cursor: pointer;
 display: flex;
@@ -588,7 +571,7 @@ align-items: center;
 }
 
 .faq-answer {
-color: #666;
+color: white;
 line-height: 1.6;
 padding-right: 30px;
 max-height: 0;
@@ -615,7 +598,6 @@ transform: rotate(45deg);
 /* Todo List Section */
 .todo-section {
 padding: 80px 0;
-background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
 }
 
 .todo-container {
@@ -1012,8 +994,8 @@ margin-top: 20px;
     }
     
     .advisory-board .advisor-avatar {
-        width: 286px !important;
-        height: 286px !important;
+        width: 160px !important;
+        height: 160px !important;
         margin-bottom: 20px !important;
     }
     
@@ -1031,13 +1013,13 @@ margin-top: 20px;
     .carousel-btn-left,
     .carousel-btn-right {
         position: absolute;
-        top: 50%;
+        top: 120px;
         transform: translateY(-50%);
         width: 45px;
         height: 45px;
         border-radius: 50%;
         background: white;
-        border: 2px solid #FF9800;
+        border: 2px solid #000000;
         display: flex !important;
         align-items: center;
         justify-content: center;
@@ -1046,31 +1028,31 @@ margin-top: 20px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         z-index: 10;
     }
-    
+
     .carousel-btn-left {
         left: 10px;
     }
-    
+
     .carousel-btn-right {
         right: 10px;
     }
-    
+
     .carousel-btn-left:hover,
     .carousel-btn-right:hover {
-        background: #FF9800;
+        background: #000000;
         color: white;
         transform: translateY(-50%) scale(1.1);
-        box-shadow: 0 6px 20px rgba(255, 152, 0, 0.3);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
     }
-    
+
     .carousel-btn-left svg,
     .carousel-btn-right svg {
         width: 18px;
         height: 18px;
-        fill: #FF9800;
+        fill: #000000;
         transition: fill 0.3s ease;
     }
-    
+
     .carousel-btn-left:hover svg,
     .carousel-btn-right:hover svg {
         fill: white;
@@ -1135,7 +1117,7 @@ justify-content: center;
 justify-content: center;
 }
 .hero-link {
-color: #FF9800;
+color: #000000;
 }
 .stats-grid {
 grid-template-columns: repeat(3, 1fr);
@@ -1503,13 +1485,13 @@ padding: 1px 3px !important;
     </section>
     
     <!-- Advisory Board Section -->
-    <section class="advisory-board section" style="background: white; padding: 80px 0;">
+    <section class="advisory-board section" style="padding: 20px 0 80px 0;">
         <div class="container">
-            <div class="text-center" style="margin-bottom: 60px;">
-                <h2 style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 42px; font-weight: 700; color: #333; margin-bottom: 20px; line-height: 1.2;">Meet Our Dedicated Speech Language Pathologist Team</h2>
-                <p style="font-size: 18px; color: #666; max-width: 600px; margin: 0 auto; line-height: 1.6;">These SLPs are committed to shaping the future of speech language therapy.</p>
+            <div class="text-center" style="margin-bottom: 60px; max-width: 1200px; margin-left: auto; margin-right: auto;">
+                <h2 style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 42px; font-weight: 700; color: white; margin-bottom: 20px; line-height: 1.2;">Meet Our Dedicated Speech Language Pathologist Team</h2>
+                <p style="font-size: 18px; color: white; max-width: 900px; margin: 0 auto; line-height: 1.6;">These SLPs are committed to shaping the future of speech language therapy.</p>
             </div>
-            
+
             <div class="advisory-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; align-items: stretch;">
                 <!-- Side Navigation Arrows (mobile only) -->
                 <button class="carousel-btn-left" id="prevBtn" onclick="previousCard()" style="display: none;">
@@ -1525,33 +1507,33 @@ padding: 1px 3px !important;
                 
                 <div class="mobile-carousel-container" id="advisoryCarousel">
                     <!-- Speech-Language Pathologist -->
-                    <div class="advisor-card" style="background: white; border-radius: 16px; padding: 40px 30px; text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border-top: 4px solid #FF9800; position: relative; transition: transform 0.3s ease; display: flex; flex-direction: column; height: 100%;">
-                        <div class="advisor-avatar" style="width: 286px; height: 286px; background: url('1755912418188.jpeg') center/cover; border-radius: 12px; margin: 0 auto 24px; border: 3px solid #FF9800;"></div>
+                    <div class="advisor-card" style="background: white; border-radius: 16px; padding: 40px 30px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); border-top: 4px solid #000000; position: relative; transition: transform 0.3s ease; display: flex; flex-direction: column; height: 100%;">
+                        <div class="advisor-avatar" style="width: 160px; height: 160px; background: url('1755912418188.jpeg') center/cover; border-radius: 12px; margin: 0 auto 24px; border: 3px solid #000000;"></div>
                         <h4 style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; color: #333; margin-bottom: 8px;">Jaime Roche</h4>
-                        <div style="color: #FF9800; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">CCC-SLP, LOYOLA UNIVERSITY MARYLAND</div>
+                        <div style="color: #FF9800; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">CCC-SLP, LOYOLA UNIVERSITY MARYLAND</div>
                         <div style="color: #666; font-weight: 600; margin-bottom: 16px;">Speech Sound Disorders & Communication Development</div>
                         <p style="color: #777; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0; flex-grow: 1;">20+ years of clinical experience in comprehensive evaluation and treatment of speech sound disorders. ASHA ACE Award recipient with expertise in evidence-based therapy for children and adults.</p>
-                        <div style="background: #1B7A7A; padding: 8px 6px; border-radius: 25px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"><img src="asha.jpg" style="width: 24px; height: 24px; border-radius: 50%;" alt="ASHA"><span style="color: white; font-size: 14px; font-weight: 600; text-decoration: underline; font-family: 'Inter', sans-serif;">ASHA Certified</span></div>
+                        <div style="background: #000000; padding: 8px 6px; border-radius: 25px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"><img src="asha.jpg" style="width: 24px; height: 24px; border-radius: 50%;" alt="ASHA"><span style="color: white; font-size: 14px; font-weight: 600; text-decoration: underline; font-family: 'Inter', sans-serif;">ASHA Certified</span></div>
                     </div>
                     
                     <!-- Speech-Language Pathologist -->
-                    <div class="advisor-card" style="background: white; border-radius: 16px; padding: 40px 30px; text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border-top: 4px solid #FF9800; position: relative; transition: transform 0.3s ease; display: flex; flex-direction: column; height: 100%;">
-                        <div class="advisor-avatar" style="width: 286px; height: 286px; background: url('1517578395354.jpeg') center/cover; border-radius: 12px; margin: 0 auto 24px; border: 3px solid #FF9800;"></div>
+                    <div class="advisor-card" style="background: white; border-radius: 16px; padding: 40px 30px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); border-top: 4px solid #000000; position: relative; transition: transform 0.3s ease; display: flex; flex-direction: column; height: 100%;">
+                        <div class="advisor-avatar" style="width: 160px; height: 160px; background: url('1517578395354.jpeg') center/cover; border-radius: 12px; margin: 0 auto 24px; border: 3px solid #000000;"></div>
                         <h4 style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; color: #333; margin-bottom: 8px;">Peter Stoll</h4>
-                        <div style="color: #FF9800; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">M.S., CCC-SLP, LONG ISLAND UNIVERSITY</div>
+                        <div style="color: #FF9800; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">M.S., CCC-SLP, LONG ISLAND UNIVERSITY</div>
                         <div style="color: #666; font-weight: 600; margin-bottom: 16px;">Clinical Speech-Language Pathology</div>
                         <p style="color: #777; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0; flex-grow: 1;">Graduate-trained clinician with Master's in Speech Language Pathology from Long Island University-Brooklyn. Specialized in evidence-based assessment and treatment of communication disorders across diverse clinical settings.</p>
-                        <div style="background: #4A90E2; padding: 8px 6px; border-radius: 25px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"><div style="width: 24px; height: 24px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #4A90E2; font-weight: 700; font-size: 10px;">CCC</div><span style="color: white; font-size: 14px; font-weight: 600; text-decoration: underline; font-family: 'Inter', sans-serif;">CCC-SLP Certified</span></div>
+                        <div style="background: #000000; padding: 8px 6px; border-radius: 25px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"><div style="width: 24px; height: 24px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000000; font-weight: 700; font-size: 10px;">CCC</div><span style="color: white; font-size: 14px; font-weight: 600; text-decoration: underline; font-family: 'Inter', sans-serif;">CCC-SLP Certified</span></div>
                     </div>
                     
                     <!-- Senior Speech Language Pathologist -->
-                    <div class="advisor-card" style="background: white; border-radius: 16px; padding: 40px 30px; text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border-top: 4px solid #FF9800; position: relative; transition: transform 0.3s ease; display: flex; flex-direction: column; height: 100%;">
-                        <div class="advisor-avatar" style="width: 286px; height: 286px; background: url('1517282777568.jpeg') center/cover; border-radius: 12px; margin: 0 auto 24px; border: 3px solid #FF9800;"></div>
+                    <div class="advisor-card" style="background: white; border-radius: 16px; padding: 40px 30px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); border-top: 4px solid #000000; position: relative; transition: transform 0.3s ease; display: flex; flex-direction: column; height: 100%;">
+                        <div class="advisor-avatar" style="width: 160px; height: 160px; background: url('1517282777568.jpeg') center/cover; border-radius: 12px; margin: 0 auto 24px; border: 3px solid #000000;"></div>
                         <h4 style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; color: #333; margin-bottom: 8px;">Deborah Sarfaty</h4>
-                        <div style="color: #FF9800; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">M.A., MONTCLAIR STATE UNIVERSITY</div>
+                        <div style="color: #FF9800; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">M.A., MONTCLAIR STATE UNIVERSITY</div>
                         <div style="color: #666; font-weight: 600; margin-bottom: 16px;">Rehabilitation & Adult Communication Disorders</div>
                         <p style="color: #777; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0; flex-grow: 1;">Senior clinician at Kessler Institute for Rehabilitation specializing in adult communication disorders and speech rehabilitation. Expert in evidence-based treatment approaches for complex speech and language impairments.</p>
-                        <div style="background: #2E8B57; padding: 8px 6px; border-radius: 25px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"><img src="kesseler.png" style="width: 24px; height: 24px; border-radius: 6px;" alt="Kessler Institute"><span style="color: white; font-size: 14px; font-weight: 600; text-decoration: underline; font-family: 'Inter', sans-serif;">Kessler Institute</span></div>
+                        <div style="background: #000000; padding: 8px 6px; border-radius: 25px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"><img src="kesseler.png" style="width: 24px; height: 24px; border-radius: 6px;" alt="Kessler Institute"><span style="color: white; font-size: 14px; font-weight: 600; text-decoration: underline; font-family: 'Inter', sans-serif;">Kessler Institute</span></div>
                     </div>
                 </div>
             </div>
@@ -1559,11 +1541,11 @@ padding: 1px 3px !important;
     </section>
     
     <!-- Features Section -->
-    <section id="features" class="features section" style="background: #000000; color: white;">
+    <section id="features" class="features section" style="color: white;">
         <div class="container">
-            <div class="text-center">
+            <div class="text-center" style="margin-bottom: 60px; max-width: 1200px; margin-left: auto; margin-right: auto;">
                 <h2 style="font-size: 42px; font-weight: 700; color: white; margin-bottom: 20px;">Your Journey to Perfect R Pronunciation</h2>
-                <p style="font-size: 18px; color: rgba(255, 255, 255, 0.8); max-width: 600px; margin: 0 auto;">Follow the same proven system used by speech therapists worldwide.</p>
+                <p style="font-size: 18px; color: white; max-width: 900px; margin: 0 auto;">Follow the same proven system used by speech therapists worldwide.</p>
             </div>
 
             <div class="features-grid">
@@ -1593,11 +1575,11 @@ padding: 1px 3px !important;
             </div>
 
             <!-- App Store Logo -->
-            <div style="text-align: center; margin-top: 40px;">
-                <h3 class="feature-title" style="color: white; margin-bottom: 20px;">Fix Your Speech Impediment Conviniently.</h3>
+            <div class="text-center" style="margin-top: 60px; margin-bottom: 60px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: 12px; padding: 40px 24px; border: 1px solid rgba(255, 255, 255, 0.2); max-width: 1200px; margin-left: auto; margin-right: auto;">
+                <h3 class="feature-title" style="color: black; margin-bottom: 20px;">Fix Your Speech Impediment Conviniently.</h3>
                 <!-- Star Rating Box -->
                 <div style="margin-bottom: 24px; position: relative;">
-                    <div id="starRating" style="display: inline-flex; align-items: center; justify-content: center; gap: 9.68px; cursor: pointer; transition: transform 0.3s ease; border: 2px solid white; border-radius: 12px; padding: 7.26px 16.94px; background: transparent;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'" onclick="toggleRatingTooltip()">
+                    <div id="starRating" style="display: inline-flex; align-items: center; justify-content: center; gap: 9.68px; cursor: pointer; transition: transform 0.3s ease; border: 2px solid black; border-radius: 12px; padding: 7.26px 16.94px; background: transparent;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'" onclick="toggleRatingTooltip()">
                         <div style="display: flex; align-items: center; gap: 3.63px;">
                             <!-- Star 1 - Full -->
                             <svg width="19.36" height="19.36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1652,7 +1634,7 @@ padding: 1px 3px !important;
                                 <path d="M12 2.5C12 2.5 12.8 5.2 13.5 7.5C13.8 8.4 14.5 9 15.5 9.1C17.5 9.3 20 9.5 20 9.5C20 9.5 17.5 11.5 15.8 13C15.1 13.6 14.8 14.5 15 15.4C15.4 17.4 16 19.8 16 19.8C16 19.8 13.8 18.3 12 17C11.2 16.5 10.8 16.5 10 17C8.2 18.3 6 19.8 6 19.8C6 19.8 6.6 17.4 7 15.4C7.2 14.5 6.9 13.6 6.2 13C4.5 11.5 2 9.5 2 9.5C2 9.5 4.5 9.3 6.5 9.1C7.5 9 8.2 8.4 8.5 7.5C9.2 5.2 10 2.5 10 2.5C10 2.5 11 2 12 2C13 2 12 2.5 12 2.5Z" fill="url(#starGradient5)" stroke="#E67E22" stroke-width="1.5" stroke-linejoin="round"/>
                             </svg>
                         </div>
-                        <span style="font-size: 9.68px; font-weight: 600; color: white; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">4.2 out of 5</span>
+                        <span style="font-size: 9.68px; font-weight: 600; color: black; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">4.2 out of 5</span>
                     </div>
 
                     <!-- Tooltip Popup -->
@@ -1691,17 +1673,18 @@ padding: 1px 3px !important;
                 });
                 </script>
 
-                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="btn btn-primary" style="background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); border: none; color: white; font-weight: 600; font-size: 18px; padding: 12px 20px; border-radius: 16px; text-decoration: none; display: inline-block; width: 240px; text-align: center;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'features_section' }); posthog.capture('app_store_click', { section: 'conversion' });">Get it Now</a>
+                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="btn btn-primary app-store-cta" style="background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); border: none; color: white; font-weight: 600; font-size: 18px; padding: 12px 20px; border-radius: 16px; text-decoration: none; display: inline-block; width: 240px; text-align: center; transition: background 0.3s ease;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'features_section' }); posthog.capture('app_store_click', { section: 'conversion' });">Get it Now</a>
+            </div>
             </div>
         </div>
     </section>
     
     <!-- Comparison Section -->
-    <section class="comparison section" style="background: white; padding: 80px 0;">
+    <section class="comparison section" style="padding: 80px 0;">
         <div class="container">
             <div class="text-center" style="margin-bottom: 60px;">
-                <h2 style="font-size: 42px; font-weight: 700; color: #333; margin-bottom: 20px;">Traditional Therapy vs. The Rollr Academy</h2>
-                <p style="font-size: 18px; color: #666; max-width: 600px; margin: 0 auto;">See why hundreds choose our modern approach over traditional speech therapy.</p>
+                <h2 style="font-size: 42px; font-weight: 700; color: white; margin-bottom: 20px;">Traditional Therapy vs. The Rollr Academy</h2>
+                <p style="font-size: 18px; color: white; max-width: 600px; margin: 0 auto;">See why hundreds choose our modern approach over traditional speech therapy.</p>
             </div>
             
             <div style="max-width: 900px; margin: 0 auto;">
@@ -1785,7 +1768,7 @@ padding: 1px 3px !important;
     </section>
     
     <!-- Benefits Section -->
-    <section class="benefits section" style="background: #000000; color: white;">
+    <section class="benefits section" style="color: white;">
         <div class="container">
             <div class="text-center">
                 <h2 style="font-size: 42px; font-weight: 700; color: white; margin-bottom: 20px;">Stop Avoiding Words. Start Speaking Confidently.</h2>
@@ -1823,7 +1806,7 @@ padding: 1px 3px !important;
             <h2 class="cta-title">Ready to Finally Fix Your R Sound?</h2>
             <p class="cta-subtitle">Join 100+ who've already transformed their speech. Start with a free assessment to see exactly what needs work.</p>
 
-            <a href="assessment.html" class="btn btn-primary" style="background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); border: 4px solid #000000; color: white; font-weight: 600; font-size: 20px; padding: 20px 40px; border-radius: 8px; text-decoration: none; display: inline-block; margin-bottom: 20px;" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'bottom_cta' });">Take Free Assessment Now</a>
+            <a href="assessment.html" class="btn btn-primary assessment-cta" style="background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); border: 4px solid #000000; color: white; font-weight: 600; font-size: 20px; padding: 20px 40px; border-radius: 8px; text-decoration: none; display: inline-block; margin-bottom: 20px; transition: background 0.3s ease;" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'bottom_cta' });">Take Free Assessment Now</a>
             
             <div id="download-after-assessment" style="display: none; text-align: center;">
                 <p style="margin: 20px 0 10px 0; color: #666;">Ready to start your personalized program?</p>
@@ -1844,7 +1827,7 @@ padding: 1px 3px !important;
     <section class="faq section">
         <div class="container">
             <div class="text-center mb-6">
-                <h2 style="font-size: 42px; font-weight: 700; color: #333;">Frequently Asked Questions</h2>
+                <h2 style="font-size: 42px; font-weight: 700; color: white;">Frequently Asked Questions</h2>
             </div>
 
             <div style="max-width: 800px; margin: 0 auto;">
@@ -2335,98 +2318,52 @@ padding: 1px 3px !important;
             carousel.style.transform = `translateX(${translateX}%)`;
         }
 
-        // FAQ Toggle Functionality with PostHog Tracking
-        document.addEventListener('DOMContentLoaded', function() {
+        // FAQ Toggle Functionality - Simple and Reliable
+        setTimeout(function() {
             const faqQuestions = document.querySelectorAll('.faq-question');
-            const faqOpenTimes = {}; // Track when each FAQ was opened
+            console.log('FAQ Questions found:', faqQuestions.length);
 
             faqQuestions.forEach(function(question, index) {
-                question.addEventListener('click', function() {
+                question.addEventListener('click', function(e) {
+                    console.log('FAQ clicked:', index);
                     const answer = this.nextElementSibling;
                     const isActive = this.classList.contains('active');
-                    const questionText = this.textContent.replace(/\+|\-/g, '').trim();
 
-                    // Track FAQ section entry on first interaction
-                    if (Object.keys(faqOpenTimes).length === 0) {
-                        if (typeof posthog !== 'undefined') {
-                            posthog.capture('faq_section_entered', {
-                                page_url: window.location.href,
-                                first_question: questionText
-                            });
-                        }
-                    }
-
-                    // Close all FAQ items and track close events
-                    faqQuestions.forEach(function(q, qIndex) {
-                        if (q.classList.contains('active')) {
-                            const closedQuestionText = q.textContent.replace(/\+|\-/g, '').trim();
-                            const openTime = faqOpenTimes[qIndex];
-
-                            if (openTime && typeof posthog !== 'undefined') {
-                                const timeOpen = Math.round((Date.now() - openTime) / 1000);
-                                posthog.capture('faq_closed', {
-                                    question: closedQuestionText,
-                                    question_index: qIndex,
-                                    time_open_seconds: timeOpen,
-                                    page_url: window.location.href
-                                });
-                                delete faqOpenTimes[qIndex];
-                            }
-                        }
+                    // Close all FAQ items
+                    document.querySelectorAll('.faq-question').forEach(function(q) {
                         q.classList.remove('active');
-                        q.nextElementSibling.classList.remove('active');
+                        if (q.nextElementSibling) {
+                            q.nextElementSibling.classList.remove('active');
+                        }
                     });
 
-                    // If the clicked item wasn't active, open it and track
+                    // If the clicked item wasn't active, open it
                     if (!isActive) {
                         this.classList.add('active');
                         answer.classList.add('active');
+                        console.log('FAQ opened:', index);
+                    }
 
-                        // Track FAQ expansion with PostHog
-                        if (typeof posthog !== 'undefined') {
-                            posthog.capture('faq_expanded', {
-                                question: questionText,
-                                question_index: index,
-                                page_url: window.location.href,
-                                section: 'faq'
-                            });
-                        }
-
-                        // Track with Google Analytics
+                    // Track with analytics if available
+                    try {
                         if (typeof gtag !== 'undefined') {
                             gtag('event', 'faq_click', {
                                 event_category: 'engagement',
-                                event_label: questionText,
-                                custom_parameters: {
-                                    question_index: index
-                                }
+                                event_label: this.textContent.trim()
                             });
                         }
-
-                        // Record open time for duration tracking
-                        faqOpenTimes[index] = Date.now();
+                        if (typeof posthog !== 'undefined') {
+                            posthog.capture('faq_expanded', {
+                                question: this.textContent.trim(),
+                                question_index: index
+                            });
+                        }
+                    } catch (err) {
+                        console.log('Analytics tracking error:', err);
                     }
                 });
             });
-
-            // Track if user clicks CTA after reading FAQs
-            const faqSection = document.querySelector('.faq');
-            if (faqSection) {
-                const faqCTAs = faqSection.querySelectorAll('a, button, .btn');
-                faqCTAs.forEach(function(cta) {
-                    cta.addEventListener('click', function() {
-                        if (typeof posthog !== 'undefined') {
-                            posthog.capture('faq_cta_clicked', {
-                                cta_text: this.textContent.trim(),
-                                cta_href: this.href || null,
-                                faqs_viewed: Object.keys(faqOpenTimes).length,
-                                page_url: window.location.href
-                            });
-                        }
-                    });
-                });
-            }
-        });
+        }, 100);
 
     </script>
 

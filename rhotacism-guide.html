@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get inside R pronunciation knowledge | The Rollr Academy</title>
+    <title>Clinical Resources & Education | The Rollr Academy</title>
     <link rel="icon" type="image/jpeg" href="instagram-icon.jpg">
     <link rel="apple-touch-icon" href="instagram-icon.jpg">
     <meta name="description" content="Complete guide to overcoming rhotacism. Evidence-based techniques, success stories, and life-changing R sound correction. Transform your speech, transform your life.">
@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/common-gradient.css">
     <link rel="stylesheet" href="css/login-modal.css">
 
     <!-- Google tag (gtag.js) -->
@@ -52,27 +53,10 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-weight: 400;
             line-height: 1.6;
-            color: #333;
+            color: white;
             overflow-x: hidden;
             margin: 0;
             padding: 0;
-            background: linear-gradient(to bottom,
-                #000000 0%,
-                #0A0A0A 12%,
-                #1A1A1A 20%,
-                #2D2D00 30%,
-                #4A4A00 40%,
-                #666600 47%,
-                #4A6B2D 53%,
-                #3D5A25 57%,
-                #2F4A1D 61%,
-                #213A15 67%,
-                #132A0D 73%,
-                #0B2007 80%,
-                #041505 87%,
-                #020A02 92%,
-                #010502 96%,
-                #000000 100%);
             min-height: 100vh;
         }
 
@@ -525,10 +509,10 @@
         }
 
         .category-title {
-            font-size: 36px;
+            font-size: 32px;
             font-weight: 700;
             color: white;
-            margin-bottom: 40px;
+            margin-bottom: 48px;
             text-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
             text-align: left;
         }
@@ -541,43 +525,34 @@
 
         /* Article Cards - Enhanced */
         .article-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
             overflow: hidden;
             transition: all 0.3s ease;
-            border: none;
             cursor: pointer;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            padding: 32px;
         }
 
         .article-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
         }
 
         .article-image {
-            width: 100%;
-            height: 180px;
-            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            color: white;
-            position: relative;
+            display: none;
         }
 
         .article-content {
-            padding: 24px;
+            padding: 0;
         }
 
         .article-category {
             display: inline-block;
             padding: 6px 12px;
-            background: rgba(255, 152, 0, 0.15);
-            color: #FF9800;
-            border-radius: 20px;
+            background: #2D3748;
+            color: white;
+            border-radius: 4px;
             font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
@@ -585,26 +560,18 @@
         }
 
         .article-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #1a1a1a;
+            font-size: 22px;
+            font-weight: 700;
+            color: #1A202C;
             margin-bottom: 16px;
             line-height: 1.3;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
         }
 
         .article-excerpt {
-            color: #555;
-            font-size: 15px;
+            color: #4A5568;
+            font-size: 16px;
             line-height: 1.6;
             margin-bottom: 20px;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
         }
 
         .article-meta {
@@ -612,7 +579,8 @@
             justify-content: space-between;
             align-items: center;
             font-size: 14px;
-            color: #888;
+            color: #718096;
+            margin-bottom: 20px;
         }
 
         .article-date {
@@ -620,10 +588,28 @@
         }
 
         .read-time {
-            background: #f0f0f0;
-            padding: 4px 8px;
-            border-radius: 4px;
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
             font-weight: 500;
+        }
+
+        .guide-link {
+            border: 2px solid #2D3748;
+            background: transparent;
+            color: #2D3748;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 16px;
+            display: inline-block;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .guide-link:hover {
+            background: #F7FAFC;
+            border-color: #1A202C;
         }
 
         /* Mobile menu styles */
@@ -749,8 +735,8 @@
                 <div class="breadcrumb">
                     <a href="index.html">Home</a> / Rhotacism Guide
                 </div>
-                <h1 class="blog-title">Get inside R pronunciation knowledge</h1>
-                <p class="blog-subtitle">Discover evidence-based techniques, success stories, and life-changing insights to transform your speech and unlock your full potential.</p>
+                <h1 class="blog-title">Clinical Resources & Education</h1>
+                <p class="blog-subtitle">Evidence-based guides, treatment protocols, and clinical information for understanding and treating persistent rhotic errors.</p>
             </div>
         </div>
     </section>
@@ -762,15 +748,15 @@
             <section class="featured-section">
                 <div class="featured-grid">
                             <article class="article-card" onclick="window.location.href='guide/rhotacism.html'">
-                                <div class="article-image">📚</div>
                                 <div class="article-content">
-                                    <span class="article-category">Main Guide</span>
+                                    <span class="article-category">CLINICAL GUIDE</span>
                                     <h3 class="article-title">Rhotacism: Complete Guide to R Sound Difficulties and Treatment</h3>
-                                    <p class="article-excerpt">Comprehensive overview of rhotacism - what it is, causes, treatment options, and proven solutions for lasting improvement.</p>
+                                    <p class="article-excerpt">Clinical overview of rhotic speech disorders: diagnostic criteria, etiological factors, and evidence-based intervention protocols.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Essential Reading</span>
                                         <span class="read-time">12 min</span>
                                     </div>
+                                    <a href="guide/rhotacism.html" class="guide-link">Read Guide →</a>
                                 </div>
                             </article>
                 </div>
@@ -778,57 +764,57 @@
 
             <!-- Essential Guides -->
             <section class="category-section">
-                <h2 class="category-title">Essential Rhotacism Guides</h2>
+                <h2 class="category-title">Clinical Foundations</h2>
                 <div class="articles-grid">
                             <article class="article-card" onclick="window.location.href='guide/r-speech-impediment-complete-guide.html'">
-                                <div class="article-image">🎯</div>
                                 <div class="article-content">
-                                    <span class="article-category">Complete Guide</span>
+                                    <span class="article-category">CLINICAL GUIDE</span>
                                     <h3 class="article-title">R Speech Impediment: Complete Guide to Understanding and Overcoming Rhotacism</h3>
-                                    <p class="article-excerpt">Comprehensive guide covering what causes R speech impediment, why you can't pronounce R words correctly, and proven methods to fix rhotacism at any age.</p>
+                                    <p class="article-excerpt">Clinical guide to persistent rhotic errors: etiological factors, diagnostic assessment, and treatment protocols for adult articulation disorders.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Essential Reading</span>
                                         <span class="read-time">18 min</span>
                                     </div>
+                                    <a href="guide/r-speech-impediment-complete-guide.html" class="guide-link">Read Guide →</a>
                                 </div>
                             </article>
 
                             <article class="article-card" onclick="window.location.href='guide/what-is-rhotacism.html'">
-                                <div class="article-image">❓</div>
                                 <div class="article-content">
-                                    <span class="article-category">Definition</span>
+                                    <span class="article-category">FOUNDATION</span>
                                     <h3 class="article-title">What is Rhotacism? Complete Definition, Types & Examples</h3>
-                                    <p class="article-excerpt">Complete guide to understanding rhotacism - definition, types, symptoms, and real examples. Learn about R sound difficulties and when to seek help.</p>
+                                    <p class="article-excerpt">Diagnostic overview: classification of rhotic speech sound disorders, clinical presentation, and differential diagnosis.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Foundation Knowledge</span>
                                         <span class="read-time">10 min</span>
                                     </div>
+                                    <a href="guide/what-is-rhotacism.html" class="guide-link">Read Guide →</a>
                                 </div>
                             </article>
 
                             <article class="article-card" onclick="window.location.href='guide/how-to-fix-rhotacism.html'">
-                                <div class="article-image">🔧</div>
                                 <div class="article-content">
-                                    <span class="article-category">Treatment</span>
+                                    <span class="article-category">TREATMENT PROTOCOL</span>
                                     <h3 class="article-title">How to Fix Rhotacism: Proven Techniques & Exercises</h3>
-                                    <p class="article-excerpt">Step-by-step guide with evidence-based techniques, modern tools, and progressive exercises to master the R sound at any age.</p>
+                                    <p class="article-excerpt">Treatment protocol for persistent rhotic errors: evidence-based techniques, motor learning principles, and structured practice hierarchies.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Action Plan</span>
                                         <span class="read-time">15 min</span>
                                     </div>
+                                    <a href="guide/how-to-fix-rhotacism.html" class="guide-link">Read Guide →</a>
                                 </div>
                             </article>
 
                             <article class="article-card" onclick="window.location.href='guide/rhotacism-adults.html'">
-                                <div class="article-image">👔</div>
                                 <div class="article-content">
-                                    <span class="article-category">Adult Focus</span>
+                                    <span class="article-category">ADULT TREATMENT</span>
                                     <h3 class="article-title">Rhotacism in Adults: Complete Guide to R Sound Correction</h3>
-                                    <p class="article-excerpt">Specialized guidance for adults dealing with R sound challenges, including career impact and adult-optimized success strategies.</p>
+                                    <p class="article-excerpt">Clinical approach to rhotic errors in adult populations: assessment considerations, treatment modifications, and functional communication outcomes.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Professional Impact</span>
                                         <span class="read-time">12 min</span>
                                     </div>
+                                    <a href="guide/rhotacism-adults.html" class="guide-link">Read Guide →</a>
                                 </div>
                             </article>
                 </div>
@@ -836,44 +822,44 @@
 
             <!-- Advanced Topics -->
             <section class="category-section">
-                <h2 class="category-title">Advanced Rhotacism Topics</h2>
+                <h2 class="category-title">Specialized Topics</h2>
                 <div class="articles-grid">
                             <article class="article-card" onclick="window.location.href='guide/rhotacism-speech-impediment.html'">
-                                <div class="article-image">🗣️</div>
                                 <div class="article-content">
-                                    <span class="article-category">Medical</span>
+                                    <span class="article-category">CLINICAL GUIDE</span>
                                     <h3 class="article-title">Rhotacism Speech Impediment: Understanding R Sound Difficulties</h3>
-                                    <p class="article-excerpt">Comprehensive guide to rhotacism as a speech disorder - causes, symptoms, impact, and effective treatment approaches.</p>
+                                    <p class="article-excerpt">Clinical overview of rhotic speech disorders: etiology, assessment, functional impact, and intervention protocols.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Clinical Guide</span>
                                         <span class="read-time">14 min</span>
                                     </div>
+                                    <a href="guide/rhotacism-speech-impediment.html" class="guide-link">Read Guide →</a>
                                 </div>
                             </article>
 
                             <article class="article-card" onclick="window.location.href='guide/rhotacism-examples.html'">
-                                <div class="article-image">💬</div>
                                 <div class="article-content">
-                                    <span class="article-category">Examples</span>
+                                    <span class="article-category">CASE STUDIES</span>
                                     <h3 class="article-title">Rhotacism Examples: Real-World R Sound Pronunciation Difficulties</h3>
-                                    <p class="article-excerpt">See real rhotacism examples including Elmer Fudd, common word substitutions, and how rhotacism affects daily speech.</p>
+                                    <p class="article-excerpt">Case study analysis: common /r/ distortion patterns, phonetic substitutions, and functional communication impact across contexts.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Practical Examples</span>
                                         <span class="read-time">11 min</span>
                                     </div>
+                                    <a href="guide/rhotacism-examples.html" class="guide-link">Read Guide →</a>
                                 </div>
                             </article>
 
                             <article class="article-card" onclick="window.location.href='guide/rhotacism-autism.html'">
-                                <div class="article-image">🧩</div>
                                 <div class="article-content">
-                                    <span class="article-category">Special Needs</span>
+                                    <span class="article-category">SPECIALIZED CARE</span>
                                     <h3 class="article-title">Rhotacism and Autism: R Sound Difficulties in Autism Spectrum Disorders</h3>
-                                    <p class="article-excerpt">Understanding the connection between rhotacism and autism, specialized approaches, and support strategies.</p>
+                                    <p class="article-excerpt">Evidence-based approaches for treating rhotic errors in autism spectrum disorder: assessment considerations and specialized intervention protocols.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Specialized Care</span>
                                         <span class="read-time">13 min</span>
                                     </div>
+                                    <a href="guide/rhotacism-autism.html" class="guide-link">Read Guide →</a>
                                 </div>
                             </article>
                 </div>
@@ -881,18 +867,18 @@
 
             <!-- Tools & Technology -->
             <section class="category-section">
-                <h2 class="category-title">Digital Solutions</h2>
+                <h2 class="category-title">Digital Intervention Tools</h2>
                 <div class="articles-grid">
                             <article class="article-card" onclick="window.location.href='guide/rhotacism-apps.html'">
-                                <div class="article-image">📱</div>
                                 <div class="article-content">
-                                    <span class="article-category">Technology</span>
+                                    <span class="article-category">DIGITAL TOOLS</span>
                                     <h3 class="article-title">Rhotacism Apps: Best Speech Therapy Apps for R Sound Correction</h3>
-                                    <p class="article-excerpt">Compare the top rhotacism apps and digital tools for R sound improvement, with reviews and recommendations.</p>
+                                    <p class="article-excerpt">Evaluation of digital intervention tools for rhotic error treatment: feature comparison, evidence base, and clinical applications.</p>
                                     <div class="article-meta">
                                         <span class="article-date">App Reviews</span>
                                         <span class="read-time">16 min</span>
                                     </div>
+                                    <a href="guide/rhotacism-apps.html" class="guide-link">Read Guide →</a>
                                 </div>
                             </article>
                 </div>
