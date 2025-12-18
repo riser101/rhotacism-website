@@ -85,31 +85,81 @@
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
+    footer {
+        padding: 30px 0 !important;
+    }
+
     .footer-content {
-        max-width: 900px !important;
-        margin: 0 auto !important;
+        flex-wrap: nowrap !important;
+        gap: 20px !important;
+        padding: 0 20px !important;
     }
 
-    .footer-links {
-        gap: 60px !important;
-        justify-content: flex-start !important;
-    }
-
-    .contributor-btn {
-        max-width: 350px !important;
+    .footer-brand {
+        min-width: 180px !important;
+        max-width: 220px !important;
+        flex: 0 0 auto !important;
     }
 
     .footer-brand p {
-        max-width: 350px !important;
+        font-size: 12px !important;
+        line-height: 1.4 !important;
+    }
+
+    .footer-logo {
+        width: 44px !important;
+        height: 44px !important;
+    }
+
+    .footer-brand h2 {
+        font-size: 20px !important;
+    }
+
+    .contributor-btn {
+        font-size: 11px !important;
+        padding: 10px 16px !important;
+    }
+
+    .footer-links {
+        gap: 25px !important;
+        flex: 0 0 auto !important;
+    }
+
+    .footer-legal,
+    .footer-support {
+        min-width: 100px !important;
+    }
+
+    .footer-legal h4,
+    .footer-support h4 {
+        font-size: 12px !important;
+    }
+
+    .footer-legal a,
+    .footer-support a,
+    .footer-support > div > div {
+        font-size: 11px !important;
     }
 
     .footer-newsletter {
-        max-width: 350px !important;
+        min-width: 220px !important;
+        max-width: 240px !important;
+        flex: 1 1 auto !important;
     }
 
-    .footer-newsletter input,
+    .footer-newsletter h4 {
+        font-size: 12px !important;
+        line-height: 1.3 !important;
+    }
+
+    .footer-newsletter input {
+        font-size: 12px !important;
+        padding: 10px 12px !important;
+    }
+
     .footer-newsletter button {
-        max-width: 350px !important;
+        font-size: 12px !important;
+        padding: 10px 18px !important;
     }
 }
 

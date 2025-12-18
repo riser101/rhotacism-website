@@ -69,28 +69,28 @@ background-attachment: fixed;
 min-height: 100vh;
 }
 
-/* Mobile-specific gradient to match desktop appearance */
+/* Mobile-specific gradient - almost black at top, bright only at bottom */
 @media (max-width: 768px) {
 body {
 background: linear-gradient(
 to bottom,
-#3a3a15 0%,
-#3d3d18 8%,
-#40401a 15%,
-#48481c 22%,
-#50501e 28%,
-#585820 35%,
-#606022 42%,
-#686825 48%,
-#707028 54%,
-#78782a 60%,
-#80802c 66%,
-#88882e 72%,
-#989835 78%,
-#a8a83c 84%,
-#b5b540 90%,
-#c0c045 94%,
-#3a3a15 100%
+#252510 0%,
+#282812 8%,
+#2a2a10 15%,
+#303012 22%,
+#383815 28%,
+#404018 35%,
+#48481a 42%,
+#50501c 48%,
+#58581e 54%,
+#606020 60%,
+#686822 66%,
+#707024 72%,
+#808026 78%,
+#90902c 84%,
+#aaaa35 90%,
+#c5c040 94%,
+#252510 100%
 );
 background-attachment: fixed;
 }
@@ -980,8 +980,9 @@ margin-top: 20px;
     padding: 20px 40px;
 }
 
-@media (max-width: 768px) {
-    .hero-main-cta {
+@media (max-width: 1024px) {
+    .hero-main-cta,
+    .hero-secondary-cta {
         min-height: 85px;
         padding: 30px 50px;
         border-radius: 16px;
@@ -998,7 +999,7 @@ margin-top: 20px;
     display: none; /* Hidden on desktop */
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .advisory-board .advisory-grid {
         display: block !important;
         position: relative;
@@ -1108,7 +1109,7 @@ margin-top: 20px;
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
 .hero-container {
 flex-direction: column;
 gap: 40px;
@@ -1166,14 +1167,6 @@ width: 50px;
 height: 50px;
 line-height: 50px;
 font-size: 20px;
-}
-.cta-buttons {
-flex-direction: column;
-width: 100%;
-align-items: center;
-}
-.cta-buttons a {
-max-width: 200px;
 }
 .btn {
 width: 100%;
@@ -1239,6 +1232,14 @@ gap: 12px;
 }
 .hero-stats {
 padding: 12px 16px;
+}
+.cta-buttons {
+flex-direction: column;
+width: 100%;
+align-items: center;
+}
+.cta-buttons a {
+max-width: 200px;
 }
 .features-grid {
 grid-template-columns: repeat(2, 1fr);
@@ -1495,7 +1496,7 @@ padding: 1px 3px !important;
                 <div class="hero-cta-container">
                     <div class="cta-buttons">
                         <a href="assessment.html" class="btn btn-primary hero-main-cta" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'hero_cta' });">Take Your 2-Minute Assessment</a>
-                        <a href="#features" class="btn btn-secondary" style="height: 68px; display: flex; align-items: center; justify-content: center; padding: 20px 40px;" onclick="gtag('event', 'see_how_it_works', { event_category: 'engagement', event_label: 'hero_section' });">See How It Works</a>
+                        <a href="#features" class="btn btn-secondary hero-secondary-cta" style="min-height: 68px; display: flex; align-items: center; justify-content: center; padding: 20px 40px;" onclick="gtag('event', 'see_how_it_works', { event_category: 'engagement', event_label: 'hero_section' });">See How It Works</a>
                         <div class="nav-toggle">
                             <span></span>
                             <span></span>

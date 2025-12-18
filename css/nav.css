@@ -280,7 +280,7 @@ border-radius: 2px;
 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
 
 /* Switch logo to image on mobile */
 .nav-logo-text {
@@ -467,7 +467,7 @@ background: linear-gradient(90deg, #FF9800, #E65100);
     transform: scale(1.05);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .mobile-hamburger-menu {
         display: block;
     }
