@@ -41,6 +41,42 @@ document.addEventListener('DOMContentLoaded', function() {
             initializeNavigation();
         })
         .catch(error => console.error('Error loading navigation:', error));
+
+    // Load login-modal.js script dynamically
+    const loginModalScript = document.createElement('script');
+    loginModalScript.src = pathPrefix + 'js/login-modal.js';
+    document.head.appendChild(loginModalScript);
+
+    // Load Google GSI Client library first
+    const googleGSIScript = document.createElement('script');
+    googleGSIScript.src = 'https://accounts.google.com/gsi/client';
+    googleGSIScript.async = true;
+    googleGSIScript.defer = true;
+    document.head.appendChild(googleGSIScript);
+
+    // Load Google Sign-In initialization script
+    const googleSignInScript = document.createElement('script');
+    googleSignInScript.src = pathPrefix + 'js/google-signin-init.js';
+    googleSignInScript.onload = function() {
+        // After google-signin-init.js is loaded, load the modal HTML
+        fetch(pathPrefix + 'includes/login-modal.html')
+            .then(response => response.text())
+            .then(html => {
+                // Insert login modal at the end of body
+                document.body.insertAdjacentHTML('beforeend', html);
+
+                // Fix login modal logo path
+                const loginModalLogo = document.getElementById('loginModalLogo');
+                if (loginModalLogo) {
+                    loginModalLogo.src = pathPrefix + 'instagram-icon.jpg';
+                }
+
+                // Initialize Google Sign-In after modal is loaded
+                initializeGoogleSignIn();
+            })
+            .catch(error => console.error('Error loading login modal:', error));
+    };
+    document.head.appendChild(googleSignInScript);
 });
 
 // Navigation functionality

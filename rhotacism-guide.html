@@ -532,11 +532,52 @@
             transition: all 0.3s ease;
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            padding: 32px;
+            display: flex;
+            flex-direction: column;
         }
 
         .article-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-image-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .card-thumbnail {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transition: transform 0.3s ease;
+        }
+
+        .article-card:hover .card-thumbnail {
+            transform: scale(1.05);
+        }
+
+        .badge-overlay {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: #2D3748;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-content {
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
         }
 
         .article-image {
@@ -560,18 +601,35 @@
         }
 
         .article-title {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
             color: #1A202C;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .card-content h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1A202C;
+            margin-bottom: 12px;
             line-height: 1.3;
         }
 
         .article-excerpt {
             color: #4A5568;
-            font-size: 16px;
+            font-size: 15px;
             line-height: 1.6;
             margin-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .card-content p {
+            font-size: 15px;
+            color: #4A5568;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            flex-grow: 1;
         }
 
         .article-meta {
@@ -580,7 +638,16 @@
             align-items: center;
             font-size: 14px;
             color: #718096;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+        }
+
+        .card-content .article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #718096;
         }
 
         .article-date {
@@ -610,6 +677,23 @@
         .guide-link:hover {
             background: #F7FAFC;
             border-color: #1A202C;
+        }
+
+        .card-link {
+            display: inline-block;
+            color: #2D3748;
+            font-weight: 600;
+            text-decoration: none;
+            border: 2px solid #2D3748;
+            padding: 10px 20px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            align-self: flex-start;
+        }
+
+        .card-link:hover {
+            background: #2D3748;
+            color: #FFFFFF;
         }
 
         /* Mobile menu styles */
@@ -682,32 +766,40 @@
                 right: -10px;
             }
 
+            .card-image-container {
+                height: 160px;
+            }
+
+            .card-content {
+                padding: 20px;
+            }
+
             .main-layout {
                 padding: 0 20px;
             }
-            
+
             .blog-title {
                 font-size: 42px;
             }
-            
+
             .blog-subtitle {
                 font-size: 20px;
             }
-            
+
             .featured-grid {
                 grid-template-columns: 1fr;
                 gap: 24px;
             }
-            
+
             .articles-grid {
                 grid-template-columns: 1fr;
                 gap: 24px;
             }
-            
+
             .category-title {
                 font-size: 28px;
             }
-            
+
             .article-content {
                 padding: 20px;
             }
@@ -748,15 +840,23 @@
             <section class="featured-section">
                 <div class="featured-grid">
                             <article class="article-card" onclick="window.location.href='guide/rhotacism.html'">
-                                <div class="article-content">
-                                    <span class="article-category">CLINICAL GUIDE</span>
+                                <div class="card-image-container">
+                                    <img
+                                        src="rhotacism.jpg"
+                                        alt="Speech therapy consultation"
+                                        class="card-thumbnail"
+                                    />
+                                    <div class="badge-overlay">CLINICAL GUIDE</div>
+                                </div>
+
+                                <div class="card-content">
                                     <h3 class="article-title">Rhotacism: Complete Guide to R Sound Difficulties and Treatment</h3>
                                     <p class="article-excerpt">Clinical overview of rhotic speech disorders: diagnostic criteria, etiological factors, and evidence-based intervention protocols.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Essential Reading</span>
                                         <span class="read-time">12 min</span>
                                     </div>
-                                    <a href="guide/rhotacism.html" class="guide-link">Read Guide →</a>
+                                    <a href="guide/rhotacism.html" class="guide-link card-link">Read Guide →</a>
                                 </div>
                             </article>
                 </div>
@@ -767,54 +867,86 @@
                 <h2 class="category-title">Clinical Foundations</h2>
                 <div class="articles-grid">
                             <article class="article-card" onclick="window.location.href='guide/r-speech-impediment-complete-guide.html'">
-                                <div class="article-content">
-                                    <span class="article-category">CLINICAL GUIDE</span>
+                                <div class="card-image-container">
+                                    <img
+                                        src="rhotacism.jpg"
+                                        alt="Speech therapy consultation"
+                                        class="card-thumbnail"
+                                    />
+                                    <div class="badge-overlay">CLINICAL GUIDE</div>
+                                </div>
+
+                                <div class="card-content">
                                     <h3 class="article-title">R Speech Impediment: Complete Guide to Understanding and Overcoming Rhotacism</h3>
                                     <p class="article-excerpt">Clinical guide to persistent rhotic errors: etiological factors, diagnostic assessment, and treatment protocols for adult articulation disorders.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Essential Reading</span>
                                         <span class="read-time">18 min</span>
                                     </div>
-                                    <a href="guide/r-speech-impediment-complete-guide.html" class="guide-link">Read Guide →</a>
+                                    <a href="guide/r-speech-impediment-complete-guide.html" class="guide-link card-link">Read Guide →</a>
                                 </div>
                             </article>
 
                             <article class="article-card" onclick="window.location.href='guide/what-is-rhotacism.html'">
-                                <div class="article-content">
-                                    <span class="article-category">FOUNDATION</span>
+                                <div class="card-image-container">
+                                    <img
+                                        src="rhotacism.jpg"
+                                        alt="Speech therapy consultation"
+                                        class="card-thumbnail"
+                                    />
+                                    <div class="badge-overlay">FOUNDATION</div>
+                                </div>
+
+                                <div class="card-content">
                                     <h3 class="article-title">What is Rhotacism? Complete Definition, Types & Examples</h3>
                                     <p class="article-excerpt">Diagnostic overview: classification of rhotic speech sound disorders, clinical presentation, and differential diagnosis.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Foundation Knowledge</span>
                                         <span class="read-time">10 min</span>
                                     </div>
-                                    <a href="guide/what-is-rhotacism.html" class="guide-link">Read Guide →</a>
+                                    <a href="guide/what-is-rhotacism.html" class="guide-link card-link">Read Guide →</a>
                                 </div>
                             </article>
 
                             <article class="article-card" onclick="window.location.href='guide/how-to-fix-rhotacism.html'">
-                                <div class="article-content">
-                                    <span class="article-category">TREATMENT PROTOCOL</span>
+                                <div class="card-image-container">
+                                    <img
+                                        src="rhotacism.jpg"
+                                        alt="Speech therapy consultation"
+                                        class="card-thumbnail"
+                                    />
+                                    <div class="badge-overlay">TREATMENT PROTOCOL</div>
+                                </div>
+
+                                <div class="card-content">
                                     <h3 class="article-title">How to Fix Rhotacism: Proven Techniques & Exercises</h3>
                                     <p class="article-excerpt">Treatment protocol for persistent rhotic errors: evidence-based techniques, motor learning principles, and structured practice hierarchies.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Action Plan</span>
                                         <span class="read-time">15 min</span>
                                     </div>
-                                    <a href="guide/how-to-fix-rhotacism.html" class="guide-link">Read Guide →</a>
+                                    <a href="guide/how-to-fix-rhotacism.html" class="guide-link card-link">Read Guide →</a>
                                 </div>
                             </article>
 
                             <article class="article-card" onclick="window.location.href='guide/rhotacism-adults.html'">
-                                <div class="article-content">
-                                    <span class="article-category">ADULT TREATMENT</span>
+                                <div class="card-image-container">
+                                    <img
+                                        src="rhotacism.jpg"
+                                        alt="Speech therapy consultation"
+                                        class="card-thumbnail"
+                                    />
+                                    <div class="badge-overlay">ADULT TREATMENT</div>
+                                </div>
+
+                                <div class="card-content">
                                     <h3 class="article-title">Rhotacism in Adults: Complete Guide to R Sound Correction</h3>
                                     <p class="article-excerpt">Clinical approach to rhotic errors in adult populations: assessment considerations, treatment modifications, and functional communication outcomes.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Professional Impact</span>
                                         <span class="read-time">12 min</span>
                                     </div>
-                                    <a href="guide/rhotacism-adults.html" class="guide-link">Read Guide →</a>
+                                    <a href="guide/rhotacism-adults.html" class="guide-link card-link">Read Guide →</a>
                                 </div>
                             </article>
                 </div>
@@ -825,41 +957,65 @@
                 <h2 class="category-title">Specialized Topics</h2>
                 <div class="articles-grid">
                             <article class="article-card" onclick="window.location.href='guide/rhotacism-speech-impediment.html'">
-                                <div class="article-content">
-                                    <span class="article-category">CLINICAL GUIDE</span>
+                                <div class="card-image-container">
+                                    <img
+                                        src="rhotacism.jpg"
+                                        alt="Speech therapy consultation"
+                                        class="card-thumbnail"
+                                    />
+                                    <div class="badge-overlay">CLINICAL GUIDE</div>
+                                </div>
+
+                                <div class="card-content">
                                     <h3 class="article-title">Rhotacism Speech Impediment: Understanding R Sound Difficulties</h3>
                                     <p class="article-excerpt">Clinical overview of rhotic speech disorders: etiology, assessment, functional impact, and intervention protocols.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Clinical Guide</span>
                                         <span class="read-time">14 min</span>
                                     </div>
-                                    <a href="guide/rhotacism-speech-impediment.html" class="guide-link">Read Guide →</a>
+                                    <a href="guide/rhotacism-speech-impediment.html" class="guide-link card-link">Read Guide →</a>
                                 </div>
                             </article>
 
                             <article class="article-card" onclick="window.location.href='guide/rhotacism-examples.html'">
-                                <div class="article-content">
-                                    <span class="article-category">CASE STUDIES</span>
+                                <div class="card-image-container">
+                                    <img
+                                        src="rhotacism.jpg"
+                                        alt="Speech therapy consultation"
+                                        class="card-thumbnail"
+                                    />
+                                    <div class="badge-overlay">CASE STUDIES</div>
+                                </div>
+
+                                <div class="card-content">
                                     <h3 class="article-title">Rhotacism Examples: Real-World R Sound Pronunciation Difficulties</h3>
                                     <p class="article-excerpt">Case study analysis: common /r/ distortion patterns, phonetic substitutions, and functional communication impact across contexts.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Practical Examples</span>
                                         <span class="read-time">11 min</span>
                                     </div>
-                                    <a href="guide/rhotacism-examples.html" class="guide-link">Read Guide →</a>
+                                    <a href="guide/rhotacism-examples.html" class="guide-link card-link">Read Guide →</a>
                                 </div>
                             </article>
 
                             <article class="article-card" onclick="window.location.href='guide/rhotacism-autism.html'">
-                                <div class="article-content">
-                                    <span class="article-category">SPECIALIZED CARE</span>
+                                <div class="card-image-container">
+                                    <img
+                                        src="rhotacism.jpg"
+                                        alt="Speech therapy consultation"
+                                        class="card-thumbnail"
+                                    />
+                                    <div class="badge-overlay">SPECIALIZED CARE</div>
+                                </div>
+
+                                <div class="card-content">
                                     <h3 class="article-title">Rhotacism and Autism: R Sound Difficulties in Autism Spectrum Disorders</h3>
                                     <p class="article-excerpt">Evidence-based approaches for treating rhotic errors in autism spectrum disorder: assessment considerations and specialized intervention protocols.</p>
                                     <div class="article-meta">
                                         <span class="article-date">Specialized Care</span>
                                         <span class="read-time">13 min</span>
                                     </div>
-                                    <a href="guide/rhotacism-autism.html" class="guide-link">Read Guide →</a>
+                                    <a href="guide/rhotacism-autism.html" class="guide-link card-link">Read Guide →</a>
                                 </div>
                             </article>
                 </div>
@@ -870,15 +1026,23 @@
                 <h2 class="category-title">Digital Intervention Tools</h2>
                 <div class="articles-grid">
                             <article class="article-card" onclick="window.location.href='guide/rhotacism-apps.html'">
-                                <div class="article-content">
-                                    <span class="article-category">DIGITAL TOOLS</span>
+                                <div class="card-image-container">
+                                    <img
+                                        src="rhotacism.jpg"
+                                        alt="Speech therapy consultation"
+                                        class="card-thumbnail"
+                                    />
+                                    <div class="badge-overlay">DIGITAL TOOLS</div>
+                                </div>
+
+                                <div class="card-content">
                                     <h3 class="article-title">Rhotacism Apps: Best Speech Therapy Apps for R Sound Correction</h3>
                                     <p class="article-excerpt">Evaluation of digital intervention tools for rhotic error treatment: feature comparison, evidence base, and clinical applications.</p>
                                     <div class="article-meta">
                                         <span class="article-date">App Reviews</span>
                                         <span class="read-time">16 min</span>
                                     </div>
-                                    <a href="guide/rhotacism-apps.html" class="guide-link">Read Guide →</a>
+                                    <a href="guide/rhotacism-apps.html" class="guide-link card-link">Read Guide →</a>
                                 </div>
                             </article>
                 </div>

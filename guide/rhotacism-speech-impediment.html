@@ -11,7 +11,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link rel="stylesheet" href="../css/common-gradient.css">
+    <link rel="stylesheet" href="../css/login-modal.css">
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
     <script>
@@ -46,26 +48,10 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-weight: 400;
             line-height: 1.6;
-            color: #333;
-            overflow-x: hidden;
-            background: linear-gradient(to bottom, 
-                #000000 0%, 
-                #0A0A0A 12%,
-                #1A1A1A 20%,
-                #2D2D00 30%,
-                #4A4A00 40%,
-                #666600 47%,
-                #4A6B2D 53%,
-                #3D5A25 57%,
-                #2F4A1D 61%,
-                #213A15 67%,
-                #132A0D 73%,
-                #0B2007 80%,
-                #041505 87%,
-                #020A02 92%,
-                #010502 96%,
-                #000000 100%);
+            color: white;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .container {
@@ -77,7 +63,7 @@
         /* Navigation Styles */
         .navbar {
             background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
-            padding: 20px 0;
+            padding: 5.25px 0;
             position: fixed;
             top: 0;
             left: 0;
@@ -89,7 +75,7 @@
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 24px;
+            padding: 0 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -97,10 +83,12 @@
 
         .nav-logo {
             font-family: 'Quicksand', sans-serif;
-            font-size: 28px;
+            font-size: 20px;
             font-weight: 700;
             color: white;
             text-decoration: none;
+            position: relative;
+            transition: all 0.3s ease;
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
@@ -109,7 +97,13 @@
             list-style: none;
             margin: 0;
             padding: 0;
-            gap: 40px;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-menu li {
+            margin: 0;
+            display: flex;
             align-items: center;
         }
 
@@ -117,8 +111,12 @@
             text-decoration: none;
             color: rgba(255, 255, 255, 0.95);
             font-weight: 500;
-            font-size: 16px;
+            font-size: 14px;
+            letter-spacing: 0.3px;
             transition: all 0.3s ease;
+            position: relative;
+            padding: 5.25px 0;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
 
         .nav-menu a.nav-cta {
@@ -142,124 +140,221 @@
             padding: 0 20px;
         }
 
+        /* Hero Image Styles */
+        .article-hero-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto 48px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .article-hero-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+
         .breadcrumb {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            color: #B8941F;
             margin-bottom: 30px;
             font-weight: 500;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
         .breadcrumb a {
-            color: #FFB74D;
+            color: #B8941F;
             text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: white;
+            text-decoration: underline;
         }
 
         .article-title {
             font-family: 'Inter', sans-serif;
             font-size: 48px;
-            font-weight: 700;
+            font-weight: 800;
             margin-bottom: 24px;
-            color: white;
+            color: #FFFFFF;
             line-height: 1.2;
             text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             max-width: 900px;
         }
 
         .article-subtitle {
-            font-size: 20px;
-            color: rgba(255, 255, 255, 0.9);
+            font-size: 18px;
+            color: #E2E8F0;
             font-weight: 400;
-            line-height: 1.5;
+            line-height: 1.6;
             margin-bottom: 40px;
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            max-width: 700px;
+            max-width: 800px;
         }
 
         /* Article Content */
         .article-content {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 60px;
-            margin: 40px auto 80px;
-            max-width: 1000px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 64px 48px;
+            margin: 0 auto 80px;
+            max-width: 800px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
         }
 
         .content-section {
             margin-bottom: 50px;
         }
 
+        .content-section:first-child .section-title {
+            margin-top: 0;
+        }
+
+        .content-section:last-child {
+            margin-bottom: 0;
+        }
+
         .section-title {
             font-size: 28px;
             font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 24px;
-            border-left: 4px solid #FF9800;
-            padding-left: 20px;
+            color: #1A202C;
+            margin-top: 48px;
+            margin-bottom: 20px;
+            border-left: 4px solid #EA580C;
+            padding-left: 16px;
         }
 
         .section-content p {
-            font-size: 16px;
-            line-height: 1.7;
-            color: #444;
-            margin-bottom: 20px;
+            font-size: 17px;
+            line-height: 1.75;
+            color: #2D3748;
+            margin-bottom: 24px;
         }
 
         .section-content ul {
-            padding-left: 20px;
-            margin-bottom: 20px;
+            margin-left: 20px;
+            padding-left: 8px;
+            margin-bottom: 24px;
         }
 
         .section-content li {
-            font-size: 16px;
-            line-height: 1.7;
-            color: #444;
+            font-size: 17px;
+            line-height: 1.75;
+            color: #2D3748;
             margin-bottom: 12px;
+        }
+
+        .section-content li strong {
+            font-weight: 700;
+            color: #1A202C;
+        }
+
+        .section-content h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2D3748;
+            margin-top: 32px;
+            margin-bottom: 16px;
+        }
+
+        .section-content strong {
+            font-weight: 700;
+            color: #1A202C;
+        }
+
+        .section-content a {
+            color: #2563EB;
+            text-decoration: underline;
+            font-weight: 600;
+            transition: color 0.2s ease;
+        }
+
+        .section-content a:hover {
+            color: #1E40AF;
         }
 
         .highlight-box {
-            background: rgba(255, 152, 0, 0.1);
-            border: 1px solid rgba(255, 152, 0, 0.3);
-            border-radius: 12px;
-            padding: 24px;
-            margin: 30px 0;
+            background: #F7FAFC;
+            border-left: 3px solid #CBD5E0;
+            border-radius: 4px;
+            padding: 24px 28px;
+            margin: 32px 0;
         }
 
         .highlight-box h3 {
-            color: #FF9800;
+            color: #2D3748;
             font-size: 18px;
-            font-weight: 600;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .highlight-box p {
+            font-size: 17px;
+            line-height: 1.75;
+            color: #2D3748;
+            margin-bottom: 0;
+        }
+
+        .highlight-box ul {
+            margin-left: 20px;
+            padding-left: 8px;
+            margin-bottom: 0;
+        }
+
+        .highlight-box li {
+            font-size: 17px;
+            line-height: 1.75;
+            color: #2D3748;
             margin-bottom: 12px;
         }
 
+        .highlight-box li strong {
+            font-weight: 700;
+            color: #1A202C;
+        }
+
         .cta-section {
-            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
-            color: white;
+            background: #F7FAFC;
+            border: 2px solid #E2E8F0;
             padding: 40px;
-            border-radius: 16px;
+            border-radius: 8px;
             text-align: center;
-            margin: 50px 0;
+            margin: 64px 0;
         }
 
         .cta-section h3 {
             font-size: 24px;
             font-weight: 700;
-            margin-bottom: 16px;
+            color: #1A202C;
+            margin-bottom: 12px;
         }
 
         .cta-section p {
             font-size: 16px;
+            color: #4A5568;
             margin-bottom: 24px;
-            opacity: 0.9;
+        }
+
+        .cta-section img {
+            width: 180px;
+            height: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .cta-section img:hover {
+            transform: scale(1.05);
         }
 
         .cta-button {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 16px 32px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50px;
+            background: transparent;
+            color: #2D3748;
+            padding: 14px 32px;
+            border: 2px solid #2D3748;
+            border-radius: 6px;
             font-weight: 600;
             font-size: 16px;
             text-decoration: none;
@@ -267,11 +362,42 @@
             display: inline-block;
         }
 
+        .cta-button:hover {
+            background: #2D3748;
+            color: #FFFFFF;
+        }
+
         @media (max-width: 768px) {
+            .article-hero-image {
+                height: 250px;
+            }
+
+            .article-hero-container {
+                margin-bottom: 32px;
+            }
+
             .article-title { font-size: 36px; }
-            .article-content { padding: 30px 20px; margin: 20px; }
-            .section-title { font-size: 24px; }
+
+            .article-subtitle {
+                font-size: 16px;
+            }
+
+            .article-content {
+                padding: 32px 24px;
+                margin: 20px;
+                max-width: calc(100% - 40px);
+            }
+
+            .section-title {
+                font-size: 24px;
+                margin-top: 36px;
+            }
+
             .nav-menu { display: none; }
+
+            .cta-section img {
+                width: 160px;
+            }
         }
         
         /* App Store Button Hover Animation */
@@ -295,6 +421,16 @@
             <div class="breadcrumb">
                 <a href="../index.html">Home</a> / <a href="../rhotacism-guide.html">Guide</a> / Rhotacism Speech Impediment
             </div>
+
+            <!-- Hero Image -->
+            <div class="article-hero-container">
+                <img
+                    src="../rhotacism.jpg"
+                    alt="Speech therapy session showing therapist and client in consultation"
+                    class="article-hero-image"
+                />
+            </div>
+
             <h1 class="article-title">Rhotacism Speech Impediment: Understanding R Sound Difficulties</h1>
             <p class="article-subtitle">Comprehensive guide to rhotacism as a speech disorder - causes, symptoms, impact, and effective treatment approaches.</p>
         </div>

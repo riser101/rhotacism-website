@@ -1495,8 +1495,8 @@ padding: 1px 3px !important;
 
                 <div class="hero-cta-container">
                     <div class="cta-buttons">
-                        <a href="assessment.html" class="btn btn-primary hero-main-cta" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'hero_cta' });">Take Your 2-Minute Assessment</a>
-                        <a href="#features" class="btn btn-secondary hero-secondary-cta" style="min-height: 68px; display: flex; align-items: center; justify-content: center; padding: 20px 40px;" onclick="gtag('event', 'see_how_it_works', { event_category: 'engagement', event_label: 'hero_section' });">See How It Works</a>
+                        <a href="assessment.html" class="btn btn-primary hero-main-cta" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'hero_cta' });">Take Clinical Assessment</a>
+                        <a href="#features" class="btn btn-secondary hero-secondary-cta" style="min-height: 68px; display: flex; align-items: center; justify-content: center; padding: 20px 40px;" onclick="gtag('event', 'see_how_it_works', { event_category: 'engagement', event_label: 'hero_section' });">View Treatment Protocol</a>
                         <div class="nav-toggle">
                             <span></span>
                             <span></span>
@@ -2397,6 +2397,13 @@ padding: 1px 3px !important;
 
     <!-- Login Modal Functions -->
     <script src="js/login-modal.js"></script>
+    <script src="js/google-signin-init.js"></script>
+    <script>
+        // Initialize Google Sign-In when page loads
+        window.addEventListener('load', function() {
+            initializeGoogleSignIn();
+        });
+    </script>
 
     <!-- Enhanced Analytics -->
     <script src="js/enhanced-analytics.js"></script>

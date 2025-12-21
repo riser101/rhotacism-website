@@ -99,7 +99,8 @@ function handleCredentialResponse(response) {
         closeLoginModal();
 
         // Redirect to exercises page immediately
-        window.location.href = 'exercises.html';
+        const pathPrefix = window.location.pathname.includes('/guide/') ? '../' : '';
+        window.location.href = pathPrefix + 'exercises.html';
 
     } catch (error) {
         console.error('Login error:', error);
@@ -175,7 +176,8 @@ function logoutUser() {
     }
 
     // Redirect to home page
-    window.location.href = 'index.html';
+    const pathPrefix = window.location.pathname.includes('/guide/') ? '../' : '';
+    window.location.href = pathPrefix + 'index.html';
 }
 
 function loginWithEmail(event) {
@@ -230,7 +232,8 @@ function loginWithEmail(event) {
         }
 
         // Still redirect to exercises page
-        window.location.href = 'exercises.html';
+        const pathPrefix = window.location.pathname.includes('/guide/') ? '../' : '';
+        window.location.href = pathPrefix + 'exercises.html';
     });
 }
 
