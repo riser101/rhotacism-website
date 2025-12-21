@@ -5,46 +5,47 @@ document.addEventListener('DOMContentLoaded', function() {
     const isInGuideFolder = currentPath.includes('/guide/');
     const pathPrefix = isInGuideFolder ? '../' : '';
 
-    // Load navigation
-    fetch(pathPrefix + 'includes/nav.html')
-        .then(response => response.text())
-        .then(html => {
-            // Insert navigation at the beginning of body
-            document.body.insertAdjacentHTML('afterbegin', html);
-
-            // Fix image paths based on current location
-            const navLogoImg = document.getElementById('navLogoImg');
-            const navAppStoreBadge1 = document.getElementById('navAppStoreBadge1');
-            const navAppStoreBadge2 = document.getElementById('navAppStoreBadge2');
-            const navLogoLink = document.getElementById('navLogoLink');
-
-            if (navLogoImg) {
-                navLogoImg.src = pathPrefix + 'instagram-icon.jpg';
-            }
-            if (navAppStoreBadge1) {
-                navAppStoreBadge1.src = pathPrefix + 'Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
-            }
-            if (navAppStoreBadge2) {
-                navAppStoreBadge2.src = pathPrefix + 'Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
-            }
-            if (navLogoLink) {
-                navLogoLink.href = pathPrefix + 'index.html';
-            }
-
-            // Fix all navigation links with data-page attribute
-            document.querySelectorAll('.nav-link[data-page]').forEach(link => {
-                const page = link.getAttribute('data-page');
-                link.href = pathPrefix + page;
-            });
-
-            // Initialize navigation functions after nav is loaded
-            initializeNavigation();
-        })
-        .catch(error => console.error('Error loading navigation:', error));
-
-    // Load login-modal.js script dynamically
+    // Load login-modal.js script first, then load navigation
     const loginModalScript = document.createElement('script');
     loginModalScript.src = pathPrefix + 'js/login-modal.js';
+    loginModalScript.onload = function() {
+        // Load navigation after login-modal.js is ready
+        fetch(pathPrefix + 'includes/nav.html')
+            .then(response => response.text())
+            .then(html => {
+                // Insert navigation at the beginning of body
+                document.body.insertAdjacentHTML('afterbegin', html);
+
+                // Fix image paths based on current location
+                const navLogoImg = document.getElementById('navLogoImg');
+                const navAppStoreBadge1 = document.getElementById('navAppStoreBadge1');
+                const navAppStoreBadge2 = document.getElementById('navAppStoreBadge2');
+                const navLogoLink = document.getElementById('navLogoLink');
+
+                if (navLogoImg) {
+                    navLogoImg.src = pathPrefix + 'instagram-icon.jpg';
+                }
+                if (navAppStoreBadge1) {
+                    navAppStoreBadge1.src = pathPrefix + 'Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
+                }
+                if (navAppStoreBadge2) {
+                    navAppStoreBadge2.src = pathPrefix + 'Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
+                }
+                if (navLogoLink) {
+                    navLogoLink.href = pathPrefix + 'index.html';
+                }
+
+                // Fix all navigation links with data-page attribute
+                document.querySelectorAll('.nav-link[data-page]').forEach(link => {
+                    const page = link.getAttribute('data-page');
+                    link.href = pathPrefix + page;
+                });
+
+                // Initialize navigation functions after nav is loaded
+                initializeNavigation();
+            })
+            .catch(error => console.error('Error loading navigation:', error));
+    };
     document.head.appendChild(loginModalScript);
 
     // Load Google GSI Client library first
