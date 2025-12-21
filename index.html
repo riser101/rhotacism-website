@@ -1685,7 +1685,7 @@ padding: 1px 3px !important;
                         // Auto-hide after 4.2 seconds
                         setTimeout(function() {
                             tooltip.style.display = 'none';
-                        }, 10000);
+                        }, 15000);
                     } else {
                         tooltip.style.display = 'none';
                     }
@@ -2630,7 +2630,7 @@ padding: 1px 3px !important;
             if (!sessionStorage.getItem('promoModalClosed')) {
                 document.getElementById('promoModal').classList.add('show');
             }
-        }, 16000);
+        }, 60000);
 
         function closePromoModal() {
             const modal = document.getElementById('promoModal');
