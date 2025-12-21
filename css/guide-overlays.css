@@ -1,0 +1,49 @@
+/* Guide Page Hero Image Overlays - Common Styles */
+
+/* Hero container must have position: relative */
+.article-hero-container {
+    position: relative;
+}
+
+/* Badge overlay on the left */
+.hero-badge-overlay {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    background: #2D3748;
+    color: #FFFFFF;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 10;
+}
+
+/* Logo overlay on the right */
+.hero-logo-overlay {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    width: 120px;
+    height: auto;
+    opacity: 0.9;
+    z-index: 10;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .hero-badge-overlay {
+        top: 16px;
+        left: 16px;
+        font-size: 12px;
+        padding: 8px 14px;
+    }
+
+    .hero-logo-overlay {
+        top: 16px;
+        right: 16px;
+        width: 80px;
+    }
+}
