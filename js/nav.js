@@ -32,13 +32,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     navAppStoreBadge2.src = pathPrefix + 'Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
                 }
                 if (navLogoLink) {
-                    navLogoLink.href = pathPrefix + 'index.html';
+                    navLogoLink.href = '/therollracademy';
                 }
 
                 // Fix all navigation links with data-page attribute
                 document.querySelectorAll('.nav-link[data-page]').forEach(link => {
                     const page = link.getAttribute('data-page');
-                    link.href = pathPrefix + page;
+                    // Remove .html extension and prepend /therollracademy/
+                    const cleanPage = page.replace('.html', '');
+                    link.href = '/therollracademy/' + cleanPage;
                 });
 
                 // Initialize navigation functions after nav is loaded
@@ -218,6 +220,5 @@ window.logout = function() {
     }
 
     // Redirect to home page (the page will automatically update the display on load)
-    const pathPrefix = window.location.pathname.includes('/guide/') ? '../' : '';
-    window.location.href = pathPrefix + 'index.html';
+    window.location.href = '/therollracademy';
 };

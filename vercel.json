@@ -30,6 +30,10 @@
     {
       "source": "/therollracademy",
       "destination": "/index.html"
+    },
+    {
+      "source": "/therollracademy/:path*",
+      "destination": "/:path*"
     }
   ],
   "headers": [
