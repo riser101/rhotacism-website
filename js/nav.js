@@ -38,9 +38,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Fix all navigation links with data-page attribute
                 document.querySelectorAll('.nav-link[data-page]').forEach(link => {
                     const page = link.getAttribute('data-page');
-                    // Remove .html extension and prepend /therollracademy/
-                    const cleanPage = page.replace('.html', '');
-                    link.href = '/therollracademy/' + cleanPage;
+                    // Prepend /therollracademy/ (keep .html extension since cleanUrls is false)
+                    link.href = '/therollracademy/' + page;
                 });
 
                 // Initialize navigation functions after nav is loaded
