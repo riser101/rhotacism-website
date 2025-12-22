@@ -24,11 +24,6 @@
       "source": "/(.*).php",
       "destination": "/404.html",
       "permanent": false
-    },
-    {
-      "source": "/index.html",
-      "destination": "/",
-      "permanent": true
     }
   ],
   "rewrites": [
