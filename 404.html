@@ -72,7 +72,15 @@
             justify-content: center;
         }
 
+        /* Utility class for footer */
         .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 404 content container */
+        .content-wrapper .container {
             text-align: center;
             max-width: 600px;
             padding: 40px 20px;
@@ -197,6 +205,16 @@
                 .then(response => response.text())
                 .then(data => {
                     document.getElementById('footer-placeholder').innerHTML = data;
+                    // Set copyright year after footer is loaded
+                    const yearSpan = document.getElementById('copyrightYear');
+                    if (yearSpan) {
+                        yearSpan.textContent = new Date().getFullYear();
+                    }
+                    // Execute footer scripts
+                    const scripts = document.getElementById('footer-placeholder').getElementsByTagName('script');
+                    for (let script of scripts) {
+                        eval(script.innerHTML);
+                    }
                 })
                 .catch(error => console.error('Error loading footer:', error));
         });
