@@ -31,6 +31,12 @@
       "permanent": true
     }
   ],
+  "rewrites": [
+    {
+      "source": "/therollracademy",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
