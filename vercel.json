@@ -1,6 +1,11 @@
 {
   "redirects": [
     {
+      "source": "/",
+      "destination": "/therollracademy",
+      "permanent": true
+    },
+    {
       "source": "/cal",
       "destination": "/support.html",
       "permanent": true
