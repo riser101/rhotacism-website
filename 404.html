@@ -61,95 +61,340 @@
                 #000000 100%);
             min-height: 100vh;
             color: white;
-            display: flex;
-            flex-direction: column;
         }
 
-        .content-wrapper {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Utility class for footer */
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
         }
 
-        /* 404 content container */
-        .content-wrapper .container {
+        /* Hero Section */
+        .hero-section {
             text-align: center;
-            max-width: 600px;
-            padding: 40px 20px;
+            padding: 80px 20px 60px;
         }
 
-        h1 {
+        .compass-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+            background: linear-gradient(135deg, #FF9800 0%, #FFB74D 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .hero-section h1 {
             font-family: 'Quicksand', sans-serif;
-            font-size: 72px;
+            font-size: 42px;
             font-weight: 700;
-            margin-bottom: 24px;
-            background: linear-gradient(135deg, #FF9800, #FFB74D);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            margin-bottom: 20px;
+            color: white;
+            line-height: 1.2;
         }
 
-        h2 {
+        .hero-section .subheader {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 20px;
+            line-height: 1.6;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-section .intro-text {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.75);
+            margin-bottom: 50px;
+            line-height: 1.5;
+        }
+
+        /* Three Column Layout */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 60px;
+            padding: 0 20px;
+        }
+
+        .option-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .option-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 152, 0, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .option-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 24px;
+            background: linear-gradient(135deg, #FF9800 0%, #FFB74D 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 28px;
-            font-weight: 600;
+        }
+
+        .option-card h3 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
             margin-bottom: 16px;
             color: white;
         }
 
-        p {
-            font-size: 18px;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 32px;
+        .option-card p {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.75);
+            margin-bottom: 20px;
             line-height: 1.6;
         }
 
-        .cta-button {
+        .popular-badge {
+            display: inline-block;
             background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
             color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        .resource-list {
+            text-align: left;
+            margin: 20px 0;
+            padding-left: 20px;
+        }
+
+        .resource-list li {
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 15px;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .resource-list strong {
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Buttons */
+        .cta-button {
+            display: inline-block;
             padding: 16px 32px;
-            border: none;
             border-radius: 50px;
             font-weight: 600;
             font-size: 16px;
             text-decoration: none;
             transition: all 0.3s ease;
-            display: inline-block;
-            margin: 8px;
+            cursor: pointer;
+            border: none;
+            font-family: 'Inter', sans-serif;
         }
 
-        .cta-button:hover {
+        .cta-button-primary {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            color: white;
+            border: 2px solid transparent;
+        }
+
+        .cta-button-primary:hover {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
         }
 
-        .links {
-            margin-top: 40px;
+        .cta-button-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.4);
         }
 
-        .links a {
+        .cta-button-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* Search Section */
+        .search-section {
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .search-section h2 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .search-bar {
+            max-width: 600px;
+            margin: 0 auto 40px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 18px 24px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .search-bar input:focus {
+            border-color: #FF9800;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .contact-info {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.75);
+            margin-top: 30px;
+        }
+
+        .contact-info a {
             color: #FFB74D;
             text-decoration: none;
-            margin: 0 16px;
-            font-weight: 500;
+            transition: color 0.3s ease;
         }
 
-        .links a:hover {
+        .contact-info a:hover {
             color: white;
-            text-decoration: underline;
+        }
+
+        /* Trust Section */
+        .trust-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 50px 40px;
+            margin: 60px auto;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .trust-section h2 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: white;
+        }
+
+        .trust-section p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+
+        .trust-section a {
+            color: #FFB74D;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .trust-section a:hover {
+            color: white;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 968px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .hero-section h1 {
+                font-size: 32px;
+            }
+
+            .hero-section .subheader {
+                font-size: 18px;
+            }
+
+            .trust-section {
+                padding: 40px 30px;
+            }
+
+            .trust-section h2 {
+                font-size: 26px;
+            }
+
+            .trust-section p {
+                font-size: 16px;
+            }
         }
 
         @media (max-width: 768px) {
-            h1 { font-size: 48px; }
-            h2 { font-size: 24px; }
-            p { font-size: 16px; }
+            .hero-section {
+                padding: 60px 20px 40px;
+            }
+
+            .compass-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+            }
+
+            .hero-section h1 {
+                font-size: 28px;
+            }
+
+            .hero-section .subheader {
+                font-size: 16px;
+            }
+
+            .option-card {
+                padding: 30px 20px;
+            }
+
+            .option-card h3 {
+                font-size: 20px;
+            }
+
+            .search-section {
+                padding: 40px 20px;
+            }
+
+            .search-section h2 {
+                font-size: 24px;
+            }
+
+            .trust-section {
+                padding: 30px 20px;
+                margin: 40px 20px;
+            }
         }
     </style>
 
@@ -157,12 +402,12 @@
         // Redirect common URLs
         function handleRedirects() {
             const path = window.location.pathname.toLowerCase();
-            
+
             if (path.includes('/cal')) {
                 window.location.href = '/support.html';
                 return;
             }
-            
+
             if (path.includes('.php')) {
                 window.location.href = '/';
                 return;
@@ -170,27 +415,126 @@
         }
 
         window.addEventListener('load', handleRedirects);
+
+        // Simple search functionality
+        function handleSearch(event) {
+            if (event.key === 'Enter') {
+                const query = event.target.value.toLowerCase();
+
+                // Map common search terms to pages
+                const searchMap = {
+                    'assessment': '/therollracademy/assessment.html',
+                    'test': '/therollracademy/assessment.html',
+                    'evaluate': '/therollracademy/assessment.html',
+                    'guide': '/therollracademy/rhotacism-guide.html',
+                    'treatment': '/therollracademy/guide/how-to-fix-rhotacism.html',
+                    'fix': '/therollracademy/guide/how-to-fix-rhotacism.html',
+                    'exercises': '/therollracademy/exercises.html',
+                    'practice': '/therollracademy/exercises.html',
+                    'research': '/therollracademy/research.html',
+                    'evidence': '/therollracademy/research.html',
+                    'adult': '/therollracademy/guide/rhotacism-adults.html',
+                    'causes': '/therollracademy/guide/rhotacism.html',
+                    'what is': '/therollracademy/guide/what-is-rhotacism.html',
+                    'examples': '/therollracademy/guide/rhotacism-examples.html',
+                    'support': '/therollracademy/support.html',
+                    'contact': '/therollracademy/support.html',
+                    'tools': '/therollracademy/tools.html',
+                    'slp': '/therollracademy/tools.html'
+                };
+
+                // Find matching page
+                for (const [keyword, url] of Object.entries(searchMap)) {
+                    if (query.includes(keyword)) {
+                        window.location.href = url;
+                        return;
+                    }
+                }
+
+                // Default to guide page if no match
+                window.location.href = '/therollracademy/rhotacism-guide.html';
+            }
+        }
     </script>
     <link rel="stylesheet" href="css/nav.css">
     <link rel="stylesheet" href="css/login-modal.css">
 </head>
 <body>
-    <div class="content-wrapper">
+    <!-- Hero Section -->
+    <section class="hero-section">
         <div class="container">
-            <h1>404</h1>
-            <h2>Page Not Found</h2>
-            <p>Sorry, the page you're looking for doesn't exist. But don't worry - we can help you find what you need!</p>
+            <div class="compass-icon">🧭</div>
+            <h1>Looking for Information About R Sound Treatment?</h1>
+            <p class="subheader">You've come to the right place—this specific page has moved, but we can help you find exactly what you need.</p>
+            <p class="intro-text">Most visitors to this page are looking for one of these clinical resources:</p>
+        </div>
+    </section>
 
-            <a href="/therollracademy" class="cta-button">Go Home</a>
-            <a href="/therollracademy/rhotacism-guide.html" class="cta-button">Browse Guides</a>
+    <!-- Primary Navigation Options -->
+    <section class="container">
+        <div class="options-grid">
+            <!-- Column 1: Assessment -->
+            <div class="option-card">
+                <div class="option-icon">📋</div>
+                <h3>Assessment & Getting Started</h3>
+                <div class="popular-badge">Most Popular Choice</div>
+                <p>Free 2-minute speech analysis identifies your specific error patterns and generates personalized treatment plan.</p>
+                <a href="/therollracademy/assessment.html" class="cta-button cta-button-primary">Take Free Assessment</a>
+            </div>
 
-            <div class="links">
-                <a href="/therollracademy/support.html">Support</a>
-                <a href="/therollracademy/guide/rhotacism.html">Main Guide</a>
-                <a href="/therollracademy/guide/how-to-fix-rhotacism.html">How to Fix</a>
+            <!-- Column 2: Clinical Guides -->
+            <div class="option-card">
+                <div class="option-icon">📚</div>
+                <h3>Learn About Treatment</h3>
+                <p>Evidence-based guides explaining rhotacism causes, treatment protocols, and expected outcomes.</p>
+                <ul class="resource-list">
+                    <li><strong>Complete Guide to Rhotacism</strong></li>
+                    <li><strong>How to Fix R Sounds</strong> (Treatment Protocol)</li>
+                    <li><strong>Research & Evidence</strong></li>
+                    <li><strong>Adult vs. Child Treatment</strong></li>
+                </ul>
+                <a href="/therollracademy/rhotacism-guide.html" class="cta-button cta-button-secondary">Browse Clinical Guides</a>
+            </div>
+
+            <!-- Column 3: Comparison -->
+            <div class="option-card">
+                <div class="option-icon">⚖️</div>
+                <h3>Understanding Your Options</h3>
+                <p>See how intensive daily practice compares to traditional weekly speech therapy for adult rhotic errors.</p>
+                <a href="/therollracademy/research.html" class="cta-button cta-button-secondary">View Comparison</a>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="container">
+            <h2>What Were You Looking For?</h2>
+            <p style="color: rgba(255, 255, 255, 0.75); margin-bottom: 20px;">Still can't find what you need? Try searching:</p>
+            <div class="search-bar">
+                <input
+                    type="text"
+                    placeholder="Try searching: 'R speech exercises', 'rhotacism causes', 'speech therapist'"
+                    onkeypress="handleSearch(event)"
+                    aria-label="Search for resources"
+                >
+            </div>
+            <div class="contact-info">
+                <p>Or contact our team directly:</p>
+                <p>📧 <a href="mailto:support@therollracademy.com">support@therollracademy.com</a></p>
+                <p>📞 <a href="tel:+12542618966">(254) 261-8966</a></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust/Evidence Section -->
+    <section class="container">
+        <div class="trust-section">
+            <h2>Why Choose Evidence-Based Treatment?</h2>
+            <p>85-95% of adults with persistent rhotic errors achieve significant improvement with structured motor learning protocols. Our program was designed by licensed speech-language pathologists and follows the same clinical framework documented in peer-reviewed efficacy studies.</p>
+            <a href="/therollracademy/research.html">Read Research Evidence →</a>
+        </div>
+    </section>
 
     <!-- Enhanced Analytics -->
     <script src="js/enhanced-analytics.js"></script>
