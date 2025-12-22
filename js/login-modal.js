@@ -13,7 +13,7 @@ function openLoginModal() {
         }
 
         // Track with PostHog
-        if (typeof posthog !== 'undefined') {
+        if (typeof posthog !== 'undefined' && posthog.capture) {
             posthog.capture('login_modal_opened', {
                 page_url: window.location.href,
                 trigger: 'get_started_button'
@@ -28,7 +28,7 @@ function closeLoginModal() {
         loginModal.style.display = 'none';
 
         // Track modal close with PostHog
-        if (typeof posthog !== 'undefined') {
+        if (typeof posthog !== 'undefined' && posthog.capture) {
             posthog.capture('login_modal_closed', {
                 page_url: window.location.href
             });
@@ -65,7 +65,7 @@ function handleCredentialResponse(response) {
         }
 
         // Track successful login with PostHog
-        if (typeof posthog !== 'undefined') {
+        if (typeof posthog !== 'undefined' && posthog.capture) {
             posthog.capture('user_login_success', {
                 login_method: 'google_oauth',
                 user_email: responsePayload.email,
@@ -74,10 +74,12 @@ function handleCredentialResponse(response) {
             });
 
             // Identify user in PostHog
-            posthog.identify(responsePayload.sub, {
-                email: responsePayload.email,
-                name: responsePayload.name
-            });
+            if (posthog.identify) {
+                posthog.identify(responsePayload.sub, {
+                    email: responsePayload.email,
+                    name: responsePayload.name
+                });
+            }
         }
 
         // Submit to FormEasy for email collection
@@ -114,7 +116,7 @@ function handleCredentialResponse(response) {
         }
 
         // Track with PostHog
-        if (typeof posthog !== 'undefined') {
+        if (typeof posthog !== 'undefined' && posthog.capture) {
             posthog.capture('user_login_error', {
                 login_method: 'google_oauth',
                 error_message: error.message || 'Unknown error',
