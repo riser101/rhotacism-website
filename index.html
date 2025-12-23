@@ -1028,6 +1028,10 @@ margin-top: 20px;
         width: 160px !important;
         height: 160px !important;
         margin-bottom: 20px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        background-size: cover !important;
+        background-position: center center !important;
     }
     
     /* Mobile carousel styles */
@@ -1044,19 +1048,18 @@ margin-top: 20px;
     .carousel-btn-left,
     .carousel-btn-right {
         position: absolute;
-        top: 120px;
+        top: 50%;
         transform: translateY(-50%);
         width: 45px;
         height: 45px;
-        border-radius: 50%;
-        background: white;
-        border: 2px solid #000000;
+        background: transparent;
+        border: none;
         display: flex !important;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        box-shadow: none;
         z-index: 10;
     }
 
@@ -1070,10 +1073,10 @@ margin-top: 20px;
 
     .carousel-btn-left:hover,
     .carousel-btn-right:hover {
-        background: #000000;
+        background: rgba(0, 0, 0, 0.1);
         color: white;
         transform: translateY(-50%) scale(1.1);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        box-shadow: none;
     }
 
     .carousel-btn-left svg,
@@ -1105,9 +1108,32 @@ margin-top: 20px;
     .advisory-board h2 {
         font-size: 28px !important;
     }
-    
+
     .advisory-board .advisor-card h3 {
         font-size: 20px !important;
+    }
+
+    .advisory-board .advisor-avatar {
+        max-width: 200px !important;
+        width: 100% !important;
+        height: 240px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        background-size: cover !important;
+        background-position: center 20% !important;
+    }
+
+    .advisory-board .advisor-card h4,
+    .advisory-board .advisor-card > div:not(.advisor-avatar),
+    .advisory-board .advisor-card a {
+        max-width: 200px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        text-align: left !important;
+    }
+
+    .advisory-board .advisor-card {
+        text-align: left !important;
     }
 }
 
@@ -1252,38 +1278,16 @@ padding: 12px 16px;
 }
 .cta-buttons {
 flex-direction: row;
+flex-wrap: nowrap;
 width: 100%;
-align-items: center;
 justify-content: center;
 gap: 8px;
 }
 .cta-buttons a {
-white-space: nowrap;
-font-size: 11px;
-padding: 10px 12px !important;
-flex: 0 1 auto;
-min-height: auto !important;
-}
-.hero-main-cta,
-.hero-secondary-cta {
-min-height: auto !important;
-padding: 10px 12px !important;
-font-size: 11px !important;
-box-sizing: border-box;
-}
-.hero-main-cta {
-padding: 14px 14px !important;
-}
-.btn {
-white-space: nowrap;
-}
-.assessment-cta {
-font-size: 14px !important;
-padding: 14px 20px !important;
-}
-.btn-mega {
-font-size: 14px !important;
-padding: 14px 20px !important;
+flex: 1;
+min-width: 0;
+font-size: 14px;
+padding: 16px 12px !important;
 }
 .features-grid {
 grid-template-columns: repeat(2, 1fr);
@@ -1300,6 +1304,16 @@ font-size: 28px !important;
 }
 .cta-title {
 font-size: 28px;
+}
+.assessment-cta {
+font-size: 16px !important;
+padding: 16px 20px !important;
+white-space: nowrap;
+}
+.btn-mega {
+font-size: 16px !important;
+padding: 16px 20px !important;
+white-space: nowrap;
 }
 .faq-question {
 font-size: 16px;
@@ -1579,33 +1593,27 @@ padding: 1px 3px !important;
                 
                 <div class="mobile-carousel-container" id="advisoryCarousel">
                     <!-- Speech-Language Pathologist -->
-                    <div class="advisor-card" style="background: white; border-radius: 16px; padding: 40px 30px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); border-top: 4px solid #000000; position: relative; transition: transform 0.3s ease; display: flex; flex-direction: column; height: 100%;">
-                        <div class="advisor-avatar" style="width: 160px; height: 160px; background: url('1755912418188.jpeg') center/cover; border-radius: 12px; margin: 0 auto 24px; border: 3px solid #000000;"></div>
-                        <h4 style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; color: #333; margin-bottom: 8px;">Jaime Roche</h4>
-                        <div style="color: #FF9800; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">M.S., CCC-SLP, LOYOLA UNIVERSITY MARYLAND</div>
-                        <div style="color: #666; font-weight: 600; margin-bottom: 16px;">Speech Sound Disorders & Communication Development</div>
-                        <p style="color: #777; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0; flex-grow: 1;">20+ years of clinical experience in comprehensive evaluation and treatment of speech sound disorders. ASHA ACE Award recipient with expertise in evidence-based therapy for children and adults.</p>
-                        <div style="background: #000000; padding: 8px 6px; border-radius: 25px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"><img src="asha.jpg" style="width: 24px; height: 24px; border-radius: 50%;" alt="ASHA"><span style="color: white; font-size: 14px; font-weight: 600; text-decoration: underline; font-family: 'Inter', sans-serif;">ASHA Certified</span></div>
+                    <div class="advisor-card" style="background: white; border-radius: 16px; padding: 30px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); border-top: 4px solid #000000; position: relative; transition: transform 0.3s ease; display: flex; flex-direction: column; height: 100%;">
+                        <div class="advisor-avatar" style="width: 100%; height: 294px; background: url('1755912418188.jpeg') center center/cover; border-radius: 12px; margin-bottom: 24px;"></div>
+                        <h4 style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; color: #333; margin-bottom: 8px; text-align: left;">Jaime Roche</h4>
+                        <div style="color: #333; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 24px; flex-grow: 1; text-align: left;">M.S., CCC-SLP</div>
+                        <a href="team/jaime-roche.html" style="display: inline-block; color: #2D3748; text-decoration: none; font-weight: 400; font-size: 14px; transition: all 0.2s ease; background: white; border: 2px solid #000000; padding: 8px 16px; align-self: flex-start;" onmouseover="this.style.background='#f8f8f8'" onmouseout="this.style.background='white'">View Profile →</a>
                     </div>
-                    
+
                     <!-- Speech-Language Pathologist -->
-                    <div class="advisor-card" style="background: white; border-radius: 16px; padding: 40px 30px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); border-top: 4px solid #000000; position: relative; transition: transform 0.3s ease; display: flex; flex-direction: column; height: 100%;">
-                        <div class="advisor-avatar" style="width: 160px; height: 160px; background: url('1517578395354.jpeg') center/cover; border-radius: 12px; margin: 0 auto 24px; border: 3px solid #000000;"></div>
-                        <h4 style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; color: #333; margin-bottom: 8px;">Peter Stoll</h4>
-                        <div style="color: #FF9800; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">M.S., CCC-SLP, LONG ISLAND UNIVERSITY</div>
-                        <div style="color: #666; font-weight: 600; margin-bottom: 16px;">Clinical Speech-Language Pathology</div>
-                        <p style="color: #777; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0; flex-grow: 1;">Graduate-trained clinician with Master's in Speech Language Pathology from Long Island University-Brooklyn. Specialized in evidence-based assessment and treatment of communication disorders across diverse clinical settings.</p>
-                        <div style="background: #000000; padding: 8px 6px; border-radius: 25px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"><div style="width: 24px; height: 24px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000000; font-weight: 700; font-size: 10px;">CCC</div><span style="color: white; font-size: 14px; font-weight: 600; text-decoration: underline; font-family: 'Inter', sans-serif;">CCC-SLP Certified</span></div>
+                    <div class="advisor-card" style="background: white; border-radius: 16px; padding: 30px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); border-top: 4px solid #000000; position: relative; transition: transform 0.3s ease; display: flex; flex-direction: column; height: 100%;">
+                        <div class="advisor-avatar" style="width: 100%; height: 294px; background: url('1517578395354.jpeg') center center/cover; border-radius: 12px; margin-bottom: 24px;"></div>
+                        <h4 style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; color: #333; margin-bottom: 8px; text-align: left;">Peter Stoll</h4>
+                        <div style="color: #333; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 24px; flex-grow: 1; text-align: left;">M.S., CCC-SLP</div>
+                        <a href="#" style="display: inline-block; color: #2D3748; text-decoration: none; font-weight: 400; font-size: 14px; transition: all 0.2s ease; background: white; border: 2px solid #000000; padding: 8px 16px; align-self: flex-start;" onmouseover="this.style.background='#f8f8f8'" onmouseout="this.style.background='white'">View Profile →</a>
                     </div>
-                    
+
                     <!-- Senior Speech Language Pathologist -->
-                    <div class="advisor-card" style="background: white; border-radius: 16px; padding: 40px 30px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); border-top: 4px solid #000000; position: relative; transition: transform 0.3s ease; display: flex; flex-direction: column; height: 100%;">
-                        <div class="advisor-avatar" style="width: 160px; height: 160px; background: url('1517282777568.jpeg') center/cover; border-radius: 12px; margin: 0 auto 24px; border: 3px solid #000000;"></div>
-                        <h4 style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; color: #333; margin-bottom: 8px;">Deborah Sarfaty</h4>
-                        <div style="color: #FF9800; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">M.A., MONTCLAIR STATE UNIVERSITY</div>
-                        <div style="color: #666; font-weight: 600; margin-bottom: 16px;">Rehabilitation & Adult Communication Disorders</div>
-                        <p style="color: #777; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0; flex-grow: 1;">Senior clinician at Kessler Institute for Rehabilitation specializing in adult communication disorders and speech rehabilitation. Expert in evidence-based treatment approaches for complex speech and language impairments.</p>
-                        <div style="background: #000000; padding: 8px 6px; border-radius: 25px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"><img src="kesseler.png" style="width: 24px; height: 24px; border-radius: 6px;" alt="Kessler Institute"><span style="color: white; font-size: 14px; font-weight: 600; text-decoration: underline; font-family: 'Inter', sans-serif;">Kessler Institute</span></div>
+                    <div class="advisor-card" style="background: white; border-radius: 16px; padding: 30px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); border-top: 4px solid #000000; position: relative; transition: transform 0.3s ease; display: flex; flex-direction: column; height: 100%;">
+                        <div class="advisor-avatar" style="width: 100%; height: 294px; background: url('1517282777568.jpeg') center center/cover; border-radius: 12px; margin-bottom: 24px;"></div>
+                        <h4 style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; color: #333; margin-bottom: 8px; text-align: left;">Deborah Sarfaty</h4>
+                        <div style="color: #333; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 24px; flex-grow: 1; text-align: left;">B.S., M.A., Kessler Institute</div>
+                        <a href="#" style="display: inline-block; color: #2D3748; text-decoration: none; font-weight: 400; font-size: 14px; transition: all 0.2s ease; background: white; border: 2px solid #000000; padding: 8px 16px; align-self: flex-start;" onmouseover="this.style.background='#f8f8f8'" onmouseout="this.style.background='white'">View Profile →</a>
                     </div>
                 </div>
             </div>
