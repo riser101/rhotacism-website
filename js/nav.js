@@ -2,8 +2,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Determine the correct path prefix based on current page location
     const currentPath = window.location.pathname;
-    const isInGuideFolder = currentPath.includes('/guide/');
-    const pathPrefix = isInGuideFolder ? '../' : '';
+    const isInSubfolder = currentPath.includes('/guide/') || currentPath.includes('/team/');
+    const pathPrefix = isInSubfolder ? '../' : '';
 
     // Load login-modal.js script first, then load navigation
     const loginModalScript = document.createElement('script');

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jaime Roche, M.S., CCC-SLP - The Rollr Academy</title>
+    <link rel="icon" type="image/jpeg" href="../instagram-icon.jpg">
+    <link rel="apple-touch-icon" href="../instagram-icon.jpg">
+    <meta name="description" content="Meet Jaime Roche, M.S., CCC-SLP from Loyola University Maryland. 20+ years of clinical experience in speech sound disorders and ASHA ACE Award recipient.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common-gradient.css">
+    <link rel="stylesheet" href="../css/login-modal.css">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-584ZMQTPSE');
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            color: white;
+            padding: 100px 0 30px;
+            text-align: center;
+        }
+
+        .header::after {
+            content: '';
+            display: block;
+            width: 800px;
+            height: 0.5px;
+            background: rgba(255, 255, 255, 0.3);
+            margin: 30px auto 0;
+        }
+
+        .header h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: white;
+        }
+
+        .header .subtitle {
+            font-size: 20px;
+            color: white;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Profile Section */
+        .profile-section {
+            padding: 40px 0;
+            flex: 1;
+        }
+
+        .profile-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: transparent;
+            border-radius: 16px;
+            padding: 60px;
+        }
+
+        .profile-header {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 40px;
+            align-items: flex-start;
+        }
+
+        .profile-image {
+            width: 280px;
+            height: 280px;
+            border-radius: 12px;
+            border: 3px solid #000000;
+            background-size: cover;
+            background-position: center;
+            flex-shrink: 0;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-family: 'Inter', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .profile-credentials {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .profile-specialty {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .certification-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #000000;
+            padding: 8px 16px;
+            border-radius: 25px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .certification-badge img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+
+        .profile-content {
+            color: white;
+            line-height: 1.8;
+        }
+
+        .section-heading {
+            font-family: 'Inter', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+            margin-top: 32px;
+        }
+
+        .section-heading:first-of-type {
+            margin-top: 0;
+        }
+
+        .profile-content p {
+            margin-bottom: 16px;
+            font-size: 16px;
+        }
+
+        .expertise-list {
+            list-style: none;
+            padding: 0;
+            margin: 16px 0;
+        }
+
+        .expertise-list li {
+            color: white;
+            padding: 8px 0 8px 28px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .expertise-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: white;
+            font-weight: 400;
+            font-size: 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 40px;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-weight: 400;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+            color: white;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding-top: 100px;
+            }
+
+            .header h1 {
+                font-size: 36px;
+            }
+
+            .header .subtitle {
+                font-size: 16px;
+            }
+
+            .profile-container {
+                padding: 40px 30px;
+            }
+
+            .profile-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .profile-image {
+                width: 100%;
+                max-width: 280px;
+            }
+
+            .profile-name {
+                font-size: 28px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 80px 0 30px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .profile-container {
+                padding: 30px 20px;
+            }
+
+            .profile-name {
+                font-size: 24px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="../css/nav.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <!-- Navigation will be loaded by nav.js -->
+
+    <!-- Header -->
+    <section class="header" id="headerSection">
+        <div class="container">
+            <h1>Advisory Board Member</h1>
+            <p class="subtitle">Meet our clinical experts developing evidence-based speech therapy protocols</p>
+        </div>
+    </section>
+
+    <!-- Profile Section -->
+    <section class="profile-section">
+        <div class="container">
+            <div class="profile-container">
+                <div class="profile-header">
+                    <div class="profile-image" style="background-image: url('../1755912418188.jpeg');"></div>
+                    <div class="profile-info">
+                        <h1 class="profile-name">Jaime Roche</h1>
+                        <div class="profile-credentials">M.S., CCC-SLP, Loyola University Maryland</div>
+                        <div class="profile-specialty">Speech Sound Disorders & Communication Development</div>
+                        <div class="certification-badge">
+                            <img src="../asha.jpg" alt="ASHA">
+                            <span>ASHA Certified</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-content">
+                    <h2 class="section-heading">About</h2>
+                    <p>Jaime Roche is a highly accomplished speech-language pathologist with over 20 years of clinical experience specializing in the comprehensive evaluation and treatment of speech sound disorders. Her dedication to evidence-based practice has made her a recognized leader in the field of communication development.</p>
+
+                    <p>As an ASHA ACE Award recipient, Jaime has demonstrated exceptional commitment to advancing clinical excellence in speech-language pathology. Her expertise spans working with both children and adults, bringing a wealth of knowledge to every case she encounters.</p>
+
+                    <h2 class="section-heading">Clinical Expertise</h2>
+                    <ul class="expertise-list">
+                        <li>Comprehensive evaluation and treatment of speech sound disorders</li>
+                        <li>Evidence-based therapy approaches for rhotacism and R sound production</li>
+                        <li>Adult speech therapy and articulation remediation</li>
+                        <li>Pediatric communication development</li>
+                        <li>Motor speech disorders and phonological processes</li>
+                    </ul>
+
+                    <h2 class="section-heading">Education & Credentials</h2>
+                    <p>Jaime earned her Master of Science degree in Speech-Language Pathology from Loyola University Maryland, one of the nation's premier programs for communication sciences. She holds the Certificate of Clinical Competence in Speech-Language Pathology (CCC-SLP) from the American Speech-Language-Hearing Association (ASHA).</p>
+
+                    <h2 class="section-heading">Contributions to The Rollr Academy</h2>
+                    <p>At The Rollr Academy, Jaime plays a crucial role in developing and validating the clinical protocols that form the foundation of our 12-week treatment program. Her extensive experience with speech sound disorders ensures that every exercise and technique is grounded in proven therapeutic methods.</p>
+
+                    <p>Her expertise helps translate decades of in-clinic experience into accessible, self-paced exercises that maintain the same rigor and effectiveness as traditional speech therapy sessions.</p>
+
+                    <a href="../index.html#advisory-board" class="back-link">← Back to Advisory Board</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <div id="footer-placeholder"></div>
+
+    <script>
+        // Load footer from includes
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('../includes/footer.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('footer-placeholder').innerHTML = data;
+                    // Set copyright year after footer is loaded
+                    const yearSpan = document.getElementById('copyrightYear');
+                    if (yearSpan) {
+                        yearSpan.textContent = new Date().getFullYear();
+                    }
+                    // Execute footer scripts
+                    const scripts = document.getElementById('footer-placeholder').getElementsByTagName('script');
+                    for (let script of scripts) {
+                        eval(script.innerHTML);
+                    }
+                })
+                .catch(error => console.error('Error loading footer:', error));
+        });
+    </script>
+
+    <!-- Login Modal -->
+    <script src="../js/login-modal.js"></script>
+    <script src="../js/nav.js"></script>
+</body>
+</html>
