@@ -1,0 +1,584 @@
+/* Guide Article Styles - Shared across all guide pages */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Navigation Styles */
+.navbar {
+    background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
+    padding: 5.25px 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    transition: all 0.3s ease, transform 0.3s ease;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-logo {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    text-decoration: none;
+    position: relative;
+    transition: all 0.3s ease;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.nav-menu {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 20px;
+    align-items: center;
+}
+
+.nav-menu li {
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.nav-menu a {
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.3px;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 5.25px 0;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.nav-menu a:hover {
+    color: white;
+    transform: translateY(-1px);
+}
+
+.nav-menu a.nav-cta {
+    background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: 600;
+    border: 1px solid rgba(255, 152, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-menu a.nav-cta:hover {
+    color: white;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+    border-color: #FFB74D;
+}
+
+/* Article Header */
+.article-header {
+    background: transparent;
+    padding: 120px 0 60px;
+    text-align: left;
+}
+
+.article-hero-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Hero Image Styles */
+.article-hero-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto 48px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.article-hero-image {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+.breadcrumb {
+    font-size: 14px;
+    color: #B8941F;
+    margin-bottom: 30px;
+    font-weight: 500;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.breadcrumb a {
+    color: #B8941F;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+.article-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    margin-bottom: 24px;
+    color: #FFFFFF;
+    line-height: 1.2;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    max-width: 900px;
+}
+
+.article-subtitle {
+    font-size: 18px;
+    color: #E2E8F0;
+    font-weight: 400;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    max-width: 800px;
+}
+
+.article-byline {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 40px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.article-byline .byline-date {
+    margin-right: 8px;
+}
+
+.article-byline .byline-author {
+    color: #B8941F;
+    font-weight: 500;
+}
+
+.article-byline .byline-read-time {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Article Content */
+.article-content {
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 64px 48px;
+    margin: 0 auto 80px;
+    max-width: 1200px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.content-section {
+    margin-bottom: 50px;
+}
+
+.content-section:first-child .section-title {
+    margin-top: 0;
+}
+
+.content-section:last-child {
+    margin-bottom: 0;
+}
+
+.section-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1A202C;
+    margin-top: 48px;
+    margin-bottom: 20px;
+    border-left: 4px solid #EA580C;
+    padding-left: 16px;
+}
+
+.section-content p {
+    font-size: 17px;
+    line-height: 1.75;
+    color: #2D3748;
+    margin-bottom: 24px;
+}
+
+.section-content ul {
+    margin-left: 20px;
+    padding-left: 8px;
+    margin-bottom: 24px;
+}
+
+.section-content li {
+    font-size: 17px;
+    line-height: 1.75;
+    color: #2D3748;
+    margin-bottom: 12px;
+}
+
+.section-content li strong {
+    font-weight: 700;
+    color: #1A202C;
+}
+
+.section-content h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2D3748;
+    margin-top: 32px;
+    margin-bottom: 16px;
+}
+
+.section-content strong {
+    font-weight: 700;
+    color: #1A202C;
+}
+
+.section-content a {
+    color: #2563EB;
+    text-decoration: underline;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.section-content a:hover {
+    color: #1D4ED8;
+}
+
+/* Highlight Box */
+.highlight-box {
+    background: #F7FAFC;
+    border-left: 3px solid #EA580C;
+    border-radius: 4px;
+    padding: 24px 28px;
+    margin: 32px 0;
+}
+
+.highlight-box h3 {
+    color: #2D3748;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    margin-top: 0;
+}
+
+.highlight-box p {
+    font-size: 17px;
+    line-height: 1.75;
+    color: #2D3748;
+    margin-bottom: 0;
+}
+
+.highlight-box ul {
+    margin-left: 20px;
+    padding-left: 8px;
+    margin-bottom: 0;
+}
+
+.highlight-box li {
+    font-size: 17px;
+    line-height: 1.75;
+    color: #2D3748;
+    margin-bottom: 12px;
+}
+
+.highlight-box li:last-child {
+    margin-bottom: 0;
+}
+
+.highlight-box li strong {
+    font-weight: 700;
+    color: #1A202C;
+}
+
+/* Example Box */
+.example-box {
+    background: #F7FAFC;
+    border-left: 3px solid #CBD5E0;
+    border-radius: 4px;
+    padding: 24px 28px;
+    margin: 32px 0;
+}
+
+.example-box h4 {
+    color: #2D3748;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.example-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.example-item {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 6px;
+}
+
+.incorrect {
+    color: #d32f2f;
+}
+
+.correct {
+    color: #2e7d32;
+}
+
+/* CTA Section */
+.cta-section {
+    background: #F7FAFC;
+    border: 2px solid #E2E8F0;
+    padding: 40px;
+    border-radius: 8px;
+    text-align: center;
+    margin: 64px 0;
+}
+
+.cta-section h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1A202C;
+    margin-bottom: 12px;
+}
+
+.cta-section p {
+    font-size: 16px;
+    color: #4A5568;
+    margin-bottom: 24px;
+}
+
+.cta-section img {
+    width: 180px;
+    height: auto;
+    transition: transform 0.3s ease;
+}
+
+.cta-section img:hover {
+    transform: scale(1.05);
+}
+
+.cta-button {
+    background: transparent;
+    color: #2D3748;
+    padding: 14px 32px;
+    border: 2px solid #2D3748;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.cta-button:hover {
+    background: #2D3748;
+    color: #FFFFFF;
+}
+
+/* Word List Grid - for examples page */
+.word-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin: 24px 0;
+}
+
+.word-item {
+    background: #F7FAFC;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 16px;
+    color: #2D3748;
+    text-align: center;
+    border: 1px solid #E2E8F0;
+    transition: all 0.2s ease;
+}
+
+.word-item:hover {
+    background: #EDF2F7;
+    border-color: #CBD5E0;
+}
+
+.word-item .phonetic {
+    display: block;
+    font-size: 13px;
+    color: #718096;
+    margin-top: 4px;
+    font-style: italic;
+}
+
+/* Famous People Cards */
+.person-card {
+    background: #F7FAFC;
+    border-radius: 8px;
+    padding: 24px;
+    margin: 24px 0;
+    border: 1px solid #E2E8F0;
+}
+
+.person-card h3 {
+    color: #1A202C;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    margin-top: 0;
+}
+
+.person-card .profession {
+    color: #EA580C;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.person-card p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #4A5568;
+    margin-bottom: 0;
+}
+
+/* Table Styles */
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-size: 15px;
+}
+
+.comparison-table th,
+.comparison-table td {
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.comparison-table th {
+    background: #F7FAFC;
+    font-weight: 700;
+    color: #1A202C;
+}
+
+.comparison-table td {
+    color: #2D3748;
+}
+
+.comparison-table tr:hover td {
+    background: #F7FAFC;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .article-hero-image {
+        height: 250px;
+    }
+
+    .article-hero-container {
+        margin-bottom: 32px;
+    }
+
+    .article-title {
+        font-size: 32px;
+    }
+
+    .article-subtitle {
+        font-size: 16px;
+    }
+
+    .article-content {
+        padding: 32px 24px;
+        margin: 20px;
+        max-width: calc(100% - 40px);
+    }
+
+    .section-title {
+        font-size: 24px;
+        margin-top: 36px;
+    }
+
+    .example-list {
+        grid-template-columns: 1fr;
+    }
+
+    .word-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .nav-menu {
+        display: none;
+    }
+
+    .cta-section {
+        padding: 32px 24px;
+    }
+
+    .cta-section img {
+        width: 160px;
+    }
+
+    .highlight-box,
+    .example-box {
+        padding: 20px;
+    }
+
+    .person-card {
+        padding: 20px;
+    }
+
+    .comparison-table {
+        font-size: 14px;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+        padding: 10px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .article-title {
+        font-size: 28px;
+    }
+
+    .word-grid {
+        grid-template-columns: 1fr;
+    }
+}
