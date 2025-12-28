@@ -186,12 +186,26 @@ body {
 }
 
 .article-byline .byline-author {
-    color: #B8941F;
+    color: rgba(255, 255, 255, 0.8);
     font-weight: 500;
 }
 
 .article-byline .byline-read-time {
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.article-byline .byline-icon {
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+    margin-right: 6px;
+    filter: invert(1) opacity(0.8);
+}
+
+.article-byline .byline-date,
+.article-byline .byline-author,
+.article-byline .byline-read-time {
+    margin-right: 16px;
 }
 
 /* Article Content */
