@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Fix image paths based on current location
                 const navAppStoreBadge1 = document.getElementById('navAppStoreBadge1');
                 const navAppStoreBadge2 = document.getElementById('navAppStoreBadge2');
+                const navLogoMobile = document.getElementById('navLogoMobile');
                 const navLogoLink = document.getElementById('navLogoLink');
 
                 if (navAppStoreBadge1) {
@@ -26,6 +27,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 if (navAppStoreBadge2) {
                     navAppStoreBadge2.src = pathPrefix + 'Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
+                }
+                if (navLogoMobile) {
+                    navLogoMobile.src = pathPrefix + 'instagram-icon.jpg';
                 }
                 if (navLogoLink) {
                     navLogoLink.href = '/therollracademy';

@@ -49,6 +49,7 @@ padding: 0 12px;
 display: flex;
 justify-content: space-between;
 align-items: center;
+position: relative;
 }
 
 .nav-logo {
@@ -290,13 +291,13 @@ transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
 @media (max-width: 1024px) {
 
-/* Switch logo to image on mobile */
+/* Keep text logo visible on tablets, only switch to image on small mobile */
 .nav-logo-text {
-    display: none;
+    display: inline;
 }
 
 .nav-logo-mobile {
-    display: inline;
+    display: none;
 }
 
 /* Hide Company dropdown from desktop navigation on mobile */
@@ -573,5 +574,16 @@ body.user-logged-in .login-nav {
 
     .profile-circle span {
         font-size: 12px;
+    }
+}
+
+/* Small mobile - switch to icon logo */
+@media (max-width: 480px) {
+    .nav-logo-text {
+        display: none;
+    }
+
+    .nav-logo-mobile {
+        display: inline;
     }
 }
