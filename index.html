@@ -1942,66 +1942,7 @@ padding: 1px 3px !important;
         </div>
     </div>
 
-    <!-- Login Modal -->
-    <div id="loginModal" class="login-modal">
-        <div class="login-modal-content">
-            <div style="position: absolute; top: 40px; left: 40px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 22px; font-weight: 700; color: #333; display: flex; align-items: center; gap: 12px;">
-                <img src="instagram-icon.jpg" alt="Logo" style="width: 32px; height: 32px; border-radius: 6px;">
-                The Rollr Academy
-            </div>
-            <button class="login-close" onclick="closeLoginModal()">&times;</button>
-            
-            <h2 class="login-title">Login</h2>
-            
-            <!-- NOTE: You need to create OAuth 2.0 credentials in Google Cloud Console:
-                 1. Go to console.cloud.google.com
-                 2. Select project: detache-platform
-                 3. APIs & Services > Credentials
-                 4. Create OAuth 2.0 Client ID
-                 5. Add authorized domains: rhotacismtherapy.com, www.rhotacismtherapy.com
-                 6. Replace CLIENT_ID_HERE with your actual client ID -->
-            <div id="g_id_onload"
-                 data-client_id="653307587559-bg7qf4p5h70q4kcrdnircer7ht79c4ha.apps.googleusercontent.com"
-                 data-context="signin"
-                 data-ux_mode="popup"
-                 data-callback="handleCredentialResponse"
-                 data-auto_prompt="false">
-            </div>
-            
-            <div class="g_id_signin"
-                 data-type="standard"
-                 data-shape="rectangular"
-                 data-theme="outline"
-                 data-text="continue_with"
-                 data-size="large"
-                 data-logo_alignment="left"
-                 data-width="280"
-                 data-height="50"
-                 style="max-width: 280px; width: auto; display: flex; justify-content: center;">
-            </div>
-            
-            <!-- <div class="login-divider">
-                <span>or</span>
-            </div> -->
-            
-            <!-- <form onsubmit="loginWithEmail(event)">
-                <input 
-                    type="email" 
-                    class="login-email-input" 
-                    placeholder="Enter your email address" 
-                    required
-                    id="loginEmail"
-                >
-                <button type="submit" class="login-submit-btn">
-                    Get Started
-                </button>
-            </form>
-            
-            <p class="login-disclaimer">
-                By continuing, you agree to receive practice tips and updates. You can unsubscribe anytime.
-            </p> -->
-        </div>
-    </div>
+    <!-- Login Modal is loaded dynamically by js/nav.js from includes/login-modal.html -->
 
     <!-- Use native MediaRecorder for MP4 audio -->
     
