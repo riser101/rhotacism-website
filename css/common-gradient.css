@@ -35,29 +35,6 @@ body {
 /* Mobile fix - background-attachment: fixed breaks on mobile */
 @media (max-width: 768px) {
     body {
-        background: #1a1a1a;
-    }
-    body::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        background: linear-gradient(
-            to bottom,
-            #252500 0%,
-            #2a2a00 10%,
-            #303000 20%,
-            #353500 30%,
-            #3a3a00 40%,
-            #404000 50%,
-            #454500 60%,
-            #4a4a00 70%,
-            #4d4d00 80%,
-            #454500 90%,
-            #404000 100%
-        );
+        background: #3a3a00;
     }
 }
