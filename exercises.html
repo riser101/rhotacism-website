@@ -843,7 +843,6 @@
 
         /* Hidden elements */
         .exercise-status,
-        .current-focus,
         .left-panel,
         .right-panel {
             display: none;
@@ -932,16 +931,25 @@
 
         /* Current Focus */
         .current-focus {
-            position: relative;
+            grid-column: 1 / -1;
             text-align: center;
-            width: 90%;
-            margin: 20px auto 0 auto;
-            padding-top: 15px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .focus-label {
             color: var(--accent-amber);
             font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .focus-text {
+            color: var(--text-secondary);
+            font-size: 14px;
             font-weight: 600;
             margin-bottom: 4px;
         }
@@ -1642,6 +1650,12 @@
                                 </div>
                                 <div class="spectrogram-instruction" id="spectrogram-instruction-1" style="display: none;">Align 3rd peak with the orange line</div>
                             </div>
+                        </div>
+
+                        <!-- Current Focus -->
+                        <div class="current-focus">
+                            <div class="focus-label">Current Focus:</div>
+                            <div class="focus-text">Make gentle growling sounds continuously</div>
                         </div>
                     </div>
 
