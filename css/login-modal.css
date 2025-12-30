@@ -11,7 +11,7 @@
         #d4b73a 50%,
         #c5a732 100%
     );
-    z-index: 10002;
+    z-index: 999;
     overflow-y: auto;
 }
 
@@ -36,7 +36,7 @@
 
 .login-close {
     position: fixed;
-    top: 20px;
+    top: 70px;
     right: 30px;
     background: rgba(0, 0, 0, 0.1);
     border: none;
@@ -50,7 +50,7 @@
     justify-content: center;
     border-radius: 50%;
     transition: all 0.3s ease;
-    z-index: 10003;
+    z-index: 1001;
 }
 
 .login-close:hover {

@@ -17,14 +17,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.body.insertAdjacentHTML('afterbegin', html);
 
                 // Fix image paths based on current location
-                const navLogoImg = document.getElementById('navLogoImg');
                 const navAppStoreBadge1 = document.getElementById('navAppStoreBadge1');
                 const navAppStoreBadge2 = document.getElementById('navAppStoreBadge2');
                 const navLogoLink = document.getElementById('navLogoLink');
 
-                if (navLogoImg) {
-                    navLogoImg.src = pathPrefix + 'instagram-icon.jpg';
-                }
                 if (navAppStoreBadge1) {
                     navAppStoreBadge1.src = pathPrefix + 'Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
                 }
@@ -66,12 +62,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(html => {
                 // Insert login modal at the end of body
                 document.body.insertAdjacentHTML('beforeend', html);
-
-                // Fix login modal logo path
-                const loginModalLogo = document.getElementById('loginModalLogo');
-                if (loginModalLogo) {
-                    loginModalLogo.src = pathPrefix + 'instagram-icon.jpg';
-                }
 
                 // Initialize Google Sign-In after modal is loaded
                 initializeGoogleSignIn();

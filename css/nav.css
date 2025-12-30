@@ -125,6 +125,10 @@ transition: left 0.6s;
 }
 
 /* Logo Display Controls */
+.nav-logo-icon {
+    display: inline;
+}
+
 .nav-logo-text {
     display: inline;
 }
