@@ -1172,18 +1172,58 @@
             .exercise-right-column {
                 position: static;
                 align-self: stretch;
+                gap: 24px;
             }
 
             .spectrogram-box-large {
-                min-height: 220px;
+                height: auto;
+                min-height: 300px;
+                max-height: none;
+                padding: 24px;
+                padding-top: 40px;
+                margin-bottom: 24px;
+            }
+
+            .spectrogram-box-large .biofeedback-empty-state {
+                position: relative;
+                top: auto;
+                left: auto;
+                right: auto;
+                bottom: auto;
+                min-height: 250px;
+                padding: 20px 0;
             }
 
             .spectrogram-box-large .spectrogram-container {
+                position: relative;
+                top: auto;
+                left: auto;
+                right: auto;
+                bottom: auto;
                 min-height: 150px;
             }
 
             .spectrogram-box-large .spectrogram-canvas {
                 min-height: 130px;
+            }
+
+            .spectrogram-box-large .spectrogram-instruction {
+                position: relative;
+                bottom: auto;
+                margin-top: 12px;
+            }
+
+            /* Button container spacing for tablet */
+            .button-container {
+                margin-top: 24px;
+                margin-bottom: 24px;
+            }
+
+            /* Current Focus spacing for tablet */
+            .current-focus {
+                margin-top: 24px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
             }
         }
 
@@ -1259,14 +1299,117 @@
                 padding: 10px 16px;
                 font-size: 12px;
             }
-            
+
             .app-cta-floating {
                 bottom: 15px;
                 right: 15px;
                 padding: 12px 16px;
                 font-size: 14px;
             }
-            
+
+            /* Spectrogram Box Mobile - Fix height and positioning */
+            .spectrogram-box-large {
+                height: auto;
+                min-height: auto;
+                max-height: none;
+                padding: 20px 16px;
+                padding-top: 40px;
+                margin-bottom: 20px;
+            }
+
+            .spectrogram-box-large .box-label {
+                left: 16px;
+            }
+
+            .spectrogram-box-large .biofeedback-empty-state {
+                position: relative;
+                top: auto;
+                left: auto;
+                right: auto;
+                bottom: auto;
+                min-height: auto;
+                padding: 16px 0;
+            }
+
+            .spectrogram-box-large .spectrogram-container {
+                position: relative;
+                top: auto;
+                left: auto;
+                right: auto;
+                bottom: auto;
+                min-height: 180px;
+            }
+
+            .spectrogram-box-large .spectrogram-instruction {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                right: auto;
+                margin-top: 12px;
+                padding: 0;
+            }
+
+            /* Empty State Mobile Fixes */
+            .empty-state-preview-canvas {
+                display: none;
+            }
+
+            .empty-state-content {
+                gap: 8px;
+            }
+
+            .biofeedback-empty-state h4 {
+                font-size: 18px;
+                margin-bottom: 4px;
+                display: block !important;
+            }
+
+            .empty-state-subheader {
+                font-size: 13px;
+                max-width: 100%;
+            }
+
+            .empty-state-checklist {
+                margin: 12px 0;
+            }
+
+            .empty-state-checklist li {
+                font-size: 13px;
+                margin-bottom: 10px;
+                padding-left: 32px;
+            }
+
+            .empty-state-footer {
+                font-size: 11px;
+                max-width: 100%;
+            }
+
+            /* Target Frequency Display Mobile */
+            .target-freq-display {
+                right: 40px;
+                font-size: 10px;
+                padding: 3px 8px;
+            }
+
+            /* Help Icon Mobile */
+            .spectrogram-box-large .help-icon {
+                top: 8px;
+                right: 8px;
+            }
+
+            /* Button Container Mobile - ensure proper spacing */
+            .button-container {
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+
+            /* Current Focus Mobile */
+            .current-focus {
+                margin-top: 20px;
+                padding-top: 16px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
             /* Achievement Panel Mobile */
             .achievement-panel {
                 bottom: 10px;
@@ -1275,19 +1418,19 @@
                 width: auto;
                 padding: 14px;
             }
-            
+
             .panel-title {
                 font-size: 13px;
             }
-            
+
             .task-description {
                 font-size: 11px !important;
             }
-            
+
             .progress-percentage {
                 font-size: 11px !important;
             }
-            
+
             .level-text {
                 font-size: 11px !important;
             }
