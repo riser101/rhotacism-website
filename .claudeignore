@@ -1,0 +1,18 @@
+# Deployment/config
+.vercel/
+.git/
+
+# Images and media (binary, not useful for context)
+*.png
+*.jpeg
+*.jpg
+*.svg
+*.mpga
+*.mp3
+*.wav
+
+# System files
+.DS_Store
+
+# Sensitive deployment scripts
+gcp-function/deploy-*.sh

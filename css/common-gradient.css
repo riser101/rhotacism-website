@@ -31,3 +31,10 @@ body {
     background-attachment: fixed;
     min-height: 100vh;
 }
+
+/* Mobile fix - background-attachment: fixed breaks on mobile */
+@media (max-width: 768px) {
+    body {
+        background-attachment: scroll;
+    }
+}
