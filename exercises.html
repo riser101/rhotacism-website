@@ -490,30 +490,153 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 40px 20px;
-            min-height: 200px;
+            padding: 30px 20px;
+            min-height: 250px;
+            position: relative;
+            overflow: hidden;
+            transition: opacity 0.4s ease;
         }
 
         .biofeedback-empty-state.hidden {
             display: none;
         }
 
+        .biofeedback-empty-state.fade-out {
+            opacity: 0;
+        }
+
+        /* Preview canvas for target line (behind text) */
+        .empty-state-preview-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.3;
+        }
+
+        .empty-state-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
         .biofeedback-empty-state h4 {
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 20px;
+            font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 12px;
+            margin: 0;
         }
 
-        .biofeedback-empty-state p {
+        .empty-state-subheader {
             font-size: 14px;
-            color: var(--accent-amber);
-            max-width: 320px;
-            line-height: 1.6;
+            color: #9CA3AF;
+            max-width: 340px;
+            line-height: 1.5;
+            margin: 0;
         }
 
-        .biofeedback-empty-state p strong {
-            color: var(--accent-amber);
+        .empty-state-checklist {
+            list-style: none;
+            counter-reset: checklist-counter;
+            margin: 8px 0;
+            padding: 0;
+            text-align: left;
+        }
+
+        .empty-state-checklist li {
+            counter-increment: checklist-counter;
+            margin-bottom: 8px;
+            padding-left: 28px;
+            position: relative;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .empty-state-checklist li::before {
+            content: counter(checklist-counter);
+            position: absolute;
+            left: 0;
+            top: 1px;
+            background: var(--accent-amber);
+            color: var(--bg-primary);
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .empty-state-footer {
+            font-size: 12px;
+            font-style: italic;
+            color: #6B7280;
+            max-width: 300px;
+            line-height: 1.4;
+            margin: 4px 0 0 0;
+        }
+
+        /* Start button border trace effect when voice type selected */
+        .practice-button.ready-glow {
+            position: relative;
+            background:
+                linear-gradient(var(--text-primary), var(--text-primary)) padding-box,
+                conic-gradient(
+                    from var(--border-angle, 0deg),
+                    transparent 0deg,
+                    transparent 80deg,
+                    var(--trace-color, #FFB300) 130deg,
+                    var(--trace-color-light, #FFD54F) 180deg,
+                    var(--trace-color, #FFB300) 230deg,
+                    transparent 280deg,
+                    transparent 360deg
+                ) border-box;
+            border: 3px solid transparent;
+            animation: border-trace 7.2s ease-out forwards;
+        }
+
+        @property --border-angle {
+            syntax: '<angle>';
+            initial-value: 0deg;
+            inherits: false;
+        }
+
+        @property --trace-color {
+            syntax: '<color>';
+            initial-value: #FFB300;
+            inherits: false;
+        }
+
+        @property --trace-color-light {
+            syntax: '<color>';
+            initial-value: #FFD54F;
+            inherits: false;
+        }
+
+        @keyframes border-trace {
+            0% {
+                --border-angle: 0deg;
+                --trace-color: #FFB300;
+                --trace-color-light: #FFD54F;
+            }
+            80% {
+                --border-angle: 360deg;
+                --trace-color: #FFB300;
+                --trace-color-light: #FFD54F;
+            }
+            100% {
+                --border-angle: 360deg;
+                --trace-color: transparent;
+                --trace-color-light: transparent;
+            }
         }
 
         /* Target Frequency Display */
@@ -1480,8 +1603,17 @@
 
                                 <!-- Empty State -->
                                 <div class="biofeedback-empty-state" id="empty-state-1">
-                                    <h4>Am I doing it right?</h4>
-                                    <p>Stop guessing. Use Visual Biofeedback to see your voice. When your sound hits the <strong>orange line</strong>, you're on track.</p>
+                                    <canvas class="empty-state-preview-canvas" id="preview-canvas-1"></canvas>
+                                    <div class="empty-state-content">
+                                        <h4>Am I doing it right?</h4>
+                                        <p class="empty-state-subheader">Stop guessing and start seeing. Follow these steps to calibrate your session:</p>
+                                        <ol class="empty-state-checklist">
+                                            <li>Listen to the sample sound on the left.</li>
+                                            <li>Select your Voice Type above to set your target.</li>
+                                            <li>Hit Start and match your voice to the orange line.</li>
+                                        </ol>
+                                        <p class="empty-state-footer">Visual Biofeedback turns your 'R' sound into a visible map.</p>
+                                    </div>
                                 </div>
 
                                 <!-- Live Visualization (hidden until started) -->
@@ -1579,8 +1711,17 @@
 
                                 <!-- Empty State -->
                                 <div class="biofeedback-empty-state" id="empty-state-2">
-                                    <h4>Am I doing it right?</h4>
-                                    <p>Stop guessing. Use Visual Biofeedback to see your voice. When your sound hits the <strong>orange line</strong>, you're on track.</p>
+                                    <canvas class="empty-state-preview-canvas" id="preview-canvas-2"></canvas>
+                                    <div class="empty-state-content">
+                                        <h4>Am I doing it right?</h4>
+                                        <p class="empty-state-subheader">Stop guessing and start seeing. Follow these steps to calibrate your session:</p>
+                                        <ol class="empty-state-checklist">
+                                            <li>Listen to the sample sound on the left.</li>
+                                            <li>Select your Voice Type above to set your target.</li>
+                                            <li>Hit Start and match your voice to the orange line.</li>
+                                        </ol>
+                                        <p class="empty-state-footer">Visual Biofeedback turns your 'R' sound into a visible map.</p>
+                                    </div>
                                 </div>
 
                                 <!-- Live Visualization (hidden until started) -->
@@ -2035,6 +2176,14 @@
             hideVisualBiofeedback(1);
             hideVisualBiofeedback(2);
 
+            // Initialize preview canvases with target lines
+            initPreviewCanvas(1);
+            initPreviewCanvas(2);
+
+            // Add initial glow to start buttons (voice type is pre-selected as Male)
+            addStartButtonGlow(1);
+            addStartButtonGlow(2);
+
             // Note: Spectrogram will initialize when user clicks Start button
             // This is required because browsers need user interaction for microphone access
         });
@@ -2187,6 +2336,107 @@
         let waveformCanvas1 = null;
         let waveformCanvas2 = null;
 
+        // Preview canvas instances for empty state
+        let previewCanvases = {
+            1: { canvas: null, ctx: null, targetFreq: 1700, animationFrame: null },
+            2: { canvas: null, ctx: null, targetFreq: 1700, animationFrame: null }
+        };
+
+        /**
+         * Initialize preview canvas for empty state
+         */
+        function initPreviewCanvas(exerciseNum) {
+            const canvas = document.getElementById(`preview-canvas-${exerciseNum}`);
+            if (!canvas) return;
+
+            const preview = previewCanvases[exerciseNum];
+            preview.canvas = canvas;
+            preview.ctx = canvas.getContext('2d');
+
+            // Set canvas size
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+
+            // Start drawing
+            drawPreviewTargetLine(exerciseNum);
+        }
+
+        /**
+         * Draw the target line on preview canvas with smooth animation
+         */
+        function drawPreviewTargetLine(exerciseNum) {
+            const preview = previewCanvases[exerciseNum];
+            if (!preview.canvas || !preview.ctx) return;
+
+            const ctx = preview.ctx;
+            const width = preview.canvas.width;
+            const height = preview.canvas.height;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Calculate Y position for target frequency
+            // Map frequency (0-4000 Hz) to canvas height (bottom to top)
+            const maxFreq = 4000;
+            const yPos = height - (preview.targetFreq / maxFreq) * height;
+
+            // Draw horizontal target line
+            ctx.beginPath();
+            ctx.strokeStyle = '#FFB300';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([8, 4]);
+            ctx.moveTo(0, yPos);
+            ctx.lineTo(width, yPos);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw frequency label
+            ctx.font = '11px Inter, sans-serif';
+            ctx.fillStyle = '#FFB300';
+            ctx.textAlign = 'right';
+            ctx.fillText(`${preview.targetFreq} Hz`, width - 10, yPos - 8);
+
+            // Draw subtle grid lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            for (let freq = 1000; freq <= 3000; freq += 1000) {
+                const y = height - (freq / maxFreq) * height;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+        }
+
+        /**
+         * Animate target line transition
+         */
+        function animateTargetLineTransition(exerciseNum, fromFreq, toFreq, duration = 300) {
+            const preview = previewCanvases[exerciseNum];
+            const startTime = performance.now();
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Ease out cubic
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+
+                preview.targetFreq = fromFreq + (toFreq - fromFreq) * easeProgress;
+                drawPreviewTargetLine(exerciseNum);
+
+                if (progress < 1) {
+                    preview.animationFrame = requestAnimationFrame(animate);
+                }
+            }
+
+            if (preview.animationFrame) {
+                cancelAnimationFrame(preview.animationFrame);
+            }
+            preview.animationFrame = requestAnimationFrame(animate);
+        }
+
         /**
          * Set voice type (Male: 1700 Hz, Female: 2000 Hz)
          */
@@ -2204,23 +2454,76 @@
                 freqDisplay.textContent = `Target: ${frequency} Hz`;
             }
 
-            // Update the target frequency on the canvas
+            // Animate preview canvas target line
+            const preview = previewCanvases[exerciseNum];
+            if (preview.canvas) {
+                animateTargetLineTransition(exerciseNum, preview.targetFreq, frequency);
+            }
+
+            // Update the target frequency on the active canvas
             if (exerciseNum === 1 && waveformCanvas1) {
                 waveformCanvas1.setTargetFrequency(frequency);
             } else if (exerciseNum === 2 && waveformCanvas2) {
                 waveformCanvas2.setTargetFrequency(frequency);
             }
+
+            // Add glow effect to start button
+            addStartButtonGlow(exerciseNum);
         }
 
         /**
-         * Show visual biofeedback (hide empty state, show canvas)
+         * Add glow effect to start button to signal readiness
+         */
+        function addStartButtonGlow(exerciseNum) {
+            let startBtn;
+            if (exerciseNum === 1) {
+                startBtn = document.getElementById('startTimer1');
+            } else if (exerciseNum === 2) {
+                startBtn = document.getElementById('startRep');
+            }
+
+            if (startBtn && !startBtn.disabled) {
+                startBtn.classList.add('ready-glow');
+            }
+        }
+
+        /**
+         * Remove glow effect from start button
+         */
+        function removeStartButtonGlow(exerciseNum) {
+            let startBtn;
+            if (exerciseNum === 1) {
+                startBtn = document.getElementById('startTimer1');
+            } else if (exerciseNum === 2) {
+                startBtn = document.getElementById('startRep');
+            }
+
+            if (startBtn) {
+                startBtn.classList.remove('ready-glow');
+            }
+        }
+
+        /**
+         * Show visual biofeedback (fade out empty state, show canvas)
          */
         function showVisualBiofeedback(exerciseNum) {
             const emptyState = document.getElementById(`empty-state-${exerciseNum}`);
             const container = document.getElementById(`spectrogram-container-${exerciseNum}`);
             const instruction = document.getElementById(`spectrogram-instruction-${exerciseNum}`);
 
-            if (emptyState) emptyState.style.display = 'none';
+            // Remove glow from start button
+            removeStartButtonGlow(exerciseNum);
+
+            // Fade out empty state
+            if (emptyState) {
+                emptyState.classList.add('fade-out');
+                setTimeout(() => {
+                    emptyState.style.display = 'none';
+                    emptyState.classList.remove('fade-out');
+                }, 400); // Match CSS transition duration
+            }
+
+            // Show visualization
             if (container) container.style.display = 'block';
             if (instruction) instruction.style.display = 'block';
         }
@@ -2236,6 +2539,12 @@
             if (emptyState) emptyState.style.display = 'flex';
             if (container) container.style.display = 'none';
             if (instruction) instruction.style.display = 'none';
+
+            // Reinitialize preview canvas
+            initPreviewCanvas(exerciseNum);
+
+            // Add glow to start button if voice type is selected
+            addStartButtonGlow(exerciseNum);
         }
 
         /**
