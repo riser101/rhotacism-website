@@ -181,7 +181,7 @@ class WaveformCanvas {
     }
 
     /**
-     * Draw peak indicators
+     * Draw peak indicators with numbered labels
      */
     drawPeaks(width, height) {
         if (this.peaks.length === 0 || this.magnitudes.length === 0) return;
@@ -192,8 +192,8 @@ class WaveformCanvas {
         this.ctx.strokeStyle = this.colors.peaks;
         this.ctx.lineWidth = 2;
 
-        for (const peakIndex of this.peaks) {
-            if (peakIndex < 0 || peakIndex >= mags.length) continue;
+        this.peaks.forEach((peakIndex, i) => {
+            if (peakIndex < 0 || peakIndex >= mags.length) return;
 
             const x = peakIndex * stepX;
             const peakHeight = mags[peakIndex] * height;
@@ -204,7 +204,24 @@ class WaveformCanvas {
             this.ctx.moveTo(x, height);
             this.ctx.lineTo(x, y);
             this.ctx.stroke();
-        }
+
+            // Draw peak number label
+            const peakNumber = i + 1;
+            const labelY = Math.max(y - 8, 12); // Position above peak, but not off canvas
+
+            // Draw label background circle
+            this.ctx.fillStyle = i === 2 ? '#FFB300' : 'rgba(255, 255, 255, 0.8)'; // Highlight 3rd peak
+            this.ctx.beginPath();
+            this.ctx.arc(x, labelY, 10, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            // Draw number
+            this.ctx.fillStyle = i === 2 ? '#000' : '#000';
+            this.ctx.font = 'bold 11px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillText(peakNumber.toString(), x, labelY);
+        });
     }
 
     /**
