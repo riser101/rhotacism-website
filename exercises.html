@@ -1185,7 +1185,7 @@
 
             .spectrogram-box-large {
                 height: auto;
-                min-height: 300px;
+                min-height: auto;
                 max-height: none;
                 padding: 24px;
                 padding-top: 40px;
@@ -1200,7 +1200,7 @@
                 left: auto;
                 right: auto;
                 bottom: auto;
-                min-height: 250px;
+                min-height: auto;
                 padding: 20px 0;
             }
 
@@ -1210,11 +1210,13 @@
                 left: auto;
                 right: auto;
                 bottom: auto;
-                min-height: 150px;
+                min-height: auto;
+                height: 150px;
             }
 
             .spectrogram-box-large .spectrogram-canvas {
-                min-height: 130px;
+                height: 130px;
+                min-height: auto;
             }
 
             .spectrogram-box-large .spectrogram-instruction {
@@ -1325,16 +1327,16 @@
                 font-size: 14px;
             }
 
-            /* Spectrogram Box Mobile - Fix height and positioning */
+            /* Spectrogram Box Mobile - Fixed height to prevent elongation */
             .spectrogram-box-large {
-                height: auto;
-                min-height: auto;
-                max-height: none;
-                padding: 20px 16px;
-                padding-top: 40px;
+                height: 220px;
+                min-height: 220px;
+                max-height: 220px;
+                padding: 0;
                 margin-bottom: 20px;
                 max-width: 100%;
                 box-sizing: border-box;
+                position: relative;
             }
 
             .spectrogram-box-large .box-label {
@@ -1342,31 +1344,56 @@
             }
 
             .spectrogram-box-large .biofeedback-empty-state {
-                position: relative;
-                top: auto;
-                left: auto;
-                right: auto;
-                bottom: auto;
+                position: absolute;
+                top: 30px;
+                left: 12px;
+                right: 12px;
+                bottom: 12px;
                 min-height: auto;
-                padding: 16px 0;
+                padding: 8px;
+                overflow: hidden;
+            }
+
+            .spectrogram-box-large .biofeedback-empty-state h4 {
+                font-size: 16px;
+            }
+
+            .spectrogram-box-large .biofeedback-empty-state .empty-state-subheader {
+                font-size: 11px;
+                margin-bottom: 4px;
+            }
+
+            .spectrogram-box-large .biofeedback-empty-state .empty-state-checklist li {
+                font-size: 11px;
+                margin-bottom: 4px;
+                padding-left: 24px;
+            }
+
+            .spectrogram-box-large .biofeedback-empty-state .empty-state-footer {
+                display: none;
             }
 
             .spectrogram-box-large .spectrogram-container {
-                position: relative;
-                top: auto;
-                left: auto;
-                right: auto;
-                bottom: auto;
-                min-height: 180px;
+                position: absolute;
+                top: 30px;
+                left: 12px;
+                right: 12px;
+                bottom: 30px;
+            }
+
+            .spectrogram-box-large .spectrogram-canvas {
+                width: 100%;
+                height: 100%;
             }
 
             .spectrogram-box-large .spectrogram-instruction {
-                position: relative;
-                bottom: auto;
-                left: auto;
-                right: auto;
-                margin-top: 12px;
+                position: absolute;
+                bottom: 8px;
+                left: 12px;
+                right: 12px;
+                margin-top: 0;
                 padding: 0;
+                font-size: 11px;
             }
 
             /* Empty State Mobile Fixes */
