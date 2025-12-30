@@ -242,7 +242,8 @@ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 z-index: 1001;
 }
 
-.nav-dropdown:hover .nav-dropdown-menu {
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown-menu.show {
 opacity: 1;
 visibility: visible;
 transform: translateY(0);
@@ -495,6 +496,12 @@ background: linear-gradient(90deg, #FF9800, #E65100);
     display: none !important; /* Hidden by default */
 }
 
+.profile-dropdown .nav-dropdown-menu {
+    right: 0;
+    left: auto;
+    margin-top: 8px;
+}
+
 /* Login button - shown by default */
 .login-nav {
     display: flex !important;
@@ -532,48 +539,6 @@ body.user-logged-in .login-nav {
     font-weight: 600;
     font-size: 14px;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.dropdown-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
-    min-width: 200px;
-    padding: 12px 0;
-    z-index: 1001;
-    margin-top: 8px;
-}
-
-.dropdown-menu.show {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.dropdown-menu a {
-    display: flex;
-    align-items: center;
-    padding: 14px 24px;
-    color: #1A202C !important;
-    text-decoration: none;
-    font-size: 15px;
-    font-weight: 500;
-    line-height: 1.5;
-    min-height: 48px;
-    transition: all 0.3s ease;
-}
-
-.dropdown-menu a:hover {
-    background: #F0F4F8;
-    color: #1A202C !important;
 }
 
 /* Login nav button styles */
