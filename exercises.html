@@ -1595,7 +1595,7 @@
                                             </button>
                                         </div>
                                         <div class="timer-info">
-                                            <div class="timer-display" id="timer1">5:00</div>
+                                            <div class="timer-display" id="timer1">1:00</div>
                                             <div class="timer-sublabel">remaining</div>
                                         </div>
                                     </div>
@@ -1833,7 +1833,7 @@
 
         // Timer functionality
         let timers = {
-            1: { interval: null, seconds: 300, totalSeconds: 300, isRunning: false }
+            1: { interval: null, seconds: 60, totalSeconds: 60, isRunning: false }
         };
 
         // Rep counter
@@ -1843,7 +1843,7 @@
 
         // Exercise state storage
         let exerciseStates = {
-            1: { timerSeconds: 300, isTimerRunning: false, isCompleted: false },
+            1: { timerSeconds: 60, isTimerRunning: false, isCompleted: false },
             2: { reps: 0, repTimerSeconds: 10, isRepTimerRunning: false, isCompleted: false }
         };
 
