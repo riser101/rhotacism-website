@@ -1183,46 +1183,48 @@
                 box-sizing: border-box;
             }
 
+            /* Spectrogram Box Tablet - Fixed height to prevent elongation */
             .spectrogram-box-large {
-                height: auto;
-                min-height: auto;
-                max-height: none;
-                padding: 24px;
-                padding-top: 40px;
+                height: 280px;
+                min-height: 280px;
+                max-height: 280px;
+                padding: 0;
                 margin-bottom: 24px;
                 max-width: 100%;
                 box-sizing: border-box;
+                position: relative;
             }
 
             .spectrogram-box-large .biofeedback-empty-state {
-                position: relative;
-                top: auto;
-                left: auto;
-                right: auto;
-                bottom: auto;
+                position: absolute;
+                top: 30px;
+                left: 20px;
+                right: 20px;
+                bottom: 40px;
                 min-height: auto;
-                padding: 20px 0;
+                padding: 12px;
+                overflow: hidden;
             }
 
             .spectrogram-box-large .spectrogram-container {
-                position: relative;
-                top: auto;
-                left: auto;
-                right: auto;
-                bottom: auto;
-                min-height: auto;
-                height: 150px;
+                position: absolute;
+                top: 30px;
+                left: 20px;
+                right: 20px;
+                bottom: 40px;
             }
 
             .spectrogram-box-large .spectrogram-canvas {
-                height: 130px;
-                min-height: auto;
+                width: 100%;
+                height: 100%;
             }
 
             .spectrogram-box-large .spectrogram-instruction {
-                position: relative;
-                bottom: auto;
-                margin-top: 12px;
+                position: absolute;
+                bottom: 12px;
+                left: 20px;
+                right: 20px;
+                margin-top: 0;
             }
 
             /* Button container spacing for tablet */
