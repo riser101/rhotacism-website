@@ -21,8 +21,8 @@ const upload = multer({
 // CORS configuration
 const corsOptions = {
   origin: [
-    'https://www.rhotacismtherapy.com',
-    'https://rhotacismtherapy.com',
+    'https://www.topspeech.health/therollracademy',
+    'https://topspeech.health/therollracademy',
     'http://localhost:3000',
     'http://127.0.0.1:3000'
   ],
