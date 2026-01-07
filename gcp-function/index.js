@@ -69,20 +69,65 @@ function convertToProperWav(inputBuffer, outputPath) {
 // Helper function to call OpenAI API
 async function analyzeWithOpenAI(wavBuffer) {
   const base64Audio = wavBuffer.toString('base64');
-  
+
+  const prompt = `Listen to the attached audio recording and analyze it.
+
+Role & Expertise
+You are a certified Speech-Language Pathologist (SLP) with clinical experience in diagnosing and treating rhotacism in adults. You specialize in perceptual phonetic analysis, motor speech patterns, and evidence-based articulation therapy.
+
+Task
+You will analyze one baseline (Week 0) audio recording of a patient producing the following words, in this exact order:
+
+red, car, tree, around, forest, problem, girl, world
+
+This recording represents the pre-treatment baseline.
+
+Analysis Instructions (Think Carefully)
+For each word, determine:
+
+The type of /r/ being tested
+(e.g., prevocalic /r/, post-vocalic /r/, r-blend, vocalic /ɝ/, /ɚ/)
+
+The word position (initial, medial, final)
+
+Whether the /r/ is:
+
+Accurate
+
+Distorted
+
+Substituted
+
+Omitted
+
+A detailed perceptual description of the error quality (15-25 words), describing the acoustic characteristics, timing, tongue position inference, and comparison to target phoneme
+(e.g., "Delayed /r/ onset; vowel initiates first, with weak late rhotic coloring rather than a firm consonantal /r/.")
+
+Base judgments strictly on audible evidence. Do not speculate anatomically.
+
+Output Rules (Critical)
+
+Output ONLY a single table
+
+No headings, no paragraphs, no explanations
+
+The table must contain exactly these columns:
+
+| Word | /r/ Type Tested | Position | Accuracy Judgment | Perceptual Error Description |
+
+One row per word
+
+Use detailed, clinician-appropriate language in the Perceptual Error Description column`;
+
   const chatRequest = {
     model: 'gpt-4o-audio-preview',
     messages: [
-      {
-        role: 'system',
-        content: "You are a licensed speech-language pathologist with expertise in rhotacism assessment. Analyze the audio recording and provide clinical observations only.\n\nFocus on:\n- Specific R sound substitutions observed (r→w, r→l, r→y, omissions)\n- Accurate phonetic observations for each target word\n- What you hear for each word\n\nDo NOT provide:\n- Clinical recommendations\n- Treatment suggestions\n- Severity ratings\n- Next steps\n\nFormat using simple markdown:\n- Use ## for main headings\n- Use - for bullet points\n- Keep bullet point continuations aligned with proper indentation\n- Use **bold** for emphasis"
-      },
       {
         role: 'user',
         content: [
           {
             type: "text",
-            text: "Please analyze this speech sample for R sound patterns only. I said these words: red, car, tree, around, forest, problem, girl, world.\n\nProvide ONLY:\n\n## Word-by-Word Analysis\nFor each word, describe what you hear for the R sound.\n\n## Substitution Pattern Summary\nList the consistent patterns you observed.\n\nFormat with proper markdown headers (##) and bullet points (-). Do not include any recommendations, treatment suggestions, or severity ratings."
+            text: prompt
           },
           {
             type: "input_audio",
@@ -93,7 +138,9 @@ async function analyzeWithOpenAI(wavBuffer) {
           }
         ]
       }
-    ]
+    ],
+    max_tokens: 2000,
+    temperature: 1.0
   };
 
   console.log('🤖 Sending request to OpenAI...');

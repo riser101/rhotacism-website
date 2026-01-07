@@ -605,13 +605,47 @@
 
         // Convert markdown to HTML (copied from index.html)
         function convertMarkdownToHTML(text) {
-            let html = text
+            // First, handle markdown tables
+            const tableRegex = /\|(.+)\|\n\|[-:\s|]+\|\n((?:\|.+\|\n?)+)/g;
+            let html = text.replace(tableRegex, function(match, headerRow, bodyRows) {
+                const headers = headerRow.split('|').map(h => h.trim()).filter(h => h);
+                const rows = bodyRows.trim().split('\n').map(row =>
+                    row.split('|').map(cell => cell.trim()).filter(cell => cell)
+                );
+
+                let tableHTML = '<div style="overflow-x: auto; margin: 20px 0;"><table style="width: 100%; border-collapse: collapse; font-size: 14px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">';
+
+                // Header row
+                tableHTML += '<thead><tr style="background: linear-gradient(135deg, #FF9800, #E65100); color: white;">';
+                headers.forEach(header => {
+                    tableHTML += `<th style="padding: 12px 16px; text-align: left; font-weight: 600; white-space: nowrap;">${header}</th>`;
+                });
+                tableHTML += '</tr></thead>';
+
+                // Body rows
+                tableHTML += '<tbody>';
+                rows.forEach((row, i) => {
+                    const bgColor = i % 2 === 0 ? '#fff' : '#f8f9fa';
+                    tableHTML += `<tr style="background: ${bgColor}; border-bottom: 1px solid #e9ecef;">`;
+                    row.forEach((cell, j) => {
+                        const style = j === 0 ? 'font-weight: 600; color: #333;' : 'color: #666;';
+                        tableHTML += `<td style="padding: 12px 16px; ${style}">${cell}</td>`;
+                    });
+                    tableHTML += '</tr>';
+                });
+                tableHTML += '</tbody></table></div>';
+
+                return tableHTML;
+            });
+
+            // Then handle other markdown
+            html = html
                 .replace(/## (.+)/g, '<h3 style="color: #FF9800; margin: 20px 0 10px 0; font-size: 18px;">$1</h3>')
                 .replace(/\*\*(.+?)\*\*/g, '<strong style="color: #333;">$1</strong>')
                 .replace(/^- (.+)/gm, '<div style="margin: 8px 0; padding-left: 16px;">• $1</div>')
                 .replace(/\n\n/g, '</p><p style="margin: 12px 0;">')
                 .replace(/\n/g, '<br>');
-            
+
             // Wrap in paragraph tags
             return '<div style="line-height: 1.6;">' + html + '</div>';
         }
