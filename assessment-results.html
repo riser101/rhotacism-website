@@ -50,9 +50,9 @@
             color: #333;
         }
 
-        /* Results content container */
+        /* Results content container - matches guide pages */
         .results-container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
         }
@@ -70,46 +70,79 @@
             min-height: 100vh;
         }
 
-        .results-header {
-            text-align: center;
-            margin-bottom: 40px;
-            background: white;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        /* Report Header - Clinical Style */
+        .report-header {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 48px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            border-top: 4px solid #1A202C;
         }
 
-        .results-title {
-            font-family: 'Quicksand', sans-serif;
-            font-size: 36px;
+        .report-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        .report-branding {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .report-logo {
+            height: 40px;
+            opacity: 0.9;
+        }
+
+        .report-date {
+            font-size: 14px;
+            color: #718096;
+            text-align: right;
+        }
+
+        .report-date-label {
+            font-weight: 600;
+            color: #4A5568;
+        }
+
+        .report-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 32px;
             font-weight: 700;
-            color: #333;
-            margin-bottom: 16px;
+            color: #1A202C;
+            margin-bottom: 8px;
+            line-height: 1.2;
         }
 
-        .user-name {
-            color: #FF9800;
+        .patient-name {
+            color: #2D3748;
         }
 
-        .results-subtitle {
-            font-size: 18px;
-            color: #666;
-            margin-bottom: 30px;
+        .report-subtitle {
+            font-size: 16px;
+            color: #718096;
+            font-weight: 400;
         }
 
-        /* Analysis Report */
+        /* Analysis Report - Clinical Card */
         .analysis-report {
-            background: white;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
+            background: #FFFFFF;
+            padding: 48px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
         }
 
         .report-section {
-            margin-bottom: 30px;
-            padding-bottom: 30px;
-            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 40px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid #E2E8F0;
         }
 
         .report-section:last-child {
@@ -119,320 +152,283 @@
         }
 
         .section-title {
-            font-family: 'Quicksand', sans-serif;
             font-size: 20px;
             font-weight: 700;
-            color: #333;
+            color: #1A202C;
+            margin-bottom: 20px;
+            border-left: 4px solid #1A202C;
+            padding-left: 16px;
+        }
+
+        .section-content {
+            font-size: 16px;
+            line-height: 1.75;
+            color: #2D3748;
+        }
+
+        .section-content p {
             margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
-        .section-icon {
-            font-size: 24px;
+        .section-content ul {
+            margin-left: 20px;
+            margin-bottom: 16px;
         }
 
-        .word-analysis {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
+        .section-content li {
+            margin-bottom: 8px;
         }
 
-        .word-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            border-left: 4px solid #28a745;
+        /* Clinical Info Box */
+        .clinical-box {
+            background: #F7FAFC;
+            border-left: 3px solid #718096;
+            border-radius: 4px;
+            padding: 24px 28px;
+            margin: 24px 0;
         }
 
-        .word-item.needs-work {
-            border-left-color: #dc3545;
-            background: #fff5f5;
-        }
-
-        .word-item.moderate {
-            border-left-color: #ffc107;
-            background: #fffbf0;
-        }
-
-        .word-name {
-            font-weight: 600;
-            font-size: 16px;
-            margin-bottom: 5px;
-        }
-
-        .word-score {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .pattern-box {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #FF9800;
-            margin: 15px 0;
-        }
-
-        .timeline {
-            background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
-            padding: 20px;
-            border-radius: 8px;
-            border: 2px solid #FF9800;
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .timeline-title {
-            font-weight: 700;
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .timeline-text {
-            font-size: 16px;
-            color: #666;
-        }
-
-        /* Warning Box */
-        .warning-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            border-radius: 12px;
-            padding: 30px;
-            margin: 40px 0;
-            text-align: center;
-        }
-
-        .warning-title {
-            font-family: 'Quicksand', sans-serif;
-            font-size: 20px;
-            font-weight: 700;
-            color: #856404;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .warning-text {
-            color: #856404;
-            line-height: 1.6;
-            font-size: 16px;
-        }
-
-        /* Special Offer Section */
-        .special-offer {
-            background: linear-gradient(135deg, #FF9800, #E65100);
-            color: white;
-            padding: 50px 40px;
-            border-radius: 16px;
-            text-align: center;
-            margin: 40px 0;
-            box-shadow: 0 20px 40px rgba(255, 152, 0, 0.3);
-        }
-
-        .offer-badge {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px 20px;
-            border-radius: 20px;
+        .clinical-box h4 {
             font-size: 14px;
             font-weight: 600;
+            color: #4A5568;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 20px;
-            display: inline-block;
+            margin-bottom: 12px;
         }
 
-        .offer-title {
-            font-family: 'Quicksand', sans-serif;
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            line-height: 1.2;
-        }
-
-        .offer-subtitle {
-            font-size: 18px;
-            margin-bottom: 30px;
-            opacity: 0.9;
-        }
-
-        /* CTA Buttons */
-        .cta-primary {
-            background: #000000;
-            color: white;
-            padding: 20px 40px;
-            border: none;
-            border-radius: 12px;
-            font-size: 20px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            margin: 10px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-        }
-
-        .cta-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
-            color: white;
-            text-decoration: none;
-        }
-
-        .app-store-section {
-            text-align: center;
-            margin: 30px 0;
-        }
-
-        .app-store-text {
+        .clinical-box p {
             font-size: 16px;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 20px;
+            color: #2D3748;
+            margin: 0;
         }
 
-        .app-store-img {
-            transition: transform 0.3s ease;
-            height: 60px;
-        }
-
-        .app-store-img:hover {
-            transform: scale(1.05);
-        }
-
-        .benefits-list {
-            text-align: left;
-            max-width: 400px;
-            margin: 20px auto;
-        }
-
-        .benefit-item {
-            display: flex;
-            align-items: center;
-            margin: 10px 0;
-            font-size: 16px;
-        }
-
-        .benefit-item::before {
-            content: '✓';
-            color: #000000;
-            font-weight: 700;
-            margin-right: 12px;
-            background: rgba(255, 255, 255, 0.2);
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-        }
-
-        /* Secondary CTAs */
-        .secondary-ctas {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 30px;
-            border-radius: 12px;
-            margin-top: 30px;
-        }
-
-        .cta-secondary {
-            background: transparent;
-            color: white;
-            padding: 12px 24px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+        /* Timeline - Clean Clinical */
+        .timeline-box {
+            background: #F7FAFC;
+            border: 1px solid #E2E8F0;
             border-radius: 8px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+
+        .timeline-header {
+            font-weight: 700;
             font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            margin: 5px;
+            color: #1A202C;
+            margin-bottom: 8px;
         }
 
-        .cta-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.6);
-            color: white;
-            text-decoration: none;
-        }
-
-        .cta-tertiary {
-            background: transparent;
-            color: rgba(255, 255, 255, 0.7);
-            padding: 8px 16px;
-            border: none;
+        .timeline-description {
             font-size: 14px;
-            cursor: pointer;
-            text-decoration: underline;
-            margin-top: 20px;
+            color: #718096;
+            margin-bottom: 20px;
         }
 
-        .cta-tertiary:hover {
-            color: white;
+        .timeline-phases {
+            display: grid;
+            gap: 12px;
+        }
+
+        .timeline-phase {
+            display: flex;
+            gap: 16px;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #E2E8F0;
+        }
+
+        .phase-week {
+            font-weight: 600;
+            color: #1A202C;
+            min-width: 80px;
+            font-size: 14px;
+        }
+
+        .phase-focus {
+            color: #4A5568;
+            font-size: 14px;
+        }
+
+        /* Practice Plan List */
+        .practice-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .practice-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #E2E8F0;
+            color: #2D3748;
+            font-size: 15px;
+        }
+
+        .practice-list li:last-child {
+            border-bottom: none;
+        }
+
+        .practice-list li strong {
+            color: #1A202C;
         }
 
         /* Loading Placeholder */
         .loading-placeholder {
             text-align: center;
-            padding: 40px 20px;
-            color: #666;
-            font-style: italic;
+            padding: 48px 24px;
+            color: #718096;
         }
 
         .loading-placeholder p {
-            font-size: 16px;
+            font-size: 15px;
             margin: 0;
+        }
+
+        /* Next Steps Section */
+        .next-steps-section {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 48px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+        }
+
+        .next-steps-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1A202C;
+            margin-bottom: 24px;
+            border-left: 4px solid #1A202C;
+            padding-left: 16px;
+        }
+
+        .next-steps-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            align-items: start;
+        }
+
+        .next-steps-text {
+            font-size: 16px;
+            line-height: 1.75;
+            color: #2D3748;
+        }
+
+        .next-steps-text p {
+            margin-bottom: 16px;
+        }
+
+        .next-steps-text ul {
+            margin-left: 20px;
+            margin-bottom: 16px;
+        }
+
+        .next-steps-text li {
+            margin-bottom: 8px;
+        }
+
+        .app-download-card {
+            background: #F7FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 32px;
+            text-align: center;
+        }
+
+        .app-download-card h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1A202C;
+            margin-bottom: 8px;
+        }
+
+        .app-download-card p {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 20px;
+        }
+
+        .app-store-badge {
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        .app-store-badge:hover {
+            transform: scale(1.03);
+        }
+
+        .app-store-badge img {
+            height: 48px;
+        }
+
+        .alternative-link {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #E2E8F0;
+        }
+
+        .alternative-link a {
+            font-size: 14px;
+            color: #4A5568;
+            text-decoration: none;
+        }
+
+        .alternative-link a:hover {
+            color: #1A202C;
+            text-decoration: underline;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .results-title {
-                font-size: 28px;
+            .report-header,
+            .analysis-report,
+            .next-steps-section {
+                padding: 32px 24px;
+                margin-left: 0;
+                margin-right: 0;
             }
 
-            .offer-title {
+            .report-title {
                 font-size: 26px;
             }
 
-            .analysis-report,
-            .results-header,
-            .special-offer {
-                padding: 30px 20px;
+            .report-meta {
+                flex-direction: column;
+                gap: 16px;
             }
 
-            .word-analysis {
-                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-                gap: 10px;
+            .report-date {
+                text-align: left;
             }
 
-            .cta-primary {
-                padding: 16px 24px;
+            .next-steps-content {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title,
+            .next-steps-title {
                 font-size: 18px;
-                width: 100%;
-                max-width: 300px;
             }
         }
 
         @media (max-width: 480px) {
-            .results-title {
-                font-size: 24px;
-            }
-
-            .offer-title {
+            .report-title {
                 font-size: 22px;
             }
 
             .results-container {
-                padding: 0 15px;
+                padding: 0 16px;
+            }
+
+            .timeline-phase {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .phase-week {
+                min-width: auto;
             }
         }
     </style>
@@ -444,111 +440,100 @@
     <!-- Results Page -->
     <div class="results-page">
         <div class="results-container">
-            <!-- Header -->
-            <div class="results-header">
-                <h1 class="results-title">Your Personalized R-Sound Analysis - <span class="user-name" id="userName">Sarah</span></h1>
-                <p class="results-subtitle">Based on your assessment, here's exactly what we found and how to fix it</p>
+            <!-- Clinical Report Header -->
+            <div class="report-header">
+                <div class="report-meta">
+                    <div class="report-branding">
+                        <img src="website-logo-thick-trans-compress.png" alt="The Rollr Academy" class="report-logo">
+                    </div>
+                    <div class="report-date">
+                        <div class="report-date-label">Assessment Date</div>
+                        <div id="assessmentDate"></div>
+                    </div>
+                </div>
+                <h1 class="report-title">R-Sound Assessment Report</h1>
+                <p class="report-subtitle">Patient: <span class="patient-name" id="userName">—</span></p>
             </div>
 
             <!-- Analysis Report -->
             <div class="analysis-report">
                 <!-- Voice Analysis Section -->
                 <div class="report-section">
-                    <h2 class="section-title">
-                        <span class="section-icon">🎯</span>
-                        Voice Pattern Analysis
-                    </h2>
+                    <h2 class="section-title">Voice Pattern Analysis</h2>
                     <div id="voiceAnalysisContent">
                         <div class="loading-placeholder">
-                            <p>🔬 Analyzing your voice recording...</p>
+                            <p>Analyzing voice recording...</p>
                         </div>
                     </div>
                 </div>
 
-
                 <!-- Estimated Timeline -->
                 <div class="report-section">
-                    <h2 class="section-title">
-                        <span class="section-icon">⏱️</span>
-                        Your Estimated Fix Timeline
-                    </h2>
-                    <div class="timeline">
-                        <div class="timeline-title">Estimated completion: 8-10 weeks</div>
-                        <div class="timeline-text">Based on your specific pattern and typical practice consistency</div>
+                    <h2 class="section-title">Estimated Treatment Timeline</h2>
+                    <div class="timeline-box">
+                        <div class="timeline-header">Projected Duration: 8–10 weeks</div>
+                        <div class="timeline-description">Based on assessment findings and typical practice adherence</div>
+                        <div class="timeline-phases">
+                            <div class="timeline-phase">
+                                <span class="phase-week">Week 1–3</span>
+                                <span class="phase-focus">Tongue positioning and isolated /r/ sound production</span>
+                            </div>
+                            <div class="timeline-phase">
+                                <span class="phase-week">Week 4–6</span>
+                                <span class="phase-focus">/r/ in words and short phrases</span>
+                            </div>
+                            <div class="timeline-phase">
+                                <span class="phase-week">Week 7–10</span>
+                                <span class="phase-focus">Conversational speech and habit generalization</span>
+                            </div>
+                        </div>
                     </div>
-                    <p><strong>Week 1-3:</strong> Tongue positioning and isolated R sounds<br>
-                    <strong>Week 4-6:</strong> R in words and short phrases<br>
-                    <strong>Week 7-10:</strong> Conversational speech and habit formation</p>
                 </div>
 
                 <!-- Custom Recommendations -->
                 <div class="report-section">
-                    <h2 class="section-title">
-                        <span class="section-icon">📋</span>
-                        Your Custom Practice Plan
-                    </h2>
-                    <p><strong>Priority Focus Areas:</strong></p>
-                    <ul style="margin: 10px 0 10px 20px; line-height: 1.8;">
-                        <li>Tongue-tip elevation exercises (your primary need)</li>
-                        <li>End-of-word R practice ("car", "better", "world")</li>
-                        <li>R-blend strengthening ("problem", "tree", "three")</li>
-                        <li>Vocalic R patterns ("girl", "bird", "turn")</li>
-                    </ul>
-                    <p><strong>Daily Practice:</strong> 15-20 minutes focusing on your weak areas first, then maintaining strong areas.</p>
-                </div>
-            </div>
-
-            <!-- Warning Box -->
-            <div class="warning-box">
-                <h3 class="warning-title">
-                    <span>⚠️</span>
-                    Here's What Usually Happens...
-                </h3>
-                <p class="warning-text">
-                    <strong>87% of people with your pattern try to "figure it out" on their own and make NO progress after 6+ months.</strong><br><br>
-                    Why? Without daily guidance and progress tracking, old habits win. Your brain defaults back to the familiar W-substitution pattern, even when you think you're practicing correctly.
-                </p>
-            </div>
-
-            <!-- Special Offer Section -->
-            <div class="special-offer">
-                <div class="offer-badge">🎁 SPECIAL OFFER FOR ASSESSMENT TAKERS</div>
-                <h2 class="offer-title">Get Your Personalized Program</h2>
-                <p class="offer-subtitle">Your custom 12-week roadmap is ready. Start fixing your R sound today.</p>
-
-                <!-- Primary CTA -->
-                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="cta-primary" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'results_page_primary' });">
-                    📱 Download The Rollr Academy App
-                </a>
-
-                <div class="app-store-section">
-                    <p class="app-store-text">Available on iPhone & iPad</p>
-                    <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'results_page_badge' });">
-                        <img src="Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg" alt="Download on the App Store" class="app-store-img">
-                    </a>
-                </div>
-
-                <div class="benefits-list">
-                    <div class="benefit-item">Your custom program is ready inside</div>
-                    <div class="benefit-item">Daily exercises (15 min/day)</div>
-                    <div class="benefit-item">AI-powered progress tracking</div>
-                    <div class="benefit-item">94% success rate in 12 weeks</div>
-                    <div class="benefit-item">Complete 12-week program</div>
-                </div>
-
-                <!-- Secondary CTAs -->
-                <!-- <div class="secondary-ctas"> -->
-                    <!-- <a href="mailto:team@topspeech.health?subject=Assessment Results&body=Please email me my assessment results and practice tips." class="cta-secondary" onclick="gtag('event', 'email_results', { event_category: 'engagement', event_label: 'results_page' });">
-                        📧 Email me this report + practice tips
-                    </a>
-                    <p style="font-size: 14px; margin-top: 15px; opacity: 0.8;">(I'll download the app later)</p> -->
-
-                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
-                        <a href="guide/how-to-fix-rhotacism.html" class="cta-tertiary">
-                            Want to try without the app first? → Read our free R-sound guide
-                        </a>
+                    <h2 class="section-title">Recommended Practice Protocol</h2>
+                    <div class="section-content">
+                        <p><strong>Priority Focus Areas</strong></p>
+                        <ul class="practice-list">
+                            <li><strong>Tongue-tip elevation exercises</strong> — Primary intervention target</li>
+                            <li><strong>Post-vocalic /r/</strong> — Word-final positions (car, better, world)</li>
+                            <li><strong>R-blend clusters</strong> — Initial consonant combinations (problem, tree, three)</li>
+                            <li><strong>Vocalic /r/ patterns</strong> — R-controlled vowels (girl, bird, turn)</li>
+                        </ul>
                     </div>
-                <!-- </div> -->
+                    <div class="clinical-box">
+                        <h4>Daily Practice Recommendation</h4>
+                        <p>15–20 minutes per day, prioritizing identified weak areas before maintenance of established sounds.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Steps Section -->
+            <div class="next-steps-section">
+                <h2 class="next-steps-title">Recommended Next Steps</h2>
+                <div class="next-steps-content">
+                    <div class="next-steps-text">
+                        <p>This assessment provides a baseline understanding of your current /r/ production patterns. For optimal outcomes, structured daily practice with progress monitoring is recommended.</p>
+                        <p>The Rollr Academy intensive program provides:</p>
+                        <ul>
+                            <li>Structured 12-week curriculum</li>
+                            <li>Daily guided exercises (15 min)</li>
+                            <li>Real-time acoustic feedback</li>
+                            <li>Progress tracking and analytics</li>
+                        </ul>
+                    </div>
+                    <div class="app-download-card">
+                        <h4>Continue with Guided Practice</h4>
+                        <p>Available on iPhone & iPad</p>
+                        <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="app-store-badge" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'results_page' });">
+                            <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store">
+                        </a>
+                        <div class="alternative-link">
+                            <a href="guide/how-to-fix-rhotacism.html">Read our free practice guide →</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -561,17 +546,13 @@
         }
 
         // Check for name parameter or get from localStorage
-        const userName = getUrlParameter('name') || localStorage.getItem('assessmentUserName') || 'Sarah';
-        const userEmail = localStorage.getItem('assessmentUserEmail') || '';
+        const userName = getUrlParameter('name') || localStorage.getItem('assessmentUserName') || '—';
         document.getElementById('userName').textContent = userName;
-        
-        // Update email results link with user's actual email
-        if (userEmail) {
-            const emailResultsLink = document.querySelector('a[href*="mailto:"]');
-            if (emailResultsLink) {
-                emailResultsLink.href = `mailto:${userEmail}?subject=My R-Sound Assessment Results&body=Hi! Please send me my detailed assessment results and practice tips from my recent R-sound evaluation. My email: ${userEmail}`;
-            }
-        }
+
+        // Set assessment date
+        const today = new Date();
+        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('assessmentDate').textContent = today.toLocaleDateString('en-US', dateOptions);
 
         // Generate dynamic results based on assessment data
         function generatePersonalizedResults() {
@@ -603,7 +584,7 @@
             }
         }
 
-        // Convert markdown to HTML (copied from index.html)
+        // Convert markdown to HTML with clinical styling
         function convertMarkdownToHTML(text) {
             // First, handle markdown tables
             const tableRegex = /\|(.+)\|\n\|[-:\s|]+\|\n((?:\|.+\|\n?)+)/g;
@@ -613,22 +594,22 @@
                     row.split('|').map(cell => cell.trim()).filter(cell => cell)
                 );
 
-                let tableHTML = '<div style="overflow-x: auto; margin: 20px 0;"><table style="width: 100%; border-collapse: collapse; font-size: 14px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">';
+                let tableHTML = '<div style="overflow-x: auto; margin: 24px 0;"><table style="width: 100%; border-collapse: collapse; font-size: 14px; background: white; border: 1px solid #E2E8F0;">';
 
                 // Header row
-                tableHTML += '<thead><tr style="background: linear-gradient(135deg, #FF9800, #E65100); color: white;">';
+                tableHTML += '<thead><tr style="background: #1A202C; color: white;">';
                 headers.forEach(header => {
-                    tableHTML += `<th style="padding: 12px 16px; text-align: left; font-weight: 600; white-space: nowrap;">${header}</th>`;
+                    tableHTML += `<th style="padding: 12px 16px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">${header}</th>`;
                 });
                 tableHTML += '</tr></thead>';
 
                 // Body rows
                 tableHTML += '<tbody>';
                 rows.forEach((row, i) => {
-                    const bgColor = i % 2 === 0 ? '#fff' : '#f8f9fa';
-                    tableHTML += `<tr style="background: ${bgColor}; border-bottom: 1px solid #e9ecef;">`;
+                    const bgColor = i % 2 === 0 ? '#fff' : '#F7FAFC';
+                    tableHTML += `<tr style="background: ${bgColor}; border-bottom: 1px solid #E2E8F0;">`;
                     row.forEach((cell, j) => {
-                        const style = j === 0 ? 'font-weight: 600; color: #333;' : 'color: #666;';
+                        const style = j === 0 ? 'font-weight: 600; color: #1A202C;' : 'color: #4A5568;';
                         tableHTML += `<td style="padding: 12px 16px; ${style}">${cell}</td>`;
                     });
                     tableHTML += '</tr>';
@@ -640,14 +621,14 @@
 
             // Then handle other markdown
             html = html
-                .replace(/## (.+)/g, '<h3 style="color: #FF9800; margin: 20px 0 10px 0; font-size: 18px;">$1</h3>')
-                .replace(/\*\*(.+?)\*\*/g, '<strong style="color: #333;">$1</strong>')
-                .replace(/^- (.+)/gm, '<div style="margin: 8px 0; padding-left: 16px;">• $1</div>')
-                .replace(/\n\n/g, '</p><p style="margin: 12px 0;">')
+                .replace(/## (.+)/g, '<h3 style="color: #1A202C; margin: 24px 0 12px 0; font-size: 17px; font-weight: 600;">$1</h3>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong style="color: #1A202C;">$1</strong>')
+                .replace(/^- (.+)/gm, '<div style="margin: 8px 0; padding-left: 16px; color: #2D3748;">• $1</div>')
+                .replace(/\n\n/g, '</p><p style="margin: 16px 0; color: #2D3748;">')
                 .replace(/\n/g, '<br>');
 
             // Wrap in paragraph tags
-            return '<div style="line-height: 1.6;">' + html + '</div>';
+            return '<div style="line-height: 1.75; font-size: 15px; color: #2D3748;">' + html + '</div>';
         }
 
         // Display analysis results from stored data
@@ -678,20 +659,12 @@
         function displayErrorMessage() {
             const voiceAnalysisContent = document.getElementById('voiceAnalysisContent');
             voiceAnalysisContent.innerHTML = `
-                <div style="text-align: center; padding: 40px 20px; color: #666;">
-                    <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
-                    <h3 style="color: #333; margin-bottom: 16px;">Analysis Temporarily Unavailable</h3>
-                    <p style="margin-bottom: 20px;">We're having trouble loading your personalized analysis right now.</p>
-                    <button onclick="location.reload()" style="background: #FF9800; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                        Try Again
+                <div class="clinical-box" style="text-align: center;">
+                    <h4>Analysis Unavailable</h4>
+                    <p style="margin-bottom: 16px;">Unable to load analysis results. Please try again.</p>
+                    <button onclick="location.reload()" style="background: #1A202C; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px;">
+                        Reload Page
                     </button>
-                </div>
-            `;
-
-            const speechPatternContent = document.getElementById('speechPatternContent');
-            speechPatternContent.innerHTML = `
-                <div style="text-align: center; padding: 20px; color: #666;">
-                    <p style="font-style: italic;">Pattern analysis will appear once the system is available.</p>
                 </div>
             `;
         }
