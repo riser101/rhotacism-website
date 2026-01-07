@@ -380,6 +380,18 @@
             text-decoration: underline;
         }
 
+        /* Sticky column for analysis tables */
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            box-shadow: 2px 0 4px rgba(0, 0, 0, 0.08);
+        }
+
+        thead .sticky-col {
+            z-index: 2;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .report-header,
@@ -410,6 +422,18 @@
             .section-title,
             .next-steps-title {
                 font-size: 18px;
+            }
+
+            /* Analysis table sticky column mobile */
+            .analysis-table-wrapper {
+                margin: 16px -24px;
+                padding: 0 24px;
+                width: calc(100% + 48px);
+            }
+
+            .sticky-col {
+                min-width: 80px;
+                max-width: 100px;
             }
         }
 
@@ -594,12 +618,13 @@
                     row.split('|').map(cell => cell.trim()).filter(cell => cell)
                 );
 
-                let tableHTML = '<div style="overflow-x: auto; margin: 24px 0;"><table style="width: 100%; border-collapse: collapse; font-size: 14px; background: white; border: 1px solid #E2E8F0;">';
+                let tableHTML = '<div class="analysis-table-wrapper" style="overflow-x: auto; margin: 24px 0; -webkit-overflow-scrolling: touch;"><table style="width: 100%; border-collapse: collapse; font-size: 14px; background: white; border: 1px solid #E2E8F0;">';
 
-                // Header row
-                tableHTML += '<thead><tr style="background: #1A202C; color: white;">';
-                headers.forEach(header => {
-                    tableHTML += `<th style="padding: 12px 16px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">${header}</th>`;
+                // Header row - using orange from brand palette
+                tableHTML += '<thead><tr style="background: linear-gradient(135deg, #E8842A 0%, #D96B20 100%); color: white;">';
+                headers.forEach((header, j) => {
+                    const stickyStyle = j === 0 ? 'position: sticky; left: 0; z-index: 2; background: #E07830;' : '';
+                    tableHTML += `<th class="analysis-th${j === 0 ? ' sticky-col' : ''}" style="padding: 12px 16px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; ${stickyStyle}">${header}</th>`;
                 });
                 tableHTML += '</tr></thead>';
 
@@ -609,8 +634,9 @@
                     const bgColor = i % 2 === 0 ? '#fff' : '#F7FAFC';
                     tableHTML += `<tr style="background: ${bgColor}; border-bottom: 1px solid #E2E8F0;">`;
                     row.forEach((cell, j) => {
-                        const style = j === 0 ? 'font-weight: 600; color: #1A202C;' : 'color: #4A5568;';
-                        tableHTML += `<td style="padding: 12px 16px; ${style}">${cell}</td>`;
+                        const baseStyle = j === 0 ? 'font-weight: 600; color: #1A202C;' : 'color: #4A5568;';
+                        const stickyStyle = j === 0 ? `position: sticky; left: 0; z-index: 1; background: ${bgColor};` : '';
+                        tableHTML += `<td class="analysis-td${j === 0 ? ' sticky-col' : ''}" style="padding: 12px 16px; ${baseStyle} ${stickyStyle}">${cell}</td>`;
                     });
                     tableHTML += '</tr>';
                 });
