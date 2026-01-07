@@ -392,56 +392,6 @@
             z-index: 2;
         }
 
-        /* Audio playback buttons */
-        .audio-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: none;
-        }
-
-        .audio-btn svg {
-            flex-shrink: 0;
-        }
-
-        .target-btn {
-            background: #E8842A;
-            color: white;
-        }
-
-        .target-btn:hover {
-            background: #D96B20;
-        }
-
-        .attempt-btn {
-            background: #E2E8F0;
-            color: #4A5568;
-        }
-
-        .attempt-btn:hover {
-            background: #CBD5E0;
-        }
-
-        .audio-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .audio-btn.playing {
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
             .report-header,
@@ -668,14 +618,11 @@
                     row.split('|').map(cell => cell.trim()).filter(cell => cell)
                 );
 
-                // Add "Compare" column header
-                const allHeaders = [...headers, 'Compare'];
-
                 let tableHTML = '<div class="analysis-table-wrapper" style="overflow-x: auto; margin: 24px 0; -webkit-overflow-scrolling: touch;"><table style="width: 100%; border-collapse: collapse; font-size: 14px; background: white; border: 1px solid #E2E8F0;">';
 
                 // Header row - using orange from brand palette
                 tableHTML += '<thead><tr style="background: linear-gradient(135deg, #E8842A 0%, #D96B20 100%); color: white;">';
-                allHeaders.forEach((header, j) => {
+                headers.forEach((header, j) => {
                     const stickyStyle = j === 0 ? 'position: sticky; left: 0; z-index: 2; background: #E07830;' : '';
                     tableHTML += `<th class="analysis-th${j === 0 ? ' sticky-col' : ''}" style="padding: 12px 16px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; ${stickyStyle}">${header}</th>`;
                 });
@@ -685,26 +632,12 @@
                 tableHTML += '<tbody>';
                 rows.forEach((row, i) => {
                     const bgColor = i % 2 === 0 ? '#fff' : '#F7FAFC';
-                    const word = row[0]?.toLowerCase() || '';
                     tableHTML += `<tr style="background: ${bgColor}; border-bottom: 1px solid #E2E8F0;">`;
                     row.forEach((cell, j) => {
                         const baseStyle = j === 0 ? 'font-weight: 600; color: #1A202C;' : 'color: #4A5568;';
                         const stickyStyle = j === 0 ? `position: sticky; left: 0; z-index: 1; background: ${bgColor};` : '';
                         tableHTML += `<td class="analysis-td${j === 0 ? ' sticky-col' : ''}" style="padding: 12px 16px; ${baseStyle} ${stickyStyle}">${cell}</td>`;
                     });
-                    // Add Compare column with playback buttons
-                    tableHTML += `<td style="padding: 12px 16px; white-space: nowrap;">
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button onclick="playTargetAudio('${word}')" class="audio-btn target-btn">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                                Target
-                            </button>
-                            <button onclick="playMyAttempt('${word}')" class="audio-btn attempt-btn">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                                My Attempt
-                            </button>
-                        </div>
-                    </td>`;
                     tableHTML += '</tr>';
                 });
                 tableHTML += '</tbody></table></div>';
@@ -779,93 +712,6 @@
                 }
             }
         });
-
-        // Audio playback functions
-        let currentAudio = null;
-        let currentPlayingButton = null;
-
-        function stopCurrentAudio() {
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-                currentAudio = null;
-            }
-            if (currentPlayingButton) {
-                currentPlayingButton.classList.remove('playing');
-                currentPlayingButton = null;
-            }
-        }
-
-        function playTargetAudio(word) {
-            stopCurrentAudio();
-
-            // Default to male voice (can be made configurable)
-            const gender = 'male';
-            const filename = `TargetAudio/${word.toLowerCase()}-${gender}.mpga`;
-
-            const audio = new Audio(filename);
-            currentAudio = audio;
-
-            const button = event.currentTarget;
-            button.classList.add('playing');
-            currentPlayingButton = button;
-
-            audio.onended = function() {
-                button.classList.remove('playing');
-                currentAudio = null;
-                currentPlayingButton = null;
-            };
-
-            audio.onerror = function() {
-                console.error('Error playing target audio:', filename);
-                button.classList.remove('playing');
-                currentAudio = null;
-                currentPlayingButton = null;
-            };
-
-            audio.play().catch(err => {
-                console.error('Audio playback failed:', err);
-                button.classList.remove('playing');
-            });
-        }
-
-        function playMyAttempt(word) {
-            stopCurrentAudio();
-
-            // Get recorded audio from localStorage
-            const storedAudio = localStorage.getItem('assessmentAudioData');
-            if (!storedAudio) {
-                console.warn('No recorded audio found');
-                alert('Recording not available. Please retake the assessment.');
-                return;
-            }
-
-            const button = event.currentTarget;
-            button.classList.add('playing');
-            currentPlayingButton = button;
-
-            // Create audio from base64 data
-            const audio = new Audio('data:audio/webm;base64,' + storedAudio);
-            currentAudio = audio;
-
-            audio.onended = function() {
-                button.classList.remove('playing');
-                currentAudio = null;
-                currentPlayingButton = null;
-            };
-
-            audio.onerror = function() {
-                console.error('Error playing recorded audio');
-                button.classList.remove('playing');
-                currentAudio = null;
-                currentPlayingButton = null;
-            };
-
-            audio.play().catch(err => {
-                console.error('Audio playback failed:', err);
-                button.classList.remove('playing');
-            });
-        }
     </script>
     <!-- Enhanced Analytics -->
     <script src="js/enhanced-analytics.js"></script>
