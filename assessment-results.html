@@ -380,22 +380,16 @@
             text-decoration: underline;
         }
 
-        /* Sticky column for analysis tables */
-        .sticky-col {
+        /* Sticky header row for analysis tables */
+        .analysis-table-wrapper thead {
             position: -webkit-sticky;
             position: sticky;
-            left: 0;
-            z-index: 1;
-            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+            top: 0;
+            z-index: 10;
         }
 
-        thead .sticky-col {
-            z-index: 2;
-            background: #E07830 !important;
-        }
-
-        tbody .sticky-col {
-            background: inherit;
+        .analysis-table-wrapper thead th {
+            background: #E07830;
         }
 
         /* Responsive */
@@ -434,6 +428,8 @@
             .analysis-table-wrapper {
                 margin: 16px 0;
                 max-width: 100%;
+                max-height: 70vh;
+                overflow-y: auto;
             }
 
             .sticky-col {
