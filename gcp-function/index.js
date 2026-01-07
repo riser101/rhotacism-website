@@ -85,23 +85,29 @@ This recording represents the pre-treatment baseline.
 Analysis Instructions (Think Carefully)
 For each word, determine:
 
-The type of /r/ being tested
+1. The type of /r/ being tested
 (e.g., prevocalic /r/, post-vocalic /r/, r-blend, vocalic /ɝ/, /ɚ/)
 
-The word position (initial, medial, final)
+2. The word position (initial, medial, final)
 
-Whether the /r/ is:
+3. Whether the /r/ is:
+- Accurate
+- Distorted
+- Substituted
+- Omitted
 
-Accurate
+4. What you actually heard - transcribe phonetically what the patient said
+(e.g., if target was "red" but patient said "wed", write "wed")
 
-Distorted
+5. A detailed perceptual description with R-quality score (15-25 words), describing the acoustic characteristics and including a score from 0-10 where:
+   - 10 = Perfect native-like /r/ production
+   - 7-9 = Minor distortion, socially acceptable
+   - 4-6 = Noticeable distortion, intelligible
+   - 1-3 = Significant distortion or substitution
+   - 0 = Complete omission or unrecognizable
 
-Substituted
-
-Omitted
-
-A detailed perceptual description of the error quality (15-25 words), describing the acoustic characteristics, timing, tongue position inference, and comparison to target phoneme
-(e.g., "Delayed /r/ onset; vowel initiates first, with weak late rhotic coloring rather than a firm consonantal /r/.")
+Format: "Score: X/10. [Description of error quality]"
+(e.g., "Score: 2/10. Glide /w/ substitution with lip rounding; lacks tongue bunching for rhotic.")
 
 Base judgments strictly on audible evidence. Do not speculate anatomically.
 
@@ -113,11 +119,13 @@ No headings, no paragraphs, no explanations
 
 The table must contain exactly these columns:
 
-| Word | /r/ Type Tested | Position | Accuracy Judgment | Perceptual Error Description |
+| Word | /r/ Type Tested | Position | Accuracy Judgment | Heard As | Perceptual Error Description |
 
 One row per word
 
-Use detailed, clinician-appropriate language in the Perceptual Error Description column`;
+In "Heard As" column, write exactly what you heard phonetically. If accurate, write the target word. If substituted/distorted, write what it sounded like (e.g., "wed" for "red", "cah" for "car").
+
+In "Perceptual Error Description" column, ALWAYS start with "Score: X/10." followed by the clinical description. Use detailed, clinician-appropriate language.`;
 
   const chatRequest = {
     model: 'gpt-4o-audio-preview',
