@@ -424,16 +424,19 @@
                 font-size: 18px;
             }
 
-            /* Analysis table sticky column mobile */
+            /* Analysis table mobile */
             .analysis-table-wrapper {
-                margin: 16px -24px;
-                padding: 0 24px;
-                width: calc(100% + 48px);
+                margin: 16px 0;
+                max-width: 100%;
             }
 
             .sticky-col {
                 min-width: 80px;
                 max-width: 100px;
+            }
+
+            .analysis-report {
+                overflow-x: hidden;
             }
         }
 
@@ -618,7 +621,7 @@
                     row.split('|').map(cell => cell.trim()).filter(cell => cell)
                 );
 
-                let tableHTML = '<div class="analysis-table-wrapper" style="overflow-x: auto; margin: 24px 0; -webkit-overflow-scrolling: touch;"><table style="width: 100%; border-collapse: collapse; font-size: 14px; background: white; border: 1px solid #E2E8F0;">';
+                let tableHTML = '<div class="analysis-table-wrapper" style="overflow-x: auto; margin: 24px 0; -webkit-overflow-scrolling: touch; max-width: 100%;"><table style="min-width: 600px; border-collapse: collapse; font-size: 14px; background: white; border: 1px solid #E2E8F0;">';
 
                 // Header row - using orange from brand palette
                 tableHTML += '<thead><tr style="background: linear-gradient(135deg, #E8842A 0%, #D96B20 100%); color: white;">';
