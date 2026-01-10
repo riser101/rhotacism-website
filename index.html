@@ -1591,7 +1591,7 @@ padding: 1px 3px !important;
 
                 <div class="hero-cta-container">
                     <div class="cta-buttons" style="width: 100%;">
-                        <a href="assessment.html" class="btn btn-primary hero-main-cta" style="flex: 2.4; padding: 15px 16px !important; min-height: auto !important; font-size: 18px;" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'hero_cta' });">Take Free 2-Mins Clinical Assessment</a>
+                        <a href="assessment.html" class="btn btn-primary hero-main-cta" style="flex: 2.4; padding: 15px 16px !important; min-height: auto !important; font-size: 18px;" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'hero_cta' }); posthog.capture('assessment_started_from_home', { section: 'hero_cta' });">Take Free 2-Mins Clinical Assessment</a>
                         <div class="nav-toggle">
                             <span></span>
                             <span></span>
@@ -1923,7 +1923,7 @@ padding: 1px 3px !important;
             <h2 class="cta-title">Ready to Finally Fix Your R Sound?</h2>
             <p class="cta-subtitle">Join 100+ who've already transformed their speech. Start with a free assessment to see exactly what needs work.</p>
 
-            <a href="assessment.html" class="btn btn-primary hero-main-cta" style="display: inline-flex;" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'bottom_cta' });">Take Free 2-Mins Clinical Assessment</a>
+            <a href="assessment.html" class="btn btn-primary hero-main-cta" style="display: inline-flex;" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'bottom_cta' }); posthog.capture('assessment_started_from_home', { section: 'bottom_cta' });">Take Free 2-Mins Clinical Assessment</a>
             
             <div id="download-after-assessment" style="display: none; text-align: center;">
                 <p style="margin: 20px 0 10px 0; color: #666;">Ready to start your personalized program?</p>
