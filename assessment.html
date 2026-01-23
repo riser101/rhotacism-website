@@ -1111,13 +1111,7 @@
                     showRecordingError('No sound detected. Please speak louder and try recording again.');
                     return;
                 }
-                
-                // Check for clipping (audio too loud)
-                if (max > 0.95) {
-                    showRecordingError('Audio is too loud and may be distorted. Please speak at normal volume and try again.');
-                    return;
-                }
-                
+
                 // Audio passed all checks
                 hasValidAudio = true;
                 document.getElementById('step2Continue').disabled = false;
