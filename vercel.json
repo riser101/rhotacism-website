@@ -104,15 +104,11 @@
   "rewrites": [
     {
       "source": "/therollracademy",
-      "destination": "/index.html"
+      "destination": "/therollracademy/index.html"
     },
     {
       "source": "/therollracademy/",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/therollracademy/:path*",
-      "destination": "/:path*"
+      "destination": "/therollracademy/index.html"
     }
   ],
   "headers": [
