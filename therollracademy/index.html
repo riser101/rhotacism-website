@@ -22,7 +22,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&#x26;family=Inter:wght@300;400;500;600;700&#x26;display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/login-modal.css">
+    <link rel="stylesheet" href="/therollracademy/css/login-modal.css">
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
@@ -1460,7 +1460,7 @@ padding: 1px 3px !important;
     <!-- END POSTHOG ANALYTICS CODE -->
 
     <!-- Load PostHog Event Tracking -->
-    <script src="js/posthog-tracking.js"></script>
+    <script src="/therollracademy/js/posthog-tracking.js"></script>
 
     <!-- Google OAuth 2.0 Script -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -1559,7 +1559,7 @@ padding: 1px 3px !important;
         });
     </script>
 
-    <link rel="stylesheet" href="css/nav.css">
+    <link rel="stylesheet" href="/therollracademy/css/nav.css">
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -1928,7 +1928,7 @@ padding: 1px 3px !important;
             <div id="download-after-assessment" style="display: none; text-align: center;">
                 <p style="margin: 20px 0 10px 0; color: #666;">Ready to start your personalized program?</p>
                 <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'post_assessment_download' }); posthog.capture('app_store_click', { section: 'conversion' });">
-                    <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" 
+                    <img src="/therollracademy/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" 
                          alt="Download on the App Store" style="height: 80px;">
                 </a>
             </div>
@@ -2307,7 +2307,7 @@ padding: 1px 3px !important;
 
         // Load footer from includes
         document.addEventListener('DOMContentLoaded', function() {
-            fetch('includes/footer.html')
+            fetch('/therollracademy/includes/footer.html')
                 .then(response => response.text())
                 .then(data => {
                     document.getElementById('footer-placeholder').innerHTML = data;
