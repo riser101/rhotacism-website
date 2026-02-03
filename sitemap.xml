@@ -1,93 +1,147 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.topspeech.health/therollracademy/</loc>
+    <loc>https://topspeech.health/therollracademy/</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.topspeech.health/therollracademy/rhotacism-guide.html</loc>
-    <lastmod>2025-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.topspeech.health/therollracademy/guide/rhotacism.html</loc>
+    <loc>https://topspeech.health/therollracademy/assessment.html</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.topspeech.health/therollracademy/guide/what-is-rhotacism.html</loc>
+    <loc>https://topspeech.health/therollracademy/rhotacism-guide.html</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.topspeech.health/therollracademy/guide/how-to-fix-rhotacism.html</loc>
+    <loc>https://topspeech.health/therollracademy/guide/rhotacism.html</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.topspeech.health/therollracademy/guide/rhotacism-adults.html</loc>
+    <loc>https://topspeech.health/therollracademy/guide/what-is-rhotacism.html</loc>
+    <lastmod>2025-09-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://topspeech.health/therollracademy/guide/how-to-fix-rhotacism.html</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.topspeech.health/therollracademy/guide/rhotacism-speech-impediment.html</loc>
+    <loc>https://topspeech.health/therollracademy/guide/rhotacism-adults.html</loc>
+    <lastmod>2025-09-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://topspeech.health/therollracademy/guide/rhotacism-speech-impediment.html</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.topspeech.health/therollracademy/guide/rhotacism-examples.html</loc>
+    <loc>https://topspeech.health/therollracademy/guide/rhotacism-examples.html</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.topspeech.health/therollracademy/guide/rhotacism-autism.html</loc>
+    <loc>https://topspeech.health/therollracademy/guide/rhotacism-autism.html</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.topspeech.health/therollracademy/guide/rhotacism-apps.html</loc>
+    <loc>https://topspeech.health/therollracademy/guide/rhotacism-apps.html</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.topspeech.health/therollracademy/blog.html</loc>
+    <loc>https://topspeech.health/therollracademy/guide/r-speech-impediment-complete-guide.html</loc>
+    <lastmod>2025-09-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://topspeech.health/therollracademy/guide/can-you-fix-rhotacism.html</loc>
+    <lastmod>2025-09-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://topspeech.health/therollracademy/guide/causes-of-rhotacism.html</loc>
+    <lastmod>2025-09-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://topspeech.health/therollracademy/guide/famous-people-with-rhotacism.html</loc>
+    <lastmod>2025-09-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://topspeech.health/therollracademy/guide/why-do-i-pronounce-r-as-w.html</loc>
+    <lastmod>2025-09-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://topspeech.health/therollracademy/guide/why-do-some-people-say-warsh.html</loc>
+    <lastmod>2025-09-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://topspeech.health/therollracademy/team/deborah-sarfaty.html</loc>
+    <lastmod>2025-09-16</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://topspeech.health/therollracademy/team/jaime-roche.html</loc>
+    <lastmod>2025-09-16</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://topspeech.health/therollracademy/team/peter-stoll.html</loc>
+    <lastmod>2025-09-16</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://topspeech.health/therollracademy/blog.html</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.topspeech.health/therollracademy/privacy.html</loc>
+    <loc>https://topspeech.health/therollracademy/privacy.html</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://www.topspeech.health/therollracademy/terms.html</loc>
+    <loc>https://topspeech.health/therollracademy/terms.html</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://www.topspeech.health/therollracademy/support.html</loc>
+    <loc>https://topspeech.health/therollracademy/support.html</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://www.topspeech.health/therollracademy/404.html</loc>
-    <lastmod>2025-09-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.1</priority>
   </url>
 </urlset>
