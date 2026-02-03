@@ -1,45 +1,43 @@
 // Load navigation HTML
 document.addEventListener('DOMContentLoaded', function() {
-    // Determine the correct path prefix based on current page location
-    const currentPath = window.location.pathname;
-    const isInSubfolder = currentPath.includes('/guide/') || currentPath.includes('/team/');
-    const pathPrefix = isInSubfolder ? '../' : '';
+    // Use absolute paths for all assets
+    const basePath = '/therollracademy';
 
     // Load login-modal.js script first, then load navigation
     const loginModalScript = document.createElement('script');
-    loginModalScript.src = pathPrefix + 'js/login-modal.js';
+    loginModalScript.src = basePath + '/js/login-modal.js';
     loginModalScript.onload = function() {
         // Load navigation after login-modal.js is ready
-        fetch(pathPrefix + 'includes/nav.html')
+        fetch(basePath + '/includes/nav.html')
             .then(response => response.text())
             .then(html => {
                 // Insert navigation at the beginning of body
                 document.body.insertAdjacentHTML('afterbegin', html);
 
-                // Fix image paths based on current location
+                // Fix image paths using absolute paths
                 const navAppStoreBadge1 = document.getElementById('navAppStoreBadge1');
                 const navAppStoreBadge2 = document.getElementById('navAppStoreBadge2');
                 const navLogoMobile = document.getElementById('navLogoMobile');
                 const navLogoLink = document.getElementById('navLogoLink');
 
                 if (navAppStoreBadge1) {
-                    navAppStoreBadge1.src = pathPrefix + 'Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
+                    navAppStoreBadge1.src = basePath + '/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
                 }
                 if (navAppStoreBadge2) {
-                    navAppStoreBadge2.src = pathPrefix + 'Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
+                    navAppStoreBadge2.src = basePath + '/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
                 }
                 if (navLogoMobile) {
-                    navLogoMobile.src = pathPrefix + 'instagram-icon.jpg';
+                    navLogoMobile.src = basePath + '/instagram-icon.jpg';
                 }
                 if (navLogoLink) {
-                    navLogoLink.href = '/therollracademy';
+                    navLogoLink.href = basePath;
                 }
 
                 // Fix all navigation links with data-page attribute
                 document.querySelectorAll('.nav-link[data-page]').forEach(link => {
                     const page = link.getAttribute('data-page');
                     // Prepend /therollracademy/ (keep .html extension since cleanUrls is false)
-                    link.href = '/therollracademy/' + page;
+                    link.href = basePath + '/' + page;
                 });
 
                 // Initialize navigation functions after nav is loaded
@@ -58,10 +56,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load Google Sign-In initialization script
     const googleSignInScript = document.createElement('script');
-    googleSignInScript.src = pathPrefix + 'js/google-signin-init.js';
+    googleSignInScript.src = basePath + '/js/google-signin-init.js';
     googleSignInScript.onload = function() {
         // After google-signin-init.js is loaded, load the modal HTML
-        fetch(pathPrefix + 'includes/login-modal.html')
+        fetch(basePath + '/includes/login-modal.html')
             .then(response => response.text())
             .then(html => {
                 // Insert login modal at the end of body
