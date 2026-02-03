@@ -2,22 +2,97 @@
   "redirects": [
     {
       "source": "/",
-      "destination": "/therollracademy",
+      "destination": "/therollracademy/",
+      "permanent": true
+    },
+    {
+      "source": "/index.html",
+      "destination": "/therollracademy/",
+      "permanent": true
+    },
+    {
+      "source": "/therollracademy/index.html",
+      "destination": "/therollracademy/",
+      "permanent": true
+    },
+    {
+      "source": "/guide/:path*",
+      "destination": "/therollracademy/guide/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/team/:path*",
+      "destination": "/therollracademy/team/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/assessment.html",
+      "destination": "/therollracademy/assessment.html",
+      "permanent": true
+    },
+    {
+      "source": "/assessment-results.html",
+      "destination": "/therollracademy/assessment-results.html",
+      "permanent": true
+    },
+    {
+      "source": "/rhotacism-guide.html",
+      "destination": "/therollracademy/rhotacism-guide.html",
+      "permanent": true
+    },
+    {
+      "source": "/blog.html",
+      "destination": "/therollracademy/blog.html",
+      "permanent": true
+    },
+    {
+      "source": "/about.html",
+      "destination": "/therollracademy/about.html",
+      "permanent": true
+    },
+    {
+      "source": "/exercises.html",
+      "destination": "/therollracademy/exercises.html",
+      "permanent": true
+    },
+    {
+      "source": "/privacy.html",
+      "destination": "/therollracademy/privacy.html",
+      "permanent": true
+    },
+    {
+      "source": "/research.html",
+      "destination": "/therollracademy/research.html",
+      "permanent": true
+    },
+    {
+      "source": "/support.html",
+      "destination": "/therollracademy/support.html",
+      "permanent": true
+    },
+    {
+      "source": "/tools.html",
+      "destination": "/therollracademy/tools.html",
+      "permanent": true
+    },
+    {
+      "source": "/terms.html",
+      "destination": "/therollracademy/terms.html",
       "permanent": true
     },
     {
       "source": "/cal",
-      "destination": "/support.html",
+      "destination": "/therollracademy/support.html",
       "permanent": true
     },
     {
       "source": "/cal/(.*)",
-      "destination": "/support.html",
+      "destination": "/therollracademy/support.html",
       "permanent": true
     },
     {
       "source": "/parking.php",
-      "destination": "/",
+      "destination": "/therollracademy/",
       "permanent": true
     },
     {
@@ -29,6 +104,10 @@
   "rewrites": [
     {
       "source": "/therollracademy",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/therollracademy/",
       "destination": "/index.html"
     },
     {
