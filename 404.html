@@ -31,7 +31,7 @@
     <!-- END POSTHOG ANALYTICS CODE -->
 
     <!-- Load PostHog Event Tracking -->
-    <script src="js/posthog-tracking.js"></script>
+    <script src="/therollracademy/js/posthog-tracking.js"></script>
 
     <style>
         * {
@@ -198,11 +198,14 @@
 
         window.addEventListener('load', handleRedirects);
     </script>
-    <link rel="stylesheet" href="css/common-gradient.css">
-    <link rel="stylesheet" href="css/nav.css">
-    <link rel="stylesheet" href="css/login-modal.css">
+    <link rel="stylesheet" href="/therollracademy/css/common-gradient.css">
+    <link rel="stylesheet" href="/therollracademy/css/nav.css">
+    <link rel="stylesheet" href="/therollracademy/css/login-modal.css">
 </head>
 <body>
+    <!-- Navigation -->
+    <div id="nav-placeholder"></div>
+
     <div class="error-wrapper">
         <div class="error-container">
             <div class="error-code">404</div>
@@ -210,12 +213,12 @@
             <p class="error-description">The page you're looking for doesn't exist or has been moved.</p>
 
             <div class="button-group">
-                <a href="/assessment.html" class="btn btn-primary">Take Clinical Assessment</a>
-                <a href="/rhotacism-guide.html" class="btn btn-secondary">Browse Clinical Resources</a>
+                <a href="/therollracademy/assessment.html" class="btn btn-primary">Take Clinical Assessment</a>
+                <a href="/therollracademy/guide/rhotacism.html" class="btn btn-secondary">Browse Clinical Resources</a>
             </div>
 
             <div class="footer-links">
-                <a href="/">Return to Home</a>
+                <a href="/therollracademy/">Return to Home</a>
                 <span class="separator">|</span>
                 <a href="/therollracademy/support.html">Contact Support</a>
             </div>
@@ -223,17 +226,24 @@
     </div>
 
     <!-- Enhanced Analytics -->
-    <script src="js/enhanced-analytics.js"></script>
-    <script src="js/login-modal.js"></script>
-    <script src="js/nav.js"></script>
+    <script src="/therollracademy/js/enhanced-analytics.js"></script>
+    <script src="/therollracademy/js/login-modal.js"></script>
+    <script src="/therollracademy/js/nav.js"></script>
 
     <!-- Footer Placeholder -->
     <div id="footer-placeholder"></div>
 
     <script>
-        // Load footer from includes
+        // Load nav and footer from includes
         document.addEventListener('DOMContentLoaded', function() {
-            fetch('includes/footer.html')
+            fetch('/therollracademy/includes/nav.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('nav-placeholder').innerHTML = data;
+                })
+                .catch(error => console.error('Error loading nav:', error));
+
+            fetch('/therollracademy/includes/footer.html')
                 .then(response => response.text())
                 .then(data => {
                     document.getElementById('footer-placeholder').innerHTML = data;
