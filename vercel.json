@@ -1,5 +1,6 @@
 {
   "buildCommand": "node build.js",
+  "outputDirectory": ".",
   "redirects": [
     {
       "source": "/",
