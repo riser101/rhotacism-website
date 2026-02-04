@@ -523,7 +523,11 @@
 </head>
 <body>
     <!-- Navigation -->
-    <!-- Navigation will be loaded by nav.js -->
+    <!-- NAV_PLACEHOLDER -->
+
+
+
+
     <section class="header">
         <div class="privacy-container">
             <h1>Privacy Policy</h1>
@@ -587,30 +591,11 @@
         </div>
     </section>
 
-    <!-- Footer Section -->
-    <div id="footer-placeholder"></div>
+    <!-- FOOTER_PLACEHOLDER -->
 
-    <script>
-        // Load footer from includes
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('includes/footer.html')
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById('footer-placeholder').innerHTML = data;
-                    // Set copyright year after footer is loaded
-                    const yearSpan = document.getElementById('copyrightYear');
-                    if (yearSpan) {
-                        yearSpan.textContent = new Date().getFullYear();
-                    }
-                    // Execute footer scripts
-                    const scripts = document.getElementById('footer-placeholder').getElementsByTagName('script');
-                    for (let script of scripts) {
-                        eval(script.innerHTML);
-                    }
-                })
-                .catch(error => console.error('Error loading footer:', error));
-        });
-    </script>
+
+
+
     <script>
         function toggleMobileCompanyMenu() {
             const dropdown = document.getElementById('mobileCompanyDropdown');

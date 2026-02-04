@@ -1,49 +1,51 @@
-// Load navigation HTML
+// Load navigation HTML (or initialize if already in DOM for SEO)
 document.addEventListener('DOMContentLoaded', function() {
     // Use absolute paths for all assets
     const basePath = '/therollracademy';
 
-    // Load login-modal.js script first, then load navigation
+    // Load login-modal.js script first
     const loginModalScript = document.createElement('script');
     loginModalScript.src = basePath + '/js/login-modal.js';
     loginModalScript.onload = function() {
-        // Load navigation after login-modal.js is ready
-        fetch(basePath + '/includes/nav.html')
-            .then(response => response.text())
-            .then(html => {
-                // Insert navigation at the beginning of body
-                document.body.insertAdjacentHTML('afterbegin', html);
+        // Check if navigation already exists in DOM (static HTML for SEO)
+        const existingNav = document.getElementById('mainNavbar');
+        if (existingNav) {
+            // Navigation already in DOM, just initialize behaviors
+            initializeNavigation();
+        } else {
+            // Fallback: Load navigation dynamically if not in DOM
+            fetch(basePath + '/includes/nav.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.body.insertAdjacentHTML('afterbegin', html);
 
-                // Fix image paths using absolute paths
-                const navAppStoreBadge1 = document.getElementById('navAppStoreBadge1');
-                const navAppStoreBadge2 = document.getElementById('navAppStoreBadge2');
-                const navLogoMobile = document.getElementById('navLogoMobile');
-                const navLogoLink = document.getElementById('navLogoLink');
+                    const navAppStoreBadge1 = document.getElementById('navAppStoreBadge1');
+                    const navAppStoreBadge2 = document.getElementById('navAppStoreBadge2');
+                    const navLogoMobile = document.getElementById('navLogoMobile');
+                    const navLogoLink = document.getElementById('navLogoLink');
 
-                if (navAppStoreBadge1) {
-                    navAppStoreBadge1.src = basePath + '/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
-                }
-                if (navAppStoreBadge2) {
-                    navAppStoreBadge2.src = basePath + '/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
-                }
-                if (navLogoMobile) {
-                    navLogoMobile.src = basePath + '/instagram-icon.jpg';
-                }
-                if (navLogoLink) {
-                    navLogoLink.href = basePath;
-                }
+                    if (navAppStoreBadge1) {
+                        navAppStoreBadge1.src = basePath + '/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
+                    }
+                    if (navAppStoreBadge2) {
+                        navAppStoreBadge2.src = basePath + '/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
+                    }
+                    if (navLogoMobile) {
+                        navLogoMobile.src = basePath + '/instagram-icon.jpg';
+                    }
+                    if (navLogoLink) {
+                        navLogoLink.href = basePath;
+                    }
 
-                // Fix all navigation links with data-page attribute
-                document.querySelectorAll('.nav-link[data-page]').forEach(link => {
-                    const page = link.getAttribute('data-page');
-                    // Prepend /therollracademy/ (keep .html extension since cleanUrls is false)
-                    link.href = basePath + '/' + page;
-                });
+                    document.querySelectorAll('.nav-link[data-page]').forEach(link => {
+                        const page = link.getAttribute('data-page');
+                        link.href = basePath + '/' + page;
+                    });
 
-                // Initialize navigation functions after nav is loaded
-                initializeNavigation();
-            })
-            .catch(error => console.error('Error loading navigation:', error));
+                    initializeNavigation();
+                })
+                .catch(error => console.error('Error loading navigation:', error));
+        }
     };
     document.head.appendChild(loginModalScript);
 

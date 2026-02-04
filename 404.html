@@ -203,8 +203,8 @@
     <link rel="stylesheet" href="/therollracademy/css/login-modal.css">
 </head>
 <body>
-    <!-- Navigation -->
-    <div id="nav-placeholder"></div>
+    <!-- NAV_PLACEHOLDER -->
+
 
     <div class="error-wrapper">
         <div class="error-container">
@@ -230,36 +230,7 @@
     <script src="/therollracademy/js/login-modal.js"></script>
     <script src="/therollracademy/js/nav.js"></script>
 
-    <!-- Footer Placeholder -->
-    <div id="footer-placeholder"></div>
+    <!-- FOOTER_PLACEHOLDER -->
 
-    <script>
-        // Load nav and footer from includes
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/therollracademy/includes/nav.html')
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById('nav-placeholder').innerHTML = data;
-                })
-                .catch(error => console.error('Error loading nav:', error));
-
-            fetch('/therollracademy/includes/footer.html')
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById('footer-placeholder').innerHTML = data;
-                    // Set copyright year after footer is loaded
-                    const yearSpan = document.getElementById('copyrightYear');
-                    if (yearSpan) {
-                        yearSpan.textContent = new Date().getFullYear();
-                    }
-                    // Execute footer scripts
-                    const scripts = document.getElementById('footer-placeholder').getElementsByTagName('script');
-                    for (let script of scripts) {
-                        eval(script.innerHTML);
-                    }
-                })
-                .catch(error => console.error('Error loading footer:', error));
-        });
-    </script>
 </body>
 </html>

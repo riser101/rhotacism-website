@@ -466,7 +466,11 @@
 </head>
 <body>
     <!-- Navigation -->
-    <!-- Navigation will be loaded by nav.js -->
+    <!-- NAV_PLACEHOLDER -->
+
+
+
+
     <!-- Results Page -->
     <div class="results-page">
         <div class="results-container">
@@ -725,18 +729,10 @@
     <script src="/therollracademy/js/nav.js"></script>
 
     <!-- Footer Placeholder -->
-    <div id="footer-placeholder"></div>
+    <!-- FOOTER_PLACEHOLDER -->
 
-    <script>
-        // Load footer from includes
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('includes/footer.html')
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById('footer-placeholder').innerHTML = data;
-                })
-                .catch(error => console.error('Error loading footer:', error));
-        });
-    </script>
+
+
+
 </body>
 </html>
