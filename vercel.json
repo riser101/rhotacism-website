@@ -3,6 +3,72 @@
   "outputDirectory": ".",
   "redirects": [
     {
+      "source": "/guide/:path*.html",
+      "destination": "https://topspeech.health/therollracademy/guide/:path*.html",
+      "permanent": true,
+      "has": [
+        {
+          "type": "host",
+          "value": "rhotacismtherapy.com|www.rhotacismtherapy.com"
+        }
+      ]
+    },
+    {
+      "source": "/guide/:path*",
+      "destination": "https://topspeech.health/therollracademy/guide/:path*.html",
+      "permanent": true,
+      "has": [
+        {
+          "type": "host",
+          "value": "rhotacismtherapy.com|www.rhotacismtherapy.com"
+        }
+      ]
+    },
+    {
+      "source": "/team/:path*.html",
+      "destination": "https://topspeech.health/therollracademy/team/:path*.html",
+      "permanent": true,
+      "has": [
+        {
+          "type": "host",
+          "value": "rhotacismtherapy.com|www.rhotacismtherapy.com"
+        }
+      ]
+    },
+    {
+      "source": "/team/:path*",
+      "destination": "https://topspeech.health/therollracademy/team/:path*.html",
+      "permanent": true,
+      "has": [
+        {
+          "type": "host",
+          "value": "rhotacismtherapy.com|www.rhotacismtherapy.com"
+        }
+      ]
+    },
+    {
+      "source": "/:path*.html",
+      "destination": "https://topspeech.health/therollracademy/:path*.html",
+      "permanent": true,
+      "has": [
+        {
+          "type": "host",
+          "value": "rhotacismtherapy.com|www.rhotacismtherapy.com"
+        }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "destination": "https://topspeech.health/therollracademy/:path*",
+      "permanent": true,
+      "has": [
+        {
+          "type": "host",
+          "value": "rhotacismtherapy.com|www.rhotacismtherapy.com"
+        }
+      ]
+    },
+    {
       "source": "/",
       "destination": "/therollracademy/",
       "permanent": true
