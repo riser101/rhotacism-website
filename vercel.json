@@ -19,12 +19,12 @@
     },
     {
       "source": "/guide/:path*",
-      "destination": "/therollracademy/guide/:path*",
+      "destination": "/therollracademy/guide/:path*.html",
       "permanent": true
     },
     {
       "source": "/team/:path*",
-      "destination": "/therollracademy/team/:path*",
+      "destination": "/therollracademy/team/:path*.html",
       "permanent": true
     },
     {
