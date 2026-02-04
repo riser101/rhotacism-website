@@ -18,8 +18,18 @@
       "permanent": true
     },
     {
+      "source": "/guide/:path*.html",
+      "destination": "/therollracademy/guide/:path*.html",
+      "permanent": true
+    },
+    {
       "source": "/guide/:path*",
       "destination": "/therollracademy/guide/:path*.html",
+      "permanent": true
+    },
+    {
+      "source": "/team/:path*.html",
+      "destination": "/therollracademy/team/:path*.html",
       "permanent": true
     },
     {
