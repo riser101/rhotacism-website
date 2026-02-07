@@ -34,7 +34,7 @@
     },
     {
       "source": "/",
-      "destination": "https://topspeech.health/therollracademy/",
+      "destination": "https://topspeech.health/therollracademy",
       "permanent": true,
       "has": [{"type": "host", "value": "rhotacismtherapy.com"}]
     },
