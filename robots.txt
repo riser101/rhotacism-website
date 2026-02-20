@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemaps
-Sitemap: https://topspeech.health/therollracademy/sitemap.xml
+Sitemap: https://topspeech.health/sitemap.xml
 
 # Block access to sensitive files
 Disallow: /gcp-function/
