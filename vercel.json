@@ -3,6 +3,18 @@
   "outputDirectory": ".",
   "redirects": [
     {
+      "source": "/therollracademy/:path*.html",
+      "destination": "https://topspeech.health/therollracademy/:path*.html",
+      "permanent": true,
+      "has": [{"type": "host", "value": "rhotacismtherapy.com"}]
+    },
+    {
+      "source": "/therollracademy/:path*",
+      "destination": "https://topspeech.health/therollracademy/:path*",
+      "permanent": true,
+      "has": [{"type": "host", "value": "rhotacismtherapy.com"}]
+    },
+    {
       "source": "/guide/:path*.html",
       "destination": "https://topspeech.health/therollracademy/guide/:path*.html",
       "permanent": true,
