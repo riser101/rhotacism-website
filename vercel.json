@@ -169,6 +169,22 @@
     {
       "source": "/therollracademy/",
       "destination": "/therollracademy/index.html"
+    },
+    {
+      "source": "/thelispracademy",
+      "destination": "/thelispracademy/index.html"
+    },
+    {
+      "source": "/thelispracademy/",
+      "destination": "/thelispracademy/index.html"
+    },
+    {
+      "source": "/thestuttracademy",
+      "destination": "/thestuttracademy/index.html"
+    },
+    {
+      "source": "/thestuttracademy/",
+      "destination": "/thestuttracademy/index.html"
     }
   ],
   "headers": [

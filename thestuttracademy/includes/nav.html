@@ -1,0 +1,68 @@
+<nav class="navbar" id="mainNavbar">
+    <div class="nav-container">
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <a href="/thestuttracademy" class="nav-logo" id="navLogoLink">
+                <span class="nav-logo-text">The Stuttr Academy</span>
+                <img src="/therollracademy/instagram-icon.jpg" id="navLogoMobile" class="nav-logo-mobile" alt="The Stuttr Academy"
+                    style="height: 28px; width: 28px; border-radius: 6px;">
+            </a>
+            <!-- Company section commented out
+            <div class="nav-dropdown">
+                <a href="#" class="nav-dropdown-toggle">Company <span class="dropdown-arrow">▼</span></a>
+                <div class="nav-dropdown-menu">
+                    <a href="/thestuttracademy/about.html" class="nav-link">About</a>
+                </div>
+            </div>
+            -->
+
+            <div class="nav-dropdown">
+                <a href="#" class="nav-dropdown-toggle">For SLPs<span class="dropdown-arrow">▼</span></a>
+                <div class="nav-dropdown-menu">
+                    <a href="/therollracademy/tools.html" class="nav-link">Tools</a>
+                </div>
+            </div>
+        </div>
+        <ul class="nav-menu">
+            <li class="profile-dropdown">
+                <div class="profile-circle" onclick="toggleProfileDropdown()">
+                    <span id="profileInitial">U</span>
+                </div>
+                <div class="nav-dropdown-menu" id="profileDropdown">
+                    <a href="/thestuttracademy/exercises.html" class="nav-link">Exercises</a>
+                    <a href="#" onclick="logout(); return false;">Logout</a>
+                </div>
+            </li>
+        </ul>
+        <!-- Mobile Navigation -->
+        <div class="mobile-nav">
+                        <!-- Mobile hamburger menu for Company dropdown -->
+            <div class="mobile-hamburger-menu">
+                <button class="mobile-hamburger-toggle" onclick="toggleMobileCompanyMenu()" aria-label="Company menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="mobile-company-dropdown" id="mobileCompanyDropdown">
+                    <!-- Company section commented out
+                    <div class="mobile-menu-section">
+                        <div class="mobile-menu-title">Company</div>
+                        <a href="/thestuttracademy/about.html" class="nav-link">About</a>
+                    </div>
+                    -->
+
+                    <div class="mobile-menu-section">
+                        <div class="mobile-menu-title">For SLPs</div>
+                        <a href="/therollracademy/tools.html" class="nav-link">Tools</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop hamburger menu (hidden on mobile) -->
+        <div class="nav-toggle" onclick="toggleMobileMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</nav>
