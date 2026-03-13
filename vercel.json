@@ -177,6 +177,14 @@
     {
       "source": "/thelispracademy/",
       "destination": "/thelispracademy/index.html"
+    },
+    {
+      "source": "/thestuttracademy",
+      "destination": "/thestuttracademy/index.html"
+    },
+    {
+      "source": "/thestuttracademy/",
+      "destination": "/thestuttracademy/index.html"
     }
   ],
   "headers": [
