@@ -169,6 +169,14 @@
     {
       "source": "/therollracademy/",
       "destination": "/therollracademy/index.html"
+    },
+    {
+      "source": "/thelispracademy",
+      "destination": "/thelispracademy/index.html"
+    },
+    {
+      "source": "/thelispracademy/",
+      "destination": "/thelispracademy/index.html"
     }
   ],
   "headers": [

@@ -168,4 +168,28 @@
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
+  <url>
+    <loc>https://topspeech.health/thelispracademy</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+<url>
+    <loc>https://topspeech.health/thelispracademy/team/deborah-sarfaty.html</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://topspeech.health/thelispracademy/team/jaime-roche.html</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://topspeech.health/thelispracademy/team/peter-stoll.html</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
 </urlset>

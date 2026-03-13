@@ -1,7 +1,7 @@
 // Load navigation HTML (or initialize if already in DOM for SEO)
 document.addEventListener('DOMContentLoaded', function() {
     // Use absolute paths for all assets
-    const basePath = '/flowspeak';
+    const basePath = '/thestuttracademy';
 
     // Load login-modal.js script first
     const loginModalScript = document.createElement('script');
@@ -213,5 +213,5 @@ window.logout = function() {
     }
 
     // Redirect to home page (the page will automatically update the display on load)
-    window.location.href = '/flowspeak';
+    window.location.href = '/thestuttracademy';
 };
