@@ -327,10 +327,103 @@
             margin-bottom: 0 !important;
         }
 
+        /* Waitlist Sign-Up Form */
+        .signup-cta-box {
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            margin: 32px 0;
+        }
+        .signup-cta-box h3 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1A202C;
+            margin-bottom: 8px;
+        }
+        .signup-cta-box p {
+            font-size: 15px;
+            color: #4A5568;
+            margin-bottom: 24px !important;
+            line-height: 1.6;
+        }
+        .signup-form {
+            display: flex;
+            gap: 12px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .signup-form input[type="email"] {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #E2E8F0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            color: #1A202C;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        .signup-form input[type="email"]:focus {
+            border-color: #FF9800;
+        }
+        .signup-form input[type="email"]::placeholder {
+            color: #A0AEC0;
+        }
+        .signup-form button {
+            padding: 14px 28px;
+            background: #000000;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.3s ease;
+        }
+        .signup-form button:hover {
+            background: #E85600;
+        }
+        .signup-urgency {
+            font-size: 13px !important;
+            color: #718096 !important;
+            margin-top: 16px !important;
+            margin-bottom: 0 !important;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .title-break {
                 display: none;
+            }
+            .signup-form {
+                flex-direction: column;
+            }
+            .signup-cta-box {
+                padding: 24px 20px;
             }
         }
     </style>
@@ -667,15 +760,37 @@
             </div>
         </div>
 
-        <!-- CTA Section -->
-        <!-- <div class="cta-section">
-            <h3>Looking for Expert Support?</h3>
-            <p>Stuttering doesn't usually go away by "trying harder." It improves with the right kind of structured guidance. At The Stuttr Academy by TopSpeech Health, we focus on practical, evidence-based training that helps improve speech coordination, reduce blocks, and build real-world speaking confidence.</p>
-            <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'cta_section' });">
-                <img src="../Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg"
-                     alt="Download on the App Store" style="height: 68px;">
-            </a>
-        </div> -->
+        <!-- Looking for Expert solution -->
+        <div class="content-section">
+            <h2 class="section-title">Looking for Expert Support?</h2>
+            <div class="section-content">
+               
+                <p>Stuttering doesn't usually go away by "trying harder." It improves with the right kind of structured guidance. <br><br> At <a href="../index.html">The Stuttr Academy by TopSpeech Health</a>, we focus on practical, evidence-based training that helps improve speech coordination, reduce blocks, and build real-world speaking confidence.</p>
+                <p>If you’re noticing stuttering patterns early or long-term now is the right time to take action, improve fluency and build confidence in real conversations.
+                </p>
+                <h3>A New Kind of Support Is Coming</h3>
+                <p>We’re working on an app, which is designed to support people who stutter in a practical and structured way.
+                    
+                    If this resonates with you, you can register your interest below. We’ll only reach out with meaningful updates
+                     and when the app is ready.</p>
+
+            </div>
+        </div>
+
+        <!-- CTA Sign-Up Section -->
+        <div class="content-section">
+            <div class="section-content">
+                <div class="signup-cta-box">
+                    <h3>Start Your Journey to Fluent Speech</h3>
+                    <p>Join The Stuttr Academy — a structured, evidence-based program designed for adults. 15 minutes a day, 100% private.</p>
+                    <form id="waitlistFormArticle" class="signup-form">
+                        <input type="email" id="waitlistEmailArticle" placeholder="Enter your email" required>
+                        <button type="submit" id="waitlistSubmitArticle">Sign Up</button>
+                    </form>
+                   
+                </div>
+            </div>
+        </div>
 
         <!-- FAQ Section -->
         <div class="content-section">
@@ -783,6 +898,64 @@
     <script src="/thestuttracademy/js/enhanced-analytics.js"></script>
     <script src="/thestuttracademy/js/login-modal.js"></script>
     <script src="/thestuttracademy/js/nav.js"></script>
+
+    <!-- Waitlist Sign-Up Script -->
+    <script>
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        }
+
+        function handleWaitlist(formId, emailId, submitId) {
+            const form = document.getElementById(formId);
+            if (!form) return;
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const emailInput = document.getElementById(emailId);
+                const submitBtn = document.getElementById(submitId);
+                const email = emailInput.value;
+
+                if (!email || !email.includes('@')) return;
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Joining...';
+
+                try {
+                    await fetch('https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec', {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            email: email,
+                            source: 'thestuttracademy_waitlist',
+                            timestamp: new Date().toISOString(),
+                            page: window.location.pathname
+                        })
+                    });
+
+                    submitBtn.textContent = 'Thank you! You\'re on the list.';
+                    submitBtn.style.whiteSpace = 'normal';
+                    showToast("This product will be available soon. You are on the priority list.");
+                    emailInput.value = '';
+                } catch (err) {
+                    submitBtn.textContent = 'Thank you! You\'re on the list.';
+                    submitBtn.style.whiteSpace = 'normal';
+                    showToast("This product will be available soon. You are on the priority list.");
+                    emailInput.value = '';
+                }
+            });
+        }
+
+        handleWaitlist('waitlistFormArticle', 'waitlistEmailArticle', 'waitlistSubmitArticle');
+    </script>
 
     <!-- Footer Placeholder -->
     <!-- FOOTER_PLACEHOLDER -->
