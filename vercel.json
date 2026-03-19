@@ -201,12 +201,12 @@
       "destination": "/thelispracademy/index.html"
     },
     {
-      "source": "/thestuttracademy",
-      "destination": "/thestuttracademy/index.html"
+      "source": "/thestutteracademy",
+      "destination": "/thestutteracademy/index.html"
     },
     {
-      "source": "/thestuttracademy/",
-      "destination": "/thestuttracademy/index.html"
+      "source": "/thestutteracademy/",
+      "destination": "/thestutteracademy/index.html"
     }
   ],
   "headers": [
