@@ -252,6 +252,7 @@ body {
     margin-left: 20px;
     padding-left: 8px;
     margin-bottom: 24px;
+    list-style-position: inside;
 }
 
 .section-content li {
