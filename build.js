@@ -55,7 +55,7 @@ for (const file of htmlFiles) {
   // Determine product based on top-level directory
   const parts = relativePath.split(path.sep);
   let product = null;
-  if (parts.length > 0 && (parts[0] === 'clearl' || parts[0] === 'thestutteracademy' || parts[0] === 'thelispacademy')) {
+  if (parts.length > 0 && (parts[0] === 'thestutteracademy' || parts[0] === 'thelispacademy')) {
     product = parts[0];
   }
 
