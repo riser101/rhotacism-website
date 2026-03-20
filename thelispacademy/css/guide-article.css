@@ -22,87 +22,7 @@ body {
     padding: 0 20px;
 }
 
-/* Navigation Styles */
-.navbar {
-    background: #000000;
-    padding: 5.25px 0;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    transition: all 0.3s ease, transform 0.3s ease;
-}
-
-.nav-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.nav-logo {
-    font-family: 'Quicksand', sans-serif;
-    font-size: 20px;
-    font-weight: 700;
-    color: white;
-    text-decoration: none;
-    position: relative;
-    transition: all 0.3s ease;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.nav-menu {
-    display: flex;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    gap: 20px;
-    align-items: center;
-}
-
-.nav-menu li {
-    margin: 0;
-    display: flex;
-    align-items: center;
-}
-
-.nav-menu a {
-    text-decoration: none;
-    color: rgba(255, 255, 255, 0.95);
-    font-weight: 500;
-    font-size: 14px;
-    letter-spacing: 0.3px;
-    transition: all 0.3s ease;
-    position: relative;
-    padding: 5.25px 0;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.nav-menu a:hover {
-    color: white;
-    transform: translateY(-1px);
-}
-
-.nav-menu a.nav-cta {
-    background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 50px;
-    font-weight: 600;
-    border: 1px solid rgba(255, 152, 0, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.nav-menu a.nav-cta:hover {
-    color: white;
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
-    border-color: #FFB74D;
-}
+/* Navigation styles handled by nav.css */
 
 /* Article Header */
 .article-header {
@@ -554,10 +474,6 @@ body {
 
     .word-grid {
         grid-template-columns: repeat(2, 1fr);
-    }
-
-    .nav-menu {
-        display: none;
     }
 
     .cta-section {
