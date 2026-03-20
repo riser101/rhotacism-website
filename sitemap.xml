@@ -181,25 +181,37 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://topspeech.health/thelispracademy</loc>
-    <lastmod>2026-03-13</lastmod>
+    <loc>https://topspeech.health/thelispacademy</loc>
+    <lastmod>2026-03-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
-<url>
-    <loc>https://topspeech.health/thelispracademy/team/deborah-sarfaty.html</loc>
+  <url>
+    <loc>https://topspeech.health/thelispacademy/lisp-guide.html</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://topspeech.health/thelispacademy/guide/what-causes-lisp.html</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://topspeech.health/thelispacademy/team/deborah-sarfaty.html</loc>
     <lastmod>2026-03-13</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://topspeech.health/thelispracademy/team/jaime-roche.html</loc>
+    <loc>https://topspeech.health/thelispacademy/team/jaime-roche.html</loc>
     <lastmod>2026-03-13</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://topspeech.health/thelispracademy/team/peter-stoll.html</loc>
+    <loc>https://topspeech.health/thelispacademy/team/peter-stoll.html</loc>
     <lastmod>2026-03-13</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
