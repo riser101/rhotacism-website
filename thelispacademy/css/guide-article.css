@@ -24,7 +24,7 @@ body {
 
 /* Navigation Styles */
 .navbar {
-    background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
+    background: #000000;
     padding: 5.25px 0;
     position: fixed;
     top: 0;
