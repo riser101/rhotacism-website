@@ -89,11 +89,7 @@
 
         /* Navigation Styles */
         .navbar {
-            background: linear-gradient(to bottom,
-                #000000 0%,
-                #1a1a1a 50%,
-                #000000 100%
-            );
+            background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
             padding: 5.25px 0;
             position: fixed;
             top: 0;
@@ -104,22 +100,13 @@
         }
 
         .navbar.scrolled {
-            background: linear-gradient(to bottom,
-                #000000 0%,
-                #1a1a1a 50%,
-                #000000 100%
-            );
+            background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             padding: 3.15px 0;
         }
 
-        .navbar.scrolled .nav-logo {
-            color: white;
-        }
-
-        .navbar.scrolled .nav-menu a {
-            color: rgba(255, 255, 255, 0.95);
-        }
+        .navbar.scrolled .nav-logo { color: white; }
+        .navbar.scrolled .nav-menu a { color: rgba(255, 255, 255, 0.95); }
 
         .nav-container {
             max-width: 1200px;
@@ -153,13 +140,8 @@
             transition: opacity 0.3s ease;
         }
 
-        .nav-logo-text {
-            display: inline;
-        }
-
-        .nav-logo-mobile {
-            display: none;
-        }
+        .nav-logo-text { display: inline; }
+        .nav-logo-mobile { display: none; }
 
         .nav-menu {
             display: flex;
@@ -211,13 +193,8 @@
             transition: transform 0.3s ease;
         }
 
-        .nav-dropdown:hover .dropdown-arrow {
-            transform: rotate(180deg);
-        }
-
-        .nav-dropdown-toggle:hover {
-            color: white !important;
-        }
+        .nav-dropdown:hover .dropdown-arrow { transform: rotate(180deg); }
+        .nav-dropdown-toggle:hover { color: white !important; }
 
 
         /* Mobile Navigation */
@@ -250,9 +227,7 @@
             transition: transform 0.3s ease;
         }
 
-        .mobile-download-btn:hover {
-            transform: scale(1.05);
-        }
+        .mobile-download-btn:hover { transform: scale(1.05); }
 
         /* Mobile Hamburger Menu Styles */
         .mobile-hamburger-menu {
@@ -289,9 +264,7 @@
             background: linear-gradient(90deg, #FF9800, #E65100);
         }
 
-        .mobile-hamburger-toggle.active span:nth-child(2) {
-            opacity: 0;
-        }
+        .mobile-hamburger-toggle.active span:nth-child(2) { opacity: 0; }
 
         .mobile-hamburger-toggle.active span:nth-child(3) {
             transform: rotate(45deg) translate(-4px, -5px);
@@ -393,317 +366,823 @@
             box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
         }
 
-        /* Blog Header - Full Width */
-        .blog-header {
-            background: transparent;
-            padding: 140px 0 80px;
-            text-align: left;
+        /* ===== HERO SECTION ===== */
+        .hero-hub {
+            padding: 140px 0 24px;
+            text-align: center;
             width: 100%;
         }
 
-        .blog-hero-content {
-            max-width: 1400px;
-            width: 100%;
+        .hero-hub-wrapper {
+            max-width: 800px;
             margin: 0 auto;
             padding: 0 20px;
-            text-align: left;
         }
 
-        .blog-title {
-            font-family: 'Inter', sans-serif;
-            font-size: 64px;
-            font-weight: 700;
-            margin-bottom: 32px;
-            color: white;
-            line-height: 1.1;
-            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        .hero-hub-content {
+            text-align: center;
         }
 
-        .blog-subtitle {
-            font-size: 24px;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 400;
-            line-height: 1.4;
-            margin-bottom: 40px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            max-width: 900px;
-        }
-
-        .breadcrumb {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 40px;
+        .hero-hub .breadcrumb {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 24px;
             font-weight: 500;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
-        .breadcrumb a {
+        .hero-hub .breadcrumb a {
             color: #D4A574;
             text-decoration: none;
             font-weight: 600;
         }
 
-        .breadcrumb a:hover {
+        .hero-hub .breadcrumb a:hover {
             color: white;
             text-decoration: underline;
         }
 
-        /* Main Content Layout - Single Column */
-        .blog-content {
-            padding: 0 0 80px;
-            background: transparent;
+        .hero-hub h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 52px;
+            font-weight: 700;
+            color: white;
+            line-height: 1.1;
+            margin-bottom: 16px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         }
 
-        .main-layout {
-            max-width: 1400px;
+        .hero-hub .hero-subtitle {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 400;
+            line-height: 1.5;
+            margin-bottom: 36px;
+        }
+
+        /* Search Bar */
+        .hub-search {
+            max-width: 560px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .hub-search input {
+            width: 100%;
+            padding: 16px 20px 16px 48px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: white;
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .hub-search input::placeholder {
+            color: rgba(255, 255, 255, 0.45);
+        }
+
+        .hub-search input:focus {
+            border-color: rgba(255, 152, 0, 0.5);
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.15);
+        }
+
+        .hub-search .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .suggested-searches {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 0;
+        }
+
+        .suggested-searches span {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+            margin-right: 4px;
+            line-height: 1;
+        }
+
+        .suggested-searches a {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 14px;
+            border-radius: 20px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .suggested-searches a:hover {
+            background: rgba(255, 152, 0, 0.15);
+            border-color: rgba(255, 152, 0, 0.3);
+            color: #FFB74D;
+        }
+
+        /* Start Here CTA
+        .start-here-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3);
+        }
+
+        .start-here-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255, 152, 0, 0.4);
+        }
+
+        .start-here-cta .cta-arrow {
+            font-size: 18px;
+            transition: transform 0.2s ease;
+        }
+
+        .start-here-cta:hover .cta-arrow {
+            transform: translateX(4px);
+        } */
+
+        /* Search Results Dropdown */
+        .search-results {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            max-height: 360px;
+            overflow-y: auto;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .search-results.show {
+            display: block;
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            text-decoration: none;
+            transition: background 0.15s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background: rgba(255, 152, 0, 0.1);
+        }
+
+        .search-result-item .result-badge {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #FFB74D;
+            background: rgba(255, 152, 0, 0.15);
+            padding: 3px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .search-result-item .result-title {
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .search-result-item .result-arrow {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+        }
+
+        .search-no-results {
+            padding: 20px 18px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* ===== WHAT'S NEW RAIL ===== */
+        .whats-new-section {
+            max-width: 1300px;
             margin: 0 auto;
-            padding: 0 40px;
+            padding: 0 20px 48px;
         }
 
-        .main-content {
-            background: transparent;
+        .whats-new-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
         }
 
-        /* Featured Section */
-        .featured-section {
-            padding: 40px 0;
-            background: transparent;
+        .whats-new-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .section-title {
+        .whats-new-header h2 .new-dot {
+            width: 8px;
+            height: 8px;
+            background: #FF6D00;
+            border-radius: 50%;
+            display: inline-block;
+            animation: newDotPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes newDotPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .whats-new-scroll-hint {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.35);
+            font-weight: 500;
+        }
+
+        .whats-new-rail {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 8px;
+            scrollbar-width: none;
+        }
+
+        .whats-new-rail::-webkit-scrollbar {
             display: none;
         }
 
-        .featured-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-            gap: 32px;
-            margin-bottom: 80px;
-        }
-
-        /* Category Sections */
-        .category-section {
-            padding: 80px 0;
-        }
-
-        .category-title {
-            font-size: 32px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 48px;
-            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-            text-align: left;
-        }
-
-        .articles-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-            gap: 32px;
-        }
-
-        /* Article Cards - Enhanced */
-        .article-card {
-            background: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            border-radius: 8px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        .whats-new-card {
+            flex: 0 0 280px;
+            scroll-snap-align: start;
+            background: rgba(79, 73, 73, 0.06);
+            border: 1px solid rgba(255, 152, 0, 0.12);
+            border-radius: 12px;
+            padding: 20px 22px;
+            text-decoration: none;
+            transition: all 0.25s ease;
             display: flex;
             flex-direction: column;
+            gap: 10px;
         }
 
-        .article-card:hover {
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        .whats-new-card:hover {
+            background: rgba(255, 107, 0, 0.1);
+            border-color: rgba(255, 152, 0, 0.25);
+            transform: translateY(-2px);
         }
 
-        .card-image-container {
-            position: relative;
-            width: 100%;
-            height: 200px;
+        .whats-new-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .whats-new-badge {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #FF9800;
+            background: rgba(255, 152, 0, 0.12);
+            padding: 3px 10px;
+            border-radius: 4px;
+        }
+
+        .whats-new-date {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.3);
+            font-weight: 500;
+        }
+
+        .whats-new-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+            line-height: 1.4;
+        }
+
+        .whats-new-card p {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.5;
+        }
+
+        .whats-new-card .wn-arrow {
+            font-size: 13px;
+            color: #FFB74D;
+            font-weight: 600;
+            align-self: flex-start;
+            transition: transform 0.2s ease;
+        }
+
+        .whats-new-card:hover .wn-arrow {
+            transform: translateX(4px);
+        }
+
+        @media (max-width: 768px) {
+            .whats-new-card {
+                flex: 0 0 240px;
+                padding: 16px 18px;
+            }
+
+            .whats-new-card h3 {
+                font-size: 14px;
+            }
+
+            .whats-new-header h2 {
+                font-size: 18px;
+            }
+        }
+
+        /* ===== RESUME CARD ===== */
+        .resume-card {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            background: rgba(20, 20, 20, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 152, 0, 0.2);
+            border-radius: 12px;
+            padding: 16px 20px;
+            max-width: 320px;
+            z-index: 999;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            display: none;
+            animation: resumeSlideIn 0.4s ease;
+        }
+
+        @keyframes resumeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .resume-card.show {
+            display: block;
+        }
+
+        .resume-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .resume-card-header span {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #FFB74D;
+        }
+
+        .resume-card-close {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 2px;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+
+        .resume-card-close:hover {
+            color: white;
+        }
+
+        .resume-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        .resume-card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #FFB74D;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .resume-card-link:hover {
+            color: white;
+        }
+
+        .resume-card-link .resume-arrow {
+            transition: transform 0.2s ease;
+        }
+
+        .resume-card-link:hover .resume-arrow {
+            transform: translateX(3px);
+        }
+
+        @media (max-width: 768px) {
+            .resume-card {
+                position: fixed;
+                top: auto;
+                bottom: 16px;
+                right: 16px;
+                left: 16px;
+                max-width: none;
+            }
+
+        }
+
+        /* ===== BENTO GRID ===== */
+        .bento-section {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 20px 80px;
+        }
+
+        .bento-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Recently Published Sidebar */
+        .recently-published {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
             overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            align-self: start;
         }
 
-        .card-thumbnail {
+        .recently-published-header {
+            padding: 20px 22px 16px;
+            border-bottom: 1px solid #E2E8F0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .recently-published-header h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1A202C;
+            letter-spacing: -0.2px;
+        }
+
+        .rp-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .rp-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 22px;
+            text-decoration: none;
+            border-bottom: 1px solid #F1F5F9;
+            transition: background 0.15s ease;
+        }
+
+        .rp-item:last-child {
+            border-bottom: none;
+        }
+
+        .rp-item:hover {
+            background: #FFF8F0;
+        }
+
+        .rp-dot-container {
+            padding-top: 5px;
+            flex-shrink: 0;
+        }
+
+        .rp-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #CBD5E0;
+            display: block;
+        }
+
+        .rp-dot.pulse {
+            background: #FF6D00;
+            animation: rpPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes rpPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 109, 0, 0.4); }
+            50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(255, 109, 0, 0); }
+        }
+
+        .rp-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .rp-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2D3748;
+            line-height: 1.4;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .rp-item:hover .rp-title {
+            color: #1A202C;
+        }
+
+        .rp-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+        }
+
+        .rp-date {
+            color: #A0AEC0;
+            font-weight: 500;
+        }
+
+        .rp-tag {
+            color: #E65100;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 10px;
+        }
+
+        /* Bucket Card */
+        .bucket-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .bucket-card:hover {
+            border-color: #FF9800;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Pillar Article (Featured) */
+        .pillar-article {
+            display: flex;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .pillar-image {
+            width: 220px;
+            min-height: 180px;
+            flex-shrink: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .pillar-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             object-position: center 0.1%;
-            transition: transform 0.3s ease;
+            transition: transform 0.4s ease;
         }
 
-        .article-card:hover .card-thumbnail {
+        .pillar-article:hover .pillar-image img {
             transform: scale(1.05);
         }
 
-        .badge-overlay {
+        .pillar-badge {
             position: absolute;
-            top: 16px;
-            left: 16px;
-            background: #2D3748;
-            color: #FFFFFF;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 6px 12px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .card-content {
-            padding: 28px;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-
-        .article-image {
-            display: none;
-        }
-
-        .article-content {
-            padding: 0;
-        }
-
-        .article-category {
-            display: inline-block;
-            padding: 6px 12px;
-            background: #2D3748;
+            top: 12px;
+            left: 12px;
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
             color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
             border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
             text-transform: uppercase;
-            margin-bottom: 16px;
+            letter-spacing: 0.8px;
         }
 
-        .article-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1A202C;
-            margin-bottom: 12px;
-            line-height: 1.3;
-        }
-
-        .card-content h3 {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1A202C;
-            margin-bottom: 12px;
-            line-height: 1.3;
-        }
-
-        .article-excerpt {
-            color: #4A5568;
-            font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            flex-grow: 1;
-        }
-
-        .card-content p {
-            font-size: 15px;
-            color: #4A5568;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            flex-grow: 1;
-        }
-
-        .article-meta {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            font-size: 13px;
-            color: #718096;
-            margin-bottom: 16px;
-        }
-
-        .card-content .article-meta {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 16px;
-            font-size: 13px;
-            color: #718096;
-        }
-
-        .article-date {
-            font-weight: 500;
-        }
-
-        .read-time {
-            background: transparent;
-            padding: 0;
-            border-radius: 0;
-            font-weight: 500;
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-        }
-
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: auto;
-        }
-
-        .card-author {
-            font-size: 12px;
-            color: #718096;
-            font-weight: 500;
+        .pillar-content {
+            padding: 24px;
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .bucket-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: #E65100;
+            margin-bottom: 8px;
+        }
+
+        .pillar-content h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: rgb(0, 0, 0);
+            line-height: 1.3;
+            margin-bottom: 8px;
+        }
+
+        .pillar-content p {
+            font-size: 13px;
+            color: rgba(0, 0, 0, 0.6);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .pillar-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            color: rgba(0, 0, 0, 0.4);
+        }
+
+        .pillar-meta .read-time-pill {
+            display: flex;
+            align-items: center;
             gap: 4px;
         }
 
-        .card-author span {
-            display: inline-flex;
+        /* Sub Articles List */
+        .sub-articles {
+            border-top: 1px solid #E2E8F0;
+        }
+
+        .sub-article-link {
+            display: flex;
             align-items: center;
-        }
-
-        .card-icon {
-            width: 12px;
-            height: 12px;
-            opacity: 0.7;
-            margin-right: 4px;
-        }
-
-        .guide-link {
-            border: 2px solid #2D3748;
-            background: transparent;
-            color: #2D3748;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 16px;
-            display: inline-block;
+            gap: 12px;
+            padding: 14px 24px;
             text-decoration: none;
-            transition: all 0.3s ease;
+            transition: all 0.15s ease;
+            border-bottom: 1px solid #F1F5F9;
         }
 
-        .guide-link:hover {
+        .sub-article-link:last-child {
+            border-bottom: none;
+        }
+
+        .sub-article-link:hover {
+            background: #FFF8F0;
+        }
+
+        .sub-article-link .sub-number {
+            font-size: 11px;
+            font-weight: 700;
+            color: #CBD5E0;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .sub-article-link .sub-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #2D3748;
+            flex: 1;
+            line-height: 1.4;
+        }
+
+        .sub-article-link .sub-badge {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #718096;
             background: #F7FAFC;
-            border-color: #1A202C;
+            padding: 3px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            border: 1px solid #E2E8F0;
         }
 
-        .card-link {
-            display: inline-block;
-            color: #2D3748;
-            font-weight: 600;
-            text-decoration: none;
-            border: 2px solid #2D3748;
-            padding: 10px 20px;
-            border-radius: 6px;
+        .sub-article-link .sub-time {
+            font-size: 12px;
+            color: #A0AEC0;
+            white-space: nowrap;
+        }
+
+        .sub-article-link .sub-arrow {
+            color: #CBD5E0;
+            font-size: 14px;
             transition: all 0.2s ease;
-            align-self: flex-start;
         }
 
-        .card-link:hover {
-            background: #2D3748;
-            color: #FFFFFF;
+        .sub-article-link:hover .sub-arrow {
+            color: #E65100;
+            transform: translateX(2px);
+        }
+
+        .sub-article-link:hover .sub-title {
+            color: #1A202C;
+        }
+
+        /* Progress Bar */
+        .bucket-progress {
+            padding: 0 24px 16px;
+            display: none;
+        }
+
+        .bucket-progress.show {
+            display: block;
+        }
+
+        .progress-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-bar-track {
+            flex: 1;
+            height: 4px;
+            background: #EDF2F7;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF9800, #FFB74D);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .progress-label {
+            font-size: 11px;
+            color: #A0AEC0;
+            font-weight: 600;
+            white-space: nowrap;
         }
 
         /* Mobile menu styles */
@@ -729,91 +1208,65 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Responsive */
+        /* ===== RESPONSIVE ===== */
+
         @media (max-width: 768px) {
-            /* Hide Company dropdown from desktop navigation on mobile */
-            .nav-dropdown {
-                display: none;
-            }
-
-            /* Hide hamburger menu on mobile, show mobile nav instead */
-            .nav-toggle {
-                display: none;
-            }
-
-            .mobile-nav {
-                display: flex;
-            }
-
-            .mobile-hamburger-menu {
-                display: block;
-            }
-
-            /* Hide regular nav menu on mobile */
-            .nav-menu {
-                display: none;
-            }
+            .nav-dropdown { display: none; }
+            .nav-toggle { display: none; }
+            .mobile-nav { display: flex; }
+            .mobile-hamburger-menu { display: block; }
+            .nav-menu { display: none; }
 
             .profile-circle {
                 width: 32px;
                 height: 32px;
             }
 
-            .profile-circle span {
-                font-size: 12px;
+            .profile-circle span { font-size: 12px; }
+            .dropdown-menu { right: -10px; }
+
+            .hero-hub {
+                padding: 120px 0 40px;
             }
 
-            .dropdown-menu {
-                right: -10px;
+            .hero-hub h1 {
+                font-size: 32px;
             }
 
-            .card-image-container {
+            .hero-hub .hero-subtitle {
+                font-size: 16px;
+            }
+
+            .pillar-article {
+                flex-direction: column;
+            }
+
+            .pillar-image {
+                width: 100%;
                 height: 160px;
+                min-height: unset;
             }
 
-            .card-content {
+            .pillar-content {
                 padding: 20px;
             }
 
-            .main-layout {
-                padding: 0 20px;
+            .sub-article-link {
+                padding: 12px 20px;
             }
 
-            .blog-title {
-                font-size: 42px;
+            .sub-article-link .sub-badge {
+                display: none;
             }
 
-            .blog-subtitle {
-                font-size: 20px;
+            .suggested-searches {
+                gap: 6px;
             }
 
-            .featured-grid {
-                grid-template-columns: 1fr;
-                gap: 24px;
+            .suggested-searches a {
+                font-size: 12px;
+                padding: 5px 10px;
             }
-
-            .articles-grid {
-                grid-template-columns: 1fr;
-                gap: 24px;
-            }
-
-            .category-title {
-                font-size: 28px;
-            }
-
-            .article-content {
-                padding: 20px;
-            }
-        }
-
-        /* App Store Button Hover Animation */
-        img[src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg"] {
-            transition: transform 0.3s ease;
-            cursor: pointer;
-        }
-
-        img[src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg"]:hover {
-            transform: scale(1.1);
         }
     </style>
     <link rel="stylesheet" href="css/nav.css">
@@ -824,326 +1277,367 @@
 
 
 
-    <!-- Blog Header -->
-    <section class="blog-header">
-        <div class="container">
-            <div class="blog-hero-content">
+    <!-- Hero Section: Search & Orientation -->
+    <section class="hero-hub">
+        <div class="hero-hub-wrapper">
+            <div class="hero-hub-content">
                 <div class="breadcrumb">
-                    <a href="index.html">Home</a> / Rhotacism Guide
+                    <a href="index.html">Home</a> / Rhotacism Learning Center
                 </div>
-                <h1 class="blog-title">Clinical Resources & Education</h1>
-                <p class="blog-subtitle">Evidence-based guides, treatment protocols, and clinical information for understanding and treating persistent rhotic errors.</p>
+                <h1>Rhotacism Learning Center</h1>
+                <p class="hero-subtitle">Your complete roadmap to understanding and overcoming R sound difficulties. Evidence-based guides, treatment protocols, and clinical information for understanding and treating persistent rhotic errors.</p>
+
+                <!-- Smart Search -->
+                <div class="hub-search">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="hubSearchInput" placeholder="Search guides, exercises, topics..." autocomplete="off">
+                    <div class="search-results" id="searchResults"></div>
+                </div>
+
+                <!-- Suggested Searches -->
+                <div class="suggested-searches">
+                    <span>Try:</span>
+                    <a href="guide/how-to-fix-rhotacism.html">How to fix rhotacism</a>
+                    <a href="guide/rhotacism-cause-the-science-behind-R-sound-difficulty.html">What causes rhotacism</a>
+                    <a href="guide/rhotacism-adults.html">Rhotacism in adults</a>
+                    <a href="guide/rhotacism-apps.html">Best R sound apps</a>
+                </div>
             </div>
+
+            <!-- Recently Published Sidebar -->
+            <!-- <div class="recently-published">
+                <div class="recently-published-header">
+                    <h3>Recently Published</h3>
+                </div>
+                <nav class="rp-list">
+                    <a href="guide/rhotacism-causes-symptoms-treatment.html" class="rp-item">
+                        <div class="rp-dot-container"><span class="rp-dot pulse"></span></div>
+                        <div class="rp-content">
+                            <span class="rp-title">Rhotacism Explained: Causes, Symptoms & Treatment</span>
+                            <div class="rp-meta">
+                                <span class="rp-date">Mar 19, 2026</span>
+                                <span class="rp-tag">New</span>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="guide/rhotacism-cause-the-science-behind-R-sound-difficulty.html" class="rp-item">
+                        <div class="rp-dot-container"><span class="rp-dot pulse"></span></div>
+                        <div class="rp-content">
+                            <span class="rp-title">What Causes Rhotacism? The Science Behind R Sound Difficulty</span>
+                            <div class="rp-meta">
+                                <span class="rp-date">Mar 17, 2026</span>
+                                <span class="rp-tag">New</span>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="guide/what-is-rhotacism.html" class="rp-item">
+                        <div class="rp-dot-container"><span class="rp-dot pulse"></span></div>
+                        <div class="rp-content">
+                            <span class="rp-title">What is Rhotacism? Complete Definition, Types & Examples</span>
+                            <div class="rp-meta">
+                                <span class="rp-date">Mar 08, 2026</span>
+                                <span class="rp-tag">New</span>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="guide/rhotacism-apps.html" class="rp-item">
+                        <div class="rp-dot-container"><span class="rp-dot"></span></div>
+                        <div class="rp-content">
+                            <span class="rp-title">Best Speech Therapy Apps for R Sound Correction</span>
+                            <div class="rp-meta">
+                                <span class="rp-date">Dec 28, 2024</span>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="guide/rhotacism-autism.html" class="rp-item">
+                        <div class="rp-dot-container"><span class="rp-dot"></span></div>
+                        <div class="rp-content">
+                            <span class="rp-title">Rhotacism and Autism: R Sound Difficulties in ASD</span>
+                            <div class="rp-meta">
+                                <span class="rp-date">Dec 16, 2024</span>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="guide/rhotacism-examples.html" class="rp-item">
+                        <div class="rp-dot-container"><span class="rp-dot"></span></div>
+                        <div class="rp-content">
+                            <span class="rp-title">Rhotacism Examples: Real-World Pronunciation Difficulties</span>
+                            <div class="rp-meta">
+                                <span class="rp-date">Dec 10, 2024</span>
+                            </div>
+                        </div>
+                    </a>
+                </nav>
+            </div> -->
         </div>
     </section>
 
-    <!-- Blog Content -->
-    <section class="blog-content">
-        <div class="main-layout">
-            <!-- Featured Rhotacism Guide -->
-            <section class="featured-section">
-                <div class="featured-grid">
-                            <article class="article-card" onclick="window.location.href='guide/rhotacism.html'">
-                                <div class="card-image-container">
-                                    <img
-                                        src="rhotacism.jpg"
-                                        alt="Speech therapy consultation"
-                                        class="card-thumbnail"
-                                    />
-                                    <div class="badge-overlay">CLINICAL GUIDE</div>
-                                    <img src="website-logo-thick-trans-compress.png" alt="The Rollr Academy" style="position: absolute; top: 16px; right: 8px; width: 80px; height: auto; opacity: 0.9;">
-                                </div>
+    <!-- Quick-Resume Card (shown for returning users) -->
+    <div class="resume-card" id="resumeCard">
+        <div class="resume-card-header">
+            <span>Welcome back!</span>
+            <button class="resume-card-close" onclick="dismissResumeCard()">&times;</button>
+        </div>
+        <div class="resume-card-title" id="resumeCardTitle">Resume where you left off</div>
+        <a href="#" class="resume-card-link" id="resumeCardLink">
+            Continue reading <span class="resume-arrow">&rarr;</span>
+        </a>
+    </div>
 
-                                <div class="card-content">
-                                    <h3 class="article-title">Rhotacism: Complete Guide to R Sound Difficulties and Treatment</h3>
-                                    <p class="article-excerpt">Clinical overview of rhotic speech disorders: diagnostic criteria, etiological factors, and evidence-based intervention protocols.</p>
-                                    <div class="article-meta">
-                                        <span class="article-date">Essential Reading</span>
-                                        <span class="read-time"><img src="hourglass.png" class="card-icon" alt="">12 min</span>
-                                    </div>
-                                    <div class="card-footer">
-                                        <span class="card-author"><span><img src="calendar.png" class="card-icon" alt="">Aug 22, 2024</span><span><img src="institution.png" class="card-icon" alt="">By RollrAcademy</span></span>
-                                        <a href="guide/rhotacism.html" class="guide-link card-link">Read Guide →</a>
-                                    </div>
-                                </div>
-                            </article>
+    <!-- What's New Horizontal Rail -->
+    <!-- <section class="whats-new-section">
+        <div class="whats-new-header">
+            <h2><span class="new-dot"></span> What's New</h2>
+            
+        </div>
+        <div class="whats-new-rail">
+            <a href="guide/rhotacism-causes-symptoms-treatment.html" class="whats-new-card">
+                <div class="whats-new-card-top">
+                    <span class="whats-new-badge">New Guide</span>
+                    <span class="whats-new-date">Mar 19, 2026</span>
                 </div>
-            </section>
-
-            <!-- Essential Guides -->
-            <section class="category-section">
-                <h2 class="category-title">Clinical Foundations</h2>
-                <div class="articles-grid">
-                            <article class="article-card" onclick="window.location.href='guide/r-speech-impediment-complete-guide.html'">
-                                <div class="card-image-container">
-                                    <img
-                                        src="r-speech-impediment-compressed.png"
-                                        alt="Speech therapy consultation"
-                                        class="card-thumbnail"
-                                    />
-                                    <div class="badge-overlay">CLINICAL GUIDE</div>
-                                    <img src="website-logo-thick-trans-compress.png" alt="The Rollr Academy" style="position: absolute; top: 16px; right: 8px; width: 80px; height: auto; opacity: 0.9;">
-                                </div>
-
-                                <div class="card-content">
-                                    <h3 class="article-title">R Speech Impediment: Complete Guide to Understanding and Overcoming Rhotacism</h3>
-                                    <p class="article-excerpt">Clinical guide to persistent rhotic errors: etiological factors, diagnostic assessment, and treatment protocols for adult articulation disorders.</p>
-                                    <div class="article-meta">
-                                        <span class="article-date">Essential Reading</span>
-                                        <span class="read-time"><img src="hourglass.png" class="card-icon" alt="">18 min</span>
-                                    </div>
-                                    <div class="card-footer">
-                                        <span class="card-author"><span><img src="calendar.png" class="card-icon" alt="">Sept 01, 2024</span><span><img src="institution.png" class="card-icon" alt="">By RollrAcademy</span></span>
-                                        <a href="guide/r-speech-impediment-complete-guide.html" class="guide-link card-link">Read Guide →</a>
-                                    </div>
-                                </div>
-                            </article>
-
-                            <article class="article-card" onclick="window.location.href='guide/what-is-rhotacism.html'">
-                                <div class="card-image-container">
-                                    <img
-                                        src="rhotacism.jpg"
-                                        alt="Speech therapy consultation"
-                                        class="card-thumbnail"
-                                    />
-                                    <div class="badge-overlay">FOUNDATION</div>
-                                    <img src="website-logo-thick-trans-compress.png" alt="The Rollr Academy" style="position: absolute; top: 16px; right: 8px; width: 80px; height: auto; opacity: 0.9;">
-                                </div>
-
-                                <div class="card-content">
-                                    <h3 class="article-title">What is Rhotacism? Complete Definition, Types & Examples</h3>
-                                    <p class="article-excerpt">Diagnostic overview: classification of rhotic speech sound disorders, clinical presentation, and differential diagnosis.</p>
-                                    <div class="article-meta">
-                                        <span class="article-date">Foundation Knowledge</span>
-                                        <span class="read-time"><img src="hourglass.png" class="card-icon" alt="">10 min</span>
-                                    </div>
-                                    <div class="card-footer">
-                                        <span class="card-author"><span><img src="calendar.png" class="card-icon" alt="">March 08, 2026</span><span><img src="institution.png" class="card-icon" alt="">By RollrAcademy</span></span>
-                                        <a href="guide/what-is-rhotacism.html" class="guide-link card-link">Read Guide →</a>
-                                    </div>
-                                </div>
-                            </article>
-
-                            <article class="article-card" onclick="window.location.href='guide/rhotacism-causes-symptoms-treatment.html'">
-                                <div class="card-image-container">
-                                    <img
-                                        src="wha-causes-rhotacism-image.jpg"
-                                        alt="Rhotacism explained - causes, symptoms and treatment for R sound difficulty"
-                                        class="card-thumbnail"
-                                    />
-                                    <div class="badge-overlay">GUIDE</div>
-                                    <img src="website-logo-thick-trans-compress.png" alt="The Rollr Academy" style="position: absolute; top: 16px; right: 8px; width: 80px; height: auto; opacity: 0.9;">
-                                </div>
-
-                                <div class="card-content">
-                                    <h3 class="article-title">Rhotacism Explained: Causes, Symptoms & Treatment for R Sound Difficulty</h3>
-                                    <p class="article-excerpt">A parent-friendly guide to understanding rhotacism, its root causes, social impacts, and how speech therapy can help children and adults improve.</p>
-                                    <div class="article-meta">
-                                        <span class="article-date">Parent Guide</span>
-                                        <span class="read-time"><img src="hourglass.png" class="card-icon" alt="">10 min</span>
-                                    </div>
-                                    <div class="card-footer">
-                                        <span class="card-author"><span><img src="calendar.png" class="card-icon" alt="">Mar 19, 2026</span><span><img src="institution.png" class="card-icon" alt="">By RollrAcademy</span></span>
-                                        <a href="guide/rhotacism-causes-symptoms-treatment.html" class="guide-link card-link">Read Guide →</a>
-                                    </div>
-                                </div>
-                            </article>
-
-                            <article class="article-card" onclick="window.location.href='guide/rhotacism-cause-the-science-behind-R-sound-difficulty.html'">
-                                <div class="card-image-container">
-                                    <img
-                                        src="wha-causes-rhotacism-image.jpg"
-                                        alt="What causes rhotacism - science behind R sound difficulty"
-                                        class="card-thumbnail"
-                                    />
-                                    <div class="badge-overlay">SCIENCE</div>
-                                    <img src="website-logo-thick-trans-compress.png" alt="The Rollr Academy" style="position: absolute; top: 16px; right: 8px; width: 80px; height: auto; opacity: 0.9;">
-                                </div>
-
-                                <div class="card-content">
-                                    <h3 class="article-title">What Causes Rhotacism? The Science Behind R Sound Difficulty</h3>
-                                    <p class="article-excerpt">Explore the genetic, neurological, and environmental factors behind R sound difficulty. Research-backed insights into rhotacism causes and therapy.</p>
-                                    <div class="article-meta">
-                                        <span class="article-date">Research</span>
-                                        <span class="read-time"><img src="hourglass.png" class="card-icon" alt="">12 min</span>
-                                    </div>
-                                    <div class="card-footer">
-                                        <span class="card-author"><span><img src="calendar.png" class="card-icon" alt="">Mar 17, 2026</span><span><img src="institution.png" class="card-icon" alt="">By RollrAcademy</span></span>
-                                        <a href="guide/rhotacism-cause-the-science-behind-R-sound-difficulty.html" class="guide-link card-link">Read Guide →</a>
-                                    </div>
-                                </div>
-                            </article>
-
-                            <article class="article-card" onclick="window.location.href='guide/how-to-fix-rhotacism.html'">
-                                <div class="card-image-container">
-                                    <img
-                                        src="rhotacism.jpg"
-                                        alt="Speech therapy consultation"
-                                        class="card-thumbnail"
-                                    />
-                                    <div class="badge-overlay">TREATMENT PROTOCOL</div>
-                                    <img src="website-logo-thick-trans-compress.png" alt="The Rollr Academy" style="position: absolute; top: 16px; right: 8px; width: 80px; height: auto; opacity: 0.9;">
-                                </div>
-
-                                <div class="card-content">
-                                    <h3 class="article-title">How to Fix Rhotacism: Proven Techniques & Exercises</h3>
-                                    <p class="article-excerpt">Treatment protocol for persistent rhotic errors: evidence-based techniques, motor learning principles, and structured practice hierarchies.</p>
-                                    <div class="article-meta">
-                                        <span class="article-date">Action Plan</span>
-                                        <span class="read-time"><img src="hourglass.png" class="card-icon" alt="">15 min</span>
-                                    </div>
-                                    <div class="card-footer">
-                                        <span class="card-author"><span><img src="calendar.png" class="card-icon" alt="">Oct 3, 2024</span><span><img src="institution.png" class="card-icon" alt="">By RollrAcademy</span></span>
-                                        <a href="guide/how-to-fix-rhotacism.html" class="guide-link card-link">Read Guide →</a>
-                                    </div>
-                                </div>
-                            </article>
-
-                            <article class="article-card" onclick="window.location.href='guide/rhotacism-adults.html'">
-                                <div class="card-image-container">
-                                    <img
-                                        src="rhotacism.jpg"
-                                        alt="Speech therapy consultation"
-                                        class="card-thumbnail"
-                                    />
-                                    <div class="badge-overlay">ADULT TREATMENT</div>
-                                    <img src="website-logo-thick-trans-compress.png" alt="The Rollr Academy" style="position: absolute; top: 16px; right: 8px; width: 80px; height: auto; opacity: 0.9;">
-                                </div>
-
-                                <div class="card-content">
-                                    <h3 class="article-title">Rhotacism in Adults: Complete Guide to R Sound Correction</h3>
-                                    <p class="article-excerpt">Clinical approach to rhotic errors in adult populations: assessment considerations, treatment modifications, and functional communication outcomes.</p>
-                                    <div class="article-meta">
-                                        <span class="article-date">Professional Impact</span>
-                                        <span class="read-time"><img src="hourglass.png" class="card-icon" alt="">12 min</span>
-                                    </div>
-                                    <div class="card-footer">
-                                        <span class="card-author"><span><img src="calendar.png" class="card-icon" alt="">Oct 22, 2024</span><span><img src="institution.png" class="card-icon" alt="">By RollrAcademy</span></span>
-                                        <a href="guide/rhotacism-adults.html" class="guide-link card-link">Read Guide →</a>
-                                    </div>
-                                </div>
-                            </article>
+                <h3>Rhotacism Explained: Causes, Symptoms & Treatment</h3>
+                <p>A parent-friendly guide to understanding rhotacism, its root causes, and how speech therapy can help.</p>
+                <span class="wn-arrow">Read &rarr;</span>
+            </a>
+            <a href="guide/rhotacism-cause-the-science-behind-R-sound-difficulty.html" class="whats-new-card">
+                <div class="whats-new-card-top">
+                    <span class="whats-new-badge">New Guide</span>
+                    <span class="whats-new-date">Mar 17, 2026</span>
                 </div>
-            </section>
-
-            <!-- Advanced Topics -->
-            <section class="category-section">
-                <h2 class="category-title">Specialized Topics</h2>
-                <div class="articles-grid">
-                            <article class="article-card" onclick="window.location.href='guide/rhotacism-speech-impediment.html'">
-                                <div class="card-image-container">
-                                    <img
-                                        src="rhotacism.jpg"
-                                        alt="Speech therapy consultation"
-                                        class="card-thumbnail"
-                                    />
-                                    <div class="badge-overlay">CLINICAL GUIDE</div>
-                                    <img src="website-logo-thick-trans-compress.png" alt="The Rollr Academy" style="position: absolute; top: 16px; right: 8px; width: 80px; height: auto; opacity: 0.9;">
-                                </div>
-
-                                <div class="card-content">
-                                    <h3 class="article-title">Rhotacism Speech Impediment: Understanding R Sound Difficulties</h3>
-                                    <p class="article-excerpt">Clinical overview of rhotic speech disorders: etiology, assessment, functional impact, and intervention protocols.</p>
-                                    <div class="article-meta">
-                                        <span class="article-date">Clinical Guide</span>
-                                        <span class="read-time"><img src="hourglass.png" class="card-icon" alt="">14 min</span>
-                                    </div>
-                                    <div class="card-footer">
-                                        <span class="card-author"><span><img src="calendar.png" class="card-icon" alt="">Nov 22, 2024</span><span><img src="institution.png" class="card-icon" alt="">By RollrAcademy</span></span>
-                                        <a href="guide/rhotacism-speech-impediment.html" class="guide-link card-link">Read Guide →</a>
-                                    </div>
-                                </div>
-                            </article>
-
-                            <article class="article-card" onclick="window.location.href='guide/rhotacism-examples.html'">
-                                <div class="card-image-container">
-                                    <img
-                                        src="rhotacism.jpg"
-                                        alt="Speech therapy consultation"
-                                        class="card-thumbnail"
-                                    />
-                                    <div class="badge-overlay">CASE STUDIES</div>
-                                    <img src="website-logo-thick-trans-compress.png" alt="The Rollr Academy" style="position: absolute; top: 16px; right: 8px; width: 80px; height: auto; opacity: 0.9;">
-                                </div>
-
-                                <div class="card-content">
-                                    <h3 class="article-title">Rhotacism Examples: Real-World R Sound Pronunciation Difficulties</h3>
-                                    <p class="article-excerpt">Case study analysis: common /r/ distortion patterns, phonetic substitutions, and functional communication impact across contexts.</p>
-                                    <div class="article-meta">
-                                        <span class="article-date">Practical Examples</span>
-                                        <span class="read-time"><img src="hourglass.png" class="card-icon" alt="">11 min</span>
-                                    </div>
-                                    <div class="card-footer">
-                                        <span class="card-author"><span><img src="calendar.png" class="card-icon" alt="">Dec 10, 2024</span><span><img src="institution.png" class="card-icon" alt="">By RollrAcademy</span></span>
-                                        <a href="guide/rhotacism-examples.html" class="guide-link card-link">Read Guide →</a>
-                                    </div>
-                                </div>
-                            </article>
-
-                            <article class="article-card" onclick="window.location.href='guide/rhotacism-autism.html'">
-                                <div class="card-image-container">
-                                    <img
-                                        src="rhotacism.jpg"
-                                        alt="Speech therapy consultation"
-                                        class="card-thumbnail"
-                                    />
-                                    <div class="badge-overlay">SPECIALIZED CARE</div>
-                                    <img src="website-logo-thick-trans-compress.png" alt="The Rollr Academy" style="position: absolute; top: 16px; right: 8px; width: 80px; height: auto; opacity: 0.9;">
-                                </div>
-
-                                <div class="card-content">
-                                    <h3 class="article-title">Rhotacism and Autism: R Sound Difficulties in Autism Spectrum Disorders</h3>
-                                    <p class="article-excerpt">Evidence-based approaches for treating rhotic errors in autism spectrum disorder: assessment considerations and specialized intervention protocols.</p>
-                                    <div class="article-meta">
-                                        <span class="article-date">Specialized Care</span>
-                                        <span class="read-time"><img src="hourglass.png" class="card-icon" alt="">13 min</span>
-                                    </div>
-                                    <div class="card-footer">
-                                        <span class="card-author"><span><img src="calendar.png" class="card-icon" alt="">Dec 16, 2024</span><span><img src="institution.png" class="card-icon" alt="">By RollrAcademy</span></span>
-                                        <a href="guide/rhotacism-autism.html" class="guide-link card-link">Read Guide →</a>
-                                    </div>
-                                </div>
-                            </article>
+                <h3>What Causes Rhotacism? The Science Behind R Sound Difficulty</h3>
+                <p>Genetic, neurological, and environmental factors behind R sound difficulty.</p>
+                <span class="wn-arrow">Read &rarr;</span>
+            </a>
+            <a href="guide/what-is-rhotacism.html" class="whats-new-card">
+                <div class="whats-new-card-top">
+                    <span class="whats-new-badge">New Guide</span>
+                    <span class="whats-new-date">Mar 08, 2026</span>
                 </div>
-            </section>
-
-            <!-- Tools & Technology -->
-            <section class="category-section">
-                <h2 class="category-title">Digital Intervention Tools</h2>
-                <div class="articles-grid">
-                            <article class="article-card" onclick="window.location.href='guide/rhotacism-apps.html'">
-                                <div class="card-image-container">
-                                    <img
-                                        src="rhotacism.jpg"
-                                        alt="Speech therapy consultation"
-                                        class="card-thumbnail"
-                                    />
-                                    <div class="badge-overlay">DIGITAL TOOLS</div>
-                                    <img src="website-logo-thick-trans-compress.png" alt="The Rollr Academy" style="position: absolute; top: 16px; right: 8px; width: 80px; height: auto; opacity: 0.9;">
-                                </div>
-
-                                <div class="card-content">
-                                    <h3 class="article-title">Rhotacism Apps: Best Speech Therapy Apps for R Sound Correction</h3>
-                                    <p class="article-excerpt">Evaluation of digital intervention tools for rhotic error treatment: feature comparison, evidence base, and clinical applications.</p>
-                                    <div class="article-meta">
-                                        <span class="article-date">App Reviews</span>
-                                        <span class="read-time"><img src="hourglass.png" class="card-icon" alt="">16 min</span>
-                                    </div>
-                                    <div class="card-footer">
-                                        <span class="card-author"><span><img src="calendar.png" class="card-icon" alt="">Dec 28, 2024</span><span><img src="institution.png" class="card-icon" alt="">By RollrAcademy</span></span>
-                                        <a href="guide/rhotacism-apps.html" class="guide-link card-link">Read Guide →</a>
-                                    </div>
-                                </div>
-                            </article>
+                <h3>What is Rhotacism? Complete Definition, Types & Examples</h3>
+                <p>Classification of rhotic speech sound disorders and differential diagnosis.</p>
+                <span class="wn-arrow">Read &rarr;</span>
+            </a>
+            <a href="guide/rhotacism-apps.html" class="whats-new-card">
+                <div class="whats-new-card-top">
+                    <span class="whats-new-badge">Updated</span>
+                    <span class="whats-new-date">Dec 28, 2024</span>
                 </div>
-            </section>
+                <h3>Best Speech Therapy Apps for R Sound Correction</h3>
+                <p>Updated evaluation of digital intervention tools for rhotic error treatment.</p>
+                <span class="wn-arrow">Read &rarr;</span>
+            </a>
+            <a href="guide/rhotacism-autism.html" class="whats-new-card">
+                <div class="whats-new-card-top">
+                    <span class="whats-new-badge">Featured</span>
+                    <span class="whats-new-date">Dec 16, 2024</span>
+                </div>
+                <h3>Rhotacism and Autism: R Sound Difficulties in ASD</h3>
+                <p>Evidence-based approaches for treating rhotic errors in autism spectrum disorder.</p>
+                <span class="wn-arrow">Read &rarr;</span>
+            </a>
+        </div>
+    </section> -->
+
+    <!-- Bento Grid: Hub-and-Spoke Buckets -->
+    <section class="bento-section">
+        <div class="bento-grid">
+
+            <!-- BUCKET 1: Understanding Rhotacism -->
+            <div class="bucket-card" data-bucket="understanding">
+                <a href="guide/what-is-rhotacism.html" class="pillar-article">
+                    <div class="pillar-image">
+                        <img src="rhotacism.jpg" alt="Understanding Rhotacism">
+                        <span class="pillar-badge">Start Here</span>
+                    </div>
+                    <div class="pillar-content">
+                        <div class="bucket-label">Chapter 1 &mdash; Understanding Rhotacism</div>
+                        <h3>What is Rhotacism? Complete Definition, Types & Examples</h3>
+                        <p>Classification of rhotic speech sound disorders, clinical presentation, and differential diagnosis.</p>
+                        <div class="pillar-meta">
+                            <span class="read-time-pill">10 min read</span>
+                        </div>
+                    </div>
+                </a>
+                <div class="bucket-progress" id="progress-understanding">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-track"><div class="progress-bar-fill"></div></div>
+                        <span class="progress-label">0% read</span>
+                    </div>
+                </div>
+                <div class="sub-articles">
+                    <a href="guide/rhotacism.html" class="sub-article-link">
+                        <span class="sub-number">01</span>
+                        <span class="sub-title">Rhotacism: Complete Guide to R Sound Difficulties and Treatment</span>
+                        <span class="sub-badge">Clinical Guide</span>
+                        <span class="sub-time">12 min</span>
+                        <span class="sub-arrow">&rsaquo;</span>
+                    </a>
+                    <a href="guide/rhotacism-causes-symptoms-treatment.html" class="sub-article-link">
+                        <span class="sub-number">02</span>
+                        <span class="sub-title">Rhotacism Explained: Causes, Symptoms & Treatment</span>
+                        <span class="sub-badge">Parent Guide</span>
+                        <span class="sub-time">10 min</span>
+                        <span class="sub-arrow">&rsaquo;</span>
+                    </a>
+                    <a href="guide/rhotacism-cause-the-science-behind-R-sound-difficulty.html" class="sub-article-link">
+                        <span class="sub-number">03</span>
+                        <span class="sub-title">What Causes Rhotacism? The Science Behind R Sound Difficulty</span>
+                        <span class="sub-badge">Science</span>
+                        <span class="sub-time">12 min</span>
+                        <span class="sub-arrow">&rsaquo;</span>
+                    </a>
+                    <a href="guide/rhotacism-examples.html" class="sub-article-link">
+                        <span class="sub-number">04</span>
+                        <span class="sub-title">Rhotacism Examples: Real-World R Sound Pronunciation Difficulties</span>
+                        <span class="sub-badge">Case Studies</span>
+                        <span class="sub-time">11 min</span>
+                        <span class="sub-arrow">&rsaquo;</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- BUCKET 2: Treatment & Exercises -->
+            <div class="bucket-card" data-bucket="treatment">
+                <a href="guide/how-to-fix-rhotacism.html" class="pillar-article">
+                    <div class="pillar-image">
+                        <img src="rhotacism-causes-symptoms.jpg" alt="How to Fix Rhotacism">
+                        <span class="pillar-badge">Featured</span>
+                    </div>
+                    <div class="pillar-content">
+                        <div class="bucket-label">Chapter 2 &mdash; Treatment & Exercises</div>
+                        <h3>How to Fix Rhotacism: Proven Techniques & Exercises</h3>
+                        <p>Evidence-based techniques, motor learning principles, and structured practice hierarchies.</p>
+                        <div class="pillar-meta">
+                            <span class="read-time-pill">15 min read</span>
+                        </div>
+                    </div>
+                </a>
+                <div class="bucket-progress" id="progress-treatment">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-track"><div class="progress-bar-fill"></div></div>
+                        <span class="progress-label">0% read</span>
+                    </div>
+                </div>
+                <div class="sub-articles">
+                    <a href="guide/r-speech-impediment-complete-guide.html" class="sub-article-link">
+                        <span class="sub-number">01</span>
+                        <span class="sub-title">R Speech Impediment: Complete Guide to Understanding and Overcoming Rhotacism</span>
+                        <span class="sub-badge">Clinical Guide</span>
+                        <span class="sub-time">18 min</span>
+                        <span class="sub-arrow">&rsaquo;</span>
+                    </a>
+                    <a href="guide/can-you-fix-rhotacism.html" class="sub-article-link">
+                        <span class="sub-number">02</span>
+                        <span class="sub-title">Can You Fix Rhotacism? What the Evidence Says</span>
+                        <span class="sub-badge">Research</span>
+                        <span class="sub-time">10 min</span>
+                        <span class="sub-arrow">&rsaquo;</span>
+                    </a>
+                    <a href="guide/rhotacism-speech-impediment.html" class="sub-article-link">
+                        <span class="sub-number">03</span>
+                        <span class="sub-title">Rhotacism Speech Impediment: Understanding R Sound Difficulties</span>
+                        <span class="sub-badge">Clinical</span>
+                        <span class="sub-time">14 min</span>
+                        <span class="sub-arrow">&rsaquo;</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- BUCKET 3: Specialized Populations -->
+            <div class="bucket-card" data-bucket="specialized" data-categories="parents,scientific">
+                <a href="guide/rhotacism-adults.html" class="pillar-article">
+                    <div class="pillar-image">
+                        <img src="r-speech-impediment-compressed.png" alt="Rhotacism in Adults">
+                        <span class="pillar-badge">Featured</span>
+                    </div>
+                    <div class="pillar-content">
+                        <div class="bucket-label">Chapter 3 &mdash; Specialized Populations</div>
+                        <h3>Rhotacism in Adults: Complete Guide to R Sound Correction</h3>
+                        <p>Assessment considerations, treatment modifications, and functional communication outcomes for adults.</p>
+                        <div class="pillar-meta">
+                            <span class="read-time-pill">12 min read</span>
+                        </div>
+                    </div>
+                </a>
+                <div class="bucket-progress" id="progress-specialized">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-track"><div class="progress-bar-fill"></div></div>
+                        <span class="progress-label">0% read</span>
+                    </div>
+                </div>
+                <div class="sub-articles">
+                    <a href="guide/rhotacism-autism.html" class="sub-article-link">
+                        <span class="sub-number">01</span>
+                        <span class="sub-title">Rhotacism and Autism: R Sound Difficulties in Autism Spectrum Disorders</span>
+                        <span class="sub-badge">Specialized</span>
+                        <span class="sub-time">13 min</span>
+                        <span class="sub-arrow">&rsaquo;</span>
+                    </a>
+                    <a href="guide/why-do-i-pronounce-r-as-w.html" class="sub-article-link">
+                        <span class="sub-number">02</span>
+                        <span class="sub-title">Why Do I Pronounce R as W? Understanding R-to-W Substitution</span>
+                        <span class="sub-badge">FAQ</span>
+                        <span class="sub-time">8 min</span>
+                        <span class="sub-arrow">&rsaquo;</span>
+                    </a>
+                    <a href="guide/famous-people-with-rhotacism.html" class="sub-article-link">
+                        <span class="sub-number">03</span>
+                        <span class="sub-title">Famous People with Rhotacism: Inspiring Success Stories</span>
+                        <span class="sub-badge">Inspiration</span>
+                        <span class="sub-time">10 min</span>
+                        <span class="sub-arrow">&rsaquo;</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- BUCKET 4: Digital Tools & Resources -->
+            <div class="bucket-card" data-bucket="tools">
+                <a href="guide/rhotacism-apps.html" class="pillar-article">
+                    <div class="pillar-image">
+                        <img src="rhotacism.jpg" alt="Rhotacism Apps and Digital Tools">
+                        <span class="pillar-badge">Featured</span>
+                    </div>
+                    <div class="pillar-content">
+                        <div class="bucket-label">Chapter 4 &mdash; Digital Tools & Resources</div>
+                        <h3>Rhotacism Apps: Best Speech Therapy Apps for R Sound Correction</h3>
+                        <p>Evaluation of digital intervention tools: feature comparison, evidence base, and clinical applications.</p>
+                        <div class="pillar-meta">
+                            <span class="read-time-pill">16 min read</span>
+                        </div>
+                    </div>
+                </a>
+                <div class="bucket-progress" id="progress-tools">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-track"><div class="progress-bar-fill"></div></div>
+                        <span class="progress-label">0% read</span>
+                    </div>
+                </div>
+                <div class="sub-articles">
+                    <a href="guide/causes-of-rhotacism.html" class="sub-article-link">
+                        <span class="sub-number">01</span>
+                        <span class="sub-title">Causes of Rhotacism: A Deep Dive into Contributing Factors</span>
+                        <span class="sub-badge">Research</span>
+                        <span class="sub-time">12 min</span>
+                        <span class="sub-arrow">&rsaquo;</span>
+                    </a>
+                    <a href="guide/why-do-some-people-say-warsh.html" class="sub-article-link">
+                        <span class="sub-number">02</span>
+                        <span class="sub-title">Why Do Some People Say "Warsh"? Dialect vs. Speech Patterns</span>
+                        <span class="sub-badge">Linguistics</span>
+                        <span class="sub-time">8 min</span>
+                        <span class="sub-arrow">&rsaquo;</span>
+                    </a>
+                </div>
+            </div>
+
         </div>
     </section>
 
     <!-- FOOTER_PLACEHOLDER -->
 
 
-
+ 
 
     <script>
         function startAssessment() {
@@ -1159,7 +1653,6 @@
         document.addEventListener('click', function(event) {
             const profileDropdown = document.querySelector('.profile-dropdown');
             const dropdown = document.getElementById('profileDropdown');
-
             if (profileDropdown && dropdown && !profileDropdown.contains(event.target)) {
                 dropdown.classList.remove('show');
             }
@@ -1263,6 +1756,136 @@
             }
         }
 
+        // ===== SEARCH FUNCTIONALITY =====
+        const searchIndex = [
+            { title: 'What is Rhotacism? Complete Definition, Types & Examples', url: 'guide/what-is-rhotacism.html', badge: 'Foundation' },
+            { title: 'Rhotacism: Complete Guide to R Sound Difficulties and Treatment', url: 'guide/rhotacism.html', badge: 'Clinical Guide' },
+            { title: 'Rhotacism Explained: Causes, Symptoms & Treatment', url: 'guide/rhotacism-causes-symptoms-treatment.html', badge: 'Parent Guide' },
+            { title: 'What Causes Rhotacism? The Science Behind R Sound Difficulty', url: 'guide/rhotacism-cause-the-science-behind-R-sound-difficulty.html', badge: 'Science' },
+            { title: 'Rhotacism Examples: Real-World R Sound Pronunciation Difficulties', url: 'guide/rhotacism-examples.html', badge: 'Case Studies' },
+            { title: 'How to Fix Rhotacism: Proven Techniques & Exercises', url: 'guide/how-to-fix-rhotacism.html', badge: 'Treatment' },
+            { title: 'R Speech Impediment: Complete Guide to Understanding and Overcoming Rhotacism', url: 'guide/r-speech-impediment-complete-guide.html', badge: 'Clinical Guide' },
+            { title: 'Can You Fix Rhotacism? What the Evidence Says', url: 'guide/can-you-fix-rhotacism.html', badge: 'Research' },
+            { title: 'Rhotacism Speech Impediment: Understanding R Sound Difficulties', url: 'guide/rhotacism-speech-impediment.html', badge: 'Clinical' },
+            { title: 'Rhotacism in Adults: Complete Guide to R Sound Correction', url: 'guide/rhotacism-adults.html', badge: 'Adults' },
+            { title: 'Rhotacism and Autism: R Sound Difficulties in Autism Spectrum Disorders', url: 'guide/rhotacism-autism.html', badge: 'Specialized' },
+            { title: 'Why Do I Pronounce R as W? Understanding R-to-W Substitution', url: 'guide/why-do-i-pronounce-r-as-w.html', badge: 'FAQ' },
+            { title: 'Famous People with Rhotacism: Inspiring Success Stories', url: 'guide/famous-people-with-rhotacism.html', badge: 'Inspiration' },
+            { title: 'Rhotacism Apps: Best Speech Therapy Apps for R Sound Correction', url: 'guide/rhotacism-apps.html', badge: 'Digital Tools' },
+            { title: 'Causes of Rhotacism: A Deep Dive into Contributing Factors', url: 'guide/causes-of-rhotacism.html', badge: 'Research' },
+            { title: 'Why Do Some People Say "Warsh"? Dialect vs. Speech Patterns', url: 'guide/why-do-some-people-say-warsh.html', badge: 'Linguistics' },
+        ];
+
+        const searchInput = document.getElementById('hubSearchInput');
+        const searchResults = document.getElementById('searchResults');
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim().toLowerCase();
+            if (query.length < 2) {
+                searchResults.classList.remove('show');
+                return;
+            }
+
+            const matches = searchIndex.filter(item =>
+                item.title.toLowerCase().includes(query) ||
+                item.badge.toLowerCase().includes(query)
+            );
+
+            if (matches.length === 0) {
+                searchResults.innerHTML = '<div class="search-no-results">No guides found. Try a different search term.</div>';
+            } else {
+                searchResults.innerHTML = matches.map(item =>
+                    '<a href="' + item.url + '" class="search-result-item">' +
+                        '<span class="result-badge">' + item.badge + '</span>' +
+                        '<span class="result-title">' + item.title + '</span>' +
+                        '<span class="result-arrow">&rsaquo;</span>' +
+                    '</a>'
+                ).join('');
+            }
+            searchResults.classList.add('show');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!document.querySelector('.hub-search').contains(e.target)) {
+                searchResults.classList.remove('show');
+            }
+        });
+
+        searchInput.addEventListener('focus', function() {
+            if (this.value.trim().length >= 2) {
+                searchResults.classList.add('show');
+            }
+        });
+
+        // ===== QUICK-RESUME CARD =====
+        function showResumeCard() {
+            var lastArticle = localStorage.getItem('lastReadArticle');
+            var lastTitle = localStorage.getItem('lastReadTitle');
+            var dismissed = sessionStorage.getItem('resumeDismissed');
+
+            if (lastArticle && lastTitle && !dismissed) {
+                var card = document.getElementById('resumeCard');
+                var titleEl = document.getElementById('resumeCardTitle');
+                var linkEl = document.getElementById('resumeCardLink');
+
+                if (card && titleEl && linkEl) {
+                    titleEl.textContent = lastTitle;
+                    linkEl.href = lastArticle;
+                    card.classList.add('show');
+                }
+            }
+        }
+
+        function dismissResumeCard() {
+            var card = document.getElementById('resumeCard');
+            if (card) card.classList.remove('show');
+            sessionStorage.setItem('resumeDismissed', 'true');
+        }
+
+        // ===== PROGRESS TRACKING (logged-in users) =====
+        const bucketArticles = {
+            understanding: [
+                'guide/what-is-rhotacism.html',
+                'guide/rhotacism.html',
+                'guide/rhotacism-causes-symptoms-treatment.html',
+                'guide/rhotacism-cause-the-science-behind-R-sound-difficulty.html',
+                'guide/rhotacism-examples.html'
+            ],
+            treatment: [
+                'guide/how-to-fix-rhotacism.html',
+                'guide/r-speech-impediment-complete-guide.html',
+                'guide/can-you-fix-rhotacism.html',
+                'guide/rhotacism-speech-impediment.html'
+            ],
+            specialized: [
+                'guide/rhotacism-adults.html',
+                'guide/rhotacism-autism.html',
+                'guide/why-do-i-pronounce-r-as-w.html',
+                'guide/famous-people-with-rhotacism.html'
+            ],
+            tools: [
+                'guide/rhotacism-apps.html',
+                'guide/causes-of-rhotacism.html',
+                'guide/why-do-some-people-say-warsh.html'
+            ]
+        };
+
+        function updateProgress() {
+            const readArticles = JSON.parse(localStorage.getItem('readArticles') || '[]');
+
+            Object.keys(bucketArticles).forEach(function(bucket) {
+                const articles = bucketArticles[bucket];
+                const readCount = articles.filter(function(a) { return readArticles.includes(a); }).length;
+                const percent = Math.round((readCount / articles.length) * 100);
+
+                const progressEl = document.getElementById('progress-' + bucket);
+                if (progressEl) {
+                    progressEl.querySelector('.progress-bar-fill').style.width = percent + '%';
+                    progressEl.querySelector('.progress-label').textContent = percent + '% read';
+                }
+            });
+        }
+
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             const userEmail = localStorage.getItem('userEmail');
@@ -1271,9 +1894,16 @@
             if (userEmail && userLoggedOut !== 'true') {
                 // User is logged in and hasn't logged out, show profile dropdown
                 showProfileDropdown();
+                // Show progress bars for logged-in users
+                document.querySelectorAll('.bucket-progress').forEach(function(el) {
+                    el.classList.add('show');
+                });
+                updateProgress();
+                showResumeCard();
             } else {
                 // User is not logged in or has logged out, show login button
                 showLoginButton();
+                showResumeCard();
             }
         });
 
