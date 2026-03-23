@@ -72,20 +72,55 @@
     </script>
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { margin: 0; padding: 0; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-weight: 400; line-height: 1.6; color: white;
-            overflow-x: hidden; margin: 0; padding: 0; min-height: 100vh;
+            font-weight: 400;
+            line-height: 1.6;
+            color: white;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
         }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
 
         /* Navigation Styles */
-        .navbar { background: linear-gradient(to bottom, #000 0%, #1a1a1a 50%, #000 100%); padding: 5.25px 0; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; transition: all 0.3s ease, transform 0.3s ease; }
-        .navbar.scrolled { background: linear-gradient(to bottom, #000 0%, #1a1a1a 50%, #000 100%); box-shadow: 0 4px 20px rgba(0,0,0,0.3); padding: 3.15px 0; }
+        .navbar {
+            background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
+            padding: 5.25px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            transition: all 0.3s ease, transform 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            padding: 3.15px 0;
+        }
+
         .navbar.scrolled .nav-logo { color: white; }
-        .navbar.scrolled .nav-menu a { color: rgba(255,255,255,0.95); }
+        .navbar.scrolled .nav-menu a { color: rgba(255, 255, 255, 0.95); }
+
         .nav-container { max-width: 1200px; margin: 0 auto; padding: 0 12px; display: flex; justify-content: space-between; align-items: center; }
         .nav-logo { font-family: 'Quicksand', sans-serif; font-size: 20px; font-weight: 700; color: white; text-decoration: none; position: relative; transition: all 0.3s ease; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
         .nav-logo::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, #FF9800, transparent); opacity: 0; transition: opacity 0.3s ease; }
@@ -94,22 +129,26 @@
         .nav-menu { display: flex; list-style: none; margin: 0; padding: 0; gap: 20px; align-items: center; }
         .nav-menu li { margin: 0; display: flex; align-items: center; }
         .nav-menu a { text-decoration: none; color: rgba(255,255,255,0.95); font-weight: 500; font-size: 14px; letter-spacing: 0.3px; transition: all 0.3s ease; position: relative; padding: 5.25px 0; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+
         .nav-dropdown { position: relative; }
         .nav-dropdown-toggle { display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.95) !important; text-decoration: none !important; font-weight: 500; font-size: 16px; letter-spacing: 0.3px; transition: all 0.3s ease; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
         .dropdown-arrow { font-size: 12px; transition: transform 0.3s ease; }
         .nav-dropdown:hover .dropdown-arrow { transform: rotate(180deg); }
         .nav-dropdown-toggle:hover { color: white !important; }
+
         .mobile-nav { display: none; align-items: center; gap: 12px; }
         .mobile-get-started { background: linear-gradient(135deg, #FF9800 0%, #E65100 100%); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
         .mobile-get-started:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,152,0,0.3); }
         .mobile-download-btn { display: flex; align-items: center; transition: transform 0.3s ease; }
         .mobile-download-btn:hover { transform: scale(1.05); }
+
         .mobile-hamburger-menu { position: relative; display: none; }
         .mobile-hamburger-toggle { display: flex; flex-direction: column; cursor: pointer; padding: 8px; border-radius: 6px; transition: all 0.3s ease; background: none; border: none; width: 40px; height: 40px; justify-content: center; align-items: center; }
         .mobile-hamburger-toggle span { width: 20px; height: 2px; background: linear-gradient(90deg, #FFB74D, #FF9800); margin: 2px 0; border-radius: 2px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .mobile-hamburger-toggle.active span:nth-child(1) { transform: rotate(-45deg) translate(-4px, 5px); background: linear-gradient(90deg, #FF9800, #E65100); }
         .mobile-hamburger-toggle.active span:nth-child(2) { opacity: 0; }
         .mobile-hamburger-toggle.active span:nth-child(3) { transform: rotate(45deg) translate(-4px, -5px); background: linear-gradient(90deg, #FF9800, #E65100); }
+
         .profile-dropdown { position: relative; }
         .profile-circle { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #FF9800 0%, #E65100 100%); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; border: 2px solid rgba(255,255,255,0.2); }
         .profile-circle:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(255,152,0,0.4); }
@@ -120,48 +159,221 @@
         .dropdown-menu a:hover { background: #f8f9fa; color: #FF9800 !important; }
         .login-nav-button { background: linear-gradient(135deg, #FF9800 0%, #E65100 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-shadow: none; height: 44px; display: flex; align-items: center; justify-content: center; }
         .login-nav-button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,152,0,0.3); }
+
         .nav-toggle { display: none; flex-direction: column; cursor: pointer; padding: 8px; border-radius: 6px; transition: all 0.3s ease; }
         .nav-toggle:hover { background: rgba(255,152,0,0.1); }
         .nav-toggle span { width: 25px; height: 3px; background: linear-gradient(90deg, #FFB74D, #FF9800); margin: 3px 0; border-radius: 2px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* Blog Header */
-        .blog-header { background: transparent; padding: 140px 0 80px; text-align: left; width: 100%; }
-        .blog-hero-content { max-width: 1400px; width: 100%; margin: 0 auto; padding: 0 20px; text-align: left; }
-        .blog-title { font-family: 'Inter', sans-serif; font-size: 64px; font-weight: 700; margin-bottom: 32px; color: white; line-height: 1.1; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        .blog-subtitle { font-size: 24px; color: rgba(255,255,255,0.9); font-weight: 400; line-height: 1.4; margin-bottom: 40px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); max-width: 900px; }
-        .breadcrumb { font-size: 16px; color: rgba(255,255,255,0.7); margin-bottom: 40px; font-weight: 500; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-        .breadcrumb a { color: #D4A574; text-decoration: none; font-weight: 600; }
-        .breadcrumb a:hover { color: white; text-decoration: underline; }
+        /* Blog Header - Full Width */
+        .blog-header {
+            background: transparent;
+            padding: 140px 0 80px;
+            text-align: left;
+            width: 100%;
+        }
+
+        .blog-hero-content {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 20px;
+            text-align: left;
+        }
+
+        .blog-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 64px;
+            font-weight: 700;
+            margin-bottom: 32px;
+            color: white;
+            line-height: 1.1;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .blog-subtitle {
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 400;
+            line-height: 1.4;
+            margin-bottom: 40px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+        }
+
+        .breadcrumb {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 40px;
+            font-weight: 500;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .breadcrumb a {
+            color: #D4A574;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .breadcrumb a:hover {
+            color: white;
+            text-decoration: underline;
+        }
 
         /* Main Content Layout */
-        .blog-content { padding: 0 0 80px; background: transparent; }
-        .main-layout { max-width: 1400px; margin: 0 auto; padding: 0 40px; }
-        .featured-section { padding: 40px 0; background: transparent; }
-        .featured-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 32px; margin-bottom: 80px; }
+        .blog-content {
+            padding: 0 0 80px;
+            background: transparent;
+        }
 
-        /* Article Cards */
-        .article-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; flex-direction: column; }
-        .article-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
-        .card-image-container { position: relative; width: 100%; height: 500px; overflow: hidden; }
-        .card-thumbnail { width: 100%; height: 100%; object-fit: cover; object-position: center 0.1%; transition: transform 0.3s ease; }
-        .article-card:hover .card-thumbnail { transform: scale(1.05); }
-        .badge-overlay { position: absolute; top: 16px; left: 16px; background: #2D3748; color: #FFFFFF; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .card-content { padding: 28px; display: flex; flex-direction: column; flex-grow: 1; }
-        .article-title { font-size: 20px; font-weight: 700; color: #1A202C; margin-bottom: 12px; line-height: 1.3; }
-        .card-content h3 { font-size: 20px; font-weight: 700; color: #1A202C; margin-bottom: 12px; line-height: 1.3; }
-        .article-excerpt { color: #4A5568; font-size: 15px; line-height: 1.6; margin-bottom: 20px; flex-grow: 1; }
-        .card-content p { font-size: 15px; color: #4A5568; line-height: 1.6; margin-bottom: 20px; flex-grow: 1; }
-        .article-meta { display: flex; align-items: center; gap: 16px; font-size: 13px; color: #718096; margin-bottom: 16px; }
-        .article-date { font-weight: 500; }
-        .read-time { background: transparent; padding: 0; border-radius: 0; font-weight: 500; margin-left: auto; display: flex; align-items: center; }
-        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
-        .card-author { font-size: 12px; color: #718096; font-weight: 500; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
-        .card-author span { display: inline-flex; align-items: center; }
-        .card-icon { width: 12px; height: 12px; opacity: 0.7; margin-right: 4px; }
-        .guide-link { border: 2px solid #2D3748; background: transparent; color: #2D3748; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 16px; display: inline-block; text-decoration: none; transition: all 0.3s ease; }
-        .guide-link:hover { background: #F7FAFC; border-color: #1A202C; }
-        .card-link { display: inline-block; color: #2D3748; font-weight: 600; text-decoration: none; border: 2px solid #2D3748; padding: 10px 20px; border-radius: 6px; transition: all 0.2s ease; align-self: flex-start; }
-        .card-link:hover { background: #2D3748; color: #FFFFFF; }
+        .main-layout {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        /* ===== WebMD-Style Resource Sections ===== */
+        .resource-section {
+            padding: 60px 0;
+        }
+
+        .resource-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 1px solid #FF9800;
+            padding-bottom: 12px;
+            margin-bottom: 40px;
+        }
+
+        .resource-section-title {
+            font-size: 16px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .resource-section-title strong {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .resource-section-layout {
+            display: flex;
+            gap: 48px;
+            align-items: stretch;
+        }
+
+        .resource-section-layout.reverse {
+            flex-direction: row-reverse;
+        }
+
+        .resource-section-image {
+            width: 42%;
+            flex-shrink: 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .resource-section-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .resource-section-articles {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .resource-article-link {
+            display: block;
+            text-decoration: none;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .resource-article-link:first-child {
+            padding-top: 0;
+        }
+
+        .resource-article-link:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .resource-article-link:hover .resource-article-title {
+            color: #FF9800;
+        }
+
+        .resource-article-title {
+            font-size: 19px;
+            font-weight: 700;
+            color: white;
+            line-height: 1.3;
+            margin-bottom: 6px;
+            transition: color 0.2s ease;
+        }
+
+        .resource-article-desc {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.55);
+            line-height: 1.5;
+        }
+
+        .resource-article-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 12px;
+            gap: 12px;
+        }
+
+        .resource-meta-tag {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #FF9800;
+            background: rgba(255, 152, 0, 0.1);
+            border: 1px solid rgba(255, 152, 0, 0.25);
+            padding: 3px 10px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .resource-article-meta-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-left: auto;
+        }
+
+        .resource-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            white-space: nowrap;
+        }
+
+        .resource-meta-item svg {
+            width: 13px;
+            height: 13px;
+            flex-shrink: 0;
+        }
+
+        .section-divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin: 0;
+        }
 
         /* Responsive */
         @media (max-width: 768px) {
@@ -173,12 +385,36 @@
             .profile-circle { width: 32px; height: 32px; }
             .profile-circle span { font-size: 12px; }
             .dropdown-menu { right: -10px; }
-            .card-image-container { height: 160px; }
-            .card-content { padding: 20px; }
-            .main-layout { padding: 0 20px; }
+            .main-layout { padding: 0 16px; }
             .blog-title { font-size: 42px; }
             .blog-subtitle { font-size: 20px; }
-            .featured-grid { grid-template-columns: 1fr; gap: 24px; }
+
+            .resource-section-layout,
+            .resource-section-layout.reverse {
+                flex-direction: column;
+            }
+
+            .resource-section-image {
+                width: 100%;
+                height: 220px;
+            }
+
+            .resource-article-title { font-size: 17px; }
+            .resource-article-desc { font-size: 14px; }
+
+            .resource-article-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .resource-article-meta-right {
+                gap: 10px;
+                margin-left: 0;
+            }
+
+            .resource-meta-item { font-size: 11px; }
+            .resource-section { padding: 40px 0; }
         }
     </style>
     <link rel="stylesheet" href="css/nav.css">
@@ -186,9 +422,7 @@
 <body>
     <!-- NAV_PLACEHOLDER -->
 
-
-
-
+    <!-- Blog Header -->
     <section class="blog-header">
         <div class="container">
             <div class="blog-hero-content">
@@ -204,44 +438,41 @@
     <!-- Blog Content -->
     <section class="blog-content">
         <div class="main-layout">
-            <!-- Featured Stuttering Guide -->
-            <section class="featured-section">
-                <h2 style="font-family: 'Inter', sans-serif; font-size: 32px; font-weight: 700; color: white; margin-bottom: 32px; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">Investigating Causes</h2>
-                <div class="featured-grid">
-                            <article class="article-card" onclick="window.location.href='guide/what-causes-stuttering-how-and-why-it-happens.html'">
-                                <div class="card-image-container">
-                                    <img
-                                        src="what-causes-stuttering.jpg"
-                                        alt="Speech therapy consultation"
-                                        class="card-thumbnail"
-                                    />
-                                    <div class="badge-overlay">foundation</div>
-                                    <img src="thestutteracademy-logo.png" alt="The Stutter Academy" style="position: absolute; top: 16px; right: 8px; width: 80px; height: auto; opacity: 0.9;">
+
+            <!-- ===== 1. INVESTIGATING CAUSES ===== -->
+            <section class="resource-section" id="investigating-causes">
+                <div class="resource-section-header">
+                    <span class="resource-section-title">1 OF 1 / <strong>INVESTIGATING CAUSES</strong></span>
+                </div>
+
+                <div class="resource-section-layout">
+                    <div class="resource-section-image">
+                        <img src="what-causes-stuttering.jpg" alt="Speech therapy consultation">
+                    </div>
+                    <div class="resource-section-articles">
+
+                        <a href="guide/what-causes-stuttering-how-and-why-it-happens.html" class="resource-article-link">
+                            <div class="resource-article-title">What Causes Stuttering? How and Why It Happens</div>
+                            <div class="resource-article-desc">Clinical overview of Stuttering Causes: how different factors come together to shape it and how it develops.</div>
+                            <div class="resource-article-meta">
+                                <span class="resource-meta-tag">Foundation</span>
+                                <div class="resource-article-meta-right">
+                                    <span class="resource-meta-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 12 min</span>
+                                    <span class="resource-meta-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> March 18, 2026</span>
+                                    <span class="resource-meta-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> By StutterAcademy</span>
                                 </div>
 
-                                <div class="card-content">
-                                    <h3 class="article-title">What Causes Stuttering? How and Why It Happens</h3>
-                                    <p class="article-excerpt">Clinical overview of Stuttering Causes:  how different factors come together to shape it and how it develops.
-                                    </p>
-                                    <div class="article-meta">
-                                        <span class="article-date">Essential Reading</span>
-                                        <span class="read-time"><img src="../therollracademy/hourglass.png" class="card-icon" alt="">12 min</span>
-                                    </div>
-                                    <div class="card-footer">
-                                        <span class="card-author"><span><img src="../therollracademy/calendar.png" class="card-icon" alt="">March 18, 2026</span><span><img src="../therollracademy/institution.png" class="card-icon" alt="">By StutterAcademy</span></span>
-                                        <a href="guide/what-causes-stuttering-how-and-why-it-happens.html" class="guide-link card-link">Read Guide →</a>
-                                    </div>
-                                </div>
-                            </article>
+                            </div>
+                        </a>
+
+                    </div>
                 </div>
             </section>
+
         </div>
     </section>
 
     <!-- FOOTER_PLACEHOLDER -->
-
-
-
 
     <script>
         function startAssessment() {
