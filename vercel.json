@@ -207,6 +207,38 @@
     {
       "source": "/thestutteracademy/",
       "destination": "/thestutteracademy/index.html"
+    },
+    {
+      "source": "/therollracademy/guide/understanding-rhotacism",
+      "destination": "/therollracademy/guide/understanding-rhotacism/index.html"
+    },
+    {
+      "source": "/therollracademy/guide/understanding-rhotacism/",
+      "destination": "/therollracademy/guide/understanding-rhotacism/index.html"
+    },
+    {
+      "source": "/therollracademy/guide/r-sound-types-and-linguistics",
+      "destination": "/therollracademy/guide/r-sound-types-and-linguistics/index.html"
+    },
+    {
+      "source": "/therollracademy/guide/r-sound-types-and-linguistics/",
+      "destination": "/therollracademy/guide/r-sound-types-and-linguistics/index.html"
+    },
+    {
+      "source": "/therollracademy/guide/speech-therapy-and-treatment",
+      "destination": "/therollracademy/guide/speech-therapy-and-treatment/index.html"
+    },
+    {
+      "source": "/therollracademy/guide/speech-therapy-and-treatment/",
+      "destination": "/therollracademy/guide/speech-therapy-and-treatment/index.html"
+    },
+    {
+      "source": "/therollracademy/guide/practice-resources",
+      "destination": "/therollracademy/guide/practice-resources/index.html"
+    },
+    {
+      "source": "/therollracademy/guide/practice-resources/",
+      "destination": "/therollracademy/guide/practice-resources/index.html"
     }
   ],
   "headers": [
