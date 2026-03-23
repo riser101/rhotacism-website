@@ -155,7 +155,7 @@
             </div>
             <div class="article-hero-container">
                 <img src="https://img-cdn.inc.com/image/upload/f_webp,c_fit,w_1920,q_auto/images/panoramic/GettyImages-1369712079_510983_ndekda.jpg" alt="What causes a lisp - types, reasons and risk factors" class="article-hero-image" loading="eager" style="object-position: center 20%;"/>
-                <div class="hero-badge-overlay">Science</div>
+                <div class="hero-badge-overlay">foundation</div>
                 <img src="../TheLispAcademy-logo.png" alt="The Lisp Academy" class="hero-logo-overlay">
             </div>
             <h1 class="article-title">What Causes a Lisp? Types, Reasons, and Risk Factors</h1>
@@ -441,6 +441,34 @@
                 </ul>
             </div>
         </div> -->
+
+        <div class="content-section">
+            <h2 class="section-title">Sources and Clinical Research</h2>
+            <div class="section-content">
+                <p>The following peer-reviewed studies, clinical guidelines, and authoritative resources informed this article. Readers seeking further depth are encouraged to explore these sources.</p>
+
+                <div class="sources-grid">
+                    <div class="source-card">
+                        <span class="source-badge badge-guideline">Clinical Guideline</span>
+                        <p class="source-title">ASHA: Speech Sound Disorders</p>
+                        <p class="source-desc">Clinical overview of speech sound disorders including articulation errors such as lisps, with guidance on assessment and treatment approaches.</p>
+                        <a href="https://www.asha.org/public/speech/disorders/speech-sound-disorders/" target="_blank" rel="noopener noreferrer" class="source-link">View Source <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 11L11 3M11 3H5M11 3V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                    </div>
+                    <div class="source-card">
+                        <span class="source-badge badge-resource">Patient Resource</span>
+                        <p class="source-title">Speech and Language UK: Lisps</p>
+                        <p class="source-desc">Educator and professional resource explaining what a lisp is, how it develops, and when to seek support from a speech and language therapist.</p>
+                        <a href="https://speechandlanguage.org.uk/educators-and-professionals/resource-library-for-educators/lisps/" target="_blank" rel="noopener noreferrer" class="source-link">View Source <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 11L11 3M11 3H5M11 3V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                    </div>
+                    <div class="source-card">
+                        <span class="source-badge badge-resource">Patient Resource</span>
+                        <p class="source-title">SpeechPathologyGraduatePrograms.org: Lisp Speech Therapy</p>
+                        <p class="source-desc">Overview of lisp types, treatment options, and when to start speech therapy for frontal, lateral, palatal, and dental lisps.</p>
+                        <a href="https://www.speechpathologygraduateprograms.org/lisping/" target="_blank" rel="noopener noreferrer" class="source-link">View Source <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 11L11 3M11 3H5M11 3V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </article>
 
     <style>
@@ -567,6 +595,107 @@
         }
         .faq-answer ul {
             padding-left: 20px;
+        }
+
+        /* Sources Cards */
+        .sources-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .source-card {
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .source-card:hover {
+            border-color: #CBD5E1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .source-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            width: fit-content;
+        }
+
+        .badge-guideline {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .badge-rct {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .badge-study {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .badge-resource {
+            background: #EDE9FE;
+            color: #5B21B6;
+        }
+
+        .source-card .source-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1E293B;
+            line-height: 1.45;
+            margin-bottom: 0 !important;
+        }
+
+        .source-card .source-desc {
+            font-size: 13.5px;
+            color: #64748B;
+            line-height: 1.55;
+            margin-bottom: 0 !important;
+        }
+
+        .source-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #2563EB;
+            text-decoration: none;
+            margin-top: auto;
+            padding-top: 4px;
+            transition: color 0.2s ease;
+        }
+
+        .source-link:hover {
+            color: #1D4ED8;
+        }
+
+        .source-link svg {
+            transition: transform 0.2s ease;
+        }
+
+        .source-link:hover svg {
+            transform: translateX(3px);
+        }
+
+        @media (max-width: 768px) {
+            .sources-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* Comparison Table */
