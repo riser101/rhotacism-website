@@ -87,7 +87,20 @@
         "@type": "Article",
         "headline": "Vocalic R: Types, Word Lists & How to Teach Each R Variation",
         "description": "Learn Vocalic R types, word lists, and therapy techniques. Evidence-based guide to improve rhotacism and R speech clarity for children and adults.",
-        "image": "https://topspeech.health/therollracademy/vocalic-R.png",
+        "image": [
+            "https://topspeech.health/therollracademy/vocalic-R.png",
+            "https://topspeech.health/therollracademy/vocalic-r-spectro-1.jpeg",
+            "https://topspeech.health/therollracademy/vocalic-r-spectro-2.jpeg",
+            "https://topspeech.health/therollracademy/Infographic-vocalic-r-diff.png",
+            "https://topspeech.health/therollracademy/vocalic-r-example-1.png",
+            "https://topspeech.health/therollracademy/AR-vocalic-r.png",
+            "https://topspeech.health/therollracademy/ER-vocalic-r.png",
+            "https://topspeech.health/therollracademy/OR-vocalic-r.png",
+            "https://topspeech.health/therollracademy/AIR-vocalic-r.png",
+            "https://topspeech.health/therollracademy/EAR-vocalic-r.png",
+            "https://topspeech.health/therollracademy/IRE-vocalic-R.png",
+            "https://topspeech.health/therollracademy/RL-vocalic-R.png"
+        ],
         "author": {
             "@type": "Organization",
             "name": "The Rollr Academy"
@@ -126,7 +139,7 @@
                 "name": "Which Vocalic R sound should be taught first?",
                 "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "One should start with the ER sound as it appears frequently and helps in stabilizing the tongue control."
+                    "text": "The ER sound is often the easiest Vocalic R because the tongue stays in a neutral mid-mouth position, making it easier to maintain correct tension and airflow. Words like bird, teacher, and water provide a stable starting point for practice."
                 }
             },
             {
@@ -729,8 +742,35 @@
             margin-bottom: 0;
         }
 
+        /* Text + Image Row */
+        .text-image-row {
+            display: flex;
+            gap: 32px;
+            align-items: flex-start;
+            margin: 32px 0;
+        }
+        .text-image-text {
+            flex: 1;
+        }
+        .text-image-img {
+            width: 160px;
+            height: auto;
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
+            .text-image-row {
+                flex-direction: column;
+            }
+            .text-image-img {
+                width: 200px;
+                margin: 0 auto;
+            }
+            img[style*="width: 60%"] {
+                width: 100% !important;
+            }
             .article-hero-image {
                 height: 250px;
             }
@@ -810,106 +850,118 @@
                 <img src="../website-logo-thick-trans-compress.png" alt="The Rollr Academy" class="hero-logo-overlay">
             </div>
 
-            <h1 class="article-title">Vocalic R: Types, Word Lists <br class="title-break"><span style="display: inline-block;"><span style="font-weight: 900; letter-spacing: 0.15em; padding: 0 0.15em;">|</span>How to Teach Each R Variation</span></h1>
+            <h1 class="article-title">Vocalic R: Types, Word Lists <br>How to Teach Each R Variation</h1>
             <p class="article-subtitle">Learn the 7 types of Vocalic R, practice with structured word lists, and discover evidence-based techniques to teach each R variation for children and adults.</p>
             <p class="article-byline"><img src="../calendar.png" class="byline-icon" alt="Published date"><span class="byline-date">March 23, 2026</span> <img src="../institution.png" class="byline-icon" alt="Author"><span class="byline-author">By RollrAcademy</span> <img src="../hourglass.png" class="byline-icon" alt="Read time"><span class="byline-read-time">12 min read</span></p>
         </div>
     </section>
 
     <!-- Article Content -->
+     
     <article class="article-content">
         <!-- Introduction -->
         <div class="content-section">
-            <h2 class="section-title">Introduction</h2>
-            <div class="section-content">
-                <p>Vocalic R is stated as one of the most difficult sounds in the English Language and is usually related to <a href="https://topspeech.health/therollracademy/guide/what-is-rhotacism.html">Rhotacism</a>, which is a common speech impediment with "R sounds" that can affect both adults and children.</p>
-
-                <p>If in any way, you hear the pronunciations like:</p>
-                <ul>
-                    <li>"bawwen" instead of "barren"</li>
-                    <li>"cawd" instead of "card"</li>
-                    <li>"Buhd" instead of "bird"</li>
-                </ul>
-
-                <p>You may notice your loved ones or perhaps yourself struggling when practicing the <a href="rhotacism-examples.html">speech impediment R exercises</a> or perhaps reading aloud.</p>
-
-                <p>But the good news is that Vocalic R can be actually learned with constant and structured practice and the correct speech therapy methods.</p>
-            </div>
+            
+            
         </div>
-
+        
         <!-- What is Vocalic R -->
         <div class="content-section">
+            
             <h2 class="section-title">What is Vocalic R?</h2>
             <div class="section-content">
-                <p>Vocalic R is a vowel sound which comes under the letter R, here the letter R becomes a part of the syllable, as in card, bard or bird. It is different from prevocalic R words, where the R letter comes before the vowel as in gun, sun, etc.</p>
+                <p>Vocalic R is a vowel sound influenced by the letter R, here the letter R becomes a part of the syllable, as in card, bard or bird. It is different from prevocalic R words, where the R letter comes before the vowel as in rabbit, red, rain, etc.</p>
+                
+                <div class="highlight-box">
+                    
+                    <p>A vowel is a speech sound made with an open mouth, such as a, e, i, o, u, and when followed by R, the vowel changes its sound.</p>
+                    <p>A syllable is a basic unit of speech consisting of an uninterrupted sound.</p>
+                </div>
+
+                <p>Difficulty in vocalic R words can impact clarity, communication and confidence. But the good news is that Vocalic R can be actually learned with constant and structured practice and the correct speech therapy methods.</p>
             </div>
         </div>
+
+         
+
+        
 
         <!-- Prevocalic R vs Vocalic R -->
         <div class="content-section">
-            <h2 class="section-title">Prevocalic R vs Vocalic R</h2>
+            <h2 class="section-title">Vocalic R vs Prevocalic R</h2>
             <div class="section-content">
+                <img 
+                    src="/therollracademy/Infographic-vocalic-r-diff.png" 
+                    alt="Infographic showing how Vocalic R changes vowel sounds" 
+                    style="width: 60%; max-width: 100%; height: auto; border-radius: 8px; margin: 24px auto; display: block; border: 2px solid #ccc;"
+                >
                 <p>Learning the difference between Prevocalic R words and Vocalic R words can help you choose the right exercises.</p>
 
                 <table class="comparison-table">
                     <thead>
                         <tr>
                             <th>Feature</th>
-                            <th>Prevocalic R words</th>
                             <th>Vocalic R words</th>
+                            <th>Prevocalic R words</th>
+                            
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>The R position</td>
-                            <td>Before Vowel letter</td>
                             <td>After Vowel Letter</td>
+                            <td>Before Vowel letter</td>
+                            
                         </tr>
                         <tr>
                             <td>Example</td>
-                            <td>Run, Red</td>
                             <td>Bird, Car</td>
+                            <td>Run, Red</td>
+                            
                         </tr>
                         <tr>
                             <td>Difficulty</td>
-                            <td>Easy</td>
                             <td>Bit Complicated</td>
+                            <td>Easy</td>
+                            
                         </tr>
                         <tr>
                             <td>Tongue Movement</td>
-                            <td>Forward Motion</td>
                             <td>Retracted Tongue</td>
+                            <td>Forward Motion</td>
+                            
                         </tr>
                         <tr>
                             <td>Therapy Focus</td>
-                            <td>Start of the sound</td>
                             <td>Tongue tension and Vowel Control</td>
+                            <td>Start of the sound</td>
+                            
                         </tr>
                         <tr>
                             <td>The Usual error</td>
-                            <td>W substitution</td>
                             <td>Unclear Vowel</td>
+                            <td>W substitution</td>
+                           
                         </tr>
                     </tbody>
                 </table>
 
-                <p>Most of the learners do well in 'prevocalic R words' earlier than 'vocalic R words.'</p>
+                <p>Most of the learners do well in 'prevocalic R words' earlier than 'vocalic R words'.</p>
             </div>
         </div>
 
         <!-- Understanding Vocalic R sounds -->
         <div class="content-section">
-            <h2 class="section-title">Understanding Vocalic R Sounds</h2>
+            <h2 class="section-title">Understanding Vocalic R</h2>
             <div class="section-content">
                 <p>Vocalic R refers to the rhotacization of vowels in clinical phonetics, which means the vowel changes because of the R sound.</p>
-
-                <p>R sound is one of the last sounds that people usually learn due to it being a complex sound that requires a specific tongue coordination and positioning.</p>
-
-                <p>There are total 7 Major Vocalic R words / variations in American English, which are:</p>
-
+                <p id="types">The R sound has limited visual cues. Sounds like M or P can be seen on lips but vocalic R words usually happen inside the mouth, which makes it difficult to imitate.</p>
+                <p >There are total 7 Major Vocalic R words / variations, which are:</p>
+                <p>Each group of Vocalic R words requires slightly different tongue positioning, which is why learners may find some types easier than others.</p>
                 <table class="comparison-table">
                     <thead>
                         <tr>
+                            <th>No.</th>
                             <th>Type</th>
                             <th>Symbol</th>
                             <th>Vocalic R words</th>
@@ -917,81 +969,76 @@
                     </thead>
                     <tbody>
                         <tr>
+                            <td>1</td>
                             <td><strong>AR</strong></td>
                             <td>/ɑɹ/</td>
                             <td>Far, Car, Bar</td>
                         </tr>
                         <tr>
+                            <td>2</td>
                             <td><strong>ER</strong></td>
                             <td>/ɝ/</td>
                             <td>Bird, her, deer</td>
                         </tr>
                         <tr>
+                            <td>3</td>
                             <td><strong>OR</strong></td>
                             <td>/ɔɹ/</td>
                             <td>Bore, sport, for</td>
                         </tr>
                         <tr>
+                            <td>4</td>
                             <td><strong>AIR</strong></td>
                             <td>/ɛɹ/</td>
                             <td>Fair, Chair, Hair</td>
                         </tr>
                         <tr>
+                            <td>5</td>
                             <td><strong>EAR</strong></td>
                             <td>/ɪɹ/</td>
                             <td>Fear, Near, Gear</td>
                         </tr>
                         <tr>
+                            <td>6</td>
                             <td><strong>IRE</strong></td>
                             <td>/aɪɹ/</td>
                             <td>Tire, fire, wire</td>
                         </tr>
                         <tr>
+                            <td>7</td>
                             <td><strong>RL</strong></td>
                             <td>/r-l/</td>
                             <td>Curl, Girl, Whirl</td>
                         </tr>
                     </tbody>
                 </table>
-
-                <p>Each of these R words requires a different tongue placement and position.</p>
-
-                <p>You see, the R sound has limited visual cues. Sounds like M or P can be seen on lips but vocalic R words usually happen inside the mouth, which makes it difficult to imitate.</p>
-
-                
-                <h3>How many Vocalic R words are there?</h3>
-                <p>There are 7 vocalic R words that include AR, ER, OR, AIR, IRE, EAR and RL clusters.</p>
-               
+      
             </div>
         </div>
 
         <!-- Why Vocalic R Words are Harder -->
-        <div class="content-section">
+        <div id="tip" class="content-section">
             <h2 class="section-title">Why Vocalic R Words are Harder Than Other Sounds</h2>
             <div class="section-content">
-                <p>Vocalic R words need a particular coordination between the:</p>
-                <ul>
-                    <li>Tongue movement</li>
-                    <li>Mouth Airflow</li>
-                    <li>Motor coordination</li>
-                </ul>
+                <p>Vocalic R words need precise coordination between the: Tongue movement, Mouth Airflow and Motor coordination.</p>
+                <p >The tip of the tongue needs to lift upwards to touch the roof of the mouth and the back of the tongue is pulled slightly inside towards the throat. At the same time, the sides of the tongue are lightly pressed against the molars for better airflow through the center of the mouth. The airflow should move smoothly.</p>
+                <p>This movement creates the R sound, even a small incorrect positioning of the tongue,  can change it entirely.</p>
+                <p><strong>Example:</strong></p>
 
-                <p>Because even a small wrong positioning of the tongue while producing the R sound, can change it entirely differently.</p>
 
                 
-                <h3>Example:</h3>
-                    <ul>
-                        <li>Car &rarr; Cah</li>
-                        <li>War &rarr; Wah</li>
-                        <li>Bird &rarr; Buhd</li>
-                    </ul>
+                <img 
+                src="/therollracademy/vocalic-r-example-1.png" 
+                alt="Infographic showing example of vocalic-r" 
+                style="width: 50%; max-width: 100%; height: auto; border-radius: 8px; margin: 24px auto; display: block;"
+            >
                 
 
-                <p>Just a slight misalignment of tongue movements can turn the <a href="https://topspeech.health/therollracademy/guide/why-do-i-pronounce-r-as-w.html">R into a W</a></p>
+                <p>Just a slight misalignment of tongue movements can turn the <a href="https://topspeech.health/therollracademy/guide/why-do-i-pronounce-r-as-w.html">R into a W</a>.</p>
 
                 <p>Hence, rhotacism errors are extremely common.</p>
 
-                <p>Speech Language Pathologists aka Speech therapists teach two tongue positions:</p>
+                <p>Speech Language Pathologists teach two tongue positions:</p>
 
                 <p><strong>Retroflex R and Bunched R</strong></p>
                 <ul>
@@ -1001,24 +1048,31 @@
 
                 <p>And neither of these tongue shapes is better.</p>
 
-                <p>Sound therapies that use visual feedback generally help learners, creating perfect R sounds nearly 2.4 times faster than repetition methods.</p>
+                <div class="text-image-row">
+                    <div class="text-image-text">
+                        <p>Sound therapies that use visual feedback generally help learners, creating perfect R sounds nearly <strong>2.4 times</strong> faster than repetition methods.</p>
+                        <p>Which simply means, when a learner watches the correct positioning of tongue when producing the R sound, can speed up the learning process.</p>
+                        <p>Adults usually believe that it is too late to <a href="https://www.topspeech.health/therollracademy/guide/rhotacism-adults.html">fix their Rhotacism.</a> <strong>But the truth is people of all ages can improve pronunciation, can improve their R sound speech impediment or the difficulty to pronounce any other word at any age!</strong></p>
+                    </div>
+                    <img src="/therollracademy/vocalic-r-spectro-1.jpeg" alt="Rollr app Practice Tools screen showing Growling Method with spectrogram visual feedback for R sound" class="text-image-img">
+                </div>
 
-                <p>Which simply means, <strong>when a learner watches the correct positioning of tongue when producing the R sound, can speed up the learning process.</strong></p>
 
-                <p>Adults usually believe that it is too late to <a href="https://www.topspeech.health/therollracademy/guide/rhotacism-adults.html">fix their Rhotacism.</a> <strong>But the truth is people of all ages can improve pronunciation, can learn rhotacism or the difficulty to pronounce any other word at any age!</strong></p>
             </div>
         </div>
 
         <!-- Vocalic R Word List -->
         <div class="content-section">
-            <h2 class="section-title">Vocalic R Word List (Structured by Sound Type)</h2>
+            <h2 class="section-title">150+ Vocalic R Words, Phrases, Sentences, and Reading Passages  (Structured by Sound Type)</h2>
             <div class="section-content">
-                <p>Here are some Vocalic R words list that are carefully selected to build muscle memory.</p>
-
+                <p>Here is a <strong>carefully curated Vocalic R word list designed to build accurate muscle memory and improve pronunciation efficiently.</strong> These words follow proven speech therapy progression patterns, helping learners practice the most effective sound combinations first.</p>
                 <p>Start practicing the ER Vocalic R words today for just 5 minutes:</p>
+                <p id="ER-vocalic-r">The “ER” sound is often the easiest starting point as it is frequent in daily English words. 
+                    Starting with the right sound can speed up the learning progress efficiently.</p>
 
-                <h3>ER Vocalic R words</h3>
-                <div class="word-list-grid">
+                <h3 >ER Vocalic R words</h3>
+                <!-- <div class="word-list-grid">
+
                     <div class="word-list-column">
                         <h4>Initial</h4>
                         <ul>
@@ -1046,14 +1100,20 @@
                             <li>Teacher</li>
                         </ul>
                     </div>
-                </div>
+                </div> -->
+                <img 
+                src="/therollracademy/ER-vocalic-r.png" 
+                alt="Infographic showing example of vocalic-r" 
+                style="width: 60%; max-width: 100%; height: auto; border-radius: 8px; margin: 24px auto; display: block;"
+            >
+                
 
                 <div class="highlight-box">
-                    <p><strong>Tip:</strong> Repeat each word for 5 times slowly</p>
+                    <p><strong>Tip:</strong> Repeat each word 5 times slowly. You can use the <a href="https://topspeech.health/therollracademy/tools.html">built-in timer and repetition counter</a> in the practice tools to stay consistent and track your progress.</p>
                 </div>
 
-                <h3>AR Vocalic R words</h3>
-                <div class="word-list-grid">
+                <h3 id="AR-vocalic-r">AR Vocalic R words</h3>
+                <!-- <div class="word-list-grid">
                     <div class="word-list-column">
                         <h4>Initial</h4>
                         <ul>
@@ -1081,10 +1141,14 @@
                             <li>Star</li>
                         </ul>
                     </div>
-                </div>
-
-                <h3>OR Vocalic R Words</h3>
-                <div class="word-list-grid">
+                </div> -->
+                <img 
+                src="/therollracademy/AR-vocalic-r.png" 
+                alt="Infographic showing example of vocalic-r" 
+                style="width: 60%; max-width: 100%; height: auto; border-radius: 8px; margin: 24px auto; display: block;"
+            >
+                <h3 id="OR-vocalic-r">OR Vocalic R Words</h3>
+                <!-- <div class="word-list-grid">
                     <div class="word-list-column">
                         <h4>Initial</h4>
                         <ul>
@@ -1112,10 +1176,14 @@
                             <li>Core</li>
                         </ul>
                     </div>
-                </div>
-
-                <h3>AIR Vocalic R words</h3>
-                <div class="word-list-grid">
+                </div> -->
+                <img 
+                src="/therollracademy/OR-vocalic-r.png" 
+                alt="Infographic showing example of vocalic-r" 
+                style="width: 60%; max-width: 100%; height: auto; border-radius: 8px; margin: 24px auto; display: block;"
+            >
+                <h3 id="AIR-vocalic-r">AIR Vocalic R words</h3>
+                <!-- <div class="word-list-grid">
                     <div class="word-list-column">
                         <h4>Initial</h4>
                         <ul>
@@ -1143,10 +1211,14 @@
                             <li>Bear</li>
                         </ul>
                     </div>
-                </div>
-
-                <h3>EAR Vocalic R words</h3>
-                <div class="word-list-grid">
+                </div> -->
+                <img 
+                src="/therollracademy/AIR-vocalic-r.png" 
+                alt="Infographic showing example of vocalic-r" 
+                style="width: 60%; max-width: 100%; height: auto; border-radius: 8px; margin: 24px auto; display: block;"
+            >
+                <h3 id="EAR-vocalic-r">EAR Vocalic R words</h3>
+                <!-- <div class="word-list-grid">
                     <div class="word-list-column">
                         <h4>Initial</h4>
                         <ul>
@@ -1173,10 +1245,14 @@
                             <li>Near</li>
                         </ul>
                     </div>
-                </div>
-
-                <h3>IRE Vocalic R words</h3>
-                <div class="word-list-grid">
+                </div> -->
+                <img 
+                src="/therollracademy/EAR-vocalic-r.png" 
+                alt="Infographic showing example of vocalic-r" 
+                style="width: 60%; max-width: 100%; height: auto; border-radius: 8px; margin: 24px auto; display: block;"
+            >
+                <h3 id="IRE-vocalic-r">IRE Vocalic R words</h3>
+                <!-- <div class="word-list-grid">
                     <div class="word-list-column">
                         <h4>Initial</h4>
                         <ul>
@@ -1203,10 +1279,14 @@
                             <li>Liar</li>
                         </ul>
                     </div>
-                </div>
-
-                <h3>RL Word List</h3>
-                <div class="word-list-grid">
+                </div> -->
+                <img 
+                src="/therollracademy/IRE-vocalic-R.png" 
+                alt="Infographic showing example of vocalic-r" 
+                style="width: 60%; max-width: 100%; height: auto; border-radius: 8px; margin: 24px auto; display: block;"
+            >
+                <h3 id="RL-vocalic-r">RL Vocalic R Words</h3>
+                <!-- <div class="word-list-grid">
                     
                     <div class="word-list-column">
                         <h4>Medial</h4>
@@ -1226,9 +1306,12 @@
                             <li>Whirl</li>
                         </ul>
                     </div>
-                </div>
-
-                <p>The "ER" sound is often the easiest starting point as it is frequent in daily English words. Starting with the right sound can speed up the learning progress efficiently.</p>
+                </div> -->
+                <img 
+                src="/therollracademy/RL-vocalic-R.png" 
+                alt="Infographic showing example of vocalic-r" 
+                style="width: 60%; max-width: 100%; height: auto; border-radius: 8px; margin: 24px auto; display: block;"
+            >
             </div>
         </div>
 
@@ -1253,7 +1336,9 @@
             <div class="section-content">
                 <p>The motor memory and the pronunciation can be strengthened by reading aloud some helpful sentences given below:</p>
                 <p>Please read these slowly and in repetition:</p>
-
+                <div class="highlight-box">
+                    <p><strong>Tip:</strong> Use noise cancellation headphones to amplify your hearing feedback.</p>
+                </div>
                 <h3>AR Reading</h3>
                 <ul>
                     <li>The farmer drove the car, far near the park.</li>
@@ -1292,44 +1377,20 @@
             </div>
         </div>
 
-        <!-- Daily Practice Checklist -->
-        <div class="content-section">
-            <h2 class="section-title">Daily Vocalic R Practice Checklist</h2>
-            <div class="section-content">
-                <ul class="checklist">
-                    <li>Practice 10 minutes daily</li>
-                    <li>Start with the "ER" word list</li>
-                    <li>Read aloud</li>
-                    <li>Repeat each word 5-7 times</li>
-                    <li>Use Mirror feedback</li>
-                    <li>Focus on one sound type</li>
-                    <li>Track improvement weekly</li>
-                </ul>
-
-                <p>Consistency is the key to immaculate improvement.</p>
-            </div>
-        </div>
+       
 
         <!-- Tools and Techniques -->
         <div class="content-section">
             <h2 class="section-title">Tools and Techniques for Practicing Vocalic R</h2>
             <div class="section-content">
-                <p>Speech therapy usually uses tools that help learners to correctly understand the tongue positioning.</p>
-
-                <p>For example:</p>
-                <ul>
-                    <li>Visual Feedback Tools show the exact tongue movement that happens when producing the R sound.</li>
-                    <li>Guided Techniques</li>
-                    <li>Structured repetition exercises</li>
-                </ul>
-
-                <p>There's one common technique:</p>
+                <p>Shaping Technique:</p>
                 <p>It starts with a longer "shhhhh" sound which gradually pulls the tongue back and it turns into an R sound.</p>
                 <p>Daily repetition strengthens the speech motor patterns of the brain.</p>
-
+                <p>Speech therapy uses a set of versatile tools to achieve required outcomes such as tactile feedback tools providing physical cues for tongue placement, visual feedback tools to help with mouth position, smartphone/recording apps for consistent progress and  oral-motor tools for strengthening & increasing coordination.</p>
                 <div class="highlight-box">
                     <h3>Do you know?</h3>
                     <p>Speech learning is the same as any instrument learning such as piano or violin. The consistency of short practices creates stronger neural pathways as compared to the occasional long sessions.</p>
+                    
                 </div>
             </div>
         </div>
@@ -1340,13 +1401,9 @@
             <div class="section-content">
                 <p>Forbrain is a headset that gives auditory feedback that helps learners hear their own voice more clearly. It works on the foundations of how sound travels through bone conduction, just slightly modified. Which can enhance speech accuracy and awareness.</p>
 
-                <p>Better auditory feedback can help the brain understand the science behind generating the R sound, hence it can adjust the position of the tongue efficiently. That can help a lot while practicing the difficult sounds like Vocalic R words.</p>
-
-                <p>For learners who have rhotacism or persistent R speech impediments, there are tools that can enhance feedback, supporting faster correction while practicing the <strong>Vocalic R words list</strong>.</p>
-
                 <h3>Exercises using forbrain:</h3>
                 <ul>
-                    <li>Practice speaking the ER word list for 5 minutes everyday.</li>
+                    <li>Practice speaking the <a href="#ER-vocalic-r">ER word list</a> for 5 minutes everyday.</li>
                     <li>Read the Vocalic R words clearly and slowly.</li>
                     <li>Read Vocalic R sentences aloud.</li>
                     <li>Practice with a dedicated Vocalic R words worksheet while wearing the headset.</li>
@@ -1402,13 +1459,13 @@
                     <li>Integrates Motor learning principles.</li>
                 </ul>
 
-                <p>We have seen many learners who struggle for years because they lack the proper structured guidance. A systematic program can improve the progress.</p>
+                <p>Many learners struggle for years not because they lack guidance, but because consistent daily practice is difficult to maintain without structured support.</p>
             </div>
         </div>
 
         <!-- CTA Section -->
         <div class="cta-section">
-            <h3>Get started by downloading the Rollr app by TopSpeechHealth today.</h3>
+            <h3>Get started by downloading the Rollr app by TopSpeech Health today.</h3>
             <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'cta_section' });">
                 <img src="../Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg"
                      alt="Download on the App Store" style="height: 68px;">
@@ -1420,9 +1477,7 @@
             <h2 class="section-title">Conclusion</h2>
             <div class="section-content">
                 <p>Now that you have read the blog, you understand that Vocalic R words are one of the most complicated speech sounds, but improvement is achievable with proper structured and daily practice.</p>
-
-                <p>There are 7 vocalic R words / variations that exist and we can improve the accuracy by daily repetition of ER, AR, OR, AIR words.</p>
-
+                <p>The 7 vocalic R words / variations discussed in this article are AR, ER, OR, AIR, EAR, IRE, and RL, each require slightly different tongue positioning and practice approaches.</p>
                 <ul>
                     <li>Start little</li>
                     <li>Practice daily</li>
@@ -1452,7 +1507,7 @@
                             <svg class="faq-chevron" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </button>
                         <div class="faq-answer">
-                            <p>One should start with the ER sound as it appears frequently and helps in stabilizing the tongue control.</p>
+                            <p>The ER sound is often the easiest Vocalic R because the tongue stays in a neutral mid-mouth position, making it easier to maintain correct tension and airflow. Words like bird, teacher, and water provide a stable starting point for practice.</p>
                         </div>
                     </div>
                     <div class="faq-item">
@@ -1461,7 +1516,7 @@
                             <svg class="faq-chevron" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </button>
                         <div class="faq-answer">
-                            <p>Yes, Vocalic R words require a more precise tongue positioning and coordination as compared to a regular R.</p>
+                            <p><a href="#tip">Yes, Vocalic R words require a more precise tongue positioning and coordination as compared to a regular R.</a></p>
                         </div>
                     </div>
                     <div class="faq-item">
@@ -1470,7 +1525,7 @@
                             <svg class="faq-chevron" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </button>
                         <div class="faq-answer">
-                            <p>There are 7 types of Vocalic R sounds that include AR, ER, OR, AIR, EAR, IRE and RL clusters.</p>
+                            <p><a href="#types">7 types of Vocalic R sounds that include AR, ER, OR, AIR, EAR, IRE and RL clusters.</a> </p>
                         </div>
                     </div>
                     <div class="faq-item">
