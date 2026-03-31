@@ -118,56 +118,6 @@
     }
     </script>
 
-    <!-- FAQ Schema -->
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": [
-            {
-                "@type": "Question",
-                "name": "What is R speech therapy?",
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "R speech therapy is a structured and evidence-based approach that helps children, teens, and adults learn how to correctly pronounce the R sound. It targets rhotacism — the clinical term for difficulty producing the "R" sound — through motor learning, tongue placement techniques, and feedback-based practice."
-                }
-            },
-            {
-                "@type": "Question",
-                "name": "How long does R speech therapy take?",
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Progress typically ranges from 8 to 12 weeks for mild cases, and 3 to 6 months for more persistent errors. Results depend on consistency of practice, the technique used, and individual motor learning differences. Short daily sessions produce faster results than occasional long sessions."
-                }
-            },
-            {
-                "@type": "Question",
-                "name": "Can adults fix rhotacism with speech therapy?",
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Yes. Adults have several advantages in speech therapy: they can follow instructions precisely, self-correct in real time, and practice independently. Many adults see immense improvements within 8 to 12 weeks of consistent daily practice once they understand the correct tongue position."
-                }
-            },
-            {
-                "@type": "Question",
-                "name": "What is the Retroflex vs Bunched R in speech therapy?",
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "These are the two correct tongue positions for producing the R sound. Retroflex R involves curling the tongue tip slightly upward and back. Bunched R involves pulling the tongue body back and bunching it upward. Both produce a correct R sound — speech therapy identifies which works best for each individual."
-                }
-            },
-            {
-                "@type": "Question",
-                "name": "What is visual feedback in R speech therapy?",
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Visual feedback lets you see your sound in real time as you speak, typically through a spectrogram. Instead of relying only on what a therapist tells you, you get a live display showing whether your voice matches the acoustic signature of a correct R sound — the 3rd formant frequency peak near 1,700 Hz."
-                }
-            }
-        ]
-    }
-    </script>
-
     <link rel="stylesheet" href="/therollracademy/css/nav.css">
     
     <style>
@@ -239,65 +189,6 @@
             }
         }
 
-        /* FAQ Accordion */
-        .faq-accordion {
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-        }
-
-        .faq-item {
-            border-bottom: 1px solid #E2E8F0;
-        }
-
-        .faq-item:first-child {
-            border-top: 1px solid #E2E8F0;
-        }
-
-        .faq-question {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 0;
-            background: none;
-            border: none;
-            cursor: pointer;
-            text-align: left;
-            font-size: 17px;
-            font-weight: 600;
-            color: #1A202C;
-            line-height: 1.5;
-            font-family: inherit;
-            gap: 16px;
-        }
-
-        .faq-question:hover { color: #2563EB; }
-
-        .faq-chevron {
-            flex-shrink: 0;
-            color: #A0AEC0;
-            transition: transform 0.3s ease;
-        }
-
-        .faq-question[aria-expanded="true"] .faq-chevron {
-            transform: rotate(180deg);
-            color: #2563EB;
-        }
-
-        .faq-answer {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-
-        .faq-answer p {
-            font-size: 17px;
-            line-height: 1.75;
-            color: #4A5568;
-            padding-bottom: 20px;
-            margin-bottom: 0;
-        }
 
         /* Sources Cards */
         .sources-grid {
@@ -869,59 +760,6 @@
             </div>
         </div>
 
-        <!-- FAQ
-        <div class="content-section">
-            <h2 class="section-title">Frequently Asked Questions</h2>
-            <div class="section-content">
-                <div class="faq-accordion">
-                    <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">
-                            <span>What is R speech therapy?</span>
-                            <svg class="faq-chevron" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        </button>
-                        <div class="faq-answer">
-                            <p>R speech therapy is a structured and evidence-based approach that helps children, teens, and adults learn how to correctly pronounce the R sound. It targets rhotacism — the clinical term for difficulty producing the /R/ sound — through motor learning, tongue placement techniques, and feedback-based practice.</p>
-                        </div>
-                    </div>
-                    <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">
-                            <span>How long does R speech therapy take?</span>
-                            <svg class="faq-chevron" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        </button>
-                        <div class="faq-answer">
-                            <p>Progress typically ranges from 8 to 12 weeks for mild cases and 3 to 6 months for more persistent errors. Results depend on consistency of practice, the technique used, and individual motor learning differences. Short daily sessions produce faster results than occasional long sessions.</p>
-                        </div>
-                    </div>
-                    <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">
-                            <span>Can adults fix rhotacism with speech therapy?</span>
-                            <svg class="faq-chevron" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        </button>
-                        <div class="faq-answer">
-                            <p>Yes. Adults have several advantages in speech therapy: they can follow instructions precisely, self-correct in real time, and practice independently. Many adults see significant improvements within 8 to 12 weeks of consistent daily practice once they understand the correct tongue position.</p>
-                        </div>
-                    </div>
-                    <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">
-                            <span>What is the Retroflex vs Bunched R in speech therapy?</span>
-                            <svg class="faq-chevron" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        </button>
-                        <div class="faq-answer">
-                            <p>These are the two correct tongue positions for producing the R sound. Retroflex R involves curling the tongue tip slightly upward and back. Bunched R involves pulling the tongue body back and bunching it upward. Both produce a correct R sound — speech therapy identifies which works best for each individual.</p>
-                        </div>
-                    </div>
-                    <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">
-                            <span>What is visual feedback in R speech therapy?</span>
-                            <svg class="faq-chevron" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        </button>
-                        <div class="faq-answer">
-                            <p>Visual feedback lets you see your sound in real time as you speak, typically through a spectrogram. Instead of relying only on what a therapist tells you, you get a live display showing whether your voice matches the acoustic signature of a correct R sound — with the 3rd formant frequency peak near 1,700 Hz as the target.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div> -->
 
         <!-- Sources -->
         <div class="content-section">
@@ -960,21 +798,6 @@
 
     </article>
 
-    <script>
-        // FAQ Accordion
-        document.querySelectorAll('.faq-question').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                var expanded = this.getAttribute('aria-expanded') === 'true';
-                this.setAttribute('aria-expanded', !expanded);
-                var answer = this.nextElementSibling;
-                if (!expanded) {
-                    answer.style.maxHeight = answer.scrollHeight + 'px';
-                } else {
-                    answer.style.maxHeight = '0';
-                }
-            });
-        });
-    </script>
     <!-- Enhanced Analytics -->
     <script src="/therollracademy/js/enhanced-analytics.js"></script>
     <script src="/therollracademy/js/login-modal.js"></script>
