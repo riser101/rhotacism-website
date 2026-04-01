@@ -762,6 +762,17 @@
             flex-shrink: 0;
         }
 
+        /* iPad Responsive */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .text-image-row {
+                flex-direction: column;
+            }
+            .text-image-img {
+                width: 100%;
+                margin: 0 auto;
+            }
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .text-image-row {
@@ -1056,7 +1067,7 @@
                         <p>Which simply means, when a learner watches the correct positioning of tongue when producing the R sound, can speed up the learning process.</p>
                         <p>Adults usually believe that it is too late to <a href="https://www.topspeech.health/therollracademy/guide/rhotacism-adults.html">fix their Rhotacism.</a> <strong>But the truth is people of all ages can improve pronunciation, can improve their R sound speech impediment or the difficulty to pronounce any other word at any age!</strong></p>
                     </div>
-                    <div class="text-image-img" style="display:flex;align-items:center;justify-content:center;height:auto;">
+                    <div class="text-image-img" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:auto;">
                         <div style="position:relative; width:280px; height:560px; border:4px solid #1A202C; border-radius:38px; background:#000; overflow:hidden; cursor:pointer;" onclick="const v=this.querySelector('video'),o=this.querySelector('.play-overlay');if(v.paused){v.play();o.style.opacity='0';}else{v.pause();o.style.opacity='1';}">
                             <!-- iPhone 13 notch -->
                             <span style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:24px;background:#1A202C;border-radius:0 0 16px 16px;z-index:2;"></span>
@@ -1097,6 +1108,7 @@
                             })();
                             </script>
                         </div>
+                        <p style="text-align: center; font-style: italic; color: #64748B; font-size: 14px; margin-top: 8px;">Ref: Rollr app "Growling" Method — visual biofeedback for R sound therapy at 1,700 Hz</p>
                     </div>
                 </div>
 
