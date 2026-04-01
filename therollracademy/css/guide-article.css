@@ -466,6 +466,49 @@ body {
     padding: 24px;
     margin: 24px 0;
     border: 1px solid #E2E8F0;
+    overflow: hidden;
+}
+
+.person-card .person-img {
+    float: right;
+    width: 360px;
+    height: 300px;
+    object-fit: cover;
+    margin: 0 0 12px 20px;
+    background-color: #F8FAFC;
+}
+
+.person-img-wrap {
+    float: right;
+    width: 360px;
+    margin: 0 0 8px 20px;
+    text-align: center;
+    overflow: hidden;
+}
+
+.person-img-wrap .person-img {
+    float: none;
+    margin: 0;
+    display: block;
+    vertical-align: bottom;
+    width: 360px;
+    height: 300px;
+    object-fit: cover;
+}
+
+.img-credit {
+    font-size: 9px !important;
+    color: #94A3B8;
+    margin: 4px 0 0 0 !important;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.img-credit a {
+    color: #94A3B8;
+    text-decoration: none;
 }
 
 .person-card h3 {
@@ -577,6 +620,17 @@ body {
 
     .person-card {
         padding: 20px;
+    }
+
+    .person-img-wrap {
+        width: 100%;
+        float: none;
+        margin: 0 0 8px 0;
+    }
+
+    .person-img-wrap .person-img {
+        width: 100%;
+        height: 260px;
     }
 
     .comparison-table {
