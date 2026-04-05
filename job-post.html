@@ -1,302 +1,476 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deborah Sarfaty, M.A., CCC-SLP - The Rollr Academy</title>
-    <link rel="icon" type="image/png" href="/favicon.png">
-    <link rel="apple-touch-icon" href="/favicon.png">
-    <meta name="description" content="Meet Deborah Sarfaty, Senior Speech Language Pathologist at Kessler Institute for Rehabilitation with expertise in neurological disorders, brain injury, and cognitive rehabilitation.">
-    <link rel="canonical" href="https://topspeech.health/therollracademy/team/deborah-sarfaty.html">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/therollracademy/css/common-gradient.css">
-    <link rel="stylesheet" href="/therollracademy/css/login-modal.css">
-
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-584ZMQTPSE');
-    </script>
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": "https://topspeech.health/therollracademy"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "Team",
-          "item": "https://topspeech.health/therollracademy/about.html"
-        },
-        {
-          "@type": "ListItem",
-          "position": 3,
-          "name": "Deborah Sarfaty",
-          "item": "https://topspeech.health/therollracademy/team/deborah-sarfaty.html"
-        }
-      ]
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join TopSpeech Health — Build things that change how people speak</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/therollracademy/css/nav.css">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    </script>
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    :root {
+      --bg: #0a0a0a;
+      --text: #f0ede6;
+      --teal: #1D9E75;
+      --muted: rgba(240, 237, 230, 0.55);
+      --muted-65: rgba(240, 237, 230, 0.65);
+      --divider: rgba(240, 237, 230, 0.08);
+      --serif: 'DM Serif Display', Georgia, serif;
+      --sans: 'DM Sans', system-ui, sans-serif;
+    }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-weight: 400;
-            line-height: 1.6;
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+    html {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
+    body {
+      min-height: 100vh;
+    }
 
-        /* Header */
-        .header {
-            color: white;
-            padding: 100px 0 30px;
-            text-align: center;
-        }
+    .wrapper {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
 
-        .header::after {
-            content: '';
-            display: block;
-            width: 800px;
-            height: 0.5px;
-            background: rgba(255, 255, 255, 0.3);
-            margin: 30px auto 0;
-        }
+    /* ── Section label ── */
+    .label {
+      font-family: var(--sans);
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 18px;
+    }
 
-        .header h1 {
-            font-family: 'Inter', sans-serif;
-            font-size: 48px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            color: white;
-        }
+    h1 {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(38px, 6vw, 64px);
+      line-height: 1.08;
+    }
 
-        .header .subtitle {
-            font-size: 20px;
-            color: white;
-            max-width: 800px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
+    h2 {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: 28px;
+      line-height: 1.3;
+      margin-bottom: 20px;
+    }
 
-        /* Profile Section */
-        .profile-section {
-            padding: 40px 0;
-            flex: 1;
-        }
+    p {
+      font-size: 15px;
+      line-height: 1.72;
+      color: var(--muted-65);
+    }
 
-        .profile-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: transparent;
-            border-radius: 16px;
-            padding: 60px;
-        }
+    p + p {
+      margin-top: 14px;
+    }
 
-        .profile-header {
-            display: flex;
-            gap: 40px;
-            margin-bottom: 40px;
-            align-items: flex-start;
-        }
+    section {
+      padding-top: 64px;
+    }
 
-        .profile-image {
-            width: 280px;
-            height: 280px;
-            border-radius: 12px;
-            border: 3px solid #000000;
-            background-size: cover;
-            background-position: center;
-            flex-shrink: 0;
-        }
+    .divider {
+      border: none;
+      border-top: 0.5px solid var(--divider);
+      margin-top: 64px;
+    }
 
-        .profile-info {
-            flex: 1;
-        }
+    /* ── Hero ── */
+    .hero {
+      position: relative;
+      padding: 80px 48px 64px;
+      overflow: hidden;
+    }
 
-        .profile-name {
-            font-family: 'Inter', sans-serif;
-            font-size: 36px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 12px;
-        }
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -80px;
+      right: -120px;
+      width: 520px;
+      height: 520px;
+      background: radial-gradient(circle, rgba(29, 158, 117, 0.18) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-        .profile-credentials {
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 600;
-            font-size: 16px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 16px;
-        }
+    .hero > * {
+      position: relative;
+      z-index: 1;
+    }
 
-        .profile-specialty {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 24px;
-        }
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(29, 158, 117, 0.5);
+      color: var(--teal);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 32px;
+    }
 
-        .certification-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #000000;
-            padding: 8px 16px;
-            border-radius: 25px;
-            color: white;
-            font-size: 14px;
-            font-weight: 600;
-        }
+    .pill-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--teal);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
 
-        .certification-badge img {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-        }
+    .hero h1 {
+      margin-bottom: 24px;
+    }
 
-        .profile-content {
-            color: white;
-            line-height: 1.8;
-        }
+    .hero h1 .teal-italic {
+      font-style: italic;
+      color: var(--teal);
+    }
 
-        .section-heading {
-            font-family: 'Inter', sans-serif;
-            font-size: 24px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 16px;
-            margin-top: 32px;
-        }
+    .hero-sub {
+      font-size: 16px;
+      line-height: 1.68;
+      color: var(--muted-65);
+      max-width: 620px;
+      margin-bottom: 32px;
+    }
 
-        .section-heading:first-of-type {
-            margin-top: 0;
-        }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 0;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 400;
+    }
 
-        .profile-content p {
-            margin-bottom: 16px;
-            font-size: 16px;
-        }
+    .meta-row .meta-item {
+      display: flex;
+      align-items: center;
+    }
 
-        .expertise-list {
-            list-style: none;
-            padding: 0;
-            margin: 16px 0;
-        }
+    .meta-row .meta-dot {
+      width: 5px;
+      height: 5px;
+      background: var(--teal);
+      border-radius: 50%;
+      margin: 0 12px;
+      flex-shrink: 0;
+    }
 
-        .expertise-list li {
-            color: white;
-            padding: 8px 0 8px 28px;
-            position: relative;
-            line-height: 1.6;
-        }
+    .meta-row .meta-item:first-child .meta-dot {
+      display: none;
+    }
 
-        .expertise-list li::before {
-            content: '•';
-            position: absolute;
-            left: 0;
-            color: white;
-            font-weight: 400;
-            font-size: 20px;
-        }
+    /* ── Mission ── */
+    .mission h2 {
+      max-width: 600px;
+    }
 
-        .back-link {
-            display: inline-block;
-            margin-top: 40px;
-            color: rgba(255, 255, 255, 0.9);
-            text-decoration: none;
-            font-weight: 400;
-            font-size: 16px;
-            transition: all 0.2s ease;
-        }
+    /* ── Who You Are ── */
+    .traits-intro {
+      max-width: 640px;
+      margin-bottom: 36px;
+    }
 
-        .back-link:hover {
-            text-decoration: underline;
-            color: white;
-        }
+    .traits-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
 
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .header {
-                padding-top: 100px;
-            }
+    .trait-card {
+      background: rgba(240, 237, 230, 0.04);
+      border: 1px solid rgba(240, 237, 230, 0.08);
+      border-radius: 12px;
+      padding: 24px 22px;
+      transition: border-color 0.2s ease;
+    }
 
-            .header h1 {
-                font-size: 36px;
-            }
+    .trait-card:hover {
+      border-color: rgba(29, 158, 117, 0.3);
+    }
 
-            .header .subtitle {
-                font-size: 16px;
-            }
+    .trait-icon {
+      font-size: 18px;
+      margin-bottom: 12px;
+      display: block;
+      color: var(--teal);
+      opacity: 0.8;
+    }
 
-            .profile-container {
-                padding: 40px 30px;
-            }
+    .trait-title {
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
 
-            .profile-header {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-            }
+    .trait-desc {
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: var(--muted);
+      margin: 0;
+    }
 
-            .profile-image {
-                width: 100%;
-                max-width: 280px;
-            }
+    /* ── AI Sandwich ── */
+    .sandwich-box {
+      background: rgba(29, 158, 117, 0.06);
+      border: 1px solid rgba(29, 158, 117, 0.2);
+      border-radius: 14px;
+      padding: 36px 36px 32px;
+      margin-top: 28px;
+    }
 
-            .profile-name {
-                font-size: 28px;
-            }
-        }
+    .sandwich-title {
+      font-family: var(--serif);
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 28px;
+    }
 
-        @media (max-width: 480px) {
-            .header {
-                padding: 80px 0 30px;
-            }
+    .sandwich-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
 
-            .header h1 {
-                font-size: 28px;
-            }
+    .sandwich-step {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
 
-            .profile-container {
-                padding: 30px 20px;
-            }
+    .step-badge {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      background: rgba(29, 158, 117, 0.15);
+      color: var(--teal);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 1px;
+    }
 
-            .profile-name {
-                font-size: 24px;
-            }
-        }
-    </style>
-    <link rel="stylesheet" href="../css/nav.css">
+    .step-content {
+      flex: 1;
+    }
+
+    .step-title {
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+
+    .step-desc {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    /* ── Arrow list ── */
+    .arrow-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 4px;
+    }
+
+    .arrow-list li {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--muted-65);
+    }
+
+    .arrow-list li::before {
+      content: '→';
+      color: var(--teal);
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    /* ── Check list ── */
+    .check-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 4px;
+    }
+
+    .check-list li {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--muted-65);
+    }
+
+    .check-list li::before {
+      content: '✓';
+      color: var(--teal);
+      font-size: 13px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    /* ── Callout block ── */
+    .callout {
+      border-left: 2px solid var(--teal);
+      background: rgba(240, 237, 230, 0.04);
+      border-radius: 0 8px 8px 0;
+      padding: 18px 22px;
+      margin-top: 32px;
+    }
+
+    .callout p {
+      font-size: 15px;
+      font-style: italic;
+      color: var(--muted-65);
+      margin: 0;
+    }
+
+    /* ── CTA Block ── */
+    .cta-section {
+      padding-top: 64px;
+      padding-bottom: 80px;
+    }
+
+    .cta-block {
+      background: rgba(29, 158, 117, 0.08);
+      border: 1px solid rgba(29, 158, 117, 0.2);
+      border-radius: 20px;
+      padding: 56px 48px;
+      text-align: center;
+    }
+
+    .cta-block h2 {
+      font-size: 32px;
+      margin-bottom: 18px;
+    }
+
+    .cta-block .cta-sub {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--muted-65);
+      max-width: 500px;
+      margin: 0 auto 36px;
+    }
+
+    .cta-button {
+      display: inline-block;
+      background: var(--teal);
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      padding: 14px 36px;
+      border-radius: 100px;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      margin-bottom: 16px;
+    }
+
+    .cta-button:hover {
+      opacity: 0.88;
+      transform: translateY(-1px);
+    }
+
+    .cta-email {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.01em;
+    }
+
+    .cta-email:hover {
+      color: var(--teal);
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 600px) {
+      .hero {
+        padding: 56px 0 48px;
+      }
+
+      .hero::after {
+        width: 300px;
+        height: 300px;
+        top: -40px;
+        right: -60px;
+      }
+
+      section {
+        padding-top: 48px;
+      }
+
+      .divider {
+        margin-top: 48px;
+      }
+
+      .traits-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sandwich-box {
+        padding: 28px 22px;
+      }
+
+      .cta-block {
+        padding: 40px 28px;
+      }
+
+      .cta-block h2 {
+        font-size: 26px;
+      }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+  </style>
 </head>
 <body>
-    <nav class="navbar" id="mainNavbar">
+
+  <nav class="navbar" id="mainNavbar">
     <div class="nav-container">
         <div style="display: flex; align-items: center; gap: 20px;">
             <a href="/therollracademy" class="nav-logo" id="navLogoLink">
@@ -385,70 +559,193 @@
 
 
 
+  <!-- ── Hero ── -->
+  <div class="wrapper">
+    <div class="hero">
+      <div class="pill-badge">Open Role · Remote-first</div>
+      <h1>
+        Build things that<br>
+        <span class="teal-italic">change how people speak.</span>
+      </h1>
+      <p class="hero-sub">
+        We're TopSpeech — a speech therapy platform helping people overcome their speech impediments. Millions of people are waiting. We need someone who won't make them wait any longer.
+      </p>
+      <div class="meta-row">
+        <span class="meta-item"><span class="meta-dot"></span>Full-time / Contract</span>
+        <span class="meta-item"><span class="meta-dot"></span>Fully Remote</span>
+        <span class="meta-item"><span class="meta-dot"></span>Equity available</span>
+        <span class="meta-item"><span class="meta-dot"></span>Move fast, ship real</span>
+      </div>
+    </div>
+  </div>
 
+  <hr class="divider">
 
-
-
-    <!-- Header -->
-    <section class="header" id="headerSection">
-        <div class="container">
-            <h1>Advisory Board Member</h1>
-            <p class="subtitle">Meet our clinical experts developing evidence-based speech therapy protocols</p>
-        </div>
+  <!-- ── Mission ── -->
+  <div class="wrapper">
+    <section class="mission">
+      <div class="label">The mission</div>
+      <h2>This is not a widget. This is a clinical tool that changes lives.</h2>
+      <p>
+        Our founder grew up with rhotacism — the inability to produce the 'R' sound — and spent years navigating expensive, inconsistent speech therapy sessions that were hard to access and harder to afford. That experience is the engine behind everything we build. TopSpeech exists because that story shouldn't be as common as it is.
+      </p>
+      <p>
+        Today we run three programmes—Rollr Academy for rhotacism, Stutter Academy for fluency, and Lisp Academy for sibilant sounds—each designed to deliver clinically grounded, state-of-the-art articulation help that used to require a specialist, a waiting list, and a significant bill. We’re changing that equation, one user at a time.
+      </p>
     </section>
+  </div>
 
-    <!-- Profile Section -->
-    <section class="profile-section">
-        <div class="container">
-            <div class="profile-container">
-                <div class="profile-header">
-                    <div class="profile-image" style="background-image: url('../1517282777568.jpeg');"></div>
-                    <div class="profile-info">
-                        <h1 class="profile-name">Deborah Sarfaty</h1>
-                        <div class="profile-credentials">B.S., M.A., Kessler Institute for Rehabilitation</div>
-                        <div class="profile-specialty">Neurological Disorders & Cognitive Rehabilitation</div>
-                        <div class="certification-badge">
-                            <img src="../asha.jpg" alt="ASHA">
-                            <span>ASHA Certified</span>
-                        </div>
-                    </div>
-                </div>
+  <hr class="divider">
 
-                <div class="profile-content">
-                    <h2 class="section-heading">About</h2>
-                    <p>Deborah Sarfaty is a Senior Speech Language Pathologist at Kessler Institute for Rehabilitation, one of the nation's leading rehabilitation hospitals. With over 12 years of experience in rehabilitation settings, Deborah specializes in treating patients with neurological disorders, brain injuries, and cognitive impairments.</p>
+  <!-- ── Who You Are ── -->
+  <div class="wrapper">
+    <section>
+      <div class="label">Who you are</div>
+      <h2>A designer who codes. A thinker who ships.</h2>
+      <p class="traits-intro">
+        You are not primarily a coder. You are a person with taste who happens to be dangerous with a keyboard. You care about the feeling of a screen before you care about the function of a feature. You ship, then you learn, then you ship again — and you find that loop energising rather than exhausting.
+      </p>
+      <div class="traits-grid">
+        <div class="trait-card">
+          <span class="trait-icon">✦</span>
+          <div class="trait-title">UI/UX first</div>
+          <p class="trait-desc">You obsess over the feel before the feature. If it's not delightful to use, it's not done.</p>
+        </div>
+        <div class="trait-card">
+          <span class="trait-icon">⌬</span>
+          <div class="trait-title">Polyglot builder</div>
+          <p class="trait-desc">Swift, Kotlin, TypeScript, Python — you pick up languages like tools, choosing the right one for the job.</p>
+        </div>
+        <div class="trait-card">
+          <span class="trait-icon">◎</span>
+          <div class="trait-title">First-principles thinker</div>
+          <p class="trait-desc">You question the frame before accepting it. You'd rather solve the right problem than solve the wrong one elegantly.</p>
+        </div>
+        <div class="trait-card">
+          <span class="trait-icon">⚡</span>
+          <div class="trait-title">AI-empowered, not AI-dependent</div>
+          <p class="trait-desc">You use AI to amplify your judgment, not replace it. You know when to trust it and when to override it.</p>
+        </div>
+        <div class="trait-card">
+          <span class="trait-icon">◈</span>
+          <div class="trait-title">Iterates at speed</div>
+          <p class="trait-desc">v0.1 is in users' hands by Friday. You learn from the real world, not the hypothetical one.</p>
+        </div>
+        <div class="trait-card">
+          <span class="trait-icon">◐</span>
+          <div class="trait-title">Hungry, not burnt out</div>
+          <p class="trait-desc">Hard problems energise you. Weekends are a vibe, not a boundary — you work because you want to, not because you have to.</p>
+        </div>
+      </div>
+    </section>
+  </div>
 
-                    <p>Her diverse clinical background spans both pediatric and adult populations, giving her a comprehensive understanding of communication disorders across the lifespan. Deborah's expertise in rehabilitation settings brings a unique perspective to speech therapy, particularly for patients recovering from traumatic events.</p>
+  <hr class="divider">
 
-                    <h2 class="section-heading">Clinical Expertise</h2>
-                    <ul class="expertise-list">
-                        <li>Traumatic brain injury rehabilitation</li>
-                        <li>Stroke rehabilitation and recovery</li>
-                        <li>Cognitive rehabilitation therapy</li>
-                        <li>Autism spectrum disorders</li>
-                        <li>Dysarthria and motor speech disorders</li>
-                        <li>Neurological communication disorders</li>
-                        <li>Developmental disabilities</li>
-                    </ul>
-
-                    <h2 class="section-heading">Education & Credentials</h2>
-                    <p>Deborah earned her Master of Arts in Communication Sciences and Disorders with a specialization in Speech Language Pathology from Montclair State University (2010-2013). She also holds a Bachelor of Science in Public Health and Psychology from Rutgers University (1994-1997).</p>
-
-                    <h2 class="section-heading">Professional Experience</h2>
-                    <p>Prior to her current role at Kessler Institute, Deborah gained valuable experience working with pediatric populations at Pediatric Speech-Language Services and the Developmental Learning Center. This combination of pediatric and adult rehabilitation experience provides her with a well-rounded clinical perspective.</p>
-
-                    <h2 class="section-heading">Contributions to The Rollr Academy</h2>
-                    <p>At The Rollr Academy, Deborah contributes her extensive rehabilitation expertise to ensure our programs address the needs of diverse learners. Her experience with neurological conditions and cognitive rehabilitation helps inform our approach to creating accessible, effective speech therapy exercises.</p>
-
-                    <p>Deborah's understanding of how the brain processes and produces speech sounds is invaluable in developing therapeutic protocols that work for users with varying backgrounds and learning styles.</p>
-
-                    <a href="../index.html#advisory-board" class="back-link">← Back to Advisory Board</a>
-                </div>
+  <!-- ── AI Sandwich ── -->
+  <div class="wrapper">
+    <section>
+      <div class="label">How we work</div>
+      <h2>The AI Sandwich method.</h2>
+      <p>We don't treat AI as magic and we don't treat it as a threat. We've developed a working method that keeps human judgment at the centre while letting AI do what it does best: explore the possibility space at speed.</p>
+      <div class="sandwich-box">
+        <div class="sandwich-title">The AI Sandwich</div>
+        <div class="sandwich-steps">
+          <div class="sandwich-step">
+            <div class="step-badge">1</div>
+            <div class="step-content">
+              <div class="step-title">Human intuition first</div>
+              <p class="step-desc">Define the real problem. What's broken, why it matters, what constraints actually exist.</p>
             </div>
+          </div>
+          <div class="sandwich-step">
+            <div class="step-badge">2</div>
+            <div class="step-content">
+              <div class="step-title">AI exploration</div>
+              <p class="step-desc">Blast the problem space. Generate, combine, discard, compare. Use every model and every tool at your disposal.</p>
+            </div>
+          </div>
+          <div class="sandwich-step">
+            <div class="step-badge">3</div>
+            <div class="step-content">
+              <div class="step-title">Human judgment closes it</div>
+              <p class="step-desc">You decide. You filter the AI's output through taste, context, and strategic sense. You take responsibility. Then you ship it.</p>
+            </div>
+          </div>
         </div>
+      </div>
     </section>
+  </div>
 
-    <footer style="background: #000000; color: white; padding: 40px 0;">
+  <hr class="divider">
+
+  <!-- ── What You'll Build ── -->
+  <div class="wrapper">
+    <section>
+      <div class="label">What you'll build</div>
+      <h2>Real product, real users, real stakes.</h2>
+      <ul class="arrow-list">
+        <li>Native iOS and Android features across three therapy programmes</li>
+        <li>State-of-the-art pronunciation feedback, real-time audio analysis, and adaptive learning flows</li>
+        <li>Onboarding experiences, paywalls, and conversion moments that feel human </li>
+        <li>A/B tests, product experiments, and metric-driven iterations at pace</li>
+        <li>The occasional backend work, tooling, and infra when needed</li>
+      </ul>
+    </section>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── Hard Requirements ── -->
+  <div class="wrapper">
+    <section>
+      <div class="label">Hard requirements</div>
+      <h2>The non-negotiables.</h2>
+      <ul class="check-list">
+        <li>Shipped real consumer apps on the App Store and Google Play</li>
+        <li>Portfolio with UI work that makes us say "I wish we made that"</li>
+        <li>Comfortable being a team of one, owning the whole product surface</li>
+        <li>Can move from idea to testable prototype in hours, not weeks</li>
+        <li>Strong opinions, loosely held</li>
+      </ul>
+      <div class="callout">
+        <p>If your last side project ships on a Tuesday and you're iterating by Thursday, you're our person.</p>
+      </div>
+    </section>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── What We Offer ── -->
+  <div class="wrapper">
+    <section>
+      <div class="label">What we offer</div>
+      <h2>No corporate theatre. Just real work.</h2>
+      <ul class="arrow-list">
+        <li>Fully remote, async-friendly</li>
+        <li>Equity stake</li>
+        <li>Ownership over product decisions — your taste, your call</li>
+        <li>Direct access to the founder — no layers, no bureaucracy</li>
+        <li>A product where you can see the impact of unlocking potential of real people</li>
+      </ul>
+    </section>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── CTA ── -->
+  <div class="wrapper">
+    <section class="cta-section">
+      <div class="cta-block">
+        <h2>If you've read this far and felt something — apply.</h2>
+        <p class="cta-sub">Send us your best work along with a resume. Show us something you built that you're genuinely proud of, and tell us why it matters.</p>
+        <a href="mailto:team@topspeech.health" class="cta-button">Apply now →</a>
+        <a href="mailto:team@topspeech.health" class="cta-email">team@topspeech.health</a>
+      </div>
+    </section>
+  </div>
+
+  <footer style="background: #000000; color: white; padding: 40px 0;">
     <div class="container">
         <div class="footer-content" style="display: flex; justify-content: space-between; gap: 40px; margin-bottom: 30px; flex-wrap: wrap; align-items: flex-start;">
             <!-- Brand Section -->
@@ -919,13 +1216,5 @@ async function submitFooterNewsletter(event) {
 
 
 
-
-
-
-
-
-    <!-- Login Modal -->
-    <script src="/therollracademy/js/login-modal.js"></script>
-    <script src="/therollracademy/js/nav.js"></script>
 </body>
 </html>
