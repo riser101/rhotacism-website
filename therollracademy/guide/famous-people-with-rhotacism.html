@@ -27,6 +27,13 @@
     <link rel="stylesheet" href="/therollracademy/css/guide-overlays.css">
     <link rel="stylesheet" href="/therollracademy/css/nav.css">
     <link rel="stylesheet" href="/therollracademy/css/guide-article.css">
+    <style>
+        .article-hero-mobile { display: none; }
+        @media (max-width: 768px) {
+            .article-hero-desktop { display: none; }
+            .article-hero-mobile { display: block; height: auto; object-fit: contain; }
+        }
+    </style>
 
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
     <script>
@@ -305,7 +312,8 @@
                 <a href="../index.html">Home</a> / <a href="../rhotacism-guide.html">Guide</a> / <a href="what-is-rhotacism.html">Rhotacism</a> / Famous People
             </div>
             <div class="article-hero-container">
-                <img src="../famous-people-hero-image .png" alt="Famous people who overcame speech challenges" class="article-hero-image" loading="eager" style="object-position: center; transform: scale(1.05);"/>
+                <img src="../famous-people-hero-image .png" alt="Famous people who overcame speech challenges" class="article-hero-image article-hero-desktop" loading="eager" style="object-position: center; transform: scale(1.05);"/>
+                <img src="../Famous People With Rhotacism Who Turned It Into A Strength.png" alt="Famous people who overcame speech challenges" class="article-hero-image article-hero-mobile" loading="eager"/>
                 <div class="hero-badge-overlay">Inspiration</div>
                 <img src="../website-logo-thick-trans-compress.png" alt="The Rollr Academy" class="hero-logo-overlay">
             </div>
