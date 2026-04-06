@@ -1289,6 +1289,13 @@ font-style: italic;
                 font-size: 20px;
             }
 
+            /* Bridging Content Mobile Styles */
+            .bridging-content h3 {
+                font-size: 22px !important;
+            }
+            .bridging-content p {
+                font-size: 15px !important;
+            }
             /* Comparison Table Mobile Styles */
             .comparison-table {
                 min-width: 100% !important;
@@ -1756,87 +1763,7 @@ font-style: italic;
 </head>
 
 <body>
-    <nav class="navbar" id="mainNavbar">
-        <div class="nav-container">
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <a href="/thestutteracademy" class="nav-logo" id="navLogoLink">
-                    <span class="nav-logo-text">The Stutter Academy</span>
-                    <img src="/therollracademy/instagram-icon.jpg" id="navLogoMobile" class="nav-logo-mobile" alt="The Stutter Academy"
-                        style="height: 28px; width: 28px; border-radius: 6px;">
-                </a>
-                <!-- Company section commented out
-                <div class="nav-dropdown">
-                    <a href="#" class="nav-dropdown-toggle">Company <span class="dropdown-arrow">▼</span></a>
-                    <div class="nav-dropdown-menu">
-                        <a href="/therollracademy/about.html" class="nav-link">About</a>
-                    </div>
-                </div>
-                -->
-
-                <div class="nav-dropdown">
-                    <a href="#" class="nav-dropdown-toggle">Education <span class="dropdown-arrow">▼</span></a>
-                    <div class="nav-dropdown-menu">
-                        <a href="/thestutteracademy/stuttering-guide.html" class="nav-link">Education</a>
-                    </div>
-                </div>
-
-                <div class="nav-dropdown">
-                    <a href="#" class="nav-dropdown-toggle">For SLPs<span class="dropdown-arrow">▼</span></a>
-                    <div class="nav-dropdown-menu">
-                        <a href="/therollracademy/tools.html" class="nav-link">Tools</a>
-                    </div>
-                </div>
-            </div>
-            <ul class="nav-menu">
-                <li class="profile-dropdown">
-                    <div class="profile-circle" onclick="toggleProfileDropdown()">
-                        <span id="profileInitial">U</span>
-                    </div>
-                    <div class="nav-dropdown-menu" id="profileDropdown">
-                        <a href="/thestutteracademy/exercises.html" class="nav-link">Exercises</a>
-                        <a href="#" onclick="logout(); return false;">Logout</a>
-                    </div>
-                </li>
-            </ul>
-            <!-- Mobile Navigation -->
-            <div class="mobile-nav">
-                <!-- Mobile hamburger menu for Company dropdown -->
-                <div class="mobile-hamburger-menu">
-                    <button class="mobile-hamburger-toggle" onclick="toggleMobileCompanyMenu()"
-                        aria-label="Company menu">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </button>
-                    <div class="mobile-company-dropdown" id="mobileCompanyDropdown">
-                        <!-- Company section commented out
-                        <div class="mobile-menu-section">
-                            <div class="mobile-menu-title">Company</div>
-                            <a href="/therollracademy/about.html" class="nav-link">About</a>
-                        </div>
-                        -->
-
-                        <div class="mobile-menu-section">
-                            <div class="mobile-menu-title">Education</div>
-                            <a href="/thestutteracademy/stuttering-guide.html" class="nav-link">Education</a>
-                        </div>
-
-                        <div class="mobile-menu-section">
-                            <div class="mobile-menu-title">For SLPs</div>
-                            <a href="/therollracademy/tools.html" class="nav-link">Tools</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Desktop hamburger menu (hidden on mobile) -->
-            <div class="nav-toggle" onclick="toggleMobileMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </div>
-    </nav>
+    <!-- NAV_PLACEHOLDER -->
 
 
 
@@ -2038,122 +1965,74 @@ font-style: italic;
     <section class="comparison section" style="padding: 80px 0;">
         <div class="container">
             <div class="text-center" style="margin-bottom: 60px;">
-                <h2 style="font-size: 42px; font-weight: 700; color: white; margin-bottom: 20px;">Traditional Therapy
-                    vs. The Stutter Academy</h2>
-                <p style="font-size: 18px; color: white; max-width: 600px; margin: 0 auto;">See why hundreds choose our
-                    modern approach over traditional speech therapy.</p>
+                <h2 style="font-size: 42px; font-weight: 700; color: white; margin-bottom: 20px;">The Stutter Academy</h2>
+                <p style="font-size: 18px; color: white; max-width: 600px; margin: 0 auto;">See why hundreds choose our modern approach.</p>
             </div>
 
             <div style="max-width: 900px; margin: 0 auto;">
-                <div class="comparison-table-wrapper"
-                    style="background: #000000; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                <div class="comparison-table-wrapper" style="background: #000000; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); overflow-x: auto; -webkit-overflow-scrolling: touch;">
                     <table class="comparison-table" style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="background: linear-gradient(135deg, #FF9800, #E65100);">
-                                <th class="comparison-th"
-                                    style="padding: 24px; text-align: left; color: white; font-size: 18px; font-weight: 600; border: none; min-width: 140px;">
-                                    Feature</th>
-                                <th class="comparison-th"
-                                    style="padding: 24px; text-align: center; color: white; font-size: 18px; font-weight: 600; border: none; min-width: 180px;">
-                                    Traditional Therapy</th>
-                                <th class="comparison-th"
-                                    style="padding: 24px; text-align: center; color: white; font-size: 18px; font-weight: 600; border: none; min-width: 180px;">
-                                    The Stutter Academy</th>
+                                <th class="comparison-th" style="padding: 24px; text-align: left; color: white; font-size: 18px; font-weight: 600; border: none; min-width: 140px;">Feature</th>
+                                <th class="comparison-th" style="padding: 24px; text-align: center; color: white; font-size: 18px; font-weight: 600; border: none; min-width: 180px;">The Stutter Academy</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr style="border-bottom: 1px solid #333; background: #000000;">
-                                <td class="comparison-td"
-                                    style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Cost
-                                </td>
-                                <td class="comparison-td"
-                                    style="padding: 20px 24px; text-align: center; color: #999; font-size: 16px;">
-                                    $1,500-$3,000</td>
+                                <td class="comparison-td" style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Cost</td>
                                 <td class="comparison-td" style="padding: 20px 24px; text-align: center;">
-                                    <div
-                                        style="color: #FF9800; font-weight: 600; font-size: 18px; margin-bottom: 12px;">
-                                        $249 complete program</div>
+                                    <div style="color: #FF9800; font-weight: 600; font-size: 18px; margin-bottom: 12px;">$249 complete program</div>
                                     <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
-                                        <span class="comparison-badge"
-                                            style="background: rgba(255, 152, 0, 0.15); color: #FF9800; padding: 2px 6px; border-radius: 8px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2px; border: 1px solid rgba(255, 152, 0, 0.3);">7-Day
-                                            Free Trial</span>
+                                        <span class="comparison-badge" style="background: rgba(255, 152, 0, 0.15); color: #FF9800; padding: 2px 6px; border-radius: 8px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2px; border: 1px solid rgba(255, 152, 0, 0.3);">7-Day Free Trial</span>
                                     </div>
                                 </td>
                             </tr>
                             <tr style="border-bottom: 1px solid #333; background: #000000;">
-                                <td class="comparison-td"
-                                    style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Time to
-                                    Results</td>
-                                <td class="comparison-td"
-                                    style="padding: 20px 24px; text-align: center; color: #999; font-size: 16px;">6-12
-                                    months</td>
-                                <td class="comparison-td"
-                                    style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">
-                                    16 weeks</td>
+                                <td class="comparison-td" style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Time to Results</td>
+                                <td class="comparison-td" style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">16 weeks</td>
                             </tr>
                             <tr style="border-bottom: 1px solid #333; background: #000000;">
-                                <td class="comparison-td"
-                                    style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">
-                                    Appointments</td>
-                                <td class="comparison-td"
-                                    style="padding: 20px 24px; text-align: center; color: #999; font-size: 16px;">Weekly
-                                    scheduled</td>
-                                <td class="comparison-td"
-                                    style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">
-                                    Anytime</td>
+                                <td class="comparison-td" style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Appointments</td>
+                                <td class="comparison-td" style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">Anytime</td>
                             </tr>
                             <tr style="border-bottom: 1px solid #333; background: #000000;">
-                                <td class="comparison-td"
-                                    style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Privacy
-                                </td>
-                                <td class="comparison-td"
-                                    style="padding: 20px 24px; text-align: center; color: #999; font-size: 16px;">
-                                    Face-to-face sessions</td>
-                                <td class="comparison-td"
-                                    style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">
-                                    100% private</td>
+                                <td class="comparison-td" style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Privacy</td>
+                                <td class="comparison-td" style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">100% private</td>
                             </tr>
                             <tr style="background: #000000;">
-                                <td class="comparison-td"
-                                    style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Progress
-                                    Tracking</td>
-                                <td class="comparison-td"
-                                    style="padding: 20px 24px; text-align: center; color: #999; font-size: 16px;">No
-                                    progress tracking</td>
-                                <td class="comparison-td"
-                                    style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">
-                                    Biweekly Progress Analysis</td>
+                                <td class="comparison-td" style="padding: 20px 24px; font-weight: 600; color: #ccc; font-size: 16px;">Progress Tracking</td>
+                                <td class="comparison-td" style="padding: 20px 24px; text-align: center; color: #FF9800; font-weight: 600; font-size: 18px;">Biweekly Progress Analysis</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <script>
-                    // Scroll to show last 2 columns on mobile
-                    document.addEventListener('DOMContentLoaded', function () {
-                        function scrollComparisonTable() {
-                            if (window.innerWidth <= 768) {
-                                const wrapper = document.querySelector('.comparison-table-wrapper');
-                                const table = document.querySelector('.comparison-table');
-                                if (wrapper && table) {
-                                    // Get the width of the first column
-                                    const firstColumn = table.querySelector('th:first-child');
-                                    if (firstColumn) {
-                                        // Scroll to hide the first column
-                                        setTimeout(() => {
-                                            wrapper.scrollLeft = firstColumn.offsetWidth;
-                                        }, 100);
-                                    }
+                document.addEventListener('DOMContentLoaded', function() {
+                    function scrollComparisonTable() {
+                        if (window.innerWidth <= 768) {
+                            const wrapper = document.querySelector('.comparison-table-wrapper');
+                            const table = document.querySelector('.comparison-table');
+                            if (wrapper && table) {
+                                const firstColumn = table.querySelector('th:first-child');
+                                if (firstColumn) {
+                                    setTimeout(() => { wrapper.scrollLeft = firstColumn.offsetWidth; }, 100);
                                 }
                             }
                         }
-
-                        scrollComparisonTable();
-                        window.addEventListener('resize', scrollComparisonTable);
-                    });
+                    }
+                    scrollComparisonTable();
+                    window.addEventListener('resize', scrollComparisonTable);
+                });
                 </script>
 
-
+                <!-- CTA below table -->
+                <div style="text-align: center; margin-top: 40px;">
+                    <a href="https://apps.apple.com/app/stuttr/id6738290775" target="_blank" class="custom-rollr-btn">
+                        Start your 7 Day Free Trial
+                    </a>
+                </div>
             </div>
         </div>
     </section>
