@@ -25,6 +25,29 @@
     <link rel="stylesheet" href="/therollracademy/css/guide-overlays.css">
     <link rel="stylesheet" href="/therollracademy/css/nav.css">
     <link rel="stylesheet" href="/therollracademy/css/guide-article.css">
+    <style>
+        @media (max-width: 768px) {
+            .comparison-table {
+                display: block;
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                white-space: nowrap;
+                font-size: 13px;
+            }
+            .comparison-table th,
+            .comparison-table td {
+                padding: 8px 10px;
+                white-space: normal;
+                word-break: normal;
+                min-width: 90px;
+            }
+            .comparison-table th:first-child,
+            .comparison-table td:first-child {
+                min-width: 80px;
+            }
+        }
+    </style>
 
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
     <script>
