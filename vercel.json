@@ -73,11 +73,6 @@
       "has": [{"type": "host", "value": "rhotacismtherapy.com"}]
     },
     {
-      "source": "/",
-      "destination": "/therollracademy/",
-      "permanent": true
-    },
-    {
       "source": "/index.html",
       "destination": "/therollracademy/",
       "permanent": true
@@ -184,6 +179,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/",
+      "destination": "/therollracademy/index.html"
+    },
     {
       "source": "/therollracademy",
       "destination": "/therollracademy/index.html"
