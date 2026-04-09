@@ -118,11 +118,6 @@
       "permanent": true
     },
     {
-      "source": "/blog.html",
-      "destination": "/therollracademy/blog.html",
-      "permanent": true
-    },
-    {
       "source": "/about.html",
       "destination": "/therollracademy/about.html",
       "permanent": true
