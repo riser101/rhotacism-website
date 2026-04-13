@@ -644,6 +644,9 @@
         }
 
         .phone-frame video {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -726,6 +729,15 @@
 
             .phone-trio {
                 gap: 16px;
+                overflow: hidden;
+            }
+
+            .phone-col {
+                display: none;
+            }
+
+            .phone-col.active {
+                display: block;
             }
 
             .phone-frame {
@@ -733,16 +745,17 @@
                 height: 340px;
                 border-radius: 28px;
                 border-width: 3px;
+                margin: 0 auto;
             }
 
             .phone-notch {
-                width: 70px;
-                height: 18px;
-                border-radius: 0 0 10px 10px;
+                width: 80px;
+                height: 20px;
+                border-radius: 0 0 12px 12px;
             }
 
             .phone-label {
-                font-size: 11px;
+                font-size: 12px;
             }
         }
 
