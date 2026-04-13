@@ -187,20 +187,20 @@
       "destination": "/therollracademy/index.html"
     },
     {
-      "source": "/thelispacademy",
-      "destination": "/thelispacademy/index.html"
+      "source": "/lispspeechclinic",
+      "destination": "/lispspeechclinic/index.html"
     },
     {
-      "source": "/thelispacademy/",
-      "destination": "/thelispacademy/index.html"
+      "source": "/lispspeechclinic/",
+      "destination": "/lispspeechclinic/index.html"
     },
     {
-      "source": "/thestutteracademy",
-      "destination": "/thestutteracademy/index.html"
+      "source": "/stutterfluencycentre",
+      "destination": "/stutterfluencycentre/index.html"
     },
     {
-      "source": "/thestutteracademy/",
-      "destination": "/thestutteracademy/index.html"
+      "source": "/stutterfluencycentre/",
+      "destination": "/stutterfluencycentre/index.html"
     },
     {
       "source": "/therollracademy/guide/understanding-rhotacism",

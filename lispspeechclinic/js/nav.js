@@ -1,7 +1,7 @@
 // Load navigation HTML (or initialize if already in DOM for SEO)
 document.addEventListener('DOMContentLoaded', function() {
     // Use absolute paths for all assets
-    const basePath = '/thestutteracademy';
+    const basePath = '/lispspeechclinic';
 
     // Load login-modal.js script first
     const loginModalScript = document.createElement('script');
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         navAppStoreBadge2.src = basePath + '/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg';
                     }
                     if (navLogoMobile) {
-                        navLogoMobile.src = basePath + '/instagram-icon.jpg';
+                        navLogoMobile.src = '/lispspeechclinic/instagram-icon.jpg';
                     }
                     if (navLogoLink) {
                         navLogoLink.href = basePath;
@@ -213,5 +213,5 @@ window.logout = function() {
     }
 
     // Redirect to home page (the page will automatically update the display on load)
-    window.location.href = '/thestutteracademy';
+    window.location.href = '/lispspeechclinic';
 };
