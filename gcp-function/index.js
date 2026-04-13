@@ -67,34 +67,103 @@ function convertToProperWav(inputBuffer, outputPath) {
   });
 }
 
+function stripDataUrlPrefix(base64OrDataUrl) {
+  if (!base64OrDataUrl) return '';
+  const commaIndex = base64OrDataUrl.indexOf(',');
+  return commaIndex >= 0 ? base64OrDataUrl.slice(commaIndex + 1) : base64OrDataUrl;
+}
+
+async function combineWordAudioToWav(words, outputWavPath) {
+  const tempFiles = [];
+  const listPath = `/tmp/concat_${Date.now()}.txt`;
+
+  try {
+    // Write each word audio to a temp file
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      const base64 = stripDataUrlPrefix(word.audio_base64);
+      if (!base64) continue;
+
+      const buffer = Buffer.from(base64, 'base64');
+      const tempPath = `/tmp/word_${Date.now()}_${i}.audio`;
+      fs.writeFileSync(tempPath, buffer);
+      tempFiles.push(tempPath);
+    }
+
+    if (tempFiles.length === 0) {
+      throw new Error('No valid word audio provided');
+    }
+
+    // Create concat list file for ffmpeg
+    const listBody = tempFiles.map(file => `file '${file}'`).join('\n');
+    fs.writeFileSync(listPath, listBody);
+
+    // Concatenate and convert to the target WAV format
+    await new Promise((resolve, reject) => {
+      ffmpeg()
+        .input(listPath)
+        .inputOptions(['-f concat', '-safe 0'])
+        .toFormat('wav')
+        .audioCodec('pcm_s16le')
+        .audioChannels(1)
+        .audioFrequency(16000)
+        .on('end', resolve)
+        .on('error', reject)
+        .save(outputWavPath);
+    });
+  } finally {
+    // Clean up temp files
+    tempFiles.forEach((file) => {
+      if (fs.existsSync(file)) fs.unlinkSync(file);
+    });
+    if (fs.existsSync(listPath)) fs.unlinkSync(listPath);
+  }
+}
+
 // Helper function to call Gemini API
-async function analyzeWithGemini(wavBuffer) {
+async function analyzeWithGemini(wavBuffer, speakerContext = {}) {
   const base64Audio = wavBuffer.toString('base64');
 
-  const prompt = `You are a speech-language pathologist conducting a rhotacism assessment.
-The patient said 8 words in sequence: red, car, tree, around, forest, problem, girl, world.
+  const country = speakerContext.country || 'Unspecified';
+  const region = speakerContext.region || 'Unspecified';
+  const f3Data = speakerContext.f3Data || 'No frequency data available.';
 
-Analyze each word's /r/ sound and provide:
+  const prompt = `You are a speech-language pathologist conducting a rhotacism assessment. The patient said 8 words in sequence: red, car, tree, around, forest, problem, girl, world.
 
-1. A markdown table with 8 rows (one per word) with these columns:
+Speaker context (use this to interpret accent, slang, and acoustic norms):
+- Country: ${country}
+- Region: ${region}
+
+Account for regional accent and slang from the speaker's country/region. For example, a non-rhotic dialect (e.g. British RP, Australian) may legitimately drop postvocalic /r/ — do NOT penalise that as an error if it matches the dialect's expected production.
+
+You are provided with:
+1. The combined audio recording of all 8 words
+2. Frequency analysis data for each word, including where the /r/ sound occurs:
+
+${f3Data}
+
+Use BOTH the audio AND the frequency data to make your assessment:
+- trough_f3 = lowest F3 found in the word
+- trough_f3_f2_gap = distance between F3 and F2 at the same instant the F3 trough occurs. This is the key /r/ marker — it tells you exactly where the dip is:
+    * SMALL gap (~<500) → F3 collapsed onto F2 → correct /r/
+    * LARGE gap (>1000) → F3 stayed high → likely /w/ substitution or missing /r/
+    * In-between → distorted or weak /r/
+
+Analyze each word's /r/ sound and provide a markdown table with 8 rows (one per word) with these columns:
    - Word: The target word
    - Heard: Exact transcription of what you heard (e.g., "wed" if /r/ was /w/)
    - Judgment: Accurate / Substituted / Distorted / Omitted
-   - Quality: R sound quality score 0-100 (100 = perfect rhotic, 0 = no rhotic quality)
+   - Quality: R sound quality score 0-100 (100 = perfect R, 0 = no R sound at all)
    - Observation: Brief clinical note (10-15 words)
 
-2. After the table, provide a GRI (Global Rhoticity Index) score 0-100 based on:
-   - Percentage of accurate productions
-   - Severity of errors (substitutions worse than distortions)
-   - Consistency across phonetic environments
+Be strict in detecting /w/ or /l/ substitutions. If you hear "wed" instead of "red", mark Substituted with low Quality score.
 
-Be strict in detecting /w/ or /l/ substitutions.
 If a word is unclear or missing, put "—" in Heard, "No Audio" in Judgment, and 0 for Quality.
 
-Respond with ONLY the table and GRI score.
-GRI: [score]`;
+IMPORTANT: NO technical terms like formant, Hz, spectrogram, phoneme, etc.
+Do NOT output a GRI score — that is computed separately. Respond with ONLY the table.`;
 
-  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${process.env.GEMINI_API_KEY}`;
+  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
   const requestBody = {
     contents: [{
@@ -104,7 +173,7 @@ GRI: [score]`;
       ]
     }],
     generationConfig: {
-      temperature: 0.3,
+      temperature: 0.0,
       maxOutputTokens: 16000
     }
   };
@@ -152,6 +221,12 @@ functions.http('analyzeSpeech', async (req, res) => {
     }
 
     try {
+      // Extract geo from GCP/Cloud Run headers (set automatically by load balancer)
+      const country = req.headers['x-appengine-country'] || req.headers['x-country'] || 'Unspecified';
+      const region = req.headers['x-appengine-region'] || req.headers['x-region'] || 'Unspecified';
+      const speakerContext = { country, region };
+      console.log('🌍 Geo headers — country:', country, 'region:', region);
+
       // Handle different content types
       let audioBuffer;
 
@@ -168,18 +243,24 @@ functions.http('analyzeSpeech', async (req, res) => {
           }
 
           audioBuffer = req.file.buffer;
-          await processAudio(audioBuffer, res);
+          await processAudio(audioBuffer, res, speakerContext);
         });
       } else if (req.headers['content-type']?.includes('application/json')) {
         // Handle JSON with base64 audio
-        const { audioData } = req.body;
+        const { audioData, f3Data, words } = req.body;
 
-        if (!audioData) {
+        if (!audioData && (!Array.isArray(words) || words.length === 0)) {
           return res.status(400).json({ error: 'Audio data required' });
         }
 
-        audioBuffer = Buffer.from(audioData, 'base64');
-        await processAudio(audioBuffer, res);
+        if (f3Data) speakerContext.f3Data = f3Data;
+
+        if (Array.isArray(words) && words.length > 0) {
+          await processAudio({ words }, res, speakerContext);
+        } else {
+          audioBuffer = Buffer.from(audioData, 'base64');
+          await processAudio(audioBuffer, res, speakerContext);
+        }
       } else {
         return res.status(400).json({ error: 'Unsupported content type' });
       }
@@ -192,14 +273,23 @@ functions.http('analyzeSpeech', async (req, res) => {
 });
 
 // Helper function to process audio
-async function processAudio(audioBuffer, res) {
+async function processAudio(audioInput, res, speakerContext = {}) {
   try {
-    console.log('🔧 Processing audio buffer of size:', audioBuffer.length);
+    if (audioInput && audioInput.words) {
+      console.log('🔧 Processing per-word audio count:', audioInput.words.length);
+    } else {
+      console.log('🔧 Processing audio buffer of size:', audioInput.length);
+    }
+    console.log('🌍 Speaker context:', speakerContext);
 
     const outputWavPath = `/tmp/output_${Date.now()}.wav`;
 
     // Convert browser audio (whatever format) to proper WAV format for Gemini
-    await convertToProperWav(audioBuffer, outputWavPath);
+    if (audioInput && audioInput.words) {
+      await combineWordAudioToWav(audioInput.words, outputWavPath);
+    } else {
+      await convertToProperWav(audioInput, outputWavPath);
+    }
 
     // Read the converted WAV file
     const wavBuffer = fs.readFileSync(outputWavPath);
@@ -209,7 +299,7 @@ async function processAudio(audioBuffer, res) {
     fs.unlinkSync(outputWavPath);
 
     // Analyze with Gemini
-    const result = await analyzeWithGemini(wavBuffer);
+    const result = await analyzeWithGemini(wavBuffer, speakerContext);
 
     res.status(200).json({ result });
 

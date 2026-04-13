@@ -14,6 +14,68 @@
     <link rel="stylesheet" href="/therollracademy/css/common-gradient.css">
     <link rel="stylesheet" href="/therollracademy/css/login-modal.css">
 
+    <!-- Firebase SDK (modular, from CDN) -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
+        import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js';
+        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithCredential } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMttgCdssC5eilsw08XcS5QxNURmvXhNg",
+            authDomain: "rollr-academy.firebaseapp.com",
+            projectId: "rollr-academy",
+            storageBucket: "rollr-academy.firebasestorage.app",
+            messagingSenderId: "9267895976",
+            appId: "1:9267895976:web:65729695ff15eb81526c9d",
+            measurementId: "G-1MQSVLDQ13"
+        };
+
+        const firebaseApp = initializeApp(firebaseConfig);
+        const storage = getStorage(firebaseApp);
+        const auth = getAuth(firebaseApp);
+
+        // Sign in anonymously as fallback so uploads always work
+        signInAnonymously(auth).catch(err => console.warn('Firebase anonymous auth failed:', err));
+
+        // Expose upload function globally for use by recording logic
+        window.uploadRecordingToFirebase = async function(blob, word, wordIndex) {
+            try {
+                const userAuth = JSON.parse(localStorage.getItem('userAuth') || 'null');
+                const userId = userAuth?.id || 'anonymous';
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const filePath = `recordings/${userId}/${timestamp}_${wordIndex}_${word}.webm`;
+
+                const storageRef = ref(storage, filePath);
+                const metadata = {
+                    contentType: 'audio/webm',
+                    customMetadata: {
+                        word: word,
+                        wordIndex: String(wordIndex),
+                        userId: userId,
+                        userEmail: userAuth?.email || 'unknown',
+                        assessmentDate: new Date().toISOString()
+                    }
+                };
+
+                await uploadBytes(storageRef, blob, metadata);
+                console.log(`Uploaded recording: ${filePath}`);
+            } catch (err) {
+                console.error(`Failed to upload recording for "${word}":`, err);
+            }
+        };
+
+        // If user is already logged in with Google, upgrade to Google auth in Firebase
+        window.upgradeFirebaseAuth = async function(googleCredentialToken) {
+            try {
+                const credential = GoogleAuthProvider.credential(googleCredentialToken);
+                await signInWithCredential(auth, credential);
+                console.log('Firebase auth upgraded to Google credential');
+            } catch (err) {
+                console.warn('Firebase Google auth upgrade failed, continuing with anonymous:', err);
+            }
+        };
+    </script>
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
     <script>
@@ -1071,6 +1133,7 @@
         const TOTAL_STEPS = 5;
         const TEST_WORDS = ['red', 'car', 'tree', 'around', 'forest', 'problem', 'girl', 'world'];
         const GCP_ANALYZE_URL = 'https://us-central1-detache-platform.cloudfunctions.net/analyzeSpeech';
+        //const GCP_ANALYZE_URL = 'http://localhost:8080';
         const FORMEASY_URL = 'https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec';
 
         // Recording state
@@ -1467,6 +1530,11 @@
             const blob = new Blob(audioChunks, { type: 'audio/webm' });
             wordRecordings.push(blob);
 
+            // Upload individual word recording to Firebase Storage
+            if (typeof window.uploadRecordingToFirebase === 'function') {
+                window.uploadRecordingToFirebase(blob, TEST_WORDS[currentWordIndex], currentWordIndex);
+            }
+
             // Store base64 for playback on results page
             const b64 = await blobToBase64(blob);
             wordRecordingsB64[TEST_WORDS[currentWordIndex]] = b64;
@@ -1511,18 +1579,73 @@
             });
         }
 
+        const FORMANT_URL = 'https://extract-formants-653307587559.us-central1.run.app';
+
+        // Extract F3 formant data from individual word recordings
+        async function extractFormantData() {
+            try {
+                const wordEntries = [];
+                for (let i = 0; i < TEST_WORDS.length; i++) {
+                    const b64 = wordRecordingsB64[TEST_WORDS[i]];
+                    if (b64) {
+                        // Strip the data URL prefix (data:audio/webm;base64,)
+                        const audioOnly = b64.includes(',') ? b64.split(',')[1] : b64;
+                        wordEntries.push({ word: TEST_WORDS[i], audio_base64: audioOnly });
+                    }
+                }
+
+                const resp = await fetch(FORMANT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ words: wordEntries })
+                });
+
+                if (!resp.ok) throw new Error('Formant extraction error: ' + resp.status);
+
+                const results = await resp.json();
+                console.log('✅ Formant data:', results);
+
+                // Format as JSON string matching the app's format
+                return JSON.stringify(results.map(e => ({
+                    word: e.word,
+                    trough_f3: e.trough_f3 || 0,
+                    trough_f3_f2_gap: e.trough_f3_f2_gap || -1,
+                    duration_ms: e.duration_ms || 0
+                })), null, 2);
+            } catch (err) {
+                console.warn('⚠️ Formant extraction failed, proceeding without F3 data:', err);
+                return null;
+            }
+        }
+
         // Send combined audio to GCP backend for analysis
         async function sendAudioToBackend() {
             try {
-                // Combine all word blobs into one audio file
-                const combinedBlob = new Blob(wordRecordings, { type: 'audio/webm' });
-                const base64Audio = await blobToBase64(combinedBlob);
-                console.log('Sending audio to backend... size:', base64Audio.length);
+                // Run formant extraction and audio prep in parallel
+                const [f3Data, wordEntries] = await Promise.all([
+                    extractFormantData(),
+                    (async () => {
+                        const entries = [];
+                        for (let i = 0; i < TEST_WORDS.length; i++) {
+                            const word = TEST_WORDS[i];
+                            const b64 = wordRecordingsB64[word];
+                            if (b64) {
+                                entries.push({ word: word, audio_base64: b64 });
+                            }
+                        }
+                        return entries;
+                    })()
+                ]);
+
+                console.log('Sending per-word audio to backend... count:', wordEntries.length);
+
+                const payload = { words: wordEntries };
+                if (f3Data) payload.f3Data = f3Data;
 
                 const resp = await fetch(GCP_ANALYZE_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ audioData: base64Audio })
+                    body: JSON.stringify(payload)
                 });
 
                 if (!resp.ok) throw new Error('Backend error: ' + resp.status + ' - ' + (await resp.text()));
@@ -1545,15 +1668,8 @@
         // Parse markdown table response into structured JSON
         function parseAnalysisResponse(rawText) {
             const words = [];
-            let griScore = 50;
 
             for (const line of rawText.split('\n')) {
-                // Extract GRI score
-                if (line.toLowerCase().includes('gri:')) {
-                    const m = line.match(/GRI:\s*(\d+)/i);
-                    if (m) griScore = Math.min(100, Math.max(0, parseInt(m[1])));
-                    continue;
-                }
                 // Extract table rows (skip headers/separators)
                 const cells = line.split('|').map(c => c.trim()).filter(c => c);
                 if (cells.length >= 5 && !cells[0].includes('---') && cells[0].toLowerCase() !== 'word') {
@@ -1563,6 +1679,12 @@
                     });
                 }
             }
+
+            // Compute GRI as mean of per-word qualities across all 8 expected words
+            // Words missing from the table count as 0 quality
+            const totalWords = TEST_WORDS.length;
+            const qualitySum = words.reduce((sum, w) => sum + w.quality, 0);
+            const griScore = Math.min(100, Math.max(0, Math.round(qualitySum / totalWords)));
 
             return { result: rawText, gri: griScore, words: words };
         }
