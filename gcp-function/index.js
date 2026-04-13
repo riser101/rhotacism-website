@@ -94,7 +94,7 @@ If a word is unclear or missing, put "—" in Heard, "No Audio" in Judgment, and
 Respond with ONLY the table and GRI score.
 GRI: [score]`;
 
-  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro:generateContent?key=${process.env.GEMINI_API_KEY}`;
+  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
   const requestBody = {
     contents: [{
