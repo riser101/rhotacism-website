@@ -415,69 +415,6 @@
             background: #E07830;
         }
 
-        /* Inline row playback buttons */
-        .row-playback {
-            display: flex;
-            gap: 6px;
-            margin-top: 6px;
-        }
-
-        .row-play-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: opacity 0.15s;
-        }
-
-        .row-play-btn:hover { opacity: 0.8; }
-        .row-play-btn:active { opacity: 0.65; }
-
-        .row-play-btn.target-btn {
-            background: #E2E8F0;
-            color: #4A5568;
-        }
-
-        .row-play-btn.recording-btn {
-            background: #E8842A;
-            color: white;
-        }
-
-        .row-play-btn svg {
-            width: 12px;
-            height: 12px;
-            flex-shrink: 0;
-        }
-
-        .row-play-btn.target-btn svg { fill: #4A5568; }
-        .row-play-btn.recording-btn svg { fill: white; }
-
-        /* Quality circular gauge */
-        .quality-gauge {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .quality-gauge svg {
-            transform: rotate(-90deg);
-        }
-
-        .quality-gauge-label {
-            font-size: 12px;
-            font-weight: 700;
-            fill: currentColor;
-        }
-
-        .quality-red { color: #DC2626; }
-        .quality-yellow { color: #D97706; }
-        .quality-green { color: #16A34A; }
-
         /* GRI Hero Gauge */
         .gri-hero {
             display: flex;
@@ -812,12 +749,12 @@
             <!-- Analysis Report -->
             <div class="analysis-report">
                 <!-- GRI Hero Gauge -->
-                <div class="report-section" id="griSection" style="display:none;">
+                <!-- <div class="report-section" id="griSection" style="display:none;">
                     <div class="gri-hero">
                         <div class="gri-gauge-container" id="griGauge"></div>
                         <p class="gri-description">The <strong>Global Rhoticity Index (GRI)</strong> is a composite score from 0–100 that measures your overall /r/ sound accuracy. It factors in the percentage of correct productions, severity of errors (substitutions are weighted more heavily than distortions), and consistency across different phonetic environments — initial, medial, final, and vocalic /r/.</p>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Voice Analysis Section -->
                 <div class="report-section">
@@ -830,7 +767,7 @@
                 </div>
 
                                 <!-- App Demo Video -->
-                <div class="video-showcase">
+                <!-- <div class="video-showcase">
                     <h2 class="section-title">See the Rollr App in Action</h2>
                     <p class="video-description">Watch how the app delivers real-time feedback, guided exercises, and detailed progress tracking to help you master your /r/ sound.</p>
                     <div class="phone-trio" id="phoneTrio">
@@ -876,7 +813,7 @@
                         <button class="showcase-dot" data-idx="1"></button>
                         <button class="showcase-dot" data-idx="2"></button>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Estimated Timeline -->
                 <div class="report-section">
@@ -956,9 +893,6 @@
         // CONFIG
         // =============================================
         const TEST_WORDS = ['red', 'car', 'tree', 'around', 'forest', 'problem', 'girl', 'world'];
-        const TARGET_AUDIO_PATH = '/therollracademy/target-audio/';
-        let currentAudio = null;
-        let wordRecordingsB64 = {};
 
         // Personalize with user's name
         const userName = new URLSearchParams(window.location.search).get('name')
@@ -976,7 +910,6 @@
             gtag('event', 'results_page_view', { event_category: 'engagement', event_label: 'assessment_completion' });
             loadAnalysisFromStorage();
             enhanceTableRows();
-            loadPlaybackSection();
         });
 
         // =============================================
@@ -1166,94 +1099,14 @@
                 var matchedWord = TEST_WORDS.find(function(w) { return w === cellText; });
                 if (!matchedWord) return;
 
-                // Bold the word and heard text
+                // Bold the word; leave heard text in default weight
                 wordCell.innerHTML = '<strong>' + wordCell.textContent.trim() + '</strong>';
-                heardCell.innerHTML = '<strong>' + heardCell.textContent.trim() + '</strong>';
+                heardCell.textContent = heardCell.textContent.trim();
 
-                // Replace quality number with circular gauge
+                // Plain quality score, no color or gauge
                 var score = parseInt(qualityCell.textContent.trim()) || 0;
-                var colorClass = score <= 30 ? 'red' : score <= 70 ? 'yellow' : 'green';
-                var colors = { red: '#DC2626', yellow: '#D97706', green: '#16A34A' };
-                var r = 16, stroke = 4, circ = 2 * Math.PI * r;
-                var offset = circ - (score / 100) * circ;
-                var size = (r + stroke) * 2;
-                qualityCell.innerHTML =
-                    '<div class="quality-gauge quality-' + colorClass + '">' +
-                        '<svg width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '">' +
-                            '<circle cx="' + (r + stroke) + '" cy="' + (r + stroke) + '" r="' + r + '" fill="none" stroke="#E2E8F0" stroke-width="' + stroke + '"/>' +
-                            '<circle cx="' + (r + stroke) + '" cy="' + (r + stroke) + '" r="' + r + '" fill="none" stroke="' + colors[colorClass] + '" stroke-width="' + stroke + '" stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '" stroke-linecap="round"/>' +
-                            '<text x="' + (r + stroke) + '" y="' + (r + stroke) + '" text-anchor="middle" dominant-baseline="central" class="quality-gauge-label" transform="rotate(90 ' + (r + stroke) + ' ' + (r + stroke) + ')">' + score + '</text>' +
-                        '</svg>' +
-                    '</div>';
+                qualityCell.textContent = score;
             });
-        }
-
-        function loadPlaybackSection() {
-            try {
-                var stored = localStorage.getItem('wordRecordings');
-                if (stored) wordRecordingsB64 = JSON.parse(stored);
-            } catch (e) { return; }
-
-            if (Object.keys(wordRecordingsB64).length === 0) return;
-
-            var container = document.getElementById('voiceAnalysisContent');
-            if (!container) return;
-            var rows = container.querySelectorAll('tbody tr');
-
-            rows.forEach(function(tr) {
-                var tds = tr.querySelectorAll('td');
-                if (tds.length < 2) return;
-
-                var wordCell = tds[0];
-                var heardCell = tds[1];
-                // Get word from the bold text we already set
-                var wordStrong = wordCell.querySelector('strong');
-                var cellText = wordStrong ? wordStrong.textContent.trim().toLowerCase() : wordCell.textContent.trim().toLowerCase();
-                var matchedWord = TEST_WORDS.find(function(w) { return w === cellText; });
-                if (!matchedWord) return;
-
-                var hasRecording = !!wordRecordingsB64[matchedWord];
-
-                // Target button under Word column
-                var targetDiv = document.createElement('div');
-                targetDiv.className = 'row-playback';
-                targetDiv.innerHTML = '<button class="row-play-btn target-btn" onclick="event.stopPropagation();playTargetAudio(\'' + matchedWord + '\')">' +
-                    '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>' +
-                    'Target</button>';
-                wordCell.appendChild(targetDiv);
-
-                // Yours button under Heard column
-                if (hasRecording) {
-                    var yoursDiv = document.createElement('div');
-                    yoursDiv.className = 'row-playback';
-                    yoursDiv.innerHTML = '<button class="row-play-btn recording-btn" onclick="event.stopPropagation();playUserRecording(\'' + matchedWord + '\')">' +
-                        '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>' +
-                        'Yours</button>';
-                    heardCell.appendChild(yoursDiv);
-                }
-            });
-        }
-
-        function playTargetAudio(word) {
-            stopCurrentAudio();
-            currentAudio = new Audio(TARGET_AUDIO_PATH + word.toLowerCase() + '-female.mpga');
-            currentAudio.play().catch(function(e) { console.error('Target audio error:', e); });
-        }
-
-        function playUserRecording(word) {
-            stopCurrentAudio();
-            var b64 = wordRecordingsB64[word];
-            if (!b64) return;
-            currentAudio = new Audio('data:audio/webm;base64,' + b64);
-            currentAudio.play().catch(function(e) { console.error('Recording playback error:', e); });
-        }
-
-        function stopCurrentAudio() {
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-                currentAudio = null;
-            }
         }
 
         // =============================================
