@@ -576,10 +576,6 @@
             width: 100%;
         }
 
-        @media (max-width: 480px) {
-            .blend-row { grid-template-columns: 36px repeat(3, minmax(0, 1fr)); }
-        }
-
         .cta-section {
             background: #F7FAFC;
             border: 2px solid #E2E8F0;
@@ -758,6 +754,20 @@
             .nav-menu { display: none; }
             .cta-section img { width: 160px; }
             .sources-grid { grid-template-columns: 1fr; }
+
+            .blend-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .blend-row .blend-prefix {
+                width: 100%;
+                margin-bottom: 0;
+            }
+            .blend-row .word-chip {
+                width: auto;
+                text-align: center;
+            }
         }
     </style>
     <link rel="stylesheet" href="/therollracademy/css/nav.css">
