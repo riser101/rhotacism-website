@@ -1801,13 +1801,14 @@ Learn more about <a
 
                 <div class="hero-cta-container">
                     <div class="cta-buttons" style="width: 100%;">
-                        <form id="waitlistForm" class="waitlist-form" style="flex: 2.4; display: flex; gap: 12px; margin: 0; max-width: none;">
-                            <input type="email" id="waitlistEmail" placeholder="Enter your email" required
-                                class="waitlist-input" style="flex: 1;">
-                            <button type="submit" id="waitlistSubmit" class="btn btn-primary hero-main-cta" style="padding: 15px 24px !important; min-height: auto !important; font-size: 18px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 600; white-space: nowrap; min-width: 240px;">Sign Up</button>
-                        </form>
+                        <a href="assessment.html" class="btn btn-primary hero-main-cta" style="flex: 2.4; padding: 15px 16px !important; min-height: auto !important; font-size: 18px;" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'hero_cta' }); posthog.capture('assessment_started_from_home', { section: 'hero_cta' });">Take Free 2-Mins Clinical Assessment</a>
+                        <div class="nav-toggle">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
                     </div>
-                    <p class="urgency-text" style="width: 100%; justify-content: center;">✓ Priority access | ✓ No wait times | ✓ Expert guided path</p>
+                    <p class="urgency-text">✓ No appointments needed | ✓ Practice anytime, anywhere | ✓ Confidence boost in 2 Weeks</p>
                 </div>
             </div>
             <div class="hero-image-wrapper">
