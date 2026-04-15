@@ -1,0 +1,17 @@
+{
+  "name": "lisp-speech-analyzer",
+  "version": "1.0.0",
+  "description": "GCP Cloud Function: combines per-word audio and analyzes sigmatism (lisp) with Gemini using client-side FFT metrics.",
+  "main": "index.js",
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.4.0",
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "multer": "^1.4.5-lts.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.0"
+  }
+}

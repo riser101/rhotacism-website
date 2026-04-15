@@ -511,4 +511,162 @@ class SpectrogramAudioProcessor {
             navigator.vibrate(50); // 50ms vibration
         }
     }
+
+    // ===== Sibilant Analysis (S-sound Assessment) =====
+
+    /**
+     * Reset sibilant detection state between words
+     */
+    resetSibilantState() {
+        this._sibilantFrameCount = 0;
+        this._sibilantHistory = [];
+    }
+
+    /**
+     * Analyze a single audio frame for sibilant (/s/) characteristics.
+     * Returns an object with frequency metrics or null for silent frames.
+     *
+     * @param {number[]} samples - raw PCM samples for one frame
+     * @param {boolean}  forceAnalyze - if true, skip the isSibilant gate
+     * @returns {object|null}
+     */
+    analyzeSibilantFrame(samples, forceAnalyze = false) {
+        const n = samples.length;
+        if (n === 0) return null;
+
+        // --- RMS energy ---
+        let rmsSum = 0;
+        for (let i = 0; i < n; i++) rmsSum += samples[i] * samples[i];
+        const rms = Math.sqrt(rmsSum / n);
+
+        // Skip very quiet frames unless forced
+        if (!forceAnalyze && rms < 0.005) return null;
+
+        // --- Hann window ---
+        const windowed = new Float32Array(n);
+        for (let i = 0; i < n; i++) {
+            const w = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (n - 1));
+            windowed[i] = samples[i] * w;
+        }
+
+        // --- Zero-pad to next power of 2 ---
+        let fftSize = 1;
+        while (fftSize < n) fftSize <<= 1;
+
+        const re = new Float32Array(fftSize);
+        const im = new Float32Array(fftSize);
+        for (let i = 0; i < n; i++) re[i] = windowed[i];
+
+        this._fftRadix2(re, im);
+
+        // --- Magnitude spectrum (first half) ---
+        const half = fftSize / 2;
+        const magnitudes = new Float32Array(half);
+        for (let i = 0; i < half; i++) {
+            magnitudes[i] = Math.sqrt(re[i] * re[i] + im[i] * im[i]);
+        }
+
+        const sr = this.sampleRate || 44100;
+        const binWidth = sr / fftSize;
+
+        // --- Spectral centroid ---
+        let weightedSum = 0;
+        let magSum = 0;
+        for (let i = 1; i < half; i++) {
+            const freq = i * binWidth;
+            weightedSum += freq * magnitudes[i];
+            magSum += magnitudes[i];
+        }
+        const centroidHz = magSum > 0 ? weightedSum / magSum : 0;
+
+        // --- Overall peak frequency ---
+        let maxMag = 0;
+        let peakBin = 0;
+        for (let i = 1; i < half; i++) {
+            if (magnitudes[i] > maxMag) {
+                maxMag = magnitudes[i];
+                peakBin = i;
+            }
+        }
+        const peakHz = peakBin * binWidth;
+
+        // --- Sibilant-band peak (3 000 – 10 000 Hz) ---
+        const sibilantMinBin = Math.floor(3000 / binWidth);
+        const sibilantMaxBin = Math.min(Math.ceil(10000 / binWidth), half - 1);
+        let sibilantMaxMag = 0;
+        let sibilantPeakBin = 0;
+        for (let i = sibilantMinBin; i <= sibilantMaxBin; i++) {
+            if (magnitudes[i] > sibilantMaxMag) {
+                sibilantMaxMag = magnitudes[i];
+                sibilantPeakBin = i;
+            }
+        }
+        const sibilantPeakHz = sibilantPeakBin * binWidth;
+
+        // --- High-frequency energy ratio (above 4 000 Hz) ---
+        const hfCutoffBin = Math.floor(4000 / binWidth);
+        let hfEnergy = 0;
+        let totalEnergy = 0;
+        for (let i = 1; i < half; i++) {
+            const e = magnitudes[i] * magnitudes[i];
+            totalEnergy += e;
+            if (i >= hfCutoffBin) hfEnergy += e;
+        }
+        const hfRatio = totalEnergy > 0 ? hfEnergy / totalEnergy : 0;
+
+        // --- Sibilant gate ---
+        const isSibilant = forceAnalyze || (
+            rms >= 0.01 &&
+            hfRatio >= 0.3 &&
+            centroidHz >= 3500 &&
+            sibilantPeakHz >= 3000
+        );
+
+        this._sibilantFrameCount = (this._sibilantFrameCount || 0) + (isSibilant ? 1 : 0);
+
+        return {
+            isSibilant,
+            rms,
+            centroidHz,
+            peakHz,
+            sibilantPeakHz,
+            hfRatio
+        };
+    }
+
+    /**
+     * In-place radix-2 FFT (used by analyzeSibilantFrame)
+     */
+    _fftRadix2(re, im) {
+        const n = re.length;
+        let j = 0;
+        for (let i = 0; i < n; i++) {
+            if (i < j) {
+                let tmp = re[i]; re[i] = re[j]; re[j] = tmp;
+                tmp = im[i]; im[i] = im[j]; im[j] = tmp;
+            }
+            let m = n >> 1;
+            while (j >= m && m >= 2) { j -= m; m >>= 1; }
+            j += m;
+        }
+        for (let size = 2; size <= n; size <<= 1) {
+            const halfSize = size >> 1;
+            const step = (2 * Math.PI) / size;
+            for (let i = 0; i < n; i += size) {
+                for (let k = 0; k < halfSize; k++) {
+                    const angle = step * k;
+                    const wr = Math.cos(angle);
+                    const wi = -Math.sin(angle);
+                    const tRe = wr * re[i + k + halfSize] - wi * im[i + k + halfSize];
+                    const tIm = wr * im[i + k + halfSize] + wi * re[i + k + halfSize];
+                    const uRe = re[i + k];
+                    const uIm = im[i + k];
+                    re[i + k] = uRe + tRe;
+                    im[i + k] = uIm + tIm;
+                    re[i + k + halfSize] = uRe - tRe;
+                    im[i + k + halfSize] = uIm - tIm;
+                }
+            }
+        }
+    }
 }
