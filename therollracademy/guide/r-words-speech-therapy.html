@@ -1318,10 +1318,26 @@
                 });
             });
 
+            var PLAYED_KEY = 'rwords_played';
+            var playedSet = {};
+            try {
+                var savedPlayed = JSON.parse(localStorage.getItem(PLAYED_KEY));
+                if (savedPlayed && typeof savedPlayed === 'object') playedSet = savedPlayed;
+            } catch(e) {}
+
+            function savePlayed() {
+                try { localStorage.setItem(PLAYED_KEY, JSON.stringify(playedSet)); } catch(e) {}
+            }
+
             document.querySelectorAll('.word-chip.playable').forEach(function(chip) {
                 chip.setAttribute('role', 'button');
                 chip.setAttribute('tabindex', '0');
                 chip.setAttribute('aria-label', 'Play pronunciation: ' + chip.textContent.trim());
+
+                var src = chip.getAttribute('data-audio');
+                if (src && playedSet[src]) {
+                    chip.classList.add('is-completed');
+                }
 
                 function play() {
                     var src = chip.getAttribute('data-audio');
@@ -1342,6 +1358,8 @@
                     audio.addEventListener('ended', function() {
                         chip.classList.remove('is-playing');
                         chip.classList.add('is-completed');
+                        playedSet[src] = true;
+                        savePlayed();
                         if (currentAudio === audio) {
                             currentAudio = null;
                             currentChip = null;
@@ -1435,15 +1453,32 @@
 
     <script>
         (function() {
+            var STORAGE_KEY = 'rwords_recordings';
             var chips = document.querySelectorAll('.word-chip.playable');
             if (!chips.length) return;
 
-            var recordings = {}; // keyed by chip data-audio
+            var recordings = {}; // keyed by chip data-audio, values are data URIs
             var activeBtn = null;
             var mediaRecorder = null;
             var recordedChunks = [];
             var activeStream = null;
             var userAudio = null;
+
+            // Load saved recordings from localStorage
+            try {
+                var saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                if (saved && typeof saved === 'object') recordings = saved;
+            } catch(e) {}
+
+            function saveToStorage() {
+                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(recordings)); } catch(e) {}
+            }
+
+            function blobToDataURI(blob, cb) {
+                var reader = new FileReader();
+                reader.onloadend = function() { cb(reader.result); };
+                reader.readAsDataURL(blob);
+            }
 
             function stopUserAudio() {
                 if (userAudio) { userAudio.pause(); userAudio = null; }
@@ -1503,10 +1538,14 @@
                         }
                         if (recordedChunks.length) {
                             var blob = new Blob(recordedChunks, { type: 'audio/webm' });
-                            if (recordings[key]) URL.revokeObjectURL(recordings[key]);
-                            recordings[key] = URL.createObjectURL(blob);
+                            blobToDataURI(blob, function(dataURI) {
+                                recordings[key] = dataURI;
+                                saveToStorage();
+                                updateBtnState(btn, chip);
+                            });
+                        } else {
+                            updateBtnState(btn, chip);
                         }
-                        updateBtnState(btn, chip);
                     });
                     mediaRecorder.start();
                     updateBtnState(btn, chip);
