@@ -386,6 +386,66 @@
             height: 48px;
         }
 
+        .waitlist-form-results {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .waitlist-form-results .waitlist-input {
+            flex: 1;
+            min-width: 0;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 2px solid #000000;
+            background: transparent;
+            color: #000000;
+            font-size: 16px;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .waitlist-form-results .waitlist-input::placeholder {
+            color: rgba(0, 0, 0, 0.45);
+        }
+
+        .waitlist-form-results .waitlist-input:focus {
+            border-color: #000000;
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .waitlist-form-results .waitlist-submit {
+            padding: 16px 28px;
+            background: #000000;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+
+        .waitlist-form-results .waitlist-submit:hover {
+            transform: translateY(-1px);
+            background: #1a1a1a;
+        }
+
+        .waitlist-form-results .waitlist-submit:disabled {
+            opacity: 0.7;
+            cursor: default;
+        }
+
+        @media (max-width: 520px) {
+            .waitlist-form-results {
+                flex-direction: column;
+            }
+        }
+
         .alternative-link {
             margin-top: 20px;
             padding-top: 20px;
@@ -874,11 +934,12 @@
                         </ul>
                     </div>
                     <div class="app-download-card">
-                        <h4>Continue with Guided Practice</h4>
-                        <p>Available on iPhone & iPad</p>
-                        <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="app-store-badge" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'results_page' });">
-                            <img src="Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store">
-                        </a>
+                        <h4>Join the Waitlist</h4>
+                        <p>Get priority access to the Lisp Speech Clinic program</p>
+                        <form id="waitlistFormResults" class="waitlist-form-results">
+                            <input type="email" id="waitlistEmailResults" placeholder="Enter your email" required class="waitlist-input">
+                            <button type="submit" id="waitlistSubmitResults" class="waitlist-submit">Sign Up</button>
+                        </form>
                         <div class="alternative-link">
                             <a href="lisp-guide.html">Read our free practice guide →</a>
                         </div>
@@ -1211,6 +1272,45 @@
     <script src="/lispspeechclinic/js/enhanced-analytics.js"></script>
     <script src="/lispspeechclinic/js/login-modal.js"></script>
     <script src="/lispspeechclinic/js/nav.js"></script>
+
+    <script>
+        (function () {
+            const form = document.getElementById('waitlistFormResults');
+            if (!form) return;
+            const emailInput = document.getElementById('waitlistEmailResults');
+            const submitBtn = document.getElementById('waitlistSubmitResults');
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const email = emailInput.value;
+                if (!email || !email.includes('@')) return;
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Joining...';
+
+                try {
+                    await fetch('https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec', {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            email: email,
+                            source: 'lispspeechclinic_waitlist',
+                            timestamp: new Date().toISOString(),
+                            page: window.location.pathname
+                        })
+                    });
+                } catch (err) { /* no-cors: treat as success */ }
+
+                emailInput.value = '';
+                emailInput.style.display = 'none';
+                submitBtn.textContent = 'Thank you! You are in our priority list!';
+                submitBtn.style.whiteSpace = 'normal';
+                submitBtn.style.width = '100%';
+                submitBtn.style.flex = '1';
+            });
+        })();
+    </script>
 
     <!-- Footer Placeholder -->
     <!-- FOOTER_PLACEHOLDER -->
