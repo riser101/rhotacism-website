@@ -463,6 +463,56 @@
             text-decoration: underline;
         }
 
+        /* Audio playback buttons — Surgical Sage palette */
+        .cell-play-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            margin-top: 2px;
+            padding: 3px 7px;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .cell-play-btn.btn-target {
+            background: #E0E7E2;
+            color: #3A5A40;
+        }
+
+        .cell-play-btn.btn-target:hover {
+            background: #d0ddd3;
+        }
+
+        .cell-play-btn.btn-target.playing {
+            background: #c4d4c8;
+        }
+
+        .cell-play-btn.btn-yours {
+            background: #F4F7F5;
+            color: #5E807F;
+        }
+
+        .cell-play-btn.btn-yours:hover {
+            background: #e6edea;
+        }
+
+        .cell-play-btn.btn-yours.playing {
+            background: #dce5e1;
+        }
+
+        .cell-play-btn svg {
+            width: 9px;
+            height: 9px;
+            flex-shrink: 0;
+        }
+
         /* Sticky header row for analysis tables */
         .analysis-table-wrapper thead {
             position: -webkit-sticky;
@@ -1143,10 +1193,76 @@
         // =============================================
         // PLAYBACK SECTION
         // =============================================
+        var activeAudio = null;
+        var activeBtn = null;
+
+        function stopActiveAudio() {
+            if (activeAudio) {
+                activeAudio.pause();
+                activeAudio.currentTime = 0;
+                activeAudio = null;
+            }
+            if (activeBtn) {
+                activeBtn.classList.remove('playing');
+                activeBtn.innerHTML = playIcon + activeBtn.dataset.label;
+                activeBtn = null;
+            }
+        }
+
+        var playIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="7,3 21,12 7,21"/></svg>';
+        var stopIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="14" height="16"/></svg>';
+
+        function createPlayButton(src, label) {
+            var btn = document.createElement('button');
+            btn.className = 'cell-play-btn ' + (label === 'Target' ? 'btn-target' : 'btn-yours');
+            btn.dataset.label = label;
+            btn.innerHTML = playIcon + label;
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (activeBtn === btn) {
+                    stopActiveAudio();
+                    return;
+                }
+                stopActiveAudio();
+                var audio = new Audio(src);
+                activeAudio = audio;
+                activeBtn = btn;
+                btn.classList.add('playing');
+                btn.innerHTML = stopIcon + label;
+                audio.play().catch(function() {});
+                audio.addEventListener('ended', function() {
+                    btn.classList.remove('playing');
+                    btn.innerHTML = playIcon + label;
+                    activeAudio = null;
+                    activeBtn = null;
+                });
+            });
+            return btn;
+        }
+
+        var MODEL_AUDIO_MAP = {
+            'sun':     '/lispspeechclinic/target-audio/sun.mp3',
+            'soap':    '/lispspeechclinic/target-audio/soap.mp3',
+            'seven':   '/lispspeechclinic/target-audio/seven.mp3',
+            'pencil':  '/lispspeechclinic/target-audio/pencil.mp3',
+            'glasses': '/lispspeechclinic/target-audio/glasses.mp3',
+            'bicycle': '/lispspeechclinic/target-audio/bicycle.mp3',
+            'bus':     '/lispspeechclinic/target-audio/bus.mp3',
+            'mouse':   '/lispspeechclinic/target-audio/mouse.mp3',
+            'glass':   '/lispspeechclinic/target-audio/glass.mp3'
+        };
+
         function enhanceTableRows() {
             var container = document.getElementById('voiceAnalysisContent');
             if (!container) return;
             var rows = container.querySelectorAll('tbody tr');
+
+            // Load user recordings from localStorage
+            var userRecordings = {};
+            try {
+                var stored = localStorage.getItem('wordRecordings');
+                if (stored) userRecordings = JSON.parse(stored);
+            } catch (e) {}
 
             rows.forEach(function(tr) {
                 var tds = tr.querySelectorAll('td');
@@ -1160,8 +1276,20 @@
                 var matchedWord = TEST_WORDS.find(function(w) { return w === cellText; });
                 if (!matchedWord) return;
 
-                wordCell.innerHTML = '<strong>' + wordCell.textContent.trim() + '</strong>';
-                heardCell.textContent = heardCell.textContent.trim();
+                // Word text + Target play button on next line
+                wordCell.innerHTML = '<div><strong>' + wordCell.textContent.trim() + '</strong></div>';
+                if (MODEL_AUDIO_MAP[matchedWord]) {
+                    wordCell.appendChild(createPlayButton(MODEL_AUDIO_MAP[matchedWord], 'Target'));
+                }
+
+                // Heard text + Yours play button on next line
+                var heardText = heardCell.textContent.trim();
+                heardCell.innerHTML = '<div>' + heardText + '</div>';
+                if (userRecordings[matchedWord]) {
+                    var b64 = userRecordings[matchedWord];
+                    var src = b64.startsWith('data:') ? b64 : 'data:audio/webm;base64,' + b64;
+                    heardCell.appendChild(createPlayButton(src, 'Yours'));
+                }
 
                 var score = parseInt(qualityCell.textContent.trim()) || 0;
                 var severity;
@@ -1175,6 +1303,15 @@
             var ths = container.querySelectorAll('thead th');
             ths.forEach(function(th) {
                 if (th.textContent.trim().toLowerCase() === 'quality') th.textContent = 'Severity';
+            });
+
+            // Swap Heard (col 2) and Position (col 1)
+            var allRows = container.querySelectorAll('tr');
+            allRows.forEach(function(tr) {
+                var cells = tr.children;
+                if (cells.length >= 3) {
+                    tr.insertBefore(cells[2], cells[1]);
+                }
             });
         }
 

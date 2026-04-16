@@ -403,6 +403,56 @@
             text-decoration: underline;
         }
 
+        /* Audio playback buttons — Surgical Sage palette */
+        .cell-play-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            margin-top: 2px;
+            padding: 3px 7px;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .cell-play-btn.btn-target {
+            background: #E0E7E2;
+            color: #3A5A40;
+        }
+
+        .cell-play-btn.btn-target:hover {
+            background: #d0ddd3;
+        }
+
+        .cell-play-btn.btn-target.playing {
+            background: #c4d4c8;
+        }
+
+        .cell-play-btn.btn-yours {
+            background: #F4F7F5;
+            color: #5E807F;
+        }
+
+        .cell-play-btn.btn-yours:hover {
+            background: #e6edea;
+        }
+
+        .cell-play-btn.btn-yours.playing {
+            background: #dce5e1;
+        }
+
+        .cell-play-btn svg {
+            width: 9px;
+            height: 9px;
+            flex-shrink: 0;
+        }
+
         /* Sticky header row for analysis tables */
         .analysis-table-wrapper thead {
             position: -webkit-sticky;
@@ -1082,10 +1132,75 @@
         // =============================================
         // PLAYBACK SECTION
         // =============================================
+        var MODEL_AUDIO_MAP = {
+            'red':     '/therollracademy/target-audio/red-female.mpga',
+            'car':     '/therollracademy/target-audio/car-female.mpga',
+            'tree':    '/therollracademy/target-audio/tree-female.mpga',
+            'around':  '/therollracademy/target-audio/around-female.mpga',
+            'forest':  '/therollracademy/target-audio/forest-female.mpga',
+            'problem': '/therollracademy/target-audio/problem-female.mpga',
+            'girl':    '/therollracademy/target-audio/girl-female.mpga',
+            'world':   '/therollracademy/target-audio/world-female.mpga'
+        };
+
+        var activeAudio = null;
+        var activeBtn = null;
+
+        function stopActiveAudio() {
+            if (activeAudio) {
+                activeAudio.pause();
+                activeAudio.currentTime = 0;
+                activeAudio = null;
+            }
+            if (activeBtn) {
+                activeBtn.classList.remove('playing');
+                activeBtn.innerHTML = playIcon + activeBtn.dataset.label;
+                activeBtn = null;
+            }
+        }
+
+        var playIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="7,3 21,12 7,21"/></svg>';
+        var stopIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="14" height="16"/></svg>';
+
+        function createPlayButton(src, label) {
+            var btn = document.createElement('button');
+            btn.className = 'cell-play-btn ' + (label === 'Target' ? 'btn-target' : 'btn-yours');
+            btn.dataset.label = label;
+            btn.innerHTML = playIcon + label;
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (activeBtn === btn) {
+                    stopActiveAudio();
+                    return;
+                }
+                stopActiveAudio();
+                var audio = new Audio(src);
+                activeAudio = audio;
+                activeBtn = btn;
+                btn.classList.add('playing');
+                btn.innerHTML = stopIcon + label;
+                audio.play().catch(function() {});
+                audio.addEventListener('ended', function() {
+                    btn.classList.remove('playing');
+                    btn.innerHTML = playIcon + label;
+                    activeAudio = null;
+                    activeBtn = null;
+                });
+            });
+            return btn;
+        }
+
         function enhanceTableRows() {
             var container = document.getElementById('voiceAnalysisContent');
             if (!container) return;
             var rows = container.querySelectorAll('tbody tr');
+
+            // Load user recordings from localStorage
+            var userRecordings = {};
+            try {
+                var stored = localStorage.getItem('wordRecordings');
+                if (stored) userRecordings = JSON.parse(stored);
+            } catch (e) {}
 
             rows.forEach(function(tr) {
                 var tds = tr.querySelectorAll('td');
@@ -1099,11 +1214,23 @@
                 var matchedWord = TEST_WORDS.find(function(w) { return w === cellText; });
                 if (!matchedWord) return;
 
-                // Bold the word; leave heard text in default weight
-                wordCell.innerHTML = '<strong>' + wordCell.textContent.trim() + '</strong>';
-                heardCell.textContent = heardCell.textContent.trim();
+                // Bold the word + play button on next line
+                var wordText = wordCell.textContent.trim();
+                wordCell.innerHTML = '<div><strong>' + wordText + '</strong></div>';
+                if (MODEL_AUDIO_MAP[matchedWord]) {
+                    wordCell.appendChild(createPlayButton(MODEL_AUDIO_MAP[matchedWord], 'Target'));
+                }
 
-                // Plain quality score, no color or gauge
+                // Heard text + play button on next line
+                var heardText = heardCell.textContent.trim();
+                heardCell.innerHTML = '<div>' + heardText + '</div>';
+                if (userRecordings[matchedWord]) {
+                    var b64 = userRecordings[matchedWord];
+                    var src = b64.startsWith('data:') ? b64 : 'data:audio/webm;base64,' + b64;
+                    heardCell.appendChild(createPlayButton(src, 'Yours'));
+                }
+
+                // Plain quality score
                 var score = parseInt(qualityCell.textContent.trim()) || 0;
                 qualityCell.textContent = score;
             });
