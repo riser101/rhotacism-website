@@ -326,6 +326,18 @@
             letter-spacing: 0.2px;
         }
 
+        /* Static panel (same styled box as accordion, no toggle) */
+        .static-panel {
+            margin: 20px 0 28px;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            background: #FFFFFF;
+            overflow: hidden;
+        }
+        .static-panel-body {
+            padding: 14px 16px;
+        }
+
         /* Accordion */
         .accordion-group { margin: 20px 0 28px; }
 
@@ -973,15 +985,17 @@
 
                 </div><!-- /.accordion-group prevocalic -->
 
-                <div class="word-group">
-                    <span class="word-group-label">R Blends</span>
-                    <div class="blend-row"><span class="blend-prefix">br:</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/bread.mp3">bread</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/bring.mp3">bring</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/brown.mp3">brown</span></div>
-                    <div class="blend-row"><span class="blend-prefix">cr:</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/crab.mp3">crab</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/cream.mp3">cream</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/cross.mp3">cross</span></div>
-                    <div class="blend-row"><span class="blend-prefix">dr:</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/drum.mp3">drum</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/dream.mp3">dream</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/drive.mp3">drive</span></div>
-                    <div class="blend-row"><span class="blend-prefix">fr:</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/frog.mp3">frog</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/free.mp3">free</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/fresh.mp3">fresh</span></div>
-                    <div class="blend-row"><span class="blend-prefix">gr:</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/green.mp3">green</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/grab.mp3">grab</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/grin.mp3">grin</span></div>
-                    <div class="blend-row"><span class="blend-prefix">pr:</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/press.mp3">press</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/proud.mp3">proud</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/print.mp3">print</span></div>
-                    <div class="blend-row"><span class="blend-prefix">tr:</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/tree.mp3">tree</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/trip.mp3">trip</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/trust.mp3">trust</span></div>
+                <h3 class="static-panel-heading">R Blends</h3>
+                <div class="static-panel">
+                    <div class="static-panel-body">
+                        <div class="blend-row"><span class="blend-prefix">br:</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/bread.mp3">bread</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/bring.mp3">bring</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/brown.mp3">brown</span></div>
+                        <div class="blend-row"><span class="blend-prefix">cr:</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/crab.mp3">crab</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/cream.mp3">cream</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/cross.mp3">cross</span></div>
+                        <div class="blend-row"><span class="blend-prefix">dr:</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/drum.mp3">drum</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/dream.mp3">dream</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/drive.mp3">drive</span></div>
+                        <div class="blend-row"><span class="blend-prefix">fr:</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/frog.mp3">frog</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/free.mp3">free</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/fresh.mp3">fresh</span></div>
+                        <div class="blend-row"><span class="blend-prefix">gr:</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/green.mp3">green</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/grab.mp3">grab</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/grin.mp3">grin</span></div>
+                        <div class="blend-row"><span class="blend-prefix">pr:</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/press.mp3">press</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/proud.mp3">proud</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/print.mp3">print</span></div>
+                        <div class="blend-row"><span class="blend-prefix">tr:</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/tree.mp3">tree</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/trip.mp3">trip</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-words/r-blends-words/trust.mp3">trust</span></div>
+                    </div>
                 </div>
                 <div style="display: flex; justify-content: center;">
                     <script src="https://f.convertkit.com/ckjs/ck.5.js"></script>
