@@ -1582,7 +1582,7 @@
             var tocLinks = document.querySelectorAll('.toc-sidebar a');
             if (!tocLinks.length || !tocNav) return;
             var heroEl = document.querySelector('.article-header');
-            var footerEl = document.querySelector('footer') || document.querySelector('[class*="footer"]');
+            var footerEl = null;
             var sections = [];
             tocLinks.forEach(function(link) {
                 var id = link.getAttribute('href').replace('#', '');
@@ -1593,6 +1593,8 @@
             function onScroll() {
                 var scrollY = window.scrollY + 120;
                 var shouldShow = true;
+
+                if (!footerEl) footerEl = document.querySelector('footer');
 
                 if (heroEl) {
                     var heroTop = heroEl.getBoundingClientRect().top + window.scrollY;
