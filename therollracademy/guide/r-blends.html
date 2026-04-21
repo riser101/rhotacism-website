@@ -211,6 +211,38 @@
             background: #F7FAFC;
         }
 
+        /* Practice tooltip */
+        .word-chip-tooltip {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0F172A;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 8px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .word-chip-tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #0F172A;
+        }
+        .word-chip-tooltip.is-visible {
+            opacity: 1;
+        }
+
         /* Word Chips */
         .word-chips {
             display: flex;
@@ -516,6 +548,220 @@
         .source-link svg { transition: transform 0.2s ease; }
         .source-link:hover svg { transform: translateX(3px); }
 
+        /* Reduce top space above first section */
+        #intro .section-title {
+            margin-top: 0;
+        }
+
+        /* Article + ToC wrapper */
+        .article-with-toc {
+            position: relative;
+        }
+
+        /* Fixed sidebar */
+        .toc-sidebar {
+            position: fixed;
+            top: 170px;
+            left: max(12px, calc((100vw - 1200px) / 2 - 260px));
+            width: 220px;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .toc-sidebar.is-visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .toc-inner {
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            max-height: calc(100vh - 160px);
+            overflow-y: auto;
+        }
+
+        /* "In This Article" heading */
+        .toc-sidebar .toc-heading {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0;
+            color: #FFFFFF;
+            margin-bottom: 0;
+            line-height: 1.3;
+        }
+
+        /* Summary blurb */
+        .sidebar-summary {
+            font-size: 13.5px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.6);
+            margin: 0;
+        }
+
+        /* Sidebar date */
+        .sidebar-date {
+            font-size: 12.5px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Sidebar CTA */
+        .toc-sidebar a.sidebar-cta {
+            display: block;
+            text-align: center;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #FFFFFF;
+            background: #E85700;
+            border-radius: 12px;
+            text-decoration: none;
+            border-left: none;
+            transition: background 0.3s ease;
+        }
+
+        .toc-sidebar a.sidebar-cta:hover {
+            color: #FFFFFF;
+            background: #000000;
+        }
+
+        /* Trust badge */
+        .sidebar-trust {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 16px;
+        }
+
+        .sidebar-trust-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: rgba(255, 255, 255, 0.85);
+            text-align: center;
+            margin: 0 0 8px;
+        }
+
+        .sidebar-stars {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .sidebar-stars svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .sidebar-stars-score {
+            font-size: 13px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .sidebar-trust-text {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .sidebar-divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            margin: 0;
+        }
+
+        /* Contents heading above ToC links */
+        .toc-contents-heading {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: rgba(255, 255, 255, 0.5);
+            margin: 0;
+        }
+
+        .toc-sidebar ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .toc-sidebar li {
+            margin-bottom: 2px;
+        }
+
+        .toc-sidebar a {
+            display: block;
+            font-size: 15px;
+            line-height: 1.55;
+            color: rgba(255, 255, 255, 0.55);
+            text-decoration: none;
+            padding: 6px 14px;
+            border-left: 2px solid transparent;
+            border-radius: 0 4px 4px 0;
+            transition: color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .toc-sidebar a:hover {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .toc-sidebar a.is-active {
+            color: #FFFFFF;
+            border-left-color: #EA580C;
+            font-weight: 600;
+        }
+
+        /* Mobile ToC accordion — hidden on desktop */
+        .toc-mobile {
+            display: none;
+        }
+
+        @media (max-width: 1700px) {
+            .toc-sidebar {
+                width: 180px;
+                left: 10px;
+            }
+            .toc-sidebar .toc-heading {
+                font-size: 14px;
+            }
+            .sidebar-summary {
+                font-size: 12px;
+            }
+            .toc-sidebar a {
+                font-size: 13px;
+            }
+            .article-header .article-hero-content,
+            .article-with-toc .article-content {
+                margin-left: 210px;
+                margin-right: 20px;
+                max-width: calc(100vw - 250px);
+            }
+            .article-header .article-hero-content {
+                padding-left: 0;
+            }
+        }
+
+        @media (max-width: 1100px) {
+            .toc-sidebar {
+                display: none;
+            }
+            .toc-mobile {
+                display: block;
+            }
+            .article-header .article-hero-content,
+            .article-with-toc .article-content {
+                margin-left: auto;
+                margin-right: auto;
+                max-width: 1200px;
+            }
+        }
+
         /* FAQ Accordion */
         .faq-accordion { display: flex; flex-direction: column; gap: 0; }
         .faq-item { border-bottom: 1px solid #E2E8F0; }
@@ -621,16 +867,41 @@
             </div>
 
             <h1 class="article-title">R Blends: Word Lists, Activities & Practice Tips</h1>
-            <p class="article-subtitle">Learn what r blends are, why they're so difficult, and how to master every consonant blend — with structured word lists, pronunciation techniques, games, and evidence-based practice strategies for parents, educators, and learners.</p>
             <p class="article-byline"><img src="../images/calendar.png" class="byline-icon" alt="Published date"><span class="byline-date">April 20, 2026</span> <img src="../images/institution.png" class="byline-icon" alt="Author"><span class="byline-author">By RollrAcademy</span> <img src="../images/hourglass.png" class="byline-icon" alt="Read time"><span class="byline-read-time">10 min read</span></p>
         </div>
     </section>
 
-    <!-- Article Content -->
-    <article class="article-content">
+    <!-- Article Content with ToC sidebar -->
+    <div class="article-with-toc">
+        <nav class="toc-sidebar" aria-label="Table of contents">
+            <div class="toc-inner">
+                <p class="toc-heading">In This Article</p>
+                <p class="sidebar-summary">R blends are some of the hardest sounds in English — and one of the most fixable. A science-backed guide for parents, teens, educators, and adults who are done guessing.</p>
 
-        <!-- Table of Contents -->
-        <div class="content-section">
+                <div class="sidebar-trust">
+                    <p class="sidebar-trust-label">100+ speech recordings analysed.</p>
+                    
+                </div>
+                <a href="https://topspeech.health/therollracademy/assessment.html" class="sidebar-cta" onclick="gtag('event', 'assessment_click', { event_category: 'conversion', event_label: 'sidebar_cta_rblends' });">Take the Free Assessment</a>
+                
+
+                <hr class="sidebar-divider">
+                <p class="toc-contents-heading">Contents</p>
+                <ul>
+                    <li><a href="#intro">Introduction</a></li>
+                    <li><a href="#what-are-r-blends">What Are R Blend Words?</a></li>
+                    <li><a href="#pronunciation">Pronunciation Techniques</a></li>
+                    <li><a href="#practice">Practice Strategies</a></li>
+                    <li><a href="#advanced">Advanced Techniques</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                    <li><a href="#sources">Sources</a></li>
+                </ul>
+            </div>
+        </nav>
+        <article class="article-content">
+
+        <!-- Mobile ToC (accordion, hidden on desktop) -->
+        <div class="toc-mobile content-section">
             <div class="faq-accordion">
                 <div class="faq-item">
                     <button class="faq-question" aria-expanded="false">
@@ -978,6 +1249,7 @@
             </div>
         </div>
     </article>
+    </div><!-- /.article-with-toc -->
 
     <script>
         let lastScrollTop = 0;
@@ -1300,6 +1572,93 @@
 
                 btn.addEventListener('click', function(e) { onButtonClick(e, btn, chip); });
                 btn.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+            });
+        })();
+    </script>
+
+    <script>
+        (function() {
+            var tocNav = document.querySelector('.toc-sidebar');
+            var tocLinks = document.querySelectorAll('.toc-sidebar a');
+            if (!tocLinks.length || !tocNav) return;
+            var heroEl = document.querySelector('.article-header');
+            var sections = [];
+            tocLinks.forEach(function(link) {
+                var id = link.getAttribute('href').replace('#', '');
+                var el = document.getElementById(id);
+                if (el) sections.push({ id: id, el: el, link: link });
+            });
+
+            function onScroll() {
+                var scrollY = window.scrollY + 120;
+
+                if (heroEl) {
+                    var heroTop = heroEl.getBoundingClientRect().top + window.scrollY;
+                    if (scrollY < heroTop) {
+                        tocNav.classList.remove('is-visible');
+                    } else {
+                        tocNav.classList.add('is-visible');
+                    }
+                }
+
+                var atBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 50);
+                var active = null;
+                if (atBottom) {
+                    active = sections[sections.length - 1];
+                } else {
+                    for (var i = sections.length - 1; i >= 0; i--) {
+                        var rect = sections[i].el.getBoundingClientRect();
+                        if (rect.top <= 130) {
+                            active = sections[i];
+                            break;
+                        }
+                    }
+                }
+                tocLinks.forEach(function(l) { l.classList.remove('is-active'); });
+                if (active) active.link.classList.add('is-active');
+            }
+
+            window.addEventListener('scroll', onScroll, { passive: true });
+            onScroll();
+        })();
+    </script>
+
+    <script>
+        (function() {
+            if (!('IntersectionObserver' in window)) return;
+
+            document.querySelectorAll('.word-chips').forEach(function(container) {
+                var activeTip = null;
+
+                var io = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        var firstChip = container.querySelector('.word-chip.playable');
+                        if (!firstChip) return;
+
+                        if (entry.isIntersecting && !activeTip) {
+                            firstChip.style.position = 'relative';
+                            var tip = document.createElement('span');
+                            tip.className = 'word-chip-tooltip';
+                            tip.textContent = 'Click to practice.';
+                            firstChip.appendChild(tip);
+                            activeTip = tip;
+
+                            requestAnimationFrame(function() {
+                                tip.classList.add('is-visible');
+                            });
+
+                            var dismiss = function() {
+                                tip.classList.remove('is-visible');
+                                setTimeout(function() { if (tip.parentNode) tip.parentNode.removeChild(tip); }, 300);
+                                activeTip = null;
+                                firstChip.removeEventListener('click', dismiss);
+                            };
+                            firstChip.addEventListener('click', dismiss);
+                            setTimeout(dismiss, 4000);
+                        }
+                    });
+                }, { threshold: 0.3 });
+                io.observe(container);
             });
         })();
     </script>
