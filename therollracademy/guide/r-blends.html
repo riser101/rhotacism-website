@@ -1582,6 +1582,7 @@
             var tocLinks = document.querySelectorAll('.toc-sidebar a');
             if (!tocLinks.length || !tocNav) return;
             var heroEl = document.querySelector('.article-header');
+            var footerEl = document.querySelector('footer') || document.querySelector('[class*="footer"]');
             var sections = [];
             tocLinks.forEach(function(link) {
                 var id = link.getAttribute('href').replace('#', '');
@@ -1591,14 +1592,22 @@
 
             function onScroll() {
                 var scrollY = window.scrollY + 120;
+                var shouldShow = true;
 
                 if (heroEl) {
                     var heroTop = heroEl.getBoundingClientRect().top + window.scrollY;
-                    if (scrollY < heroTop) {
-                        tocNav.classList.remove('is-visible');
-                    } else {
-                        tocNav.classList.add('is-visible');
-                    }
+                    if (scrollY < heroTop) shouldShow = false;
+                }
+
+                if (footerEl) {
+                    var footerRect = footerEl.getBoundingClientRect();
+                    if (footerRect.top < window.innerHeight) shouldShow = false;
+                }
+
+                if (shouldShow) {
+                    tocNav.classList.add('is-visible');
+                } else {
+                    tocNav.classList.remove('is-visible');
                 }
 
                 var atBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 50);
