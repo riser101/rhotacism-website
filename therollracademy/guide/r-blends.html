@@ -295,9 +295,11 @@
             transform: translateY(-1px);
         }
 
+
         .word-chip.playable:hover,
         .word-chip.playable:has(.hover-rec.is-recording),
-        .word-chip.playable:has(.hover-rec.is-ready) {
+        .word-chip.playable:has(.hover-rec.is-ready),
+        .accordion-item.is-open .word-chip.playable:first-child {
             padding-right: 34px;
         }
 
@@ -362,7 +364,8 @@
         }
         .word-chip.playable:hover .hover-rec,
         .hover-rec.is-recording,
-        .hover-rec.is-ready {
+        .hover-rec.is-ready,
+        .accordion-item.is-open .word-chip.playable:first-child .hover-rec {
             opacity: 1;
             pointer-events: auto;
             transform: translateY(-50%) scale(1);
@@ -429,6 +432,8 @@
             justify-content: space-between;
             gap: 12px;
             padding: 14px 16px;
+            position: relative;
+            z-index: 2;
             margin: 0;
             background: transparent;
             border: 0;
@@ -458,9 +463,61 @@
             transform: rotate(-135deg);
         }
 
+        .accordion-hint-row {
+            display: none;
+            gap: 6px;
+            margin-left: 8px;
+            align-items: center;
+        }
+        .accordion-item.is-open .accordion-hint-row {
+            display: inline-flex;
+        }
+        .accordion-hint {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 9px 3px 22px;
+            border-radius: 999px;
+            white-space: nowrap;
+            line-height: 1.3;
+            position: relative;
+        }
+        .hint-play {
+            background: #F0FDFF;
+            border: 1px solid #BDEFF6;
+            color: #0E7490;
+        }
+        .hint-play::before {
+            content: "";
+            position: absolute;
+            left: 7px;
+            top: 50%;
+            width: 11px;
+            height: 11px;
+            transform: translateY(-50%);
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2306B6D4' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><polygon points='11 5 6 9 2 9 2 15 6 15 11 19 11 5'/><path d='M15.54 8.46a5 5 0 0 1 0 7.07'/></svg>");
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+        .hint-record {
+            background: #FFF5F5;
+            border: 1px solid #FEB2B2;
+            color: #C53030;
+        }
+        .hint-record::before {
+            content: "";
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            width: 9px;
+            height: 9px;
+            transform: translateY(-50%);
+            background: #E53E3E;
+            border-radius: 50%;
+        }
+
         .accordion-group .accordion-panel {
             box-sizing: border-box;
-            padding: 2px 12px 6px;
+            padding: 4px 24px 8px;
             max-height: 0;
             overflow: hidden;
             display: flex;
@@ -469,6 +526,47 @@
         }
         .accordion-group .accordion-item.is-open .accordion-panel {
             opacity: 1;
+            overflow: visible;
+            padding-bottom: 28px;
+        }
+        .accordion-group .accordion-item.is-open {
+            overflow: visible;
+        }
+
+        @media (max-width: 640px) {
+            .accordion-trigger {
+                flex-wrap: wrap;
+                align-items: flex-start;
+                row-gap: 8px;
+            }
+            .accordion-trigger > span:first-child {
+                flex: 1 1 100%;
+                min-width: 0;
+            }
+            .accordion-hint-row {
+                width: 100%;
+                margin-left: 0;
+                order: 3;
+                gap: 4px;
+            }
+            .accordion-chevron {
+                margin-left: auto;
+                order: 2;
+            }
+            .accordion-hint {
+                font-size: 10px;
+                padding: 2px 7px 2px 18px;
+            }
+            .hint-play::before {
+                width: 9px;
+                height: 9px;
+                left: 5px;
+            }
+            .hint-record::before {
+                width: 7px;
+                height: 7px;
+                left: 6px;
+            }
         }
 
         /* Sentence Practice Box */
@@ -1051,21 +1149,21 @@
 
                 <div class="accordion-group" id="rblend-word-list-accordion">
                     <div class="word-group accordion-item">
-                        <button type="button" class="accordion-trigger" aria-expanded="false">Beginner — CCVC, high frequency, simple vowel<span class="accordion-chevron" aria-hidden="true"></span></button>
+                        <button type="button" class="accordion-trigger" aria-expanded="false"><span>Beginner — CCVC, high frequency, simple vowel</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span><span class="accordion-chevron" aria-hidden="true"></span></button>
                         <div class="word-chips accordion-panel">
                             <span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/broom.mp3">broom</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/crack.mp3">crack</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/drop.mp3">drop</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/frog.mp3">frog</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/grin.mp3">grin</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/prim.mp3">prim</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/trip.mp3">trip</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/crib.mp3">crib</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/drip.mp3">drip</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/grit.mp3">grit</span><span class="word-chip premium">crow</span><span class="word-chip premium">brag</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/frost.mp3">frost</span><span class="word-chip premium">grub</span><span class="word-chip premium">trim</span>
                         </div>
                     </div>
 
                     <div class="word-group accordion-item">
-                        <button type="button" class="accordion-trigger" aria-expanded="false">Intermediate — CCVC with consonant codas<span class="accordion-chevron" aria-hidden="true"></span></button>
+                        <button type="button" class="accordion-trigger" aria-expanded="false"><span>Intermediate — CCVC with consonant codas</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span><span class="accordion-chevron" aria-hidden="true"></span></button>
                         <div class="word-chips accordion-panel">
                             <span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/brand.mp3">brand</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/crest.mp3">crest</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/drift.mp3">drift</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/frost.mp3">frost</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/grand.mp3">grand</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/prank.mp3">prank</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/trend.mp3">trend</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/crisp.mp3">crisp</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/draft.mp3">draft</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/grump.mp3">grump</span><span class="word-chip premium">grasp</span><span class="word-chip premium">crept</span><span class="word-chip premium">brisk</span>
                         </div>
                     </div>
 
                     <div class="word-group accordion-item">
-                        <button type="button" class="accordion-trigger" aria-expanded="false">Advanced — Multisyllabic with medial R blends<span class="accordion-chevron" aria-hidden="true"></span></button>
+                        <button type="button" class="accordion-trigger" aria-expanded="false"><span>Advanced — Multisyllabic with medial R blends</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span><span class="accordion-chevron" aria-hidden="true"></span></button>
                         <div class="word-chips accordion-panel">
                             <span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/frontier.mp3">frontier</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/transform.mp3">transform</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/draftsman.mp3">draftsman</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/framework.mp3">framework</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-blog/intricate.mp3">intricate</span><span class="word-chip premium">programme</span><span class="word-chip premium">intrepid</span><span class="word-chip premium">progress</span>
                         </div>
@@ -1403,7 +1501,7 @@
                 if (trigger) trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
                 if (!panel) return;
                 if (open) {
-                    panel.style.maxHeight = panel.scrollHeight + 'px';
+                    panel.style.maxHeight = (panel.scrollHeight + 28) + 'px';
                 } else {
                     panel.style.maxHeight = panel.scrollHeight + 'px';
                     requestAnimationFrame(function() {
@@ -1416,8 +1514,9 @@
             if (!groups.length) return;
 
             window.addEventListener('resize', function() {
-                document.querySelectorAll('.accordion-item.is-open .accordion-panel').forEach(function(p) {
-                    p.style.maxHeight = p.scrollHeight + 'px';
+                document.querySelectorAll('.accordion-item.is-open').forEach(function(item) {
+                    var p = item.querySelector('.accordion-panel');
+                    if (p) p.style.maxHeight = (p.scrollHeight + 28) + 'px';
                 });
             });
 
@@ -1573,6 +1672,7 @@
                 btn.addEventListener('click', function(e) { onButtonClick(e, btn, chip); });
                 btn.addEventListener('mousedown', function(e) { e.stopPropagation(); });
             });
+
         })();
     </script>
 
@@ -1631,46 +1731,6 @@
 
             window.addEventListener('scroll', onScroll, { passive: true });
             onScroll();
-        })();
-    </script>
-
-    <script>
-        (function() {
-            if (!('IntersectionObserver' in window)) return;
-
-            document.querySelectorAll('.word-chips').forEach(function(container) {
-                var activeTip = null;
-
-                var io = new IntersectionObserver(function(entries) {
-                    entries.forEach(function(entry) {
-                        var firstChip = container.querySelector('.word-chip.playable');
-                        if (!firstChip) return;
-
-                        if (entry.isIntersecting && !activeTip) {
-                            firstChip.style.position = 'relative';
-                            var tip = document.createElement('span');
-                            tip.className = 'word-chip-tooltip';
-                            tip.textContent = 'Click to practice.';
-                            firstChip.appendChild(tip);
-                            activeTip = tip;
-
-                            requestAnimationFrame(function() {
-                                tip.classList.add('is-visible');
-                            });
-
-                            var dismiss = function() {
-                                tip.classList.remove('is-visible');
-                                setTimeout(function() { if (tip.parentNode) tip.parentNode.removeChild(tip); }, 300);
-                                activeTip = null;
-                                firstChip.removeEventListener('click', dismiss);
-                            };
-                            firstChip.addEventListener('click', dismiss);
-                            setTimeout(dismiss, 4000);
-                        }
-                    });
-                }, { threshold: 0.3 });
-                io.observe(container);
-            });
         })();
     </script>
 
