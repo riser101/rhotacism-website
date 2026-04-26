@@ -50,14 +50,26 @@
             return sessionId;
         }
 
+        // Get PostHog distinct_id (stable per visitor across sessions). Fallback to assessment session id.
+        function getPosthogId() {
+            try {
+                if (window.posthog && typeof window.posthog.get_distinct_id === 'function') {
+                    const id = window.posthog.get_distinct_id();
+                    if (id) return id;
+                }
+            } catch (e) { /* posthog not ready */ }
+            return null;
+        }
+
         // Expose upload function globally for use by recording logic
         window.uploadRecordingToFirebase = async function(blob, word, wordIndex) {
             try {
                 const userAuth = JSON.parse(localStorage.getItem('userAuth') || 'null');
                 const sessionId = getAssessmentSessionId();
-                // Signed-in user → recordings/user_<id>/...
-                // Anonymous user → recordings/anon_<date>_<rand>/...
-                const userId = userAuth?.id ? `user_${userAuth.id}` : `anon_${sessionId}`;
+                const posthogId = getPosthogId();
+                // Path uses PostHog distinct_id so recordings tie back to PostHog visitor.
+                // Fallback to session id when PostHog blocked/not ready (e.g. localhost).
+                const userId = posthogId ? `ph_${posthogId}` : `anon_${sessionId}`;
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
                 const filePath = `recordings/${userId}/${timestamp}_${wordIndex}_${word}.webm`;
 
@@ -68,7 +80,9 @@
                         word: word,
                         wordIndex: String(wordIndex),
                         userId: userId,
+                        posthogId: posthogId || '',
                         sessionId: sessionId,
+                        authUserId: userAuth?.id ? String(userAuth.id) : '',
                         userEmail: userAuth?.email || 'unknown',
                         assessmentDate: new Date().toISOString()
                     }
