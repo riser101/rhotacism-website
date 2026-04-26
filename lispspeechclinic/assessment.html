@@ -50,14 +50,26 @@
             return sessionId;
         }
 
+        // Get PostHog distinct_id (stable per visitor across sessions). Fallback to assessment session id.
+        function getPosthogId() {
+            try {
+                if (window.posthog && typeof window.posthog.get_distinct_id === 'function') {
+                    const id = window.posthog.get_distinct_id();
+                    if (id) return id;
+                }
+            } catch (e) { /* posthog not ready */ }
+            return null;
+        }
+
         // Expose upload function globally for use by recording logic
         window.uploadRecordingToFirebase = async function(blob, word, wordIndex) {
             try {
                 const userAuth = JSON.parse(localStorage.getItem('userAuth') || 'null');
                 const sessionId = getAssessmentSessionId();
-                // Signed-in user → recordings/user_<id>/...
-                // Anonymous user → recordings/anon_<date>_<rand>/...
-                const userId = userAuth?.id ? `user_${userAuth.id}` : `anon_${sessionId}`;
+                const posthogId = getPosthogId();
+                // Path uses PostHog distinct_id so recordings tie back to PostHog visitor.
+                // Fallback to session id when PostHog blocked/not ready (e.g. localhost).
+                const userId = posthogId ? `ph_${posthogId}` : `anon_${sessionId}`;
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
                 const filePath = `recordings/lisp/${userId}/${timestamp}_${wordIndex}_lisp_${word}.webm`;
 
@@ -69,7 +81,9 @@
                         word: word,
                         wordIndex: String(wordIndex),
                         userId: userId,
+                        posthogId: posthogId || '',
                         sessionId: sessionId,
+                        authUserId: userAuth?.id ? String(userAuth.id) : '',
                         userEmail: userAuth?.email || 'unknown',
                         assessmentDate: new Date().toISOString()
                     }
@@ -1345,8 +1359,11 @@
         const FORMEASY_URL = 'https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec';
         // Point this at the deployed lisp cloud function (analyzeLispSpeech).
         // For local dev run `npx functions-framework --target=analyzeLispSpeech` in gcp-function-lisp/.
-        const GCP_ANALYZE_URL = 'https://analyze-lisp-speech-653307587559.us-central1.run.app';
-        //const GCP_ANALYZE_URL = 'http://localhost:8080';
+        // const GCP_ANALYZE_URL = 'https://analyze-lisp-speech-653307587559.us-central1.run.app';
+        const GCP_ANALYZE_URL = 'http://localhost:8080';
+        // Praat sibilant analysis — replace with deployed URL after GCP deploy
+        // const PRAAT_URL = 'https://extract-lisp-sibilants-653307587559.us-central1.run.app';
+        const PRAAT_URL = 'http://localhost:8081';
         // Recording state
         let mediaRecorder = null;
         let audioChunks = [];
@@ -1834,7 +1851,37 @@
             });
         }
 
-        // Send per-word audio + client-side FFT metrics to the lisp cloud function.
+        // Extract Praat-based sibilant metrics from the deployed Cloud Run function.
+        async function extractPraatSibilantData() {
+            try {
+                const wordEntries = [];
+                for (let i = 0; i < TEST_WORDS.length; i++) {
+                    const b64 = wordRecordingsB64[TEST_WORDS[i]];
+                    if (b64) {
+                        const audioOnly = b64.includes(',') ? b64.split(',')[1] : b64;
+                        wordEntries.push({ word: TEST_WORDS[i], position: TEST_WORD_META[i].position, audio_base64: audioOnly });
+                    }
+                }
+
+                const resp = await fetch(PRAAT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ words: wordEntries })
+                });
+
+                if (!resp.ok) throw new Error('Praat extraction error: ' + resp.status);
+
+                const results = await resp.json();
+                console.log('Praat sibilant data:', results);
+                return JSON.stringify(results, null, 2);
+            } catch (err) {
+                console.warn('Praat sibilant extraction failed, falling back to client FFT:', err);
+                return null;
+            }
+        }
+
+        // Send per-word audio + Praat sibilant metrics to the lisp cloud function.
+        // Falls back to client-side FFT if Praat extraction fails.
         async function sendAudioToBackend(local) {
             const wordEntries = TEST_WORDS.map((word, i) => {
                 const b64 = wordRecordingsB64[word];
@@ -1843,7 +1890,10 @@
 
             if (!wordEntries.length) return null;
 
-            // Per-word FFT snapshot (client-side). Includes the difference from the /s/ target region.
+            // Run Praat extraction in parallel with audio prep
+            const praatData = await extractPraatSibilantData();
+
+            // Fallback: client-side FFT if Praat failed
             const fftData = (local && Array.isArray(local.words)) ? local.words.map(w => ({
                 word: w.word,
                 position: w.position,
@@ -1854,10 +1904,13 @@
                 peakSeries: w.peakSeries || []
             })) : [];
 
+            const payload = { words: wordEntries, fftData };
+            if (praatData) payload.praatData = praatData;
+
             const resp = await fetch(GCP_ANALYZE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ words: wordEntries, fftData })
+                body: JSON.stringify(payload)
             });
             if (!resp.ok) throw new Error('Backend error: ' + resp.status + ' - ' + (await resp.text()));
             return await resp.json();
@@ -2275,10 +2328,9 @@
 
         async function submitToFormEasy(source, extraData) {
             try {
-                const controller = new AbortController();
-                setTimeout(() => controller.abort(), 3000);
                 await fetch(FORMEASY_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({
                         email: localStorage.getItem('assessmentUserEmail') || '',
@@ -2287,7 +2339,7 @@
                         page: 'assessment.html',
                         ...extraData
                     }),
-                    signal: controller.signal
+                    keepalive: true
                 });
             } catch (e) { console.error('FormEasy error:', e); }
         }
