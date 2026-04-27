@@ -580,6 +580,75 @@
             color: #1A202C;
             letter-spacing: 0.5px;
             margin-bottom: 10px !important;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .accordion-hint-row {
+            display: inline-flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .accordion-hint {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 9px 3px 22px;
+            border-radius: 999px;
+            white-space: nowrap;
+            line-height: 1.3;
+            position: relative;
+            letter-spacing: 0;
+        }
+        .hint-play {
+            background: #F0FDFF;
+            border: 1px solid #BDEFF6;
+            color: #0E7490;
+        }
+        .hint-play::before {
+            content: "";
+            position: absolute;
+            left: 7px;
+            top: 50%;
+            width: 11px;
+            height: 11px;
+            transform: translateY(-50%);
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2306B6D4' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><polygon points='11 5 6 9 2 9 2 15 6 15 11 19 11 5'/><path d='M15.54 8.46a5 5 0 0 1 0 7.07'/></svg>");
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+        .hint-record {
+            background: #FFF5F5;
+            border: 1px solid #FEB2B2;
+            color: #C53030;
+        }
+        .hint-record::before {
+            content: "";
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            width: 9px;
+            height: 9px;
+            transform: translateY(-50%);
+            background: #E53E3E;
+            border-radius: 50%;
+        }
+        @media (max-width: 640px) {
+            .accordion-hint {
+                font-size: 10px;
+                padding: 2px 7px 2px 18px;
+            }
+            .hint-play::before {
+                width: 9px;
+                height: 9px;
+                left: 5px;
+            }
+            .hint-record::before {
+                width: 7px;
+                height: 7px;
+                left: 6px;
+            }
         }
 
         /* Word Chips */
@@ -1132,6 +1201,7 @@
         <!-- Articulation and Pronunciation -->
         <div class="content-section">
             <h2 class="section-title">Articulation and Pronunciation</h2>
+            <p class="instructional-subheading" style="margin-top: -15px; margin-bottom: 25px; color: #555; font-style: italic; font-size: 0.95em;">Tap a word to hear the pronunciation, or click the mic to practice recording yourself.</p>
             <div class="section-content">
                 
                 <h3>Common R Blends</h3>
@@ -1140,15 +1210,15 @@
                 <h3>BR Words</h3>
                 <div class="blend-word-list">
                     <div class="blend-level">
-                        <p class="blend-level-label">Beginner</p>
+                        <p class="blend-level-label"><span>Beginner</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brag.mp3">brag</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/bran.mp3">bran</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brat.mp3">brat</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brim.mp3">brim</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brow.mp3">brow</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brush.mp3">brush</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brick.mp3">brick</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/bridge.mp3">bridge</span></div>
                     </div>
                     <div class="blend-level">
-                        <p class="blend-level-label">Intermediate</p>
+                        <p class="blend-level-label"><span>Intermediate</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brand.mp3">brand</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brave.mp3">brave</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/bread.mp3">bread</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/break.mp3">break</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/breed.mp3">breed</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/bride.mp3">bride</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brine.mp3">brine</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brisk.mp3">brisk</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brood.mp3">brood</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brook.mp3">brook</span></div>
                     </div>
                     <div class="blend-level">
-                        <p class="blend-level-label">Advanced</p>
+                        <p class="blend-level-label"><span>Advanced</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/bracelet.mp3">bracelet</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/breathe.mp3">breathe</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brilliant.mp3">brilliant</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brooch.mp3">brooch</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brother.mp3">brother</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/bruise.mp3">bruise</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/br-words/brunette.mp3">brunette</span></div>
                     </div>
                 </div>
@@ -1156,15 +1226,15 @@
                 <h3>CR Words</h3>
                 <div class="blend-word-list">
                     <div class="blend-level">
-                        <p class="blend-level-label">Beginner</p>
+                        <p class="blend-level-label"><span>Beginner</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/crab.mp3">crab</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/cram.mp3">cram</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/crop.mp3">crop</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/crow.mp3">crow</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/crud.mp3">crud</span></div>
                     </div>
                     <div class="blend-level">
-                        <p class="blend-level-label">Intermediate</p>
+                        <p class="blend-level-label"><span>Intermediate</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/crack.mp3">crack</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/craft.mp3">craft</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/crane.mp3">crane</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/crash.mp3">crash</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/crave.mp3">crave</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/creak.mp3">creak</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/creek.mp3">creek</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/crisp.mp3">crisp</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/cross.mp3">cross</span></div>
                     </div>
                     <div class="blend-level">
-                        <p class="blend-level-label">Advanced</p>
+                        <p class="blend-level-label"><span>Advanced</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/crayfish.mp3">crayfish</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/creature.mp3">creature</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/crimson.mp3">crimson</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/crocodile.mp3">crocodile</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/cr-words/criterion.mp3">criterion</span></div>
                     </div>
                 </div>
@@ -1172,15 +1242,15 @@
                 <h3>DR Words</h3>
                 <div class="blend-word-list">
                     <div class="blend-level">
-                        <p class="blend-level-label">Beginner</p>
+                        <p class="blend-level-label"><span>Beginner</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/drag.mp3">drag</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/drip.mp3">drip</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/drop.mp3">drop</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/drug.mp3">drug</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/drum.mp3">drum</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/dry.mp3">dry</span></div>
                     </div>
                     <div class="blend-level">
-                        <p class="blend-level-label">Intermediate</p>
+                        <p class="blend-level-label"><span>Intermediate</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/draft.mp3">draft</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/drain.mp3">drain</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/drape.mp3">drape</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/draw.mp3">draw</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/dream.mp3">dream</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/dress.mp3">dress</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/drill.mp3">drill</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/drive.mp3">drive</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/drone.mp3">drone</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/drove.mp3">drove</span></div>
                     </div>
                     <div class="blend-level">
-                        <p class="blend-level-label">Advanced</p>
+                        <p class="blend-level-label"><span>Advanced</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/dragon.mp3">dragon</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/drainage.mp3">drainage</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/dramatic.mp3">dramatic</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/dreadful.mp3">dreadful</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/dr-words/driveway.mp3">driveway</span></div>
                     </div>
                 </div>
@@ -1188,15 +1258,15 @@
                 <h3>FR Words</h3>
                 <div class="blend-word-list">
                     <div class="blend-level">
-                        <p class="blend-level-label">Beginner</p>
+                        <p class="blend-level-label"><span>Beginner</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/frog.mp3">frog</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/from.mp3">from</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/frost.mp3">frost</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/fry.mp3">fry</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/fridge.mp3">fridge</span></div>
                     </div>
                     <div class="blend-level">
-                        <p class="blend-level-label">Intermediate</p>
+                        <p class="blend-level-label"><span>Intermediate</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/frame.mp3">frame</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/frank.mp3">frank</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/fraud.mp3">fraud</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/freak.mp3">freak</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/fresh.mp3">fresh</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/frill.mp3">frill</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/frown.mp3">frown</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/fruit.mp3">fruit</span></div>
                     </div>
                     <div class="blend-level">
-                        <p class="blend-level-label">Advanced</p>
+                        <p class="blend-level-label"><span>Advanced</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/fraction.mp3">fraction</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/fragile.mp3">fragile</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/frequent.mp3">frequent</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/frightened.mp3">frightened</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/fr-words/frustration.mp3">frustration</span></div>
                     </div>
                 </div>
@@ -1204,15 +1274,15 @@
                 <h3>GR Words</h3>
                 <div class="blend-word-list">
                     <div class="blend-level">
-                        <p class="blend-level-label">Beginner</p>
+                        <p class="blend-level-label"><span>Beginner</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/grab.mp3">grab</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/grin.mp3">grin</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/grip.mp3">grip</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/grit.mp3">grit</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/grow.mp3">grow</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/grub.mp3">grub</span></div>
                     </div>
                     <div class="blend-level">
-                        <p class="blend-level-label">Intermediate</p>
+                        <p class="blend-level-label"><span>Intermediate</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/grace.mp3">grace</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/grade.mp3">grade</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/grain.mp3">grain</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/grape.mp3">grape</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/grasp.mp3">grasp</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/grass.mp3">grass</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/grave.mp3">grave</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/graze.mp3">graze</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/greed.mp3">greed</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/green.mp3">green</span><a class="word-chip premium" href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" rel="noopener" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'premium_chip_grief' });">grief</a><a class="word-chip premium" href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" rel="noopener" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'premium_chip_groan' });">groan</a><a class="word-chip premium" href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" rel="noopener" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'premium_chip_grove' });">grove</a><a class="word-chip premium" href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" rel="noopener" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'premium_chip_grunt' });">grunt</a></div>
                     </div>
                     <div class="blend-level">
-                        <p class="blend-level-label">Advanced</p>
+                        <p class="blend-level-label"><span>Advanced</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/graceful.mp3">graceful</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/gradual.mp3">gradual</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/grateful.mp3">grateful</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/gr-words/gravity.mp3">gravity</span></div>
                     </div>
                 </div>
@@ -1220,15 +1290,15 @@
                 <h3>PR Words</h3>
                 <div class="blend-word-list">
                     <div class="blend-level">
-                        <p class="blend-level-label">Beginner</p>
+                        <p class="blend-level-label"><span>Beginner</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/prep.mp3">prep</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/prim.mp3">prim</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/prod.mp3">prod</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/prop.mp3">prop</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/pry.mp3">pry</span></div>
                     </div>
                     <div class="blend-level">
-                        <p class="blend-level-label">Intermediate</p>
+                        <p class="blend-level-label"><span>Intermediate</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/pram.mp3">pram</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/praise.mp3">praise</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/pray.mp3">pray</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/press.mp3">press</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/price.mp3">price</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/pride.mp3">pride</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/prime.mp3">prime</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/prince.mp3">prince</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/print.mp3">print</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/prize.mp3">prize</span><a class="word-chip premium" href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" rel="noopener" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'premium_chip_probe' });">probe</a><a class="word-chip premium" href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" rel="noopener" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'premium_chip_prone' });">prone</a><a class="word-chip premium" href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" rel="noopener" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'premium_chip_proof' });">proof</a><a class="word-chip premium" href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" rel="noopener" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'premium_chip_prose' });">prose</a></div>
                     </div>
                     <div class="blend-level">
-                        <p class="blend-level-label">Advanced</p>
+                        <p class="blend-level-label"><span>Advanced</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/practical.mp3">practical</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/precious.mp3">precious</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/precision.mp3">precision</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/preview.mp3">preview</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/pr-words/presentation.mp3">presentation</span></div>
                     </div>
                 </div>
@@ -1236,15 +1306,15 @@
                 <h3>TR Words</h3>
                 <div class="blend-word-list">
                     <div class="blend-level">
-                        <p class="blend-level-label">Beginner</p>
+                        <p class="blend-level-label"><span>Beginner</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/trim.mp3">trim</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/trip.mp3">trip</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/trot.mp3">trot</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/true.mp3">true</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/truck.mp3">truck</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/track.mp3">track</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/tree.mp3">tree</span></div>
                     </div>
                     <div class="blend-level">
-                        <p class="blend-level-label">Intermediate</p>
+                        <p class="blend-level-label"><span>Intermediate</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/trace.mp3">trace</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/trade.mp3">trade</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/trail.mp3">trail</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/train.mp3">train</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/trap.mp3">trap</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/trash.mp3">trash</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/tray.mp3">tray</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/treat.mp3">treat</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/trend.mp3">trend</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/tribe.mp3">tribe</span><a class="word-chip premium" href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" rel="noopener" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'premium_chip_trick' });">trick</a><a class="word-chip premium" href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" rel="noopener" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'premium_chip_troop' });">troop</a><a class="word-chip premium" href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" rel="noopener" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'premium_chip_trough' });">trough</a><a class="word-chip premium" href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" rel="noopener" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'premium_chip_truce' });">truce</a><a class="word-chip premium" href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" rel="noopener" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'premium_chip_trunk' });">trunk</a><a class="word-chip premium" href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" rel="noopener" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'premium_chip_trust' });">trust</a><a class="word-chip premium" href="https://apps.apple.com/id/app/rollrapp-fix-rhotacism/id6751569088" target="_blank" rel="noopener" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'premium_chip_truth' });">truth</a></div>
                     </div>
                     <div class="blend-level">
-                        <p class="blend-level-label">Advanced</p>
+                        <p class="blend-level-label"><span>Advanced</span><span class="accordion-hint-row"><span class="accordion-hint hint-play">Tap to hear</span><span class="accordion-hint hint-record">Tap mic to record</span></span></p>
                         <div class="word-chips"><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/tradition.mp3">tradition</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/traffic.mp3">traffic</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/transfer.mp3">transfer</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/transparent.mp3">transparent</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/traveller.mp3">traveller</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/treasure.mp3">treasure</span><span class="word-chip playable" data-audio="/therollracademy/audio-files-r-blend-words/tr-words/tremendous.mp3">tremendous</span></div>
                     </div>
                 </div>
@@ -1651,6 +1721,8 @@
             document.querySelectorAll('.word-chip.premium').forEach(function(chip) {
                 chip.setAttribute('role', 'link');
                 chip.setAttribute('tabindex', '0');
+                chip.setAttribute('aria-label', 'Open in Rollr app: ' + chip.textContent.trim());
+                chip.setAttribute('title', 'Open in Rollr app');
 
                 function openApp() {
                     try {
@@ -1688,11 +1760,7 @@
                 chip.setAttribute('role', 'button');
                 chip.setAttribute('tabindex', '0');
                 chip.setAttribute('aria-label', 'Play pronunciation: ' + chip.textContent.trim());
-
-                var src = chip.getAttribute('data-audio');
-                if (src && playedSet[src]) {
-                    chip.classList.add('is-completed');
-                }
+                chip.setAttribute('title', 'Click to play audio');
 
                 function play() {
                     var src = chip.getAttribute('data-audio');
@@ -1712,7 +1780,6 @@
 
                     audio.addEventListener('ended', function() {
                         chip.classList.remove('is-playing');
-                        chip.classList.add('is-completed');
                         playedSet[src] = true;
                         savePlayed();
                         if (currentAudio === audio) {
@@ -1791,8 +1858,10 @@
                 } else if (recordings[key]) {
                     btn.classList.add('is-ready');
                     btn.setAttribute('aria-label', 'Play your recording of ' + chip.textContent.trim());
+                    chip.classList.add('is-completed');
                 } else {
                     btn.setAttribute('aria-label', 'Record yourself saying ' + chip.textContent.trim());
+                    chip.classList.remove('is-completed');
                 }
             }
 
