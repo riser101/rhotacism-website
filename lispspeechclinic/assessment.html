@@ -1435,7 +1435,7 @@
                     const age = document.querySelector('input[name="ageGroup"]:checked');
                     if (!comfort) { alert('Please answer the /s/ sound comfort level question.'); return false; }
                     if (!age) { alert('Please select your age group.'); return false; }
-                    submitToFormEasy('assessment_step3', { trouble_words_response: comfort.value, age_group: age.value });
+                    submitToFormEasy('assessment_step3', { trouble_words_response: comfort.value, age_group: age.value, message: `Step 3: Trouble words response - ${comfort.value}, Age group - ${age.value}` });
                     return true;
                 }
                 case 4: {
@@ -1446,9 +1446,12 @@
                     }
                     const phone = document.getElementById('phoneNumber').value.trim();
                     const code = document.getElementById('countryCode').value;
-                    submitToFormEasy('assessment_step4', {
-                        found_on: reason.value === 'other' ? document.getElementById('otherReason').value : reason.value,
-                        phone_number: phone ? code + ' ' + phone : ''
+                    const foundOn = reason.value === 'other' ? document.getElementById('otherReason').value : reason.value;
+                    const fullPhone = phone ? code + ' ' + phone : '';
+                    await submitToFormEasy('assessment_step4', {
+                        found_on: foundOn,
+                        phone_number: fullPhone,
+                        message: `Step 4: Found on - ${foundOn}${fullPhone ? ', Phone - ' + fullPhone : ''}`
                     });
                     return true;
                 }
@@ -1782,9 +1785,63 @@
             }
         }
 
+        // Silence-detection thresholds. Tuned for short single-word utterances.
+        const SILENCE_RMS_THRESHOLD = 0.012;   // ~ -38 dBFS
+        const SILENCE_PEAK_THRESHOLD = 0.05;   // ~ -26 dBFS
+        const MIN_VOICED_RATIO = 0.03;         // >=3% of samples above peak threshold
+
+        // Decode blob -> PCM, compute RMS + peak + voiced ratio.
+        async function analyzeBlobLoudness(blob) {
+            try {
+                const buf = await blob.arrayBuffer();
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const audioBuf = await ctx.decodeAudioData(buf.slice(0));
+                const ch = audioBuf.getChannelData(0);
+                let sumSq = 0, peak = 0, voiced = 0;
+                for (let i = 0; i < ch.length; i++) {
+                    const v = Math.abs(ch[i]);
+                    sumSq += ch[i] * ch[i];
+                    if (v > peak) peak = v;
+                    if (v > SILENCE_PEAK_THRESHOLD) voiced++;
+                }
+                const rms = Math.sqrt(sumSq / ch.length);
+                const voicedRatio = ch.length ? voiced / ch.length : 0;
+                ctx.close();
+                return { rms, peak, voicedRatio, duration: audioBuf.duration };
+            } catch (err) {
+                console.warn('Loudness analysis failed:', err);
+                return null;
+            }
+        }
+
         // Called when a word recording finishes
         async function onWordRecordingStopped() {
             const blob = new Blob(audioChunks, { type: 'audio/webm' });
+
+            // Silence check: decode and measure RMS + peak. Reject silent recordings.
+            const stats = await analyzeBlobLoudness(blob);
+            const isSilent = stats && (
+                stats.rms < SILENCE_RMS_THRESHOLD ||
+                stats.peak < SILENCE_PEAK_THRESHOLD ||
+                stats.voicedRatio < MIN_VOICED_RATIO
+            );
+            if (isSilent) {
+                console.warn(`Silent recording for "${TEST_WORDS[currentWordIndex]}":`, stats);
+                const hintEl = document.getElementById('timeoutHint');
+                if (hintEl) {
+                    hintEl.textContent = 'No speech detected — please record again';
+                    hintEl.style.display = 'block';
+                }
+                wordTimedOut = true;
+                isWaitingForNext = false;
+                for (let i = 0; i < VU_BAR_COUNT; i++) {
+                    const bar = document.getElementById('vuBar' + i);
+                    if (bar) bar.style.height = '6px';
+                }
+                updateRecordButton();
+                return;
+            }
+
             wordRecordings.push(blob);
 
             // Upload individual word recording to Firebase Storage
@@ -2322,7 +2379,7 @@
             localStorage.setItem('assessmentUserEmail', email);
             const name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
             localStorage.setItem('assessmentUserName', name);
-            submitToFormEasy('assessment_step1', { email: email });
+            submitToFormEasy('assessment_step1', { email: email, message: 'User started /s/ sound assessment' });
             gtag('event', 'email_capture', { event_category: 'conversion', event_label: 'assessment_step1' });
         }
 
@@ -2353,7 +2410,8 @@
                 age_group: document.querySelector('input[name="ageGroup"]:checked')?.value || '',
                 found_on: reason?.value === 'other' ? document.getElementById('otherReason').value : (reason?.value || ''),
                 phone_number: phone ? code + ' ' + phone : '',
-                assessment_completed: true
+                assessment_completed: true,
+                message: 'User completed full /s/ sound assessment'
             });
             gtag('event', 'assessment_completed', { event_category: 'conversion', event_label: 'full_assessment_flow' });
         }
