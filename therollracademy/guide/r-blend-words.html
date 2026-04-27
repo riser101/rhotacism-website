@@ -105,9 +105,8 @@
                 const sessionId = getBlogSessionId();
                 const posthogId = getPosthogId();
                 const userId = posthogId ? `ph_${posthogId}` : `anon_${sessionId}`;
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                const safeKey = String(key || word || 'recording').replace(/[^a-zA-Z0-9_-]/g, '_');
-                const filePath = `recordings/blogs/${userId}/${timestamp}_${safeKey}.webm`;
+                const safeWord = String(word || key || 'recording').replace(/[^a-zA-Z0-9_-]/g, '_');
+                const filePath = `recordings/blogs/${userId}/${safeWord}.webm`;
 
                 const storageRef = ref(storage, filePath);
                 const metadata = {
