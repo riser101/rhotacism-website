@@ -50,16 +50,26 @@
             return sessionId;
         }
 
+        // Get PostHog distinct_id (stable per visitor across sessions). Fallback to assessment session id.
+        function getPosthogId() {
+            try {
+                if (window.posthog && typeof window.posthog.get_distinct_id === 'function') {
+                    const id = window.posthog.get_distinct_id();
+                    if (id) return id;
+                }
+            } catch (e) { /* posthog not ready */ }
+            return null;
+        }
+
         // Expose upload function globally for use by recording logic
         window.uploadRecordingToFirebase = async function(blob, word, wordIndex) {
             try {
                 const userAuth = JSON.parse(localStorage.getItem('userAuth') || 'null');
                 const sessionId = getAssessmentSessionId();
-                const posthogId = (window.posthog && typeof window.posthog.get_distinct_id === 'function') ? window.posthog.get_distinct_id() : null;
-                // Folder = PostHog distinct_id when available, else signed-in user id, else anon session
-                const userId = posthogId
-                    ? `ph_${posthogId}`
-                    : (userAuth?.id ? `user_${userAuth.id}` : `anon_${sessionId}`);
+                const posthogId = getPosthogId();
+                // Path uses PostHog distinct_id so recordings tie back to PostHog visitor.
+                // Fallback to session id when PostHog blocked/not ready (e.g. localhost).
+                const userId = posthogId ? `ph_${posthogId}` : `anon_${sessionId}`;
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
                 const filePath = `recordings/lisp/${userId}/${timestamp}_${wordIndex}_lisp_${word}.webm`;
 
@@ -71,8 +81,9 @@
                         word: word,
                         wordIndex: String(wordIndex),
                         userId: userId,
+                        posthogId: posthogId || '',
                         sessionId: sessionId,
-                        posthogId: posthogId || 'unknown',
+                        authUserId: userAuth?.id ? String(userAuth.id) : '',
                         userEmail: userAuth?.email || 'unknown',
                         assessmentDate: new Date().toISOString()
                     }
