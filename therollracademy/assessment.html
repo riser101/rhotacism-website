@@ -1238,7 +1238,7 @@
                     const age = document.querySelector('input[name="ageGroup"]:checked');
                     if (!comfort) { alert('Please answer the R sound comfort level question.'); return false; }
                     if (!age) { alert('Please select your age group.'); return false; }
-                    submitToFormEasy('assessment_step3', { trouble_words_response: comfort.value, age_group: age.value });
+                    submitToFormEasy('assessment_step3', { trouble_words_response: comfort.value, age_group: age.value, message: `Step 3: Trouble words response - ${comfort.value}, Age group - ${age.value}` });
                     return true;
                 }
                 case 4: {
@@ -1249,9 +1249,12 @@
                     }
                     const phone = document.getElementById('phoneNumber').value.trim();
                     const code = document.getElementById('countryCode').value;
-                    submitToFormEasy('assessment_step4', {
-                        found_on: reason.value === 'other' ? document.getElementById('otherReason').value : reason.value,
-                        phone_number: phone ? code + ' ' + phone : ''
+                    const foundOn = reason.value === 'other' ? document.getElementById('otherReason').value : reason.value;
+                    const fullPhone = phone ? code + ' ' + phone : '';
+                    await submitToFormEasy('assessment_step4', {
+                        found_on: foundOn,
+                        phone_number: fullPhone,
+                        message: `Step 4: Found on - ${foundOn}${fullPhone ? ', Phone - ' + fullPhone : ''}`
                     });
                     return true;
                 }
@@ -1756,7 +1759,7 @@
             localStorage.setItem('assessmentUserEmail', email);
             const name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
             localStorage.setItem('assessmentUserName', name);
-            submitToFormEasy('assessment_step1', { email: email });
+            submitToFormEasy('assessment_step1', { email: email, message: 'User started R-sound assessment' });
             gtag('event', 'email_capture', { event_category: 'conversion', event_label: 'assessment_step1' });
         }
 
@@ -1788,7 +1791,8 @@
                 age_group: document.querySelector('input[name="ageGroup"]:checked')?.value || '',
                 found_on: reason?.value === 'other' ? document.getElementById('otherReason').value : (reason?.value || ''),
                 phone_number: phone ? code + ' ' + phone : '',
-                assessment_completed: true
+                assessment_completed: true,
+                message: 'User completed full R-sound assessment'
             });
             gtag('event', 'assessment_completed', { event_category: 'conversion', event_label: 'full_assessment_flow' });
         }
