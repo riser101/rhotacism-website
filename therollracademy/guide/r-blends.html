@@ -1438,11 +1438,6 @@
                 chip.setAttribute('tabindex', '0');
                 chip.setAttribute('aria-label', 'Play pronunciation: ' + chip.textContent.trim());
 
-                var src = chip.getAttribute('data-audio');
-                if (src && playedSet[src]) {
-                    chip.classList.add('is-completed');
-                }
-
                 function play() {
                     var src = chip.getAttribute('data-audio');
                     if (!src) return;
@@ -1461,7 +1456,6 @@
 
                     audio.addEventListener('ended', function() {
                         chip.classList.remove('is-playing');
-                        chip.classList.add('is-completed');
                         playedSet[src] = true;
                         savePlayed();
                         if (currentAudio === audio) {
@@ -1597,8 +1591,10 @@
                 } else if (recordings[key]) {
                     btn.classList.add('is-ready');
                     btn.setAttribute('aria-label', 'Play your recording of ' + chip.textContent.trim());
+                    chip.classList.add('is-completed');
                 } else {
                     btn.setAttribute('aria-label', 'Record yourself saying ' + chip.textContent.trim());
+                    chip.classList.remove('is-completed');
                 }
             }
 
