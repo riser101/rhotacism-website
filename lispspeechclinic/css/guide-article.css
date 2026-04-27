@@ -512,3 +512,34 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* Collapsible Sources/References/Citations accordion */
+.content-section.is-accordion > .section-title {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.content-section.is-accordion > .section-title::after {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+    margin-right: 6px;
+    opacity: 0.6;
+}
+.content-section.is-accordion.is-open > .section-title::after {
+    transform: rotate(45deg);
+}
+.content-section.is-accordion > .section-content {
+    display: none;
+}
+.content-section.is-accordion.is-open > .section-content {
+    display: block;
+}

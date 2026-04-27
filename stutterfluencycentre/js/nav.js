@@ -215,3 +215,36 @@ window.logout = function() {
     // Redirect to home page (the page will automatically update the display on load)
     window.location.href = '/stutterfluencycentre';
 };
+
+// Auto-collapse Sources/References/Citations sections into accordions
+(function() {
+    function initSourceAccordions() {
+        var pattern = /\b(sources|references|citations)\b/i;
+        document.querySelectorAll('.content-section').forEach(function(section) {
+            var title = section.querySelector(':scope > .section-title');
+            var content = section.querySelector(':scope > .section-content');
+            if (!title || !content) return;
+            if (!pattern.test(title.textContent)) return;
+            section.classList.add('is-accordion');
+            title.setAttribute('role', 'button');
+            title.setAttribute('tabindex', '0');
+            title.setAttribute('aria-expanded', 'false');
+            var toggle = function() {
+                var open = section.classList.toggle('is-open');
+                title.setAttribute('aria-expanded', open ? 'true' : 'false');
+            };
+            title.addEventListener('click', toggle);
+            title.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggle();
+                }
+            });
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSourceAccordions);
+    } else {
+        initSourceAccordions();
+    }
+})();
