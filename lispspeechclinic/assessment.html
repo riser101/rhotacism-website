@@ -50,26 +50,14 @@
             return sessionId;
         }
 
-        // Get PostHog distinct_id (stable per visitor across sessions). Fallback to assessment session id.
-        function getPosthogId() {
-            try {
-                if (window.posthog && typeof window.posthog.get_distinct_id === 'function') {
-                    const id = window.posthog.get_distinct_id();
-                    if (id) return id;
-                }
-            } catch (e) { /* posthog not ready */ }
-            return null;
-        }
-
         // Expose upload function globally for use by recording logic
         window.uploadRecordingToFirebase = async function(blob, word, wordIndex) {
             try {
                 const userAuth = JSON.parse(localStorage.getItem('userAuth') || 'null');
                 const sessionId = getAssessmentSessionId();
-                const posthogId = getPosthogId();
-                // Path uses PostHog distinct_id so recordings tie back to PostHog visitor.
-                // Fallback to session id when PostHog blocked/not ready (e.g. localhost).
-                const userId = posthogId ? `ph_${posthogId}` : `anon_${sessionId}`;
+                // Signed-in user → recordings/user_<id>/...
+                // Anonymous user → recordings/anon_<date>_<rand>/...
+                const userId = userAuth?.id ? `user_${userAuth.id}` : `anon_${sessionId}`;
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
                 const filePath = `recordings/lisp/${userId}/${timestamp}_${wordIndex}_lisp_${word}.webm`;
 
@@ -81,9 +69,7 @@
                         word: word,
                         wordIndex: String(wordIndex),
                         userId: userId,
-                        posthogId: posthogId || '',
                         sessionId: sessionId,
-                        authUserId: userAuth?.id ? String(userAuth.id) : '',
                         userEmail: userAuth?.email || 'unknown',
                         assessmentDate: new Date().toISOString()
                     }
@@ -1360,10 +1346,7 @@
         // Point this at the deployed lisp cloud function (analyzeLispSpeech).
         // For local dev run `npx functions-framework --target=analyzeLispSpeech` in gcp-function-lisp/.
         const GCP_ANALYZE_URL = 'https://analyze-lisp-speech-653307587559.us-central1.run.app';
-        // const GCP_ANALYZE_URL = 'http://localhost:8080';
-        // Praat sibilant analysis — replace with deployed URL after GCP deploy
-        const PRAAT_URL = 'https://extract-lisp-sibilants-653307587559.us-central1.run.app';
-        // const PRAAT_URL = 'http://localhost:8081';
+        //const GCP_ANALYZE_URL = 'http://localhost:8080';
         // Recording state
         let mediaRecorder = null;
         let audioChunks = [];
@@ -1435,7 +1418,7 @@
                     const age = document.querySelector('input[name="ageGroup"]:checked');
                     if (!comfort) { alert('Please answer the /s/ sound comfort level question.'); return false; }
                     if (!age) { alert('Please select your age group.'); return false; }
-                    submitToFormEasy('assessment_step3', { trouble_words_response: comfort.value, age_group: age.value, message: `Step 3: Trouble words response - ${comfort.value}, Age group - ${age.value}` });
+                    submitToFormEasy('assessment_step3', { trouble_words_response: comfort.value, age_group: age.value });
                     return true;
                 }
                 case 4: {
@@ -1446,12 +1429,9 @@
                     }
                     const phone = document.getElementById('phoneNumber').value.trim();
                     const code = document.getElementById('countryCode').value;
-                    const foundOn = reason.value === 'other' ? document.getElementById('otherReason').value : reason.value;
-                    const fullPhone = phone ? code + ' ' + phone : '';
-                    await submitToFormEasy('assessment_step4', {
-                        found_on: foundOn,
-                        phone_number: fullPhone,
-                        message: `Step 4: Found on - ${foundOn}${fullPhone ? ', Phone - ' + fullPhone : ''}`
+                    submitToFormEasy('assessment_step4', {
+                        found_on: reason.value === 'other' ? document.getElementById('otherReason').value : reason.value,
+                        phone_number: phone ? code + ' ' + phone : ''
                     });
                     return true;
                 }
@@ -1788,7 +1768,6 @@
         // Called when a word recording finishes
         async function onWordRecordingStopped() {
             const blob = new Blob(audioChunks, { type: 'audio/webm' });
-
             wordRecordings.push(blob);
 
             // Upload individual word recording to Firebase Storage
@@ -1855,37 +1834,7 @@
             });
         }
 
-        // Extract Praat-based sibilant metrics from the deployed Cloud Run function.
-        async function extractPraatSibilantData() {
-            try {
-                const wordEntries = [];
-                for (let i = 0; i < TEST_WORDS.length; i++) {
-                    const b64 = wordRecordingsB64[TEST_WORDS[i]];
-                    if (b64) {
-                        const audioOnly = b64.includes(',') ? b64.split(',')[1] : b64;
-                        wordEntries.push({ word: TEST_WORDS[i], position: TEST_WORD_META[i].position, audio_base64: audioOnly });
-                    }
-                }
-
-                const resp = await fetch(PRAAT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ words: wordEntries })
-                });
-
-                if (!resp.ok) throw new Error('Praat extraction error: ' + resp.status);
-
-                const results = await resp.json();
-                console.log('Praat sibilant data:', results);
-                return JSON.stringify(results, null, 2);
-            } catch (err) {
-                console.warn('Praat sibilant extraction failed, falling back to client FFT:', err);
-                return null;
-            }
-        }
-
-        // Send per-word audio + Praat sibilant metrics to the lisp cloud function.
-        // Falls back to client-side FFT if Praat extraction fails.
+        // Send per-word audio + client-side FFT metrics to the lisp cloud function.
         async function sendAudioToBackend(local) {
             const wordEntries = TEST_WORDS.map((word, i) => {
                 const b64 = wordRecordingsB64[word];
@@ -1894,10 +1843,7 @@
 
             if (!wordEntries.length) return null;
 
-            // Run Praat extraction in parallel with audio prep
-            const praatData = await extractPraatSibilantData();
-
-            // Fallback: client-side FFT if Praat failed
+            // Per-word FFT snapshot (client-side). Includes the difference from the /s/ target region.
             const fftData = (local && Array.isArray(local.words)) ? local.words.map(w => ({
                 word: w.word,
                 position: w.position,
@@ -1908,13 +1854,10 @@
                 peakSeries: w.peakSeries || []
             })) : [];
 
-            const payload = { words: wordEntries, fftData };
-            if (praatData) payload.praatData = praatData;
-
             const resp = await fetch(GCP_ANALYZE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ words: wordEntries, fftData })
             });
             if (!resp.ok) throw new Error('Backend error: ' + resp.status + ' - ' + (await resp.text()));
             return await resp.json();
@@ -2326,15 +2269,16 @@
             localStorage.setItem('assessmentUserEmail', email);
             const name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
             localStorage.setItem('assessmentUserName', name);
-            submitToFormEasy('assessment_step1', { email: email, message: 'User started /s/ sound assessment' });
+            submitToFormEasy('assessment_step1', { email: email });
             gtag('event', 'email_capture', { event_category: 'conversion', event_label: 'assessment_step1' });
         }
 
         async function submitToFormEasy(source, extraData) {
             try {
+                const controller = new AbortController();
+                setTimeout(() => controller.abort(), 3000);
                 await fetch(FORMEASY_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({
                         email: localStorage.getItem('assessmentUserEmail') || '',
@@ -2343,7 +2287,7 @@
                         page: 'assessment.html',
                         ...extraData
                     }),
-                    keepalive: true
+                    signal: controller.signal
                 });
             } catch (e) { console.error('FormEasy error:', e); }
         }
@@ -2357,8 +2301,7 @@
                 age_group: document.querySelector('input[name="ageGroup"]:checked')?.value || '',
                 found_on: reason?.value === 'other' ? document.getElementById('otherReason').value : (reason?.value || ''),
                 phone_number: phone ? code + ' ' + phone : '',
-                assessment_completed: true,
-                message: 'User completed full /s/ sound assessment'
+                assessment_completed: true
             });
             gtag('event', 'assessment_completed', { event_category: 'conversion', event_label: 'full_assessment_flow' });
         }
