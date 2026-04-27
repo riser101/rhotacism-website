@@ -55,9 +55,11 @@
             try {
                 const userAuth = JSON.parse(localStorage.getItem('userAuth') || 'null');
                 const sessionId = getAssessmentSessionId();
-                // Signed-in user → recordings/user_<id>/...
-                // Anonymous user → recordings/anon_<date>_<rand>/...
-                const userId = userAuth?.id ? `user_${userAuth.id}` : `anon_${sessionId}`;
+                const posthogId = (window.posthog && typeof window.posthog.get_distinct_id === 'function') ? window.posthog.get_distinct_id() : null;
+                // Folder = PostHog distinct_id when available, else signed-in user id, else anon session
+                const userId = posthogId
+                    ? `ph_${posthogId}`
+                    : (userAuth?.id ? `user_${userAuth.id}` : `anon_${sessionId}`);
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
                 const filePath = `recordings/lisp/${userId}/${timestamp}_${wordIndex}_lisp_${word}.webm`;
 
@@ -70,6 +72,7 @@
                         wordIndex: String(wordIndex),
                         userId: userId,
                         sessionId: sessionId,
+                        posthogId: posthogId || 'unknown',
                         userEmail: userAuth?.email || 'unknown',
                         assessmentDate: new Date().toISOString()
                     }
