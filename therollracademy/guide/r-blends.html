@@ -54,6 +54,93 @@
 
     <script src="/therollracademy/js/posthog-tracking.js"></script>
 
+    <!-- Firebase SDK (modular, from CDN) -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
+        import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js';
+        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithCredential } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMttgCdssC5eilsw08XcS5QxNURmvXhNg",
+            authDomain: "rollr-academy.firebaseapp.com",
+            projectId: "rollr-academy",
+            storageBucket: "rollr-academy.firebasestorage.app",
+            messagingSenderId: "9267895976",
+            appId: "1:9267895976:web:65729695ff15eb81526c9d",
+            measurementId: "G-1MQSVLDQ13"
+        };
+
+        const firebaseApp = initializeApp(firebaseConfig);
+        const storage = getStorage(firebaseApp);
+        const auth = getAuth(firebaseApp);
+
+        signInAnonymously(auth).catch(err => console.warn('Firebase anonymous auth failed:', err));
+
+        function getBlogSessionId() {
+            let sessionId = sessionStorage.getItem('blogSessionId');
+            if (!sessionId) {
+                const rand = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36)).replace(/-/g, '').slice(0, 12);
+                const datePart = new Date().toISOString().slice(0, 10);
+                sessionId = `${datePart}_${rand}`;
+                sessionStorage.setItem('blogSessionId', sessionId);
+            }
+            return sessionId;
+        }
+
+        function getPosthogId() {
+            try {
+                if (window.posthog && typeof window.posthog.get_distinct_id === 'function') {
+                    const id = window.posthog.get_distinct_id();
+                    if (id) return id;
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        window.uploadBlogRecordingToFirebase = async function(blob, word, key) {
+            try {
+                const userAuth = JSON.parse(localStorage.getItem('userAuth') || 'null');
+                const sessionId = getBlogSessionId();
+                const posthogId = getPosthogId();
+                const userId = posthogId ? `ph_${posthogId}` : `anon_${sessionId}`;
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const safeKey = String(key || word || 'recording').replace(/[^a-zA-Z0-9_-]/g, '_');
+                const filePath = `recordings/blogs/${userId}/${timestamp}_${safeKey}.webm`;
+
+                const storageRef = ref(storage, filePath);
+                const metadata = {
+                    contentType: 'audio/webm',
+                    customMetadata: {
+                        word: String(word || ''),
+                        key: String(key || ''),
+                        userId: userId,
+                        posthogId: posthogId || '',
+                        sessionId: sessionId,
+                        authUserId: userAuth?.id ? String(userAuth.id) : '',
+                        userEmail: userAuth?.email || 'unknown',
+                        page: 'r-blends',
+                        recordedAt: new Date().toISOString()
+                    }
+                };
+
+                await uploadBytes(storageRef, blob, metadata);
+                console.log(`Uploaded blog recording: ${filePath}`);
+            } catch (err) {
+                console.error(`Failed to upload blog recording for "${word}":`, err);
+            }
+        };
+
+        window.upgradeFirebaseAuth = async function(googleCredentialToken) {
+            try {
+                const credential = GoogleAuthProvider.credential(googleCredentialToken);
+                await signInWithCredential(auth, credential);
+                console.log('Firebase auth upgraded to Google credential');
+            } catch (err) {
+                console.warn('Firebase Google auth upgrade failed, continuing with anonymous:', err);
+            }
+        };
+    </script>
+
     <!-- Schema.org Breadcrumb Markup -->
     <script type="application/ld+json">
     {
@@ -1638,6 +1725,9 @@
                         }
                         if (recordedChunks.length) {
                             var blob = new Blob(recordedChunks, { type: 'audio/webm' });
+                            if (typeof window.uploadBlogRecordingToFirebase === 'function') {
+                                window.uploadBlogRecordingToFirebase(blob, chip.textContent.trim(), key);
+                            }
                             blobToDataURI(blob, function(dataURI) {
                                 recordings[key] = dataURI;
                                 saveToStorage();
