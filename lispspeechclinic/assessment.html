@@ -979,6 +979,8 @@
         }
     </style>
     <link rel="stylesheet" href="css/nav.css">
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.7/dist/bundle.min.js"></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -1662,6 +1664,7 @@
                 updateRecordButton();
                 startVuMeter();
                 startWordTimer();
+                startVad(audioStream);
 
                 // Timeout: if no speech after 5 seconds, flag it
                 silenceTimer = setTimeout(() => {
@@ -1729,21 +1732,21 @@
                     if (lvl > maxLevel) maxLevel = lvl;
                 }
 
-                // Speech detection
-                if (maxLevel > SPEECH_THRESHOLD) {
-                    if (!speechDetected) {
-                        speechDetected = true;
-                        speechStartTime = Date.now();
+                // Fallback amplitude-based detection only if VAD failed to initialize
+                if (!vadInstance) {
+                    if (maxLevel > SPEECH_THRESHOLD) {
+                        if (!speechDetected) {
+                            speechDetected = true;
+                            speechStartTime = Date.now();
+                        }
+                        lastSpeechTime = Date.now();
                     }
-                    lastSpeechTime = Date.now();
-                }
-
-                // Auto-stop after silence following speech
-                if (speechDetected && lastSpeechTime > 0 && (Date.now() - lastSpeechTime) > SILENCE_DURATION) {
-                    const speechDuration = lastSpeechTime - speechStartTime;
-                    if (speechDuration >= MIN_SPEECH_DURATION) {
-                        stopWordRecording();
-                        return;
+                    if (speechDetected && lastSpeechTime > 0 && (Date.now() - lastSpeechTime) > SILENCE_DURATION) {
+                        const speechDuration = lastSpeechTime - speechStartTime;
+                        if (speechDuration >= MIN_SPEECH_DURATION) {
+                            stopWordRecording();
+                            return;
+                        }
                     }
                 }
 
@@ -1788,6 +1791,54 @@
                 mediaRecorder.stop();
                 audioStream.getTracks().forEach(t => t.stop());
                 if (audioContext) { audioContext.close(); audioContext = null; }
+                stopVad();
+            }
+        }
+
+        // Silero VAD — detects human speech only, ignores fans/static/clicks
+        let vadInstance = null;
+        async function startVad(stream) {
+            try {
+                if (!window.vad || !window.vad.MicVAD) return;
+                vadInstance = await window.vad.MicVAD.new({
+                    stream,
+                    positiveSpeechThreshold: 0.6,
+                    negativeSpeechThreshold: 0.4,
+                    minSpeechFrames: 3,
+                    redemptionFrames: 12,
+                    onSpeechStart: () => {
+                        console.log('[VAD] ✅ human voice detected — speech start');
+                        if (!isRecording) return;
+                        if (!speechDetected) {
+                            speechDetected = true;
+                            speechStartTime = Date.now();
+                        }
+                        lastSpeechTime = Date.now();
+                    },
+                    onSpeechEnd: (audio) => {
+                        const dur = Date.now() - speechStartTime;
+                        console.log('[VAD] 🛑 human voice ended — duration ' + dur + 'ms, samples=' + (audio ? audio.length : 0));
+                        if (!isRecording) return;
+                        lastSpeechTime = Date.now();
+                        if (dur >= MIN_SPEECH_DURATION) {
+                            stopWordRecording();
+                        }
+                    },
+                    onVADMisfire: () => {
+                        console.log('[VAD] ⚠️ misfire — sound too short, ignored as non-speech');
+                    },
+                });
+                vadInstance.start();
+                console.log('[VAD] started — listening for human voice (ignores noise amplitude)');
+            } catch (e) {
+                console.warn('VAD init failed, falling back to amplitude detection:', e);
+                vadInstance = null;
+            }
+        }
+        function stopVad() {
+            if (vadInstance) {
+                try { vadInstance.pause(); vadInstance.destroy && vadInstance.destroy(); } catch (_) {}
+                vadInstance = null;
             }
         }
 
