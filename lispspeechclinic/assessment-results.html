@@ -1035,10 +1035,17 @@
             text = text.replace(/^.*(SCI|GRI):\s*\d+.*$/gim, '').trim();
             const tableRegex = /\|(.+)\|\n\|[-:\s|]+\|\n((?:\|.+\|\n?)+)/g;
             let html = text.replace(tableRegex, function(match, headerRow, bodyRows) {
-                const headers = headerRow.split('|').map(h => h.trim()).filter(h => h);
-                const rows = bodyRows.trim().split('\n').map(row =>
-                    row.split('|').map(cell => cell.trim()).filter(cell => cell)
-                );
+                // Strip leading/trailing pipe then split — preserve empty cells (don't filter)
+                const splitRow = function(line) {
+                    return line.replace(/^\s*\|/, '').replace(/\|\s*$/, '').split('|').map(c => c.trim());
+                };
+                const headers = splitRow(headerRow).filter(h => h);
+                const rows = bodyRows.trim().split('\n').map(function(row) {
+                    var cells = splitRow(row);
+                    // Pad to header length so every row has full column count
+                    while (cells.length < headers.length) cells.push('');
+                    return cells.slice(0, headers.length);
+                });
 
                 let tableHTML = '<div class="analysis-table-wrapper" style="overflow-x: auto; margin: 24px 0; -webkit-overflow-scrolling: touch; max-width: 100%;"><table style="min-width: 600px; border-collapse: collapse; font-size: 14px; background: white; border: 1px solid #E2E8F0;">';
 
@@ -1281,12 +1288,17 @@
                     heardCell.appendChild(createPlayButton(src, 'Yours'));
                 }
 
-                var score = parseInt(qualityCell.textContent.trim()) || 0;
-                var severity;
-                if (score < 35)      severity = 'Severe';
-                else if (score < 70) severity = 'Moderate';
-                else                 severity = 'Clear /s/';
-                qualityCell.textContent = severity;
+                var qRaw = qualityCell.textContent.trim();
+                if (qRaw) {
+                    var score = parseInt(qRaw);
+                    if (!isNaN(score)) {
+                        var severity;
+                        if (score < 35)      severity = 'Severe';
+                        else if (score < 70) severity = 'Moderate';
+                        else                 severity = 'Clear /s/';
+                        qualityCell.textContent = severity;
+                    }
+                }
             });
 
             // Rename the "Quality" header to "Severity"
