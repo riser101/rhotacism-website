@@ -1705,7 +1705,7 @@
                     sumSq += v * v;
                 }
                 const rms = Math.sqrt(sumSq / timeArray.length);
-                const visualLevel = Math.min(1, rms * 6);
+                const visualLevel = Math.min(1, Math.pow(rms * 14, 0.7));
                 const newHeight = Math.max(6, visualLevel * 68);
 
                 // Ripple outward: shift history away from center each frame,
@@ -1717,7 +1717,7 @@
 
                 // Smooth each bar toward its history value for fluid water-like easing
                 for (let i = 0; i < VU_BAR_COUNT; i++) {
-                    prevHeights[i] += (history[i] - prevHeights[i]) * 0.28;
+                    prevHeights[i] += (history[i] - prevHeights[i]) * 0.45;
                     const bar = document.getElementById('vuBar' + i);
                     if (bar) bar.style.height = prevHeights[i].toFixed(1) + 'px';
                 }
