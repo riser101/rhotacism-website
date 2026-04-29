@@ -1854,10 +1854,12 @@
             }
 
             if (currentWordIndex < TEST_WORDS.length - 1) {
-                // Wait for user to tap for next word
-                isWaitingForNext = true;
+                // Auto-advance active word; user taps to record next
+                currentWordIndex++;
+                wordTimedOut = false;
+                isWaitingForNext = false;
+                renderWordPicker();
                 updateRecordButton();
-                renderWordPicker(); // update dots
             } else {
                 // All words recorded
                 allWordsRecorded = true;
