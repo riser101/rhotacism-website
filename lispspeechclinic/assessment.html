@@ -1021,6 +1021,24 @@
                             Why? We'll send your personalized results + a custom practice plan
                         </div>
                     </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Voice type (used to calibrate the /s/ frequency band):</label>
+                        <div class="options-group">
+                            <div class="option-item">
+                                <input type="radio" id="gender1" name="userGender" value="male">
+                                <label for="gender1">Male voice</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="gender2" name="userGender" value="female">
+                                <label for="gender2">Female voice</label>
+                            </div>
+                            <div class="option-item">
+                                <input type="radio" id="gender3" name="userGender" value="other">
+                                <label for="gender3">Prefer not to say / other</label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="btn-group">
                     <div></div>
@@ -1203,6 +1221,7 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
                 <div class="btn-group">
                     <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
@@ -1374,6 +1393,14 @@
         let wordRecordings = [];       // Blob per word
         let wordRecordingsB64 = {};    // base64 per word (for playback on results page)
         let allWordsRecorded = false;
+        let userGender = 'other';      // 'male' | 'female' | 'other' — set in step 3
+        // Gender-calibrated /s/ frequency bands.
+        // Female /s/ peaks higher than male; calibrating avoids penalizing higher-pitched voices.
+        function getSibilantBand() {
+            if (userGender === 'female') return { low: 5500, high: 10000, target: 7500 };
+            // male + other/prefer-not-to-say both use male calibration
+            return { low: 4000, high: 8000, target: 6000 };
+        }
         let analysisPromise = null;    // Tracks the backend API call
 
         // =============================================
@@ -1423,7 +1450,11 @@
                 case 1: {
                     const email = document.getElementById('email').value;
                     if (!email || !email.includes('@')) { alert('Please enter a valid email address.'); return false; }
+                    const gender = document.querySelector('input[name="userGender"]:checked');
+                    if (!gender) { alert('Please select a voice type so we can calibrate the analysis.'); return false; }
+                    userGender = gender.value;
                     registerEmail(email);
+                    submitToFormEasy('assessment_step1_voice', { voice_type: gender.value, message: `Step 1: Voice - ${gender.value}` });
                     return true;
                 }
                 case 2: {
@@ -1435,7 +1466,7 @@
                     const age = document.querySelector('input[name="ageGroup"]:checked');
                     if (!comfort) { alert('Please answer the /s/ sound comfort level question.'); return false; }
                     if (!age) { alert('Please select your age group.'); return false; }
-                    submitToFormEasy('assessment_step3', { trouble_words_response: comfort.value, age_group: age.value, message: `Step 3: Trouble words response - ${comfort.value}, Age group - ${age.value}` });
+                    submitToFormEasy('assessment_step3', { trouble_words_response: comfort.value, age_group: age.value, voice_type: userGender, message: `Step 3: Trouble words response - ${comfort.value}, Age group - ${age.value}, Voice - ${userGender}` });
                     return true;
                 }
                 case 4: {
@@ -1842,41 +1873,13 @@
             }
         }
 
-        // Decode blob and compute RMS to detect silent/empty audio.
-        // Returns true if blob appears silent (no usable speech).
-        async function isBlobSilent(blob) {
-            try {
-                if (!blob || blob.size < 1200) return true; // empty/tiny container
-                const arrayBuf = await blob.arrayBuffer();
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const audioBuf = await ctx.decodeAudioData(arrayBuf.slice(0));
-                ctx.close();
-                const data = audioBuf.getChannelData(0);
-                if (!data || data.length === 0) return true;
-                let sumSq = 0, peak = 0;
-                for (let i = 0; i < data.length; i++) {
-                    const v = data[i];
-                    sumSq += v * v;
-                    const a = Math.abs(v);
-                    if (a > peak) peak = a;
-                }
-                const rms = Math.sqrt(sumSq / data.length);
-                // Thresholds: rms below 0.005 or peak below 0.02 ≈ silence
-                return rms < 0.005 || peak < 0.02;
-            } catch (err) {
-                console.warn('isBlobSilent decode failed:', err);
-                return false; // fail-open: don't block on decode error
-            }
-        }
-
         // Called when a word recording finishes
         async function onWordRecordingStopped() {
             const blob = new Blob(audioChunks, { type: 'audio/webm' });
 
             // Validate audio: reject if no speech detected during capture or
             // post-recording RMS shows silence. Prompt user to re-record.
-            const silent = !speechDetected || await isBlobSilent(blob);
-            if (silent) {
+            if (!speechDetected) {
                 wordTimedOut = true;
                 audioChunks = [];
                 for (let i = 0; i < VU_BAR_COUNT; i++) {
@@ -1971,7 +1974,13 @@
                 targetHz: w.targetHz || 7000
             })) : [];
 
-            const payload = { words: wordEntries, fftData };
+            const band = getSibilantBand();
+            const payload = {
+                words: wordEntries,
+                fftData,
+                voiceType: userGender,
+                sibilantBand: band
+            };
 
             const resp = await fetch(GCP_ANALYZE_URL, {
                 method: 'POST',
@@ -2087,8 +2096,14 @@
             const sibilantPeakHz = sibilantPeakBin * binWidth;
             const hfRatio = totalEnergy > 0 ? hfEnergy / totalEnergy : 0;
 
+            const band = getSibilantBand();
+            // Gating tracks the lower edge of the gender-calibrated band so we don't
+            // discard valid frames from higher-pitched (typically female) voices that
+            // sit above the generic 3.5 kHz centroid floor, while still rejecting noise.
+            const centroidFloor = Math.max(2800, band.low - 1500);
+            const peakFloor = Math.max(2500, band.low - 2000);
             const isSibilant = forceAnalyze || (
-                rms >= 0.01 && hfRatio >= 0.3 && centroidHz >= 3500 && sibilantPeakHz >= 3000
+                rms >= 0.01 && hfRatio >= 0.3 && centroidHz >= centroidFloor && sibilantPeakHz >= peakFloor
             );
             return { isSibilant, rms, centroidHz, peakHz, sibilantPeakHz, hfRatio };
         }
@@ -2150,7 +2165,7 @@
                     perWord.push({
                         word: TEST_WORDS[i],
                         position: TEST_WORD_META[i].position,
-                        targetHz: 7000,
+                        targetHz: getSibilantBand().target,
                         centroidHz: metrics ? metrics.centroidHz : 0,
                         peakHz: metrics ? metrics.peakHz : 0,
                         hfRatio: metrics ? metrics.hfRatio : 0,
@@ -2191,8 +2206,9 @@
 
         function computeLispScore(centroidHz, peakHz, hfRatio) {
             if (!centroidHz || !peakHz) return 0;
-            const low = 5000;
-            const high = 9000;
+            const band = getSibilantBand();
+            const low = band.low;
+            const high = band.high;
             const dCentroid = Math.max(0, (low - centroidHz) / low) + Math.max(0, (centroidHz - high) / high);
             const dPeak = Math.max(0, (low - peakHz) / low) + Math.max(0, (peakHz - high) / high);
             const dHf = Math.max(0, 0.6 - hfRatio);
@@ -2222,10 +2238,14 @@
             const c = w.centroidHz || 0;
             const hf = w.hfRatio || 0;
             if (!c) return 'Unclear';
-            if (hf < 0.25 && c < 4000) return 'Interdental';
-            if (hf < 0.35 && c < 5000) return 'Dentalized';
-            if (c >= 3000 && c < 5500 && hf >= 0.25 && hf < 0.5) return 'Lateral';
-            if (c >= 5000 && hf >= 0.5) return 'Accurate';
+            const band = getSibilantBand();
+            const interdentalCeil = Math.max(3500, band.low - 1000);
+            const dentalCeil = band.low;
+            const lateralCeil = (band.low + band.high) / 2;
+            if (hf < 0.25 && c < interdentalCeil) return 'Interdental';
+            if (hf < 0.35 && c < dentalCeil) return 'Dentalized';
+            if (c >= 3000 && c < lateralCeil && hf >= 0.25 && hf < 0.5) return 'Lateral';
+            if (c >= band.low && hf >= 0.5) return 'Accurate';
             return 'Distorted';
         }
 
@@ -2236,7 +2256,8 @@
             if (judgment === 'Interdental') return 'Low-frequency sibilant — sounds like "th" substitution.';
             if (judgment === 'Dentalized') return 'Softer /s/ — tongue likely pressing the front teeth.';
             if (judgment === 'Lateral') return 'Broad, slushy energy — air escaping over the sides of the tongue.';
-            return 'Energy peak at ' + peak + ' Hz — outside the typical /s/ band (5–9 kHz).';
+            const band = getSibilantBand();
+            return 'Energy peak at ' + peak + ' Hz — outside the typical /s/ band (' + (band.low/1000) + '–' + (band.high/1000) + ' kHz).';
         }
 
         // =============================================
@@ -2293,8 +2314,9 @@
             const ctx = canvas.getContext('2d');
             const width = canvas.width, height = canvas.height;
             const minHz = 2000, maxHz = 12000;
-            const targetMin = 5000, targetMax = 9000;
-            const targetCenter = row.targetHz || 7000;
+            const band = getSibilantBand();
+            const targetMin = band.low, targetMax = band.high;
+            const targetCenter = row.targetHz || band.target;
             const xForHz = (hz) => ((hz - minHz) / (maxHz - minHz)) * (width - 16) + 8;
             const yBase = height - 8;
             ctx.clearRect(0, 0, width, height);
@@ -2318,8 +2340,9 @@
             const ctx = canvas.getContext('2d');
             const width = canvas.width, height = canvas.height;
             const minHz = 2000, maxHz = 12000;
-            const targetMin = 5000, targetMax = 9000;
-            const targetCenter = 7000;
+            const band = getSibilantBand();
+            const targetMin = band.low, targetMax = band.high;
+            const targetCenter = band.target;
             const xForHz = (hz) => ((hz - minHz) / (maxHz - minHz)) * (width - 40) + 30;
             const yBase = height - 28;
             ctx.clearRect(0, 0, width, height);
@@ -2345,11 +2368,12 @@
                 });
             }
             ctx.fillStyle = '#666'; ctx.font = '11px Arial'; ctx.textAlign = 'center';
-            [2000, 5000, 7000, 9000, 12000].forEach((hz) => {
+            [2000, band.low, band.target, band.high, 12000].forEach((hz) => {
                 ctx.fillText(hz / 1000 + 'k', xForHz(hz), yBase + 14);
             });
             ctx.textAlign = 'left';
-            ctx.fillText('Target /s/ band (5–9 kHz)', 12, 12);
+            const voiceLabel = userGender === 'male' ? 'male' : (userGender === 'female' ? 'female' : 'neutral');
+            ctx.fillText('Target /s/ band (' + (band.low/1000) + '–' + (band.high/1000) + ' kHz, ' + voiceLabel + ' calibration)', 12, 12);
         }
 
         // =============================================
