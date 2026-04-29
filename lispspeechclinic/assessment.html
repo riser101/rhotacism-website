@@ -1329,7 +1329,7 @@
                     </div>
                     
                     <p style="margin-top: 30px; color: #666; font-style: italic;">
-                        Your results will appear in <span id="countdown">5</span>... 
+                        Your results will appear in <span id="countdown">10</span>s...
                     </p>
                 </div>
             </div>
@@ -1341,6 +1341,7 @@
         // STATE
         // =============================================
         let currentStepNum = 1;
+        let step4SubmitPromise = null;
         const TOTAL_STEPS = 5;
         const VU_BAR_COUNT = 14;
         // Sibilant /s/ word list — initial, medial, final position
@@ -1361,9 +1362,6 @@
         // For local dev run `npx functions-framework --target=analyzeLispSpeech` in gcp-function-lisp/.
         const GCP_ANALYZE_URL = 'https://analyze-lisp-speech-653307587559.us-central1.run.app';
         // const GCP_ANALYZE_URL = 'http://localhost:8080';
-        // Praat sibilant analysis — replace with deployed URL after GCP deploy
-        const PRAAT_URL = 'https://extract-lisp-sibilants-653307587559.us-central1.run.app';
-        // const PRAAT_URL = 'http://localhost:8081';
         // Recording state
         let mediaRecorder = null;
         let audioChunks = [];
@@ -1448,7 +1446,7 @@
                     const code = document.getElementById('countryCode').value;
                     const foundOn = reason.value === 'other' ? document.getElementById('otherReason').value : reason.value;
                     const fullPhone = phone ? code + ' ' + phone : '';
-                    await submitToFormEasy('assessment_step4', {
+                    step4SubmitPromise = submitToFormEasy('assessment_step4', {
                         found_on: foundOn,
                         phone_number: fullPhone,
                         message: `Step 4: Found on - ${foundOn}${fullPhone ? ', Phone - ' + fullPhone : ''}`
@@ -1630,7 +1628,15 @@
         // Start recording one word with audio analysis
         async function startWordRecording() {
             try {
-                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false,
+                        sampleRate: 48000,
+                        channelCount: 1
+                    }
+                });
                 mediaRecorder = new MediaRecorder(audioStream);
                 audioChunks = [];
                 speechDetected = false;
@@ -1785,9 +1791,50 @@
             }
         }
 
+        // Decode blob and compute RMS to detect silent/empty audio.
+        // Returns true if blob appears silent (no usable speech).
+        async function isBlobSilent(blob) {
+            try {
+                if (!blob || blob.size < 1200) return true; // empty/tiny container
+                const arrayBuf = await blob.arrayBuffer();
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const audioBuf = await ctx.decodeAudioData(arrayBuf.slice(0));
+                ctx.close();
+                const data = audioBuf.getChannelData(0);
+                if (!data || data.length === 0) return true;
+                let sumSq = 0, peak = 0;
+                for (let i = 0; i < data.length; i++) {
+                    const v = data[i];
+                    sumSq += v * v;
+                    const a = Math.abs(v);
+                    if (a > peak) peak = a;
+                }
+                const rms = Math.sqrt(sumSq / data.length);
+                // Thresholds: rms below 0.005 or peak below 0.02 ≈ silence
+                return rms < 0.005 || peak < 0.02;
+            } catch (err) {
+                console.warn('isBlobSilent decode failed:', err);
+                return false; // fail-open: don't block on decode error
+            }
+        }
+
         // Called when a word recording finishes
         async function onWordRecordingStopped() {
             const blob = new Blob(audioChunks, { type: 'audio/webm' });
+
+            // Validate audio: reject if no speech detected during capture or
+            // post-recording RMS shows silence. Prompt user to re-record.
+            const silent = !speechDetected || await isBlobSilent(blob);
+            if (silent) {
+                wordTimedOut = true;
+                audioChunks = [];
+                for (let i = 0; i < VU_BAR_COUNT; i++) {
+                    const bar = document.getElementById('vuBar' + i);
+                    if (bar) bar.style.height = '6px';
+                }
+                updateRecordButton();
+                return;
+            }
 
             wordRecordings.push(blob);
 
@@ -1855,37 +1902,7 @@
             });
         }
 
-        // Extract Praat-based sibilant metrics from the deployed Cloud Run function.
-        async function extractPraatSibilantData() {
-            try {
-                const wordEntries = [];
-                for (let i = 0; i < TEST_WORDS.length; i++) {
-                    const b64 = wordRecordingsB64[TEST_WORDS[i]];
-                    if (b64) {
-                        const audioOnly = b64.includes(',') ? b64.split(',')[1] : b64;
-                        wordEntries.push({ word: TEST_WORDS[i], position: TEST_WORD_META[i].position, audio_base64: audioOnly });
-                    }
-                }
-
-                const resp = await fetch(PRAAT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ words: wordEntries })
-                });
-
-                if (!resp.ok) throw new Error('Praat extraction error: ' + resp.status);
-
-                const results = await resp.json();
-                console.log('Praat sibilant data:', results);
-                return JSON.stringify(results, null, 2);
-            } catch (err) {
-                console.warn('Praat sibilant extraction failed, falling back to client FFT:', err);
-                return null;
-            }
-        }
-
-        // Send per-word audio + Praat sibilant metrics to the lisp cloud function.
-        // Falls back to client-side FFT if Praat extraction fails.
+        // Send per-word audio + client FFT metrics to the lisp cloud function.
         async function sendAudioToBackend(local) {
             const wordEntries = TEST_WORDS.map((word, i) => {
                 const b64 = wordRecordingsB64[word];
@@ -1894,22 +1911,14 @@
 
             if (!wordEntries.length) return null;
 
-            // Run Praat extraction in parallel with audio prep
-            const praatData = await extractPraatSibilantData();
-
-            // Fallback: client-side FFT if Praat failed
             const fftData = (local && Array.isArray(local.words)) ? local.words.map(w => ({
                 word: w.word,
                 position: w.position,
                 peakHz: w.peakHz || 0,
-                centroidHz: w.centroidHz || 0,
-                hfRatio: w.hfRatio || 0,
-                targetHz: w.targetHz || 7000,
-                peakSeries: w.peakSeries || []
+                targetHz: w.targetHz || 7000
             })) : [];
 
             const payload = { words: wordEntries, fftData };
-            if (praatData) payload.praatData = praatData;
 
             const resp = await fetch(GCP_ANALYZE_URL, {
                 method: 'POST',
@@ -2297,22 +2306,39 @@
             // Submit final data to Google Sheets (non-blocking)
             submitFinalAssessment();
 
-            // Animate loading steps
-            let step = 1;
-            const interval = setInterval(() => {
-                if (step <= 3) {
-                    document.getElementById('loading' + step).classList.add('completed');
-                    step++;
-                }
-            }, 1000);
+            // Animate loading steps — step 2 at 5s, step 3 at 7s (2s after step 2)
+            const step2Timeout = setTimeout(() => {
+                document.getElementById('loading2').classList.add('completed');
+            }, 5000);
+            const step3Timeout = setTimeout(() => {
+                document.getElementById('loading3').classList.add('completed');
+            }, 7000);
 
-            // Wait for backend analysis to finish before redirecting
+            // Countdown timer — starts after step 3 turns green (at 7s)
+            const countdownEl = document.getElementById('countdown');
+            let countdownInterval = null;
+            setTimeout(() => {
+                let count = 10;
+                if (countdownEl) countdownEl.textContent = count;
+                countdownInterval = setInterval(() => {
+                    count--;
+                    if (countdownEl) countdownEl.textContent = count;
+                    if (count <= 0) clearInterval(countdownInterval);
+                }, 1000);
+            }, 7000);
+
+            // Wait for backend analysis + step 4 submit to finish before redirecting
+            if (step4SubmitPromise) {
+                try { await step4SubmitPromise; } catch (e) {}
+            }
             if (analysisPromise) {
                 await analysisPromise;
             }
 
             // Mark all steps done
-            clearInterval(interval);
+            clearTimeout(step2Timeout);
+            clearTimeout(step3Timeout);
+            if (countdownInterval) clearInterval(countdownInterval);
             for (let i = 1; i <= 3; i++) document.getElementById('loading' + i).classList.add('completed');
 
             // Redirect to results
