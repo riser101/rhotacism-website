@@ -422,6 +422,54 @@
                         display: flex; gap: 8px; flex-wrap: wrap;
                         margin: 16px 0 12px;
                     }
+                    .lisp-words-section .lisp-instructions-box {
+                        display: inline-block;
+                        width: fit-content; max-width: 100%;
+                        margin: 18px 0 22px;
+                        padding: 18px 20px 20px;
+                        border: 1.5px solid #94A3B8;
+                        border-radius: 12px;
+                        background: #FFFFFF;
+                    }
+                    .lisp-words-section .lisp-instructions-title {
+                        margin: 0 0 14px;
+                        font-size: 15px; font-weight: 700;
+                        color: #1A202C; letter-spacing: 0.2px;
+                    }
+                    .lisp-words-section .lisp-words-instructions {
+                        display: flex; align-items: center; justify-content: flex-start;
+                        gap: 0; flex-wrap: wrap;
+                        margin: 0;
+                    }
+                    .lisp-words-section .lwi-arrow {
+                        width: 56px; height: 14px; flex-shrink: 0;
+                    }
+                    .lisp-words-section .lwi-arrow-left { margin: 0 0 0 6px; }
+                    .lisp-words-section .lwi-arrow-right { margin: 0 6px 0 0; }
+                    .lisp-words-section .lwi-example-chip {
+                        display: inline-flex; align-items: center; gap: 8px;
+                        background: #FFFFFF; color: #334155;
+                        font-size: 14px; font-weight: 600;
+                        padding: 6px 6px 6px 12px;
+                        border-radius: 999px;
+                        border: 1.5px solid #06B6D4;
+                        box-shadow: 0 4px 10px rgba(6, 182, 212, 0.18);
+                    }
+                    .lisp-words-section .lwi-speaker { width: 14px; height: 14px; }
+                    .lisp-words-section .lwi-word { padding: 0 2px; }
+                    .lisp-words-section .lwi-rec {
+                        display: inline-flex; align-items: center; justify-content: center;
+                        width: 22px; height: 22px; border-radius: 50%;
+                        background: #FFFFFF; border: 1.5px solid #FCA5A5;
+                        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+                    }
+                    .lisp-words-section .lwi-rec-dot {
+                        width: 10px; height: 10px;
+                        background: #E53E3E; border-radius: 50%;
+                    }
+                    @media (max-width: 640px) {
+                        .lisp-words-section .lwi-arrow { width: 40px; height: 22px; }
+                    }
                     @media (max-width: 640px) {
                         .lisp-words-section .lisp-word-row {
                             grid-template-columns: 1fr;
@@ -493,9 +541,33 @@
                 </style>
 
                 <div class="lisp-words-section">
-                    <div class="lisp-words-hints">
-                        <span class="accordion-hint hint-play">Tap to hear</span>
-                        <span class="accordion-hint hint-record">Record this word, hear how you sound</span>
+                    <div class="lisp-instructions-box">
+                        <h4 class="lisp-instructions-title">Interactive Audio Guide</h4>
+                        <div class="lisp-words-instructions">
+                        <span class="accordion-hint hint-play">Listen to target pronunciation</span>
+                        <svg class="lwi-arrow lwi-arrow-left" viewBox="0 0 60 14" preserveAspectRatio="none" aria-hidden="true">
+                            <defs>
+                                <marker id="lwiArrowHeadL" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <path d="M0,0 L10,5 L0,10 z" fill="#0E7490"/>
+                                </marker>
+                            </defs>
+                            <line x1="2" y1="7" x2="56" y2="7" stroke="#0E7490" stroke-width="1.6" stroke-linecap="round" marker-end="url(#lwiArrowHeadL)"/>
+                        </svg>
+                        <span class="lwi-example-chip" aria-hidden="true">
+                            <svg class="lwi-speaker" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                            <span class="lwi-word">soap</span>
+                            <span class="lwi-rec"><span class="lwi-rec-dot"></span></span>
+                        </span>
+                        <svg class="lwi-arrow lwi-arrow-right" viewBox="0 0 60 14" preserveAspectRatio="none" aria-hidden="true">
+                            <defs>
+                                <marker id="lwiArrowHeadR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <path d="M0,0 L10,5 L0,10 z" fill="#C53030"/>
+                                </marker>
+                            </defs>
+                            <line x1="58" y1="7" x2="4" y2="7" stroke="#C53030" stroke-width="1.6" stroke-linecap="round" marker-end="url(#lwiArrowHeadR)"/>
+                        </svg>
+                        <span class="accordion-hint hint-record">Record and compare your pronunciation</span>
+                    </div>
                     </div>
                     <div class="lisp-word-groups">
                         <div class="lisp-word-row">
