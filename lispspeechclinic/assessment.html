@@ -979,8 +979,8 @@
         }
     </style>
     <link rel="stylesheet" href="css/nav.css">
-    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.7/dist/bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/bundle.min.js"></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -1644,7 +1644,8 @@
         async function handleRecordTap() {
             if (allWordsRecorded) return;
             if (isRecording) {
-                stopWordRecording();
+                // Manual stop = discard; only VAD onSpeechEnd commits + advances
+                stopWordRecording(true);
             } else if (isWaitingForNext) {
                 // Advance to next word and start recording
                 isWaitingForNext = false;
@@ -1826,13 +1827,21 @@
             }
         }
 
-        // Silero VAD — detects human speech only, ignores fans/static/clicks
+        // Silero VAD v5 — detects human speech only, ignores fans/static/clicks
+        const VAD_ASSET_BASE = 'https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/';
+        const ORT_WASM_BASE  = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/';
         let vadInstance = null;
         async function startVad(stream) {
             try {
                 if (!window.vad || !window.vad.MicVAD) return;
                 vadInstance = await window.vad.MicVAD.new({
-                    stream,
+                    model: 'v5',
+                    baseAssetPath: VAD_ASSET_BASE,
+                    onnxWASMBasePath: ORT_WASM_BASE,
+                    getStream: async () => stream,
+                    pauseStream: async () => {},
+                    resumeStream: async () => stream,
+                    startOnLoad: false,
                     positiveSpeechThreshold: 0.6,
                     negativeSpeechThreshold: 0.4,
                     minSpeechFrames: 3,
