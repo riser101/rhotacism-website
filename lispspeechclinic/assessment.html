@@ -187,11 +187,11 @@
             margin: 0 auto;
             padding: 0 20px;
         }
-        .assessment-container:has(#step2.active) {
+        .assessment-container:has(#step1.active) {
             max-width: 1000px;
         }
-        .assessment-container:has(#step2.active) .progress-container,
-        .assessment-container:has(#step2.active) .assessment-header {
+        .assessment-container:has(#step1.active) .progress-container,
+        .assessment-container:has(#step1.active) .assessment-header {
             max-width: 600px;
             margin-left: auto;
             margin-right: auto;
@@ -265,7 +265,7 @@
             display: block;
         }
 
-        #step2 {
+        #step1 {
             width: min(1080px, calc(100vw - 40px));
             margin-left: 50%;
             transform: translateX(-50%);
@@ -422,6 +422,7 @@
             border: 1px solid rgba(0,0,0,0.08);
             box-shadow: 0 4px 24px rgba(0,0,0,0.08);
             overflow: hidden;
+            position: relative;
         }
 
         /* Header bar */
@@ -470,49 +471,34 @@
             color: #ef4444;
         }
 
-        /* Instructions box */
-        .clinical-instructions {
+        /* Live instruction (state-driven dynamic header) */
+        .live-instruction {
             margin: 0 20px 10px;
-            padding: 20px 22px;
-            background: rgba(15,23,42,0.04);
-            border-radius: 14px;
-            text-align: left;
-        }
-        .clinical-instructions .clinical-label {
-            margin-bottom: 14px;
-            font-size: 12px;
-            letter-spacing: 1.5px;
-        }
-        .instruction-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            margin-bottom: 14px;
-        }
-        .instruction-num {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: #FF9800;
-            color: #fff;
+            padding: 8px 12px;
+            font-family: 'Quicksand', 'Inter', sans-serif;
             font-size: 13px;
-            font-weight: 700;
-            font-family: 'Inter', sans-serif;
-            flex-shrink: 0;
-        }
-        .instruction-text {
-            font-size: 15px;
+            font-weight: 600;
             color: rgba(15,23,42,0.85);
-            line-height: 1.4;
-            padding-top: 2px;
+            text-align: center;
+            background: rgba(255,152,0,0.07);
+            border: 1px solid rgba(255,152,0,0.22);
+            border-radius: 9px;
+            line-height: 1.3;
+            transition: background 0.25s ease, color 0.25s ease;
         }
-        .instruction-divider {
-            height: 1px;
-            background: rgba(15,23,42,0.1);
-            margin: 14px 0 12px;
+        .live-instruction.recording {
+            background: rgba(244,67,54,0.08);
+            border-color: rgba(244,67,54,0.3);
+            color: #b71c1c;
+        }
+        .live-instruction.done {
+            background: rgba(76,175,80,0.1);
+            border-color: rgba(76,175,80,0.3);
+            color: #1b5e20;
+        }
+        .live-instruction .live-word {
+            color: #FF9800;
+            font-weight: 700;
         }
         .instruction-tagline {
             font-size: 13px;
@@ -533,6 +519,7 @@
             border: 1px solid rgba(15,23,42,0.08);
             display: flex;
             overflow: hidden;
+            position: relative;
         }
         .word-picker-words {
             flex: 1;
@@ -587,19 +574,25 @@
 
         /* Word picker divider + dots */
         .word-picker-divider-line {
+            position: absolute;
+            top: 14px;
+            bottom: 14px;
+            right: 44px;
             width: 1px;
             background: rgba(15,23,42,0.12);
-            margin: 14px 0;
+            margin: 0;
         }
         .word-picker-dots {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 7px;
             padding: 10px 14px;
-            position: static;
-            transform: none;
         }
         .picker-dot {
             border-radius: 50%;
@@ -742,6 +735,10 @@
             gap: 16px;
             justify-content: space-between;
             margin-top: 30px;
+        }
+
+        .btn-group.btn-group-single {
+            justify-content: flex-end;
         }
 
         .btn {
@@ -902,14 +899,17 @@
         @media (min-width: 720px) {
             .recording-section {
                 display: grid;
-                grid-template-columns: minmax(280px, 360px) minmax(280px, 360px);
+                grid-template-columns: minmax(180px, 220px) minmax(360px, 480px) minmax(180px, 220px);
                 grid-template-rows: auto auto auto auto auto;
-                column-gap: 24px;
+                column-gap: 28px;
                 align-items: start;
                 justify-content: center;
                 padding-bottom: 12px;
                 max-width: 820px;
                 margin: 20px auto;
+            }
+            .clinical-header {
+                grid-column: 1 / -1 !important;
             }
             .clinical-header {
                 grid-column: 1 / -1;
@@ -926,26 +926,11 @@
                 top: 50%;
                 transform: translateY(-50%);
             }
-            .clinical-instructions {
-                grid-column: 1;
-                grid-row: 2 / 6;
-                margin: 0 0 12px 12px;
-                align-self: stretch;
-                height: auto;
-                display: block;
-            }
-            .clinical-instructions .clinical-label {
-                margin-bottom: 8px;
-            }
-            .clinical-instructions .instruction-row {
-                margin-bottom: 6px;
-            }
-            .instruction-text {
-                font-size: 15px;
-            }
             .recording-panel {
                 grid-column: 2;
                 grid-row: 2 / 6;
+                justify-self: center;
+                width: 100%;
                 margin: 0 12px 0 0;
                 display: flex;
                 flex-direction: column;
@@ -971,10 +956,12 @@
                 padding: 0;
             }
             .recording-section > .btn-group {
-                grid-column: 1 / -1;
+                grid-column: 2;
                 grid-row: 6;
-                padding: 0 20px;
-                margin-top: 20px;
+                padding: 0;
+                margin: 20px 12px 0 0;
+                justify-self: center;
+                width: 100%;
             }
         }
     </style>
@@ -999,59 +986,20 @@
             <div class="assessment-header">
                 <h1 class="assessment-title">Your Free Lisp Assessment</h1>
                 <p class="assessment-subtitle">See exactly where your /s/ sound needs work</p>
-                <p class="assessment-tagline">(This takes just 2 minutes)</p>
+                
             </div>
 
             <!-- Progress Bar -->
             <div class="progress-container">
-                <div class="progress-label">Step <span id="currentStep">1</span> of 5</div>
+                <div class="progress-label">Step <span id="currentStep">1</span> of 4</div>
                 <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill" style="width: 20%"></div>
+                    <div class="progress-fill" id="progressFill" style="width: 25%"></div>
                 </div>
             </div>
 
-            <!-- Step 1: Email Capture -->
-            <div class="assessment-step active" id="step1">
-                <h2 class="step-title">Step 1: Basic Information</h2>
-                <div class="step-content">
-                    <div class="form-group">
-                        <label class="form-label" for="email">Email Address:</label>
-                        <input type="email" id="email" class="form-input" placeholder="your.email@example.com" required>
-                        <div class="form-help">
-                            Why? We'll send your personalized results + a custom practice plan
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Voice type (used to calibrate the /s/ frequency band):</label>
-                        <div class="options-group">
-                            <div class="option-item">
-                                <input type="radio" id="gender1" name="userGender" value="male">
-                                <label for="gender1">Male voice</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="gender2" name="userGender" value="female">
-                                <label for="gender2">Female voice</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="gender3" name="userGender" value="other">
-                                <label for="gender3">Prefer not to say / other</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="btn-group">
-                    <div></div>
-                    <button class="btn btn-primary" onclick="nextStep()">Continue to Assessment →</button>
-                </div>
-                <div class="security-badge">
-                    <span class="icon">🔒</span>
-                    <span class="security-text">Your information is 100% confidential</span>
-                </div>
-            </div>
-
-            <!-- Step 2: Clinical Voice Recording (matches app UI) -->
-            <div class="assessment-step" id="step2" style="background:transparent;box-shadow:none;padding:0;">
+            <!-- Step 1: Instant Recording (The Hook) -->
+            <div class="assessment-step active" id="step1" style="background:transparent;box-shadow:none;padding:0;">
+                <div id="recordingHost">
                 <div class="recording-section">
                     <!-- Header -->
                     <div class="clinical-header">
@@ -1065,31 +1013,10 @@
                         </div>
                     </div>
 
-                    <!-- Instructions -->
-                    <div class="clinical-instructions">
-                        <div class="clinical-label">HOW IT WORKS</div>
-                        <div class="instruction-row">
-                            <span class="instruction-num">1</span>
-                            <span class="instruction-text">Tap to start recording.</span>
-                        </div>
-                        <div class="instruction-row">
-                            <span class="instruction-num">2</span>
-                            <span class="instruction-text">Speak the word clearly.</span>
-                        </div>
-                        <div class="instruction-row">
-                            <span class="instruction-num">3</span>
-                            <span class="instruction-text">Tap again to save and move forward.</span>
-                        </div>
-                        <div class="instruction-row">
-                            <span class="instruction-num">4</span>
-                            <span class="instruction-text">Record one word at a time.</span>
-                        </div>
-                        <div class="instruction-divider"></div>
-                        <div class="instruction-tagline">Use your everyday voice for the most accurate assessment.</div>
-                    </div>
-
                     <!-- Unified recording panel: word picker + waveform + record button -->
                     <div class="recording-panel">
+                    <!-- Live instruction (state-driven) -->
+                    <div class="live-instruction" id="liveInstruction">Tap the microphone to start.</div>
                     <!-- Word picker -->
                     <div class="word-picker" id="wordPicker">
                         <div class="word-picker-words" id="wordPickerWords">
@@ -1117,62 +1044,20 @@
                                 <svg id="checkIcon" style="display:none;" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
                             </div>
                         </button>
-                        <div class="record-label" id="recordLabel">TAP TO START RECORDING</div>
+                        <div class="record-label" id="recordLabel"></div>
                         <div class="timeout-hint" id="timeoutHint" style="display:none;">No speech detected — try again</div>
                     </div>
                     </div>
 
-                    <div class="btn-group" style="margin-top:16px;padding:0 20px 16px;">
-                        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                        <button class="btn btn-primary" onclick="nextStep()" id="step2Continue" disabled>Continue →</button>
+                    <div class="btn-group btn-group-single" id="recordingBtnGroup" style="margin-top:16px;padding:0 20px 16px;">
+                        <button class="btn btn-primary" onclick="nextStep()" id="recordingContinueBtn" disabled>Continue →</button>
                     </div>
                 </div>
-
-                <!-- Inline local FFT results + frequency plots (shown after all words recorded) -->
-                <!-- COMMENTED OUT: acoustic fingerprint card hidden from UI (kept for reference)
-                <div class="results-card" id="localResults" style="display:none; background:#fff; border-radius:16px; padding:24px; margin-top:20px; box-shadow:0 12px 28px rgba(0,0,0,0.15);">
-                    <h3 style="font-family:'Inter',sans-serif; font-size:18px; font-weight:700; color:#0F172A; margin-bottom:6px;">Your /s/ acoustic fingerprint</h3>
-                    <p style="font-size:13px; color:#64748b; margin-bottom:14px;" id="resultsNote">Computed locally from your recordings via FFT.</p>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom:16px;">
-                        <div style="background:#f8fafc; border-radius:10px; padding:12px;">
-                            <div style="font-size:11px; letter-spacing:1px; color:#94a3b8; text-transform:uppercase;">Centroid</div>
-                            <div id="centroidValue" style="font-size:18px; font-weight:700; color:#0F172A;">—</div>
-                        </div>
-                        <div style="background:#f8fafc; border-radius:10px; padding:12px;">
-                            <div style="font-size:11px; letter-spacing:1px; color:#94a3b8; text-transform:uppercase;">Peak</div>
-                            <div id="peakValue" style="font-size:18px; font-weight:700; color:#0F172A;">—</div>
-                        </div>
-                        <div style="background:#f8fafc; border-radius:10px; padding:12px;">
-                            <div style="font-size:11px; letter-spacing:1px; color:#94a3b8; text-transform:uppercase;">HF ratio</div>
-                            <div id="hfValue" style="font-size:18px; font-weight:700; color:#0F172A;">—</div>
-                        </div>
-                        <div style="background:#fff7ed; border-radius:10px; padding:12px;">
-                            <div style="font-size:11px; letter-spacing:1px; color:#c2410c; text-transform:uppercase;">Lisp score</div>
-                            <div id="lispScoreValue" style="font-size:18px; font-weight:700; color:#E65100;">—</div>
-                        </div>
-                    </div>
-                    <canvas id="freqChart" width="720" height="180" style="width:100%; max-width:720px; height:auto; border-radius:10px; background:#fafafa; display:block; margin:0 auto 16px;"></canvas>
-                    <div style="overflow-x:auto;">
-                        <table class="results-table" id="resultsTable" style="width:100%; border-collapse:collapse; font-size:13px;">
-                            <thead>
-                                <tr style="background:#f8fafc;">
-                                    <th style="text-align:left; padding:8px;">Word</th>
-                                    <th style="text-align:left; padding:8px;">Target (Hz)</th>
-                                    <th style="text-align:left; padding:8px;">User Peak (Hz)</th>
-                                    <th style="text-align:left; padding:8px;">Difference (Hz)</th>
-                                    <th style="text-align:left; padding:8px;">Graph</th>
-                                    <th style="text-align:left; padding:8px;">Playback</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
                 </div>
-                -->
             </div>
 
-            <!-- Step 3: Self-Assessment Questions -->
-            <div class="assessment-step" id="step3">
+            <!-- Step 2: Self-Assessment Questions -->
+            <div class="assessment-step" id="step2">
                 <div class="step-content">
                     <div class="form-group">
                         <label class="form-label">How would you describe your comfort level with making the /s/ sound?</label>
@@ -1225,13 +1110,20 @@
                 </div>
                 <div class="btn-group">
                     <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                    <button class="btn btn-primary" onclick="nextStep()" id="step3Continue" disabled>Continue →</button>
+                    <button class="btn btn-primary" onclick="nextStep()" id="step2Continue" disabled>Continue →</button>
                 </div>
             </div>
 
-            <!-- Step 4: Visit Reason -->
-            <div class="assessment-step" id="step4">
+            <!-- Step 3: Email/Data (The "Unlock") -->
+            <div class="assessment-step" id="step3">
                 <div class="step-content">
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address:</label>
+                        <input type="email" id="email" class="form-input" placeholder="your.email@example.com" required>
+                        <div class="form-help">
+                            Why? We'll send your personalized results + a custom practice plan
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label class="form-label">How did you learn about Lisp Speech Clinic?</label>
                         <div class="options-group">
@@ -1325,12 +1217,12 @@
                 </div>
                 <div class="btn-group">
                     <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                    <button class="btn btn-primary" onclick="nextStep()" id="step4Continue" disabled>Continue →</button>
+                    <button class="btn btn-primary" onclick="nextStep()" id="step3Continue" disabled>Continue →</button>
                 </div>
             </div>
 
-            <!-- Step 5: Processing Screen -->
-            <div class="assessment-step" id="step5">
+            <!-- Step 4: Processing Screen -->
+            <div class="assessment-step" id="step4">
                 <div class="loading-screen">
                     <h2 class="loading-title">🔬 Analyzing Your /s/ Sound Patterns<span class="loading-dots">.</span><span class="loading-dots">.</span><span class="loading-dots">.</span></h2>
 
@@ -1363,7 +1255,8 @@
         // =============================================
         let currentStepNum = 1;
         let step4SubmitPromise = null;
-        const TOTAL_STEPS = 5;
+        const TOTAL_STEPS = 4;
+        const FINAL_SCREEN_STEP = 4;
         const VU_BAR_COUNT = 14;
         // Sibilant /s/ word list — initial, medial, final position
         const TEST_WORD_META = [
@@ -1393,12 +1286,9 @@
         let wordRecordings = [];       // Blob per word
         let wordRecordingsB64 = {};    // base64 per word (for playback on results page)
         let allWordsRecorded = false;
-        let userGender = 'other';      // 'male' | 'female' | 'other' — set in step 3
-        // Gender-calibrated /s/ frequency bands.
-        // Female /s/ peaks higher than male; calibrating avoids penalizing higher-pitched voices.
+        let userGender = 'male';
+        // Use the male-calibrated /s/ frequency band for every assessment.
         function getSibilantBand() {
-            if (userGender === 'female') return { low: 5500, high: 10000, target: 7500 };
-            // male + other/prefer-not-to-say both use male calibration
             return { low: 4000, high: 8000, target: 6000 };
         }
         let analysisPromise = null;    // Tracks the backend API call
@@ -1407,8 +1297,15 @@
         // NAVIGATION
         // =============================================
         function updateProgress() {
-            document.getElementById('progressFill').style.width = ((currentStepNum / TOTAL_STEPS) * 100) + '%';
-            document.getElementById('currentStep').textContent = currentStepNum;
+            const visibleStepNum = Math.min(currentStepNum, TOTAL_STEPS);
+            document.getElementById('progressFill').style.width = ((visibleStepNum / TOTAL_STEPS) * 100) + '%';
+            document.getElementById('currentStep').textContent = visibleStepNum;
+        }
+
+        function syncRecordingContinueButton() {
+            const cont = document.getElementById('recordingContinueBtn');
+            if (!cont) return;
+            cont.disabled = !allWordsRecorded;
         }
 
         async function nextStep() {
@@ -1421,11 +1318,10 @@
             if (await validateCurrentStep()) {
                 document.getElementById('step' + currentStepNum).classList.remove('active');
                 currentStepNum++;
-                if (currentStepNum <= TOTAL_STEPS) {
+                if (currentStepNum <= FINAL_SCREEN_STEP) {
                     document.getElementById('step' + currentStepNum).classList.add('active');
                     updateProgress();
-                    if (currentStepNum === 2) initWordRecording();
-                    if (currentStepNum === 5) startProcessing();
+                    if (currentStepNum === FINAL_SCREEN_STEP) startProcessing();
                 }
             } else {
                 btn.textContent = originalText;
@@ -1442,34 +1338,38 @@
             }
         }
 
+        // Ensure the recording section is mounted in the recording step host
+        function moveRecordingTo(hostId) {
+            const host = document.getElementById(hostId);
+            const section = document.querySelector('.recording-section');
+            if (host && section && section.parentElement !== host) {
+                host.appendChild(section);
+            }
+            syncRecordingContinueButton();
+        }
+
         // =============================================
         // VALIDATION
         // =============================================
         async function validateCurrentStep() {
             switch (currentStepNum) {
                 case 1: {
-                    const email = document.getElementById('email').value;
-                    if (!email || !email.includes('@')) { alert('Please enter a valid email address.'); return false; }
-                    const gender = document.querySelector('input[name="userGender"]:checked');
-                    if (!gender) { alert('Please select a voice type so we can calibrate the analysis.'); return false; }
-                    userGender = gender.value;
-                    registerEmail(email);
-                    submitToFormEasy('assessment_step1_voice', { voice_type: gender.value, message: `Step 1: Voice - ${gender.value}` });
+                    userGender = 'male';
+                    if (!allWordsRecorded) { alert('Please record all ' + TEST_WORDS.length + ' words.'); return false; }
+                    submitToFormEasy('assessment_step1_voice', { voice_type: userGender, message: `Step 1: Voice - ${userGender}` });
                     return true;
                 }
                 case 2: {
-                    if (!allWordsRecorded) { alert('Please record all ' + TEST_WORDS.length + ' words.'); return false; }
-                    return true;
-                }
-                case 3: {
                     const comfort = document.querySelector('input[name="troubleWords"]:checked');
                     const age = document.querySelector('input[name="ageGroup"]:checked');
                     if (!comfort) { alert('Please answer the /s/ sound comfort level question.'); return false; }
                     if (!age) { alert('Please select your age group.'); return false; }
-                    submitToFormEasy('assessment_step3', { trouble_words_response: comfort.value, age_group: age.value, voice_type: userGender, message: `Step 3: Trouble words response - ${comfort.value}, Age group - ${age.value}, Voice - ${userGender}` });
+                    submitToFormEasy('assessment_step2', { trouble_words_response: comfort.value, age_group: age.value, voice_type: userGender, message: `Step 2: Trouble words response - ${comfort.value}, Age group - ${age.value}, Voice - ${userGender}` });
                     return true;
                 }
-                case 4: {
+                case 3: {
+                    const email = document.getElementById('email').value;
+                    if (!email || !email.includes('@')) { alert('Please enter a valid email address.'); return false; }
                     const reason = document.querySelector('input[name="visitReason"]:checked');
                     if (!reason) { alert('Please answer how you found us.'); return false; }
                     if (reason.value === 'other' && !document.getElementById('otherReason').value.trim()) {
@@ -1479,10 +1379,12 @@
                     const code = document.getElementById('countryCode').value;
                     const foundOn = reason.value === 'other' ? document.getElementById('otherReason').value : reason.value;
                     const fullPhone = phone ? code + ' ' + phone : '';
+                    registerEmail(email);
                     step4SubmitPromise = submitToFormEasy('assessment_step4', {
+                        email: email,
                         found_on: foundOn,
                         phone_number: fullPhone,
-                        message: `Step 4: Found on - ${foundOn}${fullPhone ? ', Phone - ' + fullPhone : ''}`
+                        message: `Step 3: Email - ${email}, Found on - ${foundOn}${fullPhone ? ', Phone - ' + fullPhone : ''}`
                     });
                     return true;
                 }
@@ -1613,36 +1515,57 @@
             label.classList.remove('timeout');
             btn.disabled = false;
 
+            const live = document.getElementById('liveInstruction');
+            if (live) live.classList.remove('recording', 'done');
+
             if (allWordsRecorded) {
                 check.style.display = 'block';
                 btn.classList.add('done');
                 btn.disabled = true;
                 label.textContent = 'ALL WORDS CAPTURED';
+                if (live) {
+                    live.classList.add('done');
+                    live.textContent = "Good. Tap 'Continue' ";
+                }
             } else if (isRecording) {
                 stop.style.display = 'block';
                 btn.classList.add('recording');
                 badge.classList.add('visible');
-                label.textContent = 'LISTENING...';
+                
+                if (live) {
+                    live.classList.add('recording');
+                    live.innerHTML = `Now, say <span class="live-word">'${TEST_WORDS[currentWordIndex]}'</span> clearly.`;
+                }
             } else if (isWaitingForNext) {
                 fwd.style.display = 'block';
                 label.textContent = 'TAP FOR NEXT WORD';
+                if (live) {
+                    const next = TEST_WORDS[currentWordIndex + 1];
+                    live.innerHTML = next
+                        ? `Good. Tap to record <span class="live-word">'${next}'</span>.`
+                        : "Good. Tap to record next word.";
+                }
             } else if (wordTimedOut) {
                 mic.style.display = 'block';
                 label.textContent = 'TAP TO RETRY';
                 label.classList.add('timeout');
                 hint.style.display = 'block';
+                if (live) live.textContent = 'No speech detected. Tap microphone to retry.';
             } else if (currentWordIndex === 0 && wordRecordings.length === 0) {
                 mic.style.display = 'block';
-                label.textContent = 'TAP TO START RECORDING';
+               
+                if (live) live.innerHTML = `Tap microphone to record <span class="live-word">'${TEST_WORDS[0]}'</span>.`;
             } else {
                 mic.style.display = 'block';
-                label.textContent = 'TAP TO BEGIN CAPTURE';
+                
+                if (live) live.innerHTML = `Tap microphone to record <span class="live-word">'${TEST_WORDS[currentWordIndex]}'</span>.`;
             }
         }
 
         // Main record button handler
         async function handleRecordTap() {
             if (allWordsRecorded) return;
+            userGender = 'male';
             if (isRecording) {
                 // Manual stop = discard; only VAD onSpeechEnd commits + advances
                 stopWordRecording(true);
@@ -1900,6 +1823,7 @@
             }
 
             wordRecordings.push(blob);
+            syncRecordingContinueButton();
 
             // Upload individual word recording to Firebase Storage
             if (typeof window.uploadRecordingToFirebase === 'function') {
@@ -1926,7 +1850,7 @@
             } else {
                 // All words recorded
                 allWordsRecorded = true;
-                document.getElementById('step2Continue').disabled = false;
+                syncRecordingContinueButton();
                 updateRecordButton();
                 renderWordPicker();
 
@@ -2106,9 +2030,7 @@
             const hfRatio = totalEnergy > 0 ? hfEnergy / totalEnergy : 0;
 
             const band = getSibilantBand();
-            // Gating tracks the lower edge of the gender-calibrated band so we don't
-            // discard valid frames from higher-pitched (typically female) voices that
-            // sit above the generic 3.5 kHz centroid floor, while still rejecting noise.
+            // Gating tracks the lower edge of the male-calibrated band while still rejecting noise.
             const centroidFloor = Math.max(2800, band.low - 1500);
             const peakFloor = Math.max(2500, band.low - 2000);
             const isSibilant = forceAnalyze || (
@@ -2381,7 +2303,7 @@
                 ctx.fillText(hz / 1000 + 'k', xForHz(hz), yBase + 14);
             });
             ctx.textAlign = 'left';
-            const voiceLabel = userGender === 'male' ? 'male' : (userGender === 'female' ? 'female' : 'neutral');
+            const voiceLabel = 'male';
             ctx.fillText('Target /s/ band (' + (band.low/1000) + '–' + (band.high/1000) + ' kHz, ' + voiceLabel + ' calibration)', 12, 12);
         }
 
@@ -2482,21 +2404,21 @@
             // Enable step 3 continue when both questions answered
             if (e.target.name === 'troubleWords' || e.target.name === 'ageGroup') {
                 const both = document.querySelector('input[name="troubleWords"]:checked') && document.querySelector('input[name="ageGroup"]:checked');
-                document.getElementById('step3Continue').disabled = !both;
+                document.getElementById('step2Continue').disabled = !both;
             }
-            // Enable step 4 continue + toggle "other" input
+            // Enable step 3 continue + toggle "other" input
             if (e.target.name === 'visitReason') {
                 const val = e.target.value;
                 document.getElementById('otherReasonGroup').style.display = val === 'other' ? 'block' : 'none';
-                document.getElementById('step4Continue').disabled = val === 'other';
-                if (val !== 'other') document.getElementById('step4Continue').disabled = false;
+                document.getElementById('step3Continue').disabled = val === 'other';
+                if (val !== 'other') document.getElementById('step3Continue').disabled = false;
             }
         });
 
         document.addEventListener('input', function(e) {
             if (e.target.id === 'otherReason') {
                 const reason = document.querySelector('input[name="visitReason"]:checked');
-                document.getElementById('step4Continue').disabled = !(reason?.value === 'other' && e.target.value.trim());
+                document.getElementById('step3Continue').disabled = !(reason?.value === 'other' && e.target.value.trim());
             }
         });
 
@@ -2540,6 +2462,11 @@
             });
 
             allCountries.forEach(o => o.addEventListener('click', () => selectCountry(o)));
+
+            // Step 1 is recording — initialize recording UI on load
+            initWordRecording();
+            moveRecordingTo('recordingHost');
+
         });
 
         function selectCountry(option) {
