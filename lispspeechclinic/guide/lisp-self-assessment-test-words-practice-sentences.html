@@ -478,31 +478,85 @@
                         .lisp-words-section .lisp-instructions-title {
                             font-size: 14px; margin: 0 0 12px;
                         }
-                        .lisp-words-section .lisp-words-instructions {
-                            flex-direction: column; align-items: center;
-                            gap: 8px;
-                        }
                         .lisp-words-section .lwi-arrow { display: none; }
                         .lisp-words-section .lisp-words-instructions {
-                            gap: 24px;
+                            display: grid;
+                            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+                            grid-template-rows: auto auto auto;
+                            align-items: center;
+                            column-gap: 18px; row-gap: 4px;
+                            width: 100%; box-sizing: border-box;
                         }
-                        .lisp-words-section .hint-play { order: 1; align-self: flex-start; margin-left: 8px; }
-                        .lisp-words-section .lwi-example-chip { order: 2; position: relative; align-self: stretch; justify-content: space-between; }
-                        .lisp-words-section .hint-record { order: 3; align-self: flex-end; margin-right: 8px; }
-                        .lisp-words-section .lwi-example-chip::before,
-                        .lisp-words-section .lwi-example-chip::after {
-                            position: absolute; font-size: 22px; line-height: 1; font-weight: 700;
+                        .lisp-words-section .hint-play {
+                            grid-row: 1; grid-column: 1; justify-self: end;
+                            min-width: 0; max-width: 100%;
                         }
-                        .lisp-words-section .lwi-example-chip::before {
-                            content: "↓"; color: #0E7490;
-                            left: 14px; top: -28px;
+                        .lisp-words-section .lwi-example-chip {
+                            grid-row: 2; grid-column: 2; justify-self: center;
+                            position: relative; z-index: 1;
                         }
-                        .lisp-words-section .lwi-example-chip::after {
-                            content: "↑"; color: #C53030;
-                            right: 12px; bottom: -28px;
+                        .lisp-words-section .hint-record {
+                            grid-row: 3; grid-column: 3; justify-self: start;
+                            position: relative; z-index: 1;
+                            min-width: 0; max-width: 100%;
+                        }
+                        .lisp-words-section .lisp-words-instructions::before,
+                        .lisp-words-section .lisp-words-instructions::after {
+                            content: "";
+                            width: 90px; height: 30px;
+                            background-repeat: no-repeat;
+                            background-size: contain;
+                            background-position: center;
+                        }
+                        .lisp-words-section .lisp-words-instructions::before {
+                            grid-row: 1; grid-column: 2;
+                            justify-self: start;
+                            margin-left: -60px;
+                            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 90 30' fill='none'><path d='M2 8 H 79 V 22' stroke='%230E7490' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/><polygon points='75,20 83,20 79,28' fill='%230E7490'/></svg>");
+                        }
+                        .lisp-words-section .lisp-words-instructions::after {
+                            grid-row: 3; grid-column: 2;
+                            justify-self: end;
+                            margin-right: -60px;
+                            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 90 30' fill='none'><path d='M88 22 H 11 V 8' stroke='%23C53030' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/><polygon points='7,10 15,10 11,2' fill='%23C53030'/></svg>");
                         }
                         .lisp-words-section .accordion-hint {
-                            white-space: normal; text-align: center;
+                            white-space: normal;
+                            text-align: center;
+                            padding-left: 22px; padding-right: 22px;
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        .lisp-words-section .lisp-words-instructions {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            gap: 4px;
+                        }
+                        .lisp-words-section .hint-play,
+                        .lisp-words-section .hint-record {
+                            justify-self: auto; max-width: 100%;
+                        }
+                        .lisp-words-section .hint-play { order: 1; }
+                        .lisp-words-section .hint-record { order: 5; }
+                        .lisp-words-section .lwi-example-chip {
+                            order: 3; min-width: 160px;
+                            justify-content: space-between;
+                            padding-left: 12px; padding-right: 6px;
+                        }
+                        .lisp-words-section .lisp-words-instructions::before,
+                        .lisp-words-section .lisp-words-instructions::after {
+                            width: 160px; height: 32px;
+                            margin: 0;
+                            background-position: center;
+                        }
+                        .lisp-words-section .lisp-words-instructions::before {
+                            order: 2;
+                            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 32' fill='none'><path d='M80 2 V 14 H 19 V 22' stroke='%230E7490' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/><polygon points='15,22 23,22 19,30' fill='%230E7490'/></svg>");
+                        }
+                        .lisp-words-section .lisp-words-instructions::after {
+                            order: 4;
+                            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 32' fill='none'><path d='M80 30 V 18 H 141 V 10' stroke='%23C53030' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/><polygon points='137,10 145,10 141,2' fill='%23C53030'/></svg>");
                         }
                     }
                     @media (max-width: 640px) {
