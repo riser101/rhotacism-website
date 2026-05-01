@@ -470,7 +470,40 @@
                         background: #E53E3E; border-radius: 50%;
                     }
                     @media (max-width: 640px) {
-                        .lisp-words-section .lwi-arrow { width: 40px; height: 22px; }
+                        .lisp-words-section .lisp-instructions-box {
+                            display: block; width: 100%;
+                            padding: 14px 14px 16px;
+                            margin: 14px 0 18px;
+                        }
+                        .lisp-words-section .lisp-instructions-title {
+                            font-size: 14px; margin: 0 0 12px;
+                        }
+                        .lisp-words-section .lisp-words-instructions {
+                            flex-direction: column; align-items: center;
+                            gap: 8px;
+                        }
+                        .lisp-words-section .lwi-arrow { display: none; }
+                        .lisp-words-section .lisp-words-instructions {
+                            gap: 24px;
+                        }
+                        .lisp-words-section .hint-play { order: 1; align-self: flex-start; margin-left: 8px; }
+                        .lisp-words-section .lwi-example-chip { order: 2; position: relative; align-self: stretch; justify-content: space-between; }
+                        .lisp-words-section .hint-record { order: 3; align-self: flex-end; margin-right: 8px; }
+                        .lisp-words-section .lwi-example-chip::before,
+                        .lisp-words-section .lwi-example-chip::after {
+                            position: absolute; font-size: 22px; line-height: 1; font-weight: 700;
+                        }
+                        .lisp-words-section .lwi-example-chip::before {
+                            content: "↓"; color: #0E7490;
+                            left: 14px; top: -28px;
+                        }
+                        .lisp-words-section .lwi-example-chip::after {
+                            content: "↑"; color: #C53030;
+                            right: 12px; bottom: -28px;
+                        }
+                        .lisp-words-section .accordion-hint {
+                            white-space: normal; text-align: center;
+                        }
                     }
                     @media (max-width: 640px) {
                         .lisp-words-section .lisp-word-row {
