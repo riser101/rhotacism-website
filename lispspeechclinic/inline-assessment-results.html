@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Lisp Analysis Results - Lisp Speech Clinic</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <meta name="description" content="Your personalized lisp (/s/) analysis results with a custom practice plan.">
+    <link rel="canonical" href="https://topspeech.health/lispspeechclinic/assessment-results.html">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css">
+    <style>
+        html, body { background: transparent !important; }
+        nav, header, footer, .nav-container, .top-nav, .site-nav { display: none !important; }
+    </style>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-584ZMQTPSE');
+    </script>
+
+    <!-- BEGIN POSTHOG ANALYTICS CODE -->
+    <script>
+        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+
+        // Only initialize PostHog in production (not on localhost/127.0.0.1)
+        if (!window.location.host.includes('127.0.0.1') && !window.location.host.includes('localhost')) {
+            posthog.init('phc_WFJFjSjFujXoTr85nd8fyZ6BdKtdo27RTADMbvnJn2O', { api_host: 'https://us.i.posthog.com', defaults: '2025-11-30' })
+        }
+    </script>
+    <!-- END POSTHOG ANALYTICS CODE -->
+
+    <!-- Load PostHog Event Tracking -->
+    <script src="/lispspeechclinic/js/posthog-tracking.js"></script>
+
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://topspeech.health/lispspeechclinic"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Assessment Results",
+          "item": "https://topspeech.health/lispspeechclinic/assessment-results.html"
+        }
+      ]
+    }
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Results content container - matches guide pages */
+        .results-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Footer container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Results Page */
+        .results-page {
+            padding: 120px 0 60px 0;
+            min-height: 100vh;
+        }
+
+        /* Report Header - Clinical Style */
+        .report-header {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 48px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            border-top: 4px solid #1A202C;
+        }
+
+        .report-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        .report-branding {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .report-logo {
+            height: 40px;
+            opacity: 0.9;
+        }
+
+        .report-date {
+            font-size: 14px;
+            color: #718096;
+            text-align: right;
+        }
+
+        .report-date-label {
+            font-weight: 600;
+            color: #4A5568;
+        }
+
+        .report-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: #1A202C;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .patient-name {
+            color: #2D3748;
+        }
+
+        .report-subtitle {
+            font-size: 16px;
+            color: #718096;
+            font-weight: 400;
+        }
+
+        /* Analysis Report - Clinical Card */
+        .analysis-report {
+            background: #FFFFFF;
+            padding: 48px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+        }
+
+        .report-section {
+            margin-bottom: 40px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        .report-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1A202C;
+            margin-bottom: 20px;
+            border-left: 4px solid #1A202C;
+            padding-left: 16px;
+        }
+
+        .section-content {
+            font-size: 16px;
+            line-height: 1.75;
+            color: #2D3748;
+        }
+
+        .section-content p {
+            margin-bottom: 16px;
+        }
+
+        .section-content ul {
+            margin-left: 20px;
+            margin-bottom: 16px;
+        }
+
+        .section-content li {
+            margin-bottom: 8px;
+        }
+
+        /* Clinical Info Box */
+        .clinical-box {
+            background: #F7FAFC;
+            border-left: 3px solid #718096;
+            border-radius: 4px;
+            padding: 24px 28px;
+            margin: 24px 0;
+        }
+
+        .clinical-box h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4A5568;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .clinical-box p {
+            font-size: 16px;
+            color: #2D3748;
+            margin: 0;
+        }
+
+        /* Timeline - Clean Clinical */
+        .timeline-box {
+            background: #F7FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+
+        .timeline-header {
+            font-weight: 700;
+            font-size: 16px;
+            color: #1A202C;
+            margin-bottom: 8px;
+        }
+
+        .timeline-description {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 20px;
+        }
+
+        .timeline-phases {
+            display: grid;
+            gap: 12px;
+        }
+
+        .timeline-phase {
+            display: flex;
+            gap: 16px;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #E2E8F0;
+        }
+
+        .phase-week {
+            font-weight: 600;
+            color: #1A202C;
+            min-width: 80px;
+            font-size: 14px;
+        }
+
+        .phase-focus {
+            color: #4A5568;
+            font-size: 14px;
+        }
+
+        /* Practice Plan List */
+        .practice-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .practice-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #E2E8F0;
+            color: #2D3748;
+            font-size: 15px;
+        }
+
+        .practice-list li:last-child {
+            border-bottom: none;
+        }
+
+        .practice-list li strong {
+            color: #1A202C;
+        }
+
+        /* Loading Placeholder */
+        .loading-placeholder {
+            text-align: center;
+            padding: 48px 24px;
+            color: #718096;
+        }
+
+        .loading-placeholder p {
+            font-size: 15px;
+            margin: 0;
+        }
+
+        /* Next Steps Section */
+        .next-steps-section {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 48px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+        }
+
+        .next-steps-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1A202C;
+            margin-bottom: 24px;
+            border-left: 4px solid #1A202C;
+            padding-left: 16px;
+        }
+
+        .next-steps-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            align-items: start;
+        }
+
+        .next-steps-text {
+            font-size: 16px;
+            line-height: 1.75;
+            color: #2D3748;
+        }
+
+        .next-steps-text p {
+            margin-bottom: 16px;
+        }
+
+        .next-steps-text ul {
+            margin-left: 20px;
+            margin-bottom: 16px;
+        }
+
+        .next-steps-text li {
+            margin-bottom: 8px;
+        }
+
+        .app-download-card {
+            background: #F7FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 32px;
+            text-align: center;
+        }
+
+        .app-download-card h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1A202C;
+            margin-bottom: 8px;
+        }
+
+        .app-download-card p {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 20px;
+        }
+
+        .app-store-badge {
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        .app-store-badge:hover {
+            transform: scale(1.03);
+        }
+
+        .app-store-badge img {
+            height: 48px;
+        }
+
+        .waitlist-form-results {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .waitlist-form-results .waitlist-input {
+            flex: 1;
+            min-width: 0;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 2px solid #000000;
+            background: transparent;
+            color: #000000;
+            font-size: 16px;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .waitlist-form-results .waitlist-input::placeholder {
+            color: rgba(0, 0, 0, 0.45);
+        }
+
+        .waitlist-form-results .waitlist-input:focus {
+            border-color: #000000;
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .waitlist-form-results .waitlist-submit {
+            padding: 16px 28px;
+            background: #000000;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+
+        .waitlist-form-results .waitlist-submit:hover {
+            transform: translateY(-1px);
+            background: #1a1a1a;
+        }
+
+        .waitlist-form-results .waitlist-submit:disabled {
+            opacity: 0.7;
+            cursor: default;
+        }
+
+        @media (max-width: 520px) {
+            .waitlist-form-results {
+                flex-direction: column;
+            }
+        }
+
+        .alternative-link {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #E2E8F0;
+        }
+
+        .alternative-link a {
+            font-size: 14px;
+            color: #4A5568;
+            text-decoration: none;
+        }
+
+        .alternative-link a:hover {
+            color: #1A202C;
+            text-decoration: underline;
+        }
+
+        /* Audio playback buttons — Surgical Sage palette */
+        .cell-play-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            margin-top: 2px;
+            padding: 3px 7px;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .cell-play-btn.btn-target {
+            background: #E0E7E2;
+            color: #3A5A40;
+        }
+
+        .cell-play-btn.btn-target:hover {
+            background: #d0ddd3;
+        }
+
+        .cell-play-btn.btn-target.playing {
+            background: #c4d4c8;
+        }
+
+        .cell-play-btn.btn-yours {
+            background: #F4F7F5;
+            color: #5E807F;
+        }
+
+        .cell-play-btn.btn-yours:hover {
+            background: #e6edea;
+        }
+
+        .cell-play-btn.btn-yours.playing {
+            background: #dce5e1;
+        }
+
+        .cell-play-btn svg {
+            width: 9px;
+            height: 9px;
+            flex-shrink: 0;
+        }
+
+        /* Sticky header row for analysis tables */
+        .analysis-table-wrapper thead {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .analysis-table-wrapper thead th {
+            background: #E07830;
+        }
+
+        .analysis-table-wrapper {
+            max-height: none;
+            overflow-y: visible;
+        }
+
+        .analysis-table-wrapper.results-gated-table {
+            position: relative;
+        }
+
+        .analysis-table-wrapper.results-gated-table tbody tr.results-locked-row {
+            filter: blur(6px);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .results-unlock-card {
+            position: absolute;
+            left: 50%;
+            top: 265px;
+            transform: translateX(-50%);
+            z-index: 20;
+            width: min(440px, calc(100% - 32px));
+            padding: 22px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+            text-align: center;
+        }
+
+        .results-unlock-title {
+            margin: 0 0 8px;
+            font-size: 18px;
+            line-height: 1.25;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .results-unlock-copy {
+            margin: 0 0 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #4A5568;
+        }
+
+        .results-unlock-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .results-unlock-input {
+            flex: 1;
+            min-width: 0;
+            padding: 12px 14px;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 8px;
+            font: inherit;
+            font-size: 14px;
+        }
+
+        .results-unlock-input:focus {
+            outline: 2px solid rgba(224, 120, 48, 0.25);
+            border-color: #E07830;
+        }
+
+        .results-unlock-submit {
+            padding: 12px 16px;
+            border: 0;
+            border-radius: 8px;
+            background: #111827;
+            color: #FFFFFF;
+            font: inherit;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .results-unlock-submit:disabled {
+            opacity: 0.7;
+            cursor: default;
+        }
+
+        @media (max-width: 640px) {
+            .results-unlock-card {
+                top: 245px;
+            }
+
+            .results-unlock-form {
+                flex-direction: column;
+            }
+        }
+
+        /* GRI Hero Gauge */
+        .gri-hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 0 8px;
+        }
+
+        .gri-gauge-container {
+            position: relative;
+            width: 240px;
+            height: 175px;
+        }
+
+        .gri-gauge-container svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .gri-score-value {
+            font-size: 48px;
+            font-weight: 800;
+            fill: #1A202C;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gri-score-sub {
+            font-size: 13px;
+            font-weight: 500;
+            fill: #718096;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gri-score-label {
+            font-size: 12px;
+            font-weight: 600;
+            fill: #A0AEC0;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        .gri-zone-label {
+            font-size: 10px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        .gri-description {
+            max-width: 480px;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.7;
+            color: #718096;
+            margin-top: 16px;
+        }
+
+        .gri-description strong {
+            color: #2D3748;
+        }
+
+        /* Video Showcase */
+        .video-showcase {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 48px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .video-showcase .section-title {
+            text-align: left;
+        }
+
+        .video-description {
+            font-size: 15px;
+            color: #718096;
+            margin-bottom: 32px;
+            text-align: left;
+        }
+
+        .phone-trio {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .phone-frame {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            width: 220px;
+            height: 460px;
+            border: 4px solid #1A202C;
+            border-radius: 36px;
+            background: #000;
+            box-shadow: 5px 5px 2.5px 6px rgb(209, 218, 218);
+            overflow: hidden;
+            transition: transform 0.5s ease, filter 0.5s ease, opacity 0.5s ease;
+            filter: blur(2px);
+            opacity: 0.5;
+            transform: scale(0.9);
+        }
+
+        .phone-frame.active {
+            filter: blur(0);
+            opacity: 10;
+            transform: scale(1.05);
+            z-index: 2;
+        }
+
+        .phone-label {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #A0AEC0;
+            transition: color 0.5s ease;
+        }
+
+        .phone-col.active .phone-label {
+            color: #1A202C;
+        }
+
+        .phone-notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 24px;
+            background: #1A202C;
+            border-radius: 0 0 16px 16px;
+            z-index: 2;
+        }
+
+        .phone-btn-power {
+            position: absolute;
+            right: -6px;
+            top: 80px;
+            border: 4px solid #1A202C;
+            height: 40px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .phone-btn-vol-up {
+            position: absolute;
+            left: -6px;
+            top: 72px;
+            border: 4px solid #1A202C;
+            height: 28px;
+            border-radius: 4px 0 0 4px;
+        }
+
+        .phone-btn-vol-down {
+            position: absolute;
+            left: -6px;
+            top: 108px;
+            border: 4px solid #1A202C;
+            height: 28px;
+            border-radius: 4px 0 0 4px;
+        }
+
+        .phone-frame video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Progress dots */
+        .showcase-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 28px;
+        }
+
+        .showcase-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #E2E8F0;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0;
+        }
+
+        .showcase-dot.active {
+            background: #1A202C;
+            transform: scale(1.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .report-header,
+            .analysis-report,
+            .next-steps-section,
+            .video-showcase {
+                padding: 32px 24px;
+                margin-left: 0;
+                margin-right: 0;
+            }
+
+            .report-title {
+                font-size: 26px;
+            }
+
+            .report-meta {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .report-date {
+                text-align: left;
+            }
+
+            .next-steps-content {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title,
+            .next-steps-title {
+                font-size: 18px;
+            }
+
+            /* Analysis table mobile */
+            .analysis-table-wrapper {
+                margin: 16px 0;
+                max-width: 100%;
+                max-height: none;
+                overflow-y: visible;
+            }
+
+            .sticky-col {
+                min-width: 80px;
+                max-width: 100px;
+            }
+
+            .analysis-report {
+                overflow-x: hidden;
+            }
+
+            .phone-trio {
+                gap: 16px;
+                overflow: hidden;
+            }
+
+            .phone-col {
+                display: none;
+            }
+
+            .phone-col.active {
+                display: block;
+            }
+
+            .phone-frame {
+                width: 160px;
+                height: 340px;
+                border-radius: 28px;
+                border-width: 3px;
+                margin: 0 auto;
+            }
+
+            .phone-notch {
+                width: 80px;
+                height: 20px;
+                border-radius: 0 0 12px 12px;
+            }
+
+            .phone-label {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .report-title {
+                font-size: 22px;
+            }
+
+            .results-container {
+                padding: 0 16px;
+            }
+
+            .timeline-phase {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .phase-week {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Inline Results (no nav, no footer) -->
+    <!-- Results Page -->
+    <div class="results-page" style="padding:0;min-height:auto;">
+        <div class="results-container">
+            <!-- Clinical Report Header (hidden in inline mode) -->
+            <div class="report-header" style="display:none;">
+                <div class="report-meta">
+                    <!-- <div class="report-branding">
+                        <img src="TheLispAcademy-logo.png" alt="Lisp Speech Clinic" class="report-logo" style="height:40px;">
+                    </div> -->
+                    <div class="report-date">
+                        <div class="report-date-label">Assessment Date</div>
+                        <div id="assessmentDate"></div>
+                    </div>
+                </div>
+                <h1 class="report-title">Lisp Assessment Report</h1>
+                <p class="report-subtitle">Patient: <span class="patient-name" id="userName">—</span></p>
+            </div>
+
+            <!-- Analysis Report -->
+            <div class="analysis-report" style="padding:20px;margin-bottom:0;">
+                <!-- GRI Hero Gauge -->
+                <!-- <div class="report-section" id="griSection" style="display:none;">
+                    <div class="gri-hero">
+                        <div class="gri-gauge-container" id="griGauge"></div>
+                        <p class="gri-description">The <strong>Sibilant Clarity Index (SCI)</strong> is a composite score from 0–100 that measures your overall /s/ sound accuracy. It factors in the percentage of crisp productions, severity of distortions (interdental /θ/ substitution is weighted more heavily than mild dentalization), and consistency across word positions — initial, medial, and final /s/.</p>
+                    </div>
+                </div> -->
+
+                <!-- Voice Analysis Section -->
+                <div class="report-section" style="margin-bottom:0;padding-bottom:0;border-bottom:none;">
+                    <h2 class="section-title">Voice Pattern Analysis</h2>
+                    <div id="voiceAnalysisContent">
+                        <div class="loading-placeholder">
+                            <p>Analyzing voice recording...</p>
+                        </div>
+                    </div>
+                </div>
+
+                                <!-- App Demo Video -->
+                <!-- <div class="video-showcase">
+                    <h2 class="section-title">See the Lisp Clinic App in Action</h2>
+                    <p class="video-description">Watch how the app delivers real-time feedback, guided exercises, and detailed progress tracking to help you master your /s/ sound.</p>
+                    <div class="phone-trio" id="phoneTrio">
+                        <div class="phone-col" data-segment="0">
+                            <div class="phone-frame">
+                                <span class="phone-notch"></span>
+                                <span class="phone-btn-power"></span>
+                                <span class="phone-btn-vol-up"></span>
+                                <span class="phone-btn-vol-down"></span>
+                                <video muted playsinline preload="auto">
+                                    <source src="demo-app-assessment-result.mp4" type="video/mp4">
+                                </video>
+                            </div>
+                            <div class="phone-label">Recording</div>
+                        </div>
+                        <div class="phone-col" data-segment="1">
+                            <div class="phone-frame">
+                                <span class="phone-notch"></span>
+                                <span class="phone-btn-power"></span>
+                                <span class="phone-btn-vol-up"></span>
+                                <span class="phone-btn-vol-down"></span>
+                                <video muted playsinline preload="auto">
+                                    <source src="demo-app-assessment-result.mp4" type="video/mp4">
+                                </video>
+                            </div>
+                            <div class="phone-label">Analysis</div>
+                        </div>
+                        <div class="phone-col" data-segment="2">
+                            <div class="phone-frame">
+                                <span class="phone-notch"></span>
+                                <span class="phone-btn-power"></span>
+                                <span class="phone-btn-vol-up"></span>
+                                <span class="phone-btn-vol-down"></span>
+                                <video muted playsinline preload="auto">
+                                    <source src="demo-app-assessment-result.mp4" type="video/mp4">
+                                </video>
+                            </div>
+                            <div class="phone-label">Results</div>
+                        </div>
+                    </div>
+                    <div class="showcase-dots" id="showcaseDots">
+                        <button class="showcase-dot active" data-idx="0"></button>
+                        <button class="showcase-dot" data-idx="1"></button>
+                        <button class="showcase-dot" data-idx="2"></button>
+                    </div>
+                </div> -->
+
+                <!-- Estimated Timeline (hidden in inline mode) -->
+                <div class="report-section" style="display:none;">
+                    <h2 class="section-title">Estimated Treatment Timeline</h2>
+                    <div class="timeline-box">
+                        <div class="timeline-header">Projected Duration: 8–10 weeks</div>
+                        <div class="timeline-description">Based on assessment findings and typical practice adherence</div>
+                        <div class="timeline-phases">
+                            <div class="timeline-phase">
+                                <span class="phase-week">Week 1–3</span>
+                                <span class="phase-focus">Tongue positioning and isolated /s/ sound production</span>
+                            </div>
+                            <div class="timeline-phase">
+                                <span class="phase-week">Week 4–6</span>
+                                <span class="phase-focus">/s/ in words and short phrases</span>
+                            </div>
+                            <div class="timeline-phase">
+                                <span class="phase-week">Week 7–10</span>
+                                <span class="phase-focus">Conversational speech and habit generalization</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Recommendations (hidden in inline mode) -->
+                <div class="report-section" style="display:none;">
+                    <h2 class="section-title">Recommended Practice Protocol</h2>
+                    <div class="section-content">
+                        <p><strong>Priority Focus Areas</strong></p>
+                        <ul class="practice-list">
+                            <li><strong>Tongue-tip placement behind the alveolar ridge</strong> — Primary intervention target for crisp /s/</li>
+                            <li><strong>Initial /s/</strong> — Word-initial productions (sun, soap, seven)</li>
+                            <li><strong>Medial /s/</strong> — Inside words (pencil, glasses, bicycle)</li>
+                            <li><strong>Final /s/</strong> — Word-final productions (bus, mouse, glass)</li>
+                        </ul>
+                    </div>
+                    <div class="clinical-box">
+                        <h4>Daily Practice Recommendation</h4>
+                        <p>15–20 minutes per day, prioritizing identified weak areas before maintenance of established sounds.</p>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Next Steps Section (hidden in inline mode) -->
+            <div class="next-steps-section" style="display:none;">
+                <h2 class="next-steps-title">Recommended Next Steps</h2>
+                <div class="next-steps-content">
+                    <div class="next-steps-text">
+                        <p>This assessment provides a baseline understanding of your current /s/ production patterns. For optimal outcomes, structured daily practice with progress monitoring is recommended.</p>
+                        <p>The Lisp Speech Clinic intensive program provides:</p>
+                        <ul>
+                            <li>Structured 16-week curriculum</li>
+                            <li>Daily guided exercises (15 min)</li>
+                            <li>Real-time acoustic feedback</li>
+                            <li>Progress tracking and analytics</li>
+                        </ul>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        // CONFIG
+        // =============================================
+        const TEST_WORDS = ['sun', 'soap', 'seven', 'pencil', 'glasses', 'bicycle', 'bus', 'mouse', 'glass'];
+
+        // Personalize with user's name
+        const userName = new URLSearchParams(window.location.search).get('name')
+            || localStorage.getItem('assessmentUserName') || '—';
+        document.getElementById('userName').textContent = userName;
+
+        // Set assessment date
+        document.getElementById('assessmentDate').textContent =
+            new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        // =============================================
+        // INIT
+        // =============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            gtag('event', 'results_page_view', { event_category: 'engagement', event_label: 'assessment_completion' });
+            loadAnalysisFromStorage();
+            enhanceTableRows();
+            gateAnalysisTable();
+        });
+
+        // =============================================
+        // ANALYSIS DISPLAY (original markdown table rendering)
+        // =============================================
+        function loadAnalysisFromStorage() {
+            try {
+                const storedResult = localStorage.getItem('analysisResult');
+                if (storedResult) {
+                    displayAnalysisResults(JSON.parse(storedResult));
+                } else {
+                    displayErrorMessage();
+                }
+            } catch (error) {
+                console.error('Error loading analysis:', error);
+                displayErrorMessage();
+            }
+        }
+
+        function convertMarkdownToHTML(text) {
+            // Strip SCI/GRI line since it's shown in the hero gauge
+            text = text.replace(/^.*(SCI|GRI):\s*\d+.*$/gim, '').trim();
+            const tableRegex = /\|(.+)\|\n\|[-:\s|]+\|\n((?:\|.+\|\n?)+)/g;
+            let html = text.replace(tableRegex, function(match, headerRow, bodyRows) {
+                // Strip leading/trailing pipe then split — preserve empty cells (don't filter)
+                const splitRow = function(line) {
+                    return line.replace(/^\s*\|/, '').replace(/\|\s*$/, '').split('|').map(c => c.trim());
+                };
+                const headers = splitRow(headerRow).filter(h => h);
+                const rows = bodyRows.trim().split('\n').map(function(row) {
+                    var cells = splitRow(row);
+                    // Pad to header length so every row has full column count
+                    while (cells.length < headers.length) cells.push('');
+                    return cells.slice(0, headers.length);
+                });
+
+                let tableHTML = '<div class="analysis-table-wrapper" style="overflow-x: auto; overflow-y: visible; margin: 24px 0; -webkit-overflow-scrolling: touch; max-width: 100%; max-height: none;"><table style="width: 100%; min-width: 820px; border-collapse: collapse; font-size: 14px; background: white; border: 1px solid #E2E8F0; table-layout: auto;">';
+
+                tableHTML += '<thead><tr style="background: linear-gradient(135deg, #E8842A 0%, #D96B20 100%); color: white;">';
+                headers.forEach((header, j) => {
+                    const stickyStyle = j === 0 ? 'position: sticky; left: 0; z-index: 2; background: #E07830;' : '';
+                    tableHTML += '<th class="analysis-th' + (j === 0 ? ' sticky-col' : '') + '" style="padding: 12px 16px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; ' + stickyStyle + '">' + header + '</th>';
+                });
+                tableHTML += '</tr></thead>';
+
+                tableHTML += '<tbody>';
+                rows.forEach((row, i) => {
+                    const bgColor = i % 2 === 0 ? '#fff' : '#F7FAFC';
+                    tableHTML += '<tr style="background: ' + bgColor + '; border-bottom: 1px solid #E2E8F0;">';
+                    row.forEach((cell, j) => {
+                        const baseStyle = j === 0 ? 'font-weight: 600; color: #1A202C;' : 'color: #4A5568;';
+                        const stickyStyle = j === 0 ? 'position: sticky; left: 0; z-index: 1; background: ' + bgColor + ';' : '';
+                        tableHTML += '<td class="analysis-td' + (j === 0 ? ' sticky-col' : '') + '" style="padding: 12px 16px; ' + baseStyle + ' ' + stickyStyle + '">' + cell + '</td>';
+                    });
+                    tableHTML += '</tr>';
+                });
+                tableHTML += '</tbody></table></div>';
+
+                return tableHTML;
+            });
+
+            html = html
+                .replace(/## (.+)/g, '<h3 style="color: #1A202C; margin: 24px 0 12px 0; font-size: 17px; font-weight: 600;">$1</h3>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong style="color: #1A202C;">$1</strong>')
+                .replace(/^- (.+)/gm, '<div style="margin: 8px 0; padding-left: 16px; color: #2D3748;">&bull; $1</div>')
+                .replace(/\n\n/g, '</p><p style="margin: 16px 0; color: #2D3748;">')
+                .replace(/\n/g, '<br>');
+
+            return '<div style="line-height: 1.75; font-size: 15px; color: #2D3748;">' + html + '</div>';
+        }
+
+        function displayAnalysisResults(data) {
+            var el = document.getElementById('voiceAnalysisContent');
+
+            if (typeof data === 'string') {
+                el.innerHTML = convertMarkdownToHTML(data);
+                return;
+            }
+
+            if (typeof data === 'object' && data !== null) {
+                var text = data.analysis || data.result || data.response || JSON.stringify(data, null, 2);
+                el.innerHTML = convertMarkdownToHTML(text);
+
+                // Render GRI hero gauge if available
+                if (typeof data.gri === 'number') {
+                    renderGriGauge(data.gri);
+                }
+            } else {
+                el.innerHTML = '<p>Voice analysis data not available.</p>';
+            }
+        }
+
+        function renderGriGauge(score) {
+            score = Math.max(0, Math.min(100, score));
+            var section = document.getElementById('griSection');
+            var container = document.getElementById('griGauge');
+            if (!section || !container) return;
+            section.style.display = 'block';
+
+            // Arc geometry — semicircle with 3 segments
+            var cx = 120, cy = 130, r = 100, thick = 18;
+            var gap = 0.06; // gap between segments in radians
+
+            // 3 segments: LOW (0-30), MEDIUM (31-70), HIGH (71-100)
+            // Map to semicircle (PI to 0, left to right)
+            var segments = [
+                { start: 0, end: 0.30, color: '#DC2626', label: 'LOW', inactive: '#FEE2E2' },
+                { start: 0.30, end: 0.70, color: '#D97706', label: 'MEDIUM', inactive: '#FEF3C7' },
+                { start: 0.70, end: 1.0, color: '#16A34A', label: 'HIGH', inactive: '#DCFCE7' }
+            ];
+
+            // Determine active segment
+            var activeIdx = score <= 30 ? 0 : score <= 70 ? 1 : 2;
+
+            function arcPath(startPct, endPct, radius, strokeW) {
+                var startAngle = Math.PI - startPct * Math.PI;
+                var endAngle = Math.PI - endPct * Math.PI;
+                var x1 = cx + radius * Math.cos(startAngle);
+                var y1 = cy - radius * Math.sin(startAngle);
+                var x2 = cx + radius * Math.cos(endAngle);
+                var y2 = cy - radius * Math.sin(endAngle);
+                var largeArc = (startPct - endPct) > 0.5 ? 1 : 0;
+                return 'M ' + x1 + ' ' + y1 + ' A ' + radius + ' ' + radius + ' 0 ' + largeArc + ' 1 ' + x2 + ' ' + y2;
+            }
+
+            var svg = '<svg viewBox="-20 0 280 175" xmlns="http://www.w3.org/2000/svg">';
+
+            // Draw segment arcs
+            segments.forEach(function(seg, i) {
+                var s = seg.start + (i === 0 ? 0 : gap / (2 * Math.PI) * 2);
+                var e = seg.end - (i === segments.length - 1 ? 0 : gap / (2 * Math.PI) * 2);
+                var isActive = i === activeIdx;
+                var color = isActive ? seg.color : seg.inactive;
+                var sw = isActive ? thick + 4 : thick;
+                svg += '<path d="' + arcPath(s, e, r, sw) + '" fill="none" stroke="' + color + '" stroke-width="' + sw + '" stroke-linecap="round"/>';
+            });
+
+            // Needle / indicator dot
+            var needleAngle = Math.PI - (score / 100) * Math.PI;
+            var dotX = cx + (r) * Math.cos(needleAngle);
+            var dotY = cy - (r) * Math.sin(needleAngle);
+            var dotColor = segments[activeIdx].color;
+            svg += '<circle cx="' + dotX + '" cy="' + dotY + '" r="6" fill="' + dotColor + '" stroke="white" stroke-width="3"/>';
+
+            // Zone labels — positioned outside each segment's midpoint
+            var zones = [
+                { pct: 0.15, label: 'LOW', anchor: 'end' },
+                { pct: 0.50, label: 'MEDIUM', anchor: 'middle' },
+                { pct: 0.85, label: 'HIGH', anchor: 'start' }
+            ];
+            zones.forEach(function(z, i) {
+                var a = Math.PI - z.pct * Math.PI;
+                var lx = cx + (r + 22) * Math.cos(a);
+                var ly = cy - (r + 22) * Math.sin(a);
+                var fill = i === activeIdx ? segments[i].color : '#CBD5E0';
+                svg += '<text x="' + lx + '" y="' + ly + '" text-anchor="' + z.anchor + '" dominant-baseline="central" class="gri-zone-label" fill="' + fill + '">' + z.label + '</text>';
+            });
+
+            // Center score
+            svg += '<text x="' + cx + '" y="' + (cy - 20) + '" text-anchor="middle" dominant-baseline="central" class="gri-score-value">' + score + '</text>';
+            svg += '<text x="' + cx + '" y="' + (cy + 10) + '" text-anchor="middle" dominant-baseline="central" class="gri-score-sub">Out of 100</text>';
+            svg += '<text x="' + cx + '" y="' + (cy + 28) + '" text-anchor="middle" dominant-baseline="central" class="gri-score-label">SCI SCORE</text>';
+
+            svg += '</svg>';
+            container.innerHTML = svg;
+        }
+
+        function displayErrorMessage() {
+            document.getElementById('voiceAnalysisContent').innerHTML =
+                '<div class="clinical-box" style="text-align: center;">' +
+                '<h4>Analysis Unavailable</h4>' +
+                '<p style="margin-bottom: 16px;">Unable to load analysis results. Please try again.</p>' +
+                '<button onclick="location.reload()" style="background: #1A202C; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px;">Reload Page</button>' +
+                '</div>';
+        }
+
+        // =============================================
+        // PLAYBACK SECTION
+        // =============================================
+        var activeAudio = null;
+        var activeBtn = null;
+
+        function stopActiveAudio() {
+            if (activeAudio) {
+                activeAudio.pause();
+                activeAudio.currentTime = 0;
+                activeAudio = null;
+            }
+            if (activeBtn) {
+                activeBtn.classList.remove('playing');
+                activeBtn.innerHTML = playIcon + activeBtn.dataset.label;
+                activeBtn = null;
+            }
+        }
+
+        var playIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="7,3 21,12 7,21"/></svg>';
+        var stopIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="14" height="16"/></svg>';
+
+        function createPlayButton(src, label) {
+            var btn = document.createElement('button');
+            btn.className = 'cell-play-btn ' + (label === 'Target' ? 'btn-target' : 'btn-yours');
+            btn.dataset.label = label;
+            btn.innerHTML = playIcon + label;
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (activeBtn === btn) {
+                    stopActiveAudio();
+                    return;
+                }
+                stopActiveAudio();
+                var audio = new Audio(src);
+                activeAudio = audio;
+                activeBtn = btn;
+                btn.classList.add('playing');
+                btn.innerHTML = stopIcon + label;
+                audio.play().catch(function() {});
+                audio.addEventListener('ended', function() {
+                    btn.classList.remove('playing');
+                    btn.innerHTML = playIcon + label;
+                    activeAudio = null;
+                    activeBtn = null;
+                });
+            });
+            return btn;
+        }
+
+        var MODEL_AUDIO_MAP = {
+            'sun':     '/lispspeechclinic/target-audio/sun.mp3',
+            'soap':    '/lispspeechclinic/target-audio/soap.mp3',
+            'seven':   '/lispspeechclinic/target-audio/seven.mp3',
+            'pencil':  '/lispspeechclinic/target-audio/pencil.mp3',
+            'glasses': '/lispspeechclinic/target-audio/glasses.mp3',
+            'bicycle': '/lispspeechclinic/target-audio/bicycle.mp3',
+            'bus':     '/lispspeechclinic/target-audio/bus.mp3',
+            'mouse':   '/lispspeechclinic/target-audio/mouse.mp3',
+            'glass':   '/lispspeechclinic/target-audio/glass.mp3'
+        };
+
+        function enhanceTableRows() {
+            var container = document.getElementById('voiceAnalysisContent');
+            if (!container) return;
+            var rows = container.querySelectorAll('tbody tr');
+
+            // Load user recordings from localStorage
+            var userRecordings = {};
+            try {
+                var stored = localStorage.getItem('wordRecordings');
+                if (stored) userRecordings = JSON.parse(stored);
+            } catch (e) {}
+
+            rows.forEach(function(tr) {
+                var tds = tr.querySelectorAll('td');
+                if (tds.length < 6) return;
+
+                var wordCell = tds[0];
+                var heardCell = tds[2];
+                var judgmentCell = tds[3];
+                var qualityCell = tds[4];
+
+                var cellText = wordCell.textContent.trim().toLowerCase();
+                var matchedWord = TEST_WORDS.find(function(w) { return w === cellText; });
+                if (!matchedWord) return;
+
+                // Word text + Target play button on next line
+                wordCell.innerHTML = '<div><strong>' + wordCell.textContent.trim() + '</strong></div>';
+                if (MODEL_AUDIO_MAP[matchedWord]) {
+                    wordCell.appendChild(createPlayButton(MODEL_AUDIO_MAP[matchedWord], 'Target'));
+                }
+
+                // Heard text + Yours play button on next line
+                var heardText = heardCell.textContent.trim();
+                heardCell.innerHTML = '<div>' + heardText + '</div>';
+                if (userRecordings[matchedWord]) {
+                    var b64 = userRecordings[matchedWord];
+                    var src = b64.startsWith('data:') ? b64 : 'data:audio/webm;base64,' + b64;
+                    heardCell.appendChild(createPlayButton(src, 'Yours'));
+                }
+
+                var qRaw = qualityCell.textContent.trim();
+                if (qRaw) {
+                    var score = parseInt(qRaw);
+                    if (!isNaN(score)) {
+                        var severity;
+                        if (score < 35)      severity = 'Severe';
+                        else if (score < 70) severity = 'Moderate';
+                        else                 severity = 'Clear /s/';
+                        qualityCell.textContent = severity;
+                    }
+                }
+            });
+
+            // Rename the "Quality" header to "Severity"
+            var ths = container.querySelectorAll('thead th');
+            ths.forEach(function(th) {
+                if (th.textContent.trim().toLowerCase() === 'quality') th.textContent = 'Severity';
+            });
+
+            // Swap Heard (col 2) and Position (col 1)
+            var allRows = container.querySelectorAll('tr');
+            allRows.forEach(function(tr) {
+                var cells = tr.children;
+                if (cells.length >= 3) {
+                    tr.insertBefore(cells[2], cells[1]);
+                }
+            });
+        }
+
+        function gateAnalysisTable() {
+            var container = document.getElementById('voiceAnalysisContent');
+            if (!container) return;
+            var wrapper = container.querySelector('.analysis-table-wrapper');
+            var rows = container.querySelectorAll('tbody tr');
+            if (!wrapper || rows.length <= 2) return;
+
+            if (localStorage.getItem('assessmentResultsUnlocked') === 'true') return;
+
+            wrapper.classList.add('results-gated-table');
+            rows.forEach(function(row, index) {
+                if (index >= 2) row.classList.add('results-locked-row');
+            });
+
+            var card = document.createElement('div');
+            card.className = 'results-unlock-card';
+            card.innerHTML =
+                '<h3 class="results-unlock-title">Ready to See Where Your /s/ Needs Work?</h3>' +
+                '<p class="results-unlock-copy">Just tell us where to send your results and your personalized improvement plan.</p>' +
+                '<form class="results-unlock-form" id="resultsUnlockForm">' +
+                    '<input class="results-unlock-input" id="resultsUnlockEmail" type="email" placeholder="you@example.com" required>' +
+                    '<button class="results-unlock-submit" id="resultsUnlockSubmit" type="submit">Unlock</button>' +
+                '</form>';
+            wrapper.appendChild(card);
+
+            card.querySelector('form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var input = document.getElementById('resultsUnlockEmail');
+                var submit = document.getElementById('resultsUnlockSubmit');
+                var email = input.value.trim();
+                if (!email || !email.includes('@')) return;
+
+                submit.disabled = true;
+                submit.textContent = 'Unlocking...';
+                localStorage.setItem('assessmentUserEmail', email);
+                localStorage.setItem('assessmentResultsUnlocked', 'true');
+
+                try {
+                    await fetch('https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec', {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            email: email,
+                            source: 'lispspeechclinic_results_unlock',
+                            timestamp: new Date().toISOString(),
+                            page: window.location.pathname
+                        })
+                    });
+                } catch (err) {}
+
+                rows.forEach(function(row) { row.classList.remove('results-locked-row'); });
+                wrapper.classList.remove('results-gated-table');
+                card.remove();
+                if (window.gtag) {
+                    gtag('event', 'email_capture', { event_category: 'conversion', event_label: 'results_unlock' });
+                }
+            });
+        }
+
+        // =============================================
+        // VIDEO SHOWCASE — 3 segments, auto-cycle
+        // =============================================
+        (function() {
+            var cols = document.querySelectorAll('#phoneTrio .phone-col');
+            var dots = document.querySelectorAll('#showcaseDots .showcase-dot');
+            var videos = [];
+            var activeIdx = 0;
+            var cycleTimer = null;
+
+            // Custom segment times: [start, end] in seconds
+            var segments = [
+                [0, 28],
+                [29, 44],
+                [44, Infinity]
+            ];
+
+            cols.forEach(function(col) {
+                videos.push(col.querySelector('video'));
+            });
+
+            videos[0].addEventListener('loadedmetadata', function() {
+                segments[2][1] = videos[0].duration;
+                initSegments();
+                activateSegment(0);
+            });
+
+            function initSegments() {
+                videos.forEach(function(v, i) {
+                    v.currentTime = segments[i][0];
+                    v.pause();
+                });
+            }
+
+            function activateSegment(idx) {
+                activeIdx = idx;
+
+                cols.forEach(function(col, i) {
+                    var frame = col.querySelector('.phone-frame');
+                    if (i === idx) {
+                        frame.classList.add('active');
+                        col.classList.add('active');
+                    } else {
+                        frame.classList.remove('active');
+                        col.classList.remove('active');
+                    }
+                });
+
+                dots.forEach(function(dot, i) {
+                    dot.classList.toggle('active', i === idx);
+                });
+
+                videos.forEach(function(v) { v.pause(); });
+                var v = videos[idx];
+                var seg = segments[idx];
+                v.currentTime = seg[0];
+                v.play().catch(function() {});
+
+                clearTimeout(cycleTimer);
+                cycleTimer = setTimeout(function() {
+                    v.pause();
+                    activateSegment((idx + 1) % 3);
+                }, (seg[1] - seg[0]) * 1000);
+            }
+
+            dots.forEach(function(dot) {
+                dot.addEventListener('click', function() {
+                    activateSegment(parseInt(dot.dataset.idx));
+                });
+            });
+
+            cols.forEach(function(col, i) {
+                col.addEventListener('click', function() {
+                    activateSegment(i);
+                });
+            });
+        })();
+
+        // Track scroll depth
+        var maxScroll = 0;
+        window.addEventListener('scroll', function() {
+            var scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+            if (scrollPercent > maxScroll) {
+                maxScroll = scrollPercent;
+                if (maxScroll === 25 || maxScroll === 50 || maxScroll === 75 || maxScroll === 100) {
+                    gtag('event', 'scroll_depth', { event_category: 'engagement', event_label: 'results_page_' + maxScroll + 'percent' });
+                }
+            }
+        });
+    </script>
+    <!-- Enhanced Analytics -->
+    <script src="/lispspeechclinic/js/enhanced-analytics.js"></script>
+    <script src="/lispspeechclinic/js/login-modal.js"></script>
+    <script src="/lispspeechclinic/js/nav.js"></script>
+
+    <script>
+        (function () {
+            const form = document.getElementById('waitlistFormResults');
+            if (!form) return;
+            const emailInput = document.getElementById('waitlistEmailResults');
+            const submitBtn = document.getElementById('waitlistSubmitResults');
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const email = emailInput.value;
+                if (!email || !email.includes('@')) return;
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Joining...';
+
+                try {
+                    await fetch('https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec', {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            email: email,
+                            source: 'lispspeechclinic_waitlist',
+                            timestamp: new Date().toISOString(),
+                            page: window.location.pathname
+                        })
+                    });
+                } catch (err) { /* no-cors: treat as success */ }
+
+                emailInput.value = '';
+                emailInput.style.display = 'none';
+                submitBtn.textContent = 'Thank you! You are in our priority list!';
+                submitBtn.style.whiteSpace = 'normal';
+                submitBtn.style.width = '100%';
+                submitBtn.style.flex = '1';
+            });
+        })();
+    </script>
+
+
+
+
+
+
+
+
+
+    <script>
+        // Auto-resize parent iframe to content height
+        if (window.top && window.top !== window.self) {
+            const postHeight = () => {
+                const h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+                window.parent.postMessage({ type: 'inline-assessment-height', height: h }, '*');
+            };
+            window.addEventListener('load', postHeight);
+            new ResizeObserver(postHeight).observe(document.body);
+        }
+    </script>
+</body>
+</html>

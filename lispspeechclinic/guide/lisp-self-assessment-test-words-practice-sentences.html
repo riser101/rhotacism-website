@@ -313,7 +313,28 @@
                 </ul>
 
                 <p>These observations will help you interpret your results more accurately.</p>
-                
+                <h3>Why take this assessment?</h3>
+                <p>Most lisp evaluation takes 40-50 minutes, costs money and the waitlist can even stretch for months. </p>
+                <p>Meanwhile, our lisp assessment takes barely 2 minutes, is completely free and can be taken anytime anywhere.</p>
+
+                <iframe
+                    id="inline-assessment"
+                    src="/lispspeechclinic/inline-assessment.html"
+                    title="Free Lisp Assessment"
+                    loading="lazy"
+                    allow="microphone; autoplay; clipboard-write"
+                    style="width:100%;max-width:900px;height:620px;border:0;display:block;margin:24px auto;background:transparent;"></iframe>
+                <script>
+                    (function () {
+                        var iframe = document.getElementById('inline-assessment');
+                        window.addEventListener('message', function (e) {
+                            if (!e.data || e.data.type !== 'inline-assessment-height') return;
+                            var h = parseInt(e.data.height, 10);
+                            if (!h) return;
+                            iframe.style.height = h + 'px';
+                        });
+                    })();
+                </script>
             </div>
         </div>
 
