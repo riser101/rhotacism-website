@@ -912,6 +912,100 @@
             }
         }
 
+        @media (max-width: 719px) {
+            #step2 {
+                width: 100%;
+                margin-left: 0;
+                transform: none;
+            }
+
+            @keyframes slideDownIn {
+                0%   { opacity: 0; transform: translateY(-24px); }
+                100% { opacity: 1; transform: translateY(0); }
+            }
+
+            .recording-section {
+                width: 100%;
+                padding: 14px 14px 12px;
+                overflow: hidden;
+            }
+
+            .recording-section > .live-instruction {
+                width: 100%;
+                margin: 0 0 12px;
+                font-size: 12px;
+                line-height: 1.35;
+            }
+
+            .recording-panel {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+                width: 100%;
+                padding: 12px 10px 10px;
+                background: rgba(15,23,42,0.04);
+                border-radius: 14px;
+            }
+
+            .word-picker {
+                width: 100%;
+                margin: 0;
+                border-radius: 22px;
+            }
+
+            .word-picker-words {
+                min-width: 0;
+                padding: 10px 40px 10px 0;
+            }
+
+            .active-pill {
+                width: calc(100% - 12px);
+                height: 52px;
+                margin: 0 6px;
+                padding: 0 10px;
+                box-sizing: border-box;
+            }
+
+            .pill-timer,
+            .pill-spacer {
+                width: 42px;
+            }
+
+            .pill-timer {
+                font-size: 13px;
+            }
+
+            .pill-word {
+                min-width: 0;
+                font-size: 24px;
+                line-height: 1;
+            }
+
+            .context-word {
+                height: 30px;
+                font-size: 15px;
+            }
+
+            .word-picker-divider-line {
+                right: 34px;
+            }
+
+            .word-picker-dots {
+                gap: 6px;
+                padding: 8px 10px;
+            }
+
+            .vu-meter {
+                gap: 5px;
+                padding: 0 6px;
+            }
+
+            .vu-bar {
+                width: 5px;
+            }
+        }
+
         /* Recording card — split into 2 columns on wider screens:
            left = HOW IT WORKS, right = word picker / meter / record button */
         @media (min-width: 720px) {
