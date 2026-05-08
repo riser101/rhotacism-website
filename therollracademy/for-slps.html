@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For SLPs — The Rollr Academy | Built For You, Not Against You</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <meta name="description" content="The Rollr Academy is built for speech-language pathologists, not against them. We go where clinics can't reach — and when someone needs more, we send them to you.">
+    <link rel="canonical" href="https://topspeech.health/therollracademy/for-slps.html">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="The Rollr Academy">
+    <meta property="og:title" content="For SLPs — The Rollr Academy">
+    <meta property="og:description" content="The Rollr Academy is built for speech-language pathologists, not against them. We go where clinics can't reach — and when someone needs more, we send them to you.">
+    <meta property="og:url" content="https://topspeech.health/therollracademy/for-slps.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Top Speech Health">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="For SLPs — The Rollr Academy">
+    <meta name="twitter:description" content="The Rollr Academy is built for speech-language pathologists, not against them.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/therollracademy/css/nav.css">
+    <link rel="stylesheet" href="/therollracademy/css/login-modal.css">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-584ZMQTPSE');
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+            color: #c8d6e0;
+            overflow-x: hidden;
+            background: #0a1628;
+        }
+
+        .slp-container {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        /* ── HERO ── */
+        .slp-hero {
+            min-height: auto;
+            display: flex;
+            align-items: center;
+            padding: 160px 0 100px;
+            position: relative;
+            overflow: hidden;
+            background: #0a1628;
+        }
+
+        .slp-hero-waves {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .slp-hero-waves svg {
+            position: absolute;
+            top: -20%;
+            right: -15%;
+            width: 85%;
+            height: 140%;
+        }
+
+        .slp-hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .slp-hero-heading {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(44px, 7.5vw, 88px);
+            font-weight: 700;
+            line-height: 1.04;
+            letter-spacing: -0.035em;
+            color: rgba(255, 255, 255, 0.92);
+        }
+
+        .slp-hero-heading em {
+            font-style: normal;
+            color: #ffffff;
+        }
+
+        .slp-hero-sub {
+            font-family: 'Instrument Serif', serif;
+            font-size: clamp(38px, 6vw, 72px);
+            font-weight: 400;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            color: #8FB9A8;
+            margin-top: 12px;
+            font-style: italic;
+        }
+
+        /* ── CONTENT SECTIONS ── */
+        .slp-section {
+            padding: 140px 0;
+            position: relative;
+        }
+
+        .slp-section-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: rgba(143, 185, 168, 0.5);
+            margin-bottom: 40px;
+        }
+
+        .slp-section-heading {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(30px, 4.5vw, 54px);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.025em;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 32px;
+            max-width: 780px;
+        }
+
+        .slp-section-body {
+            font-size: 18px;
+            line-height: 1.75;
+            color: rgba(200, 214, 224, 0.55);
+            max-width: 620px;
+        }
+
+        .slp-section-body p + p {
+            margin-top: 16px;
+        }
+
+        /* Thin rule between sections */
+        .slp-rule {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(143, 185, 168, 0.15) 0%, rgba(44, 95, 120, 0.03) 100%);
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+
+        /* ── PERSONA LIST ── */
+        .slp-persona-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 28px 0;
+        }
+
+        .slp-persona-list li {
+            font-size: 18px;
+            line-height: 2;
+            color: rgba(200, 214, 224, 0.55);
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .slp-persona-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 6px;
+            height: 1px;
+            background: rgba(241, 140, 142, 0.6);
+        }
+
+        .slp-persona-standalone {
+            font-size: 18px;
+            line-height: 1.7;
+            color: rgba(200, 214, 224, 0.35);
+            margin-top: 32px;
+            font-style: italic;
+        }
+
+        /* ── COMMITMENTS ── */
+        .slp-commitments {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin-top: 16px;
+            counter-reset: commitment;
+        }
+
+        .slp-commitment {
+            padding: 40px 0;
+            border-bottom: 1px solid rgba(143, 185, 168, 0.08);
+            display: flex;
+            gap: 32px;
+            align-items: flex-start;
+            counter-increment: commitment;
+        }
+
+        .slp-commitment:first-child {
+            padding-top: 0;
+        }
+
+        .slp-commitment:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .slp-commitment-num {
+            font-family: 'Instrument Serif', serif;
+            font-size: 48px;
+            font-style: italic;
+            color: rgba(143, 185, 168, 0.5);
+            line-height: 1;
+            flex-shrink: 0;
+            width: 48px;
+            text-align: center;
+        }
+
+        .slp-commitment p {
+            font-size: 18px;
+            line-height: 1.75;
+            color: rgba(200, 214, 224, 0.55);
+        }
+
+        /* ── FOUNDER NOTE ── */
+        .slp-founder-section {
+            padding: 140px 0;
+        }
+
+        .slp-founder {
+            position: relative;
+            padding: 64px 72px;
+            border: 1px solid rgba(143, 185, 168, 0.1);
+            border-radius: 2px;
+        }
+
+        .slp-founder::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(160deg, rgba(143, 185, 168, 0.05) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .slp-founder-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: rgba(143, 185, 168, 0.6);
+            margin-bottom: 36px;
+        }
+
+        .slp-founder-text {
+            font-size: 17px;
+            line-height: 1.85;
+            color: rgba(200, 214, 224, 0.45);
+            max-width: 640px;
+        }
+
+        .slp-founder-text p + p {
+            margin-top: 20px;
+        }
+
+        .slp-founder-sig {
+            font-family: 'Instrument Serif', serif;
+            font-size: 18px;
+            font-style: italic;
+            color: rgba(143, 185, 168, 0.4);
+            margin-top: 36px;
+        }
+
+        /* ── CLOSING CTA ── */
+        .slp-cta-section {
+            padding: 160px 0 140px;
+            text-align: center;
+            position: relative;
+        }
+
+        .slp-cta-section::before {
+            content: '';
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(
+                ellipse at center,
+                rgba(143, 185, 168, 0.1) 0%,
+                rgba(44, 95, 120, 0.04) 40%,
+                transparent 70%
+            );
+            pointer-events: none;
+        }
+
+        .slp-cta-heading {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(40px, 6.5vw, 72px);
+            font-weight: 700;
+            line-height: 1.06;
+            letter-spacing: -0.035em;
+            color: rgba(255, 255, 255, 0.9);
+            position: relative;
+            z-index: 1;
+        }
+
+        .slp-cta-heading + .slp-cta-heading {
+            margin-top: 4px;
+        }
+
+        .slp-cta-sub {
+            font-size: 17px;
+            color: rgba(200, 214, 224, 0.45);
+            margin-top: 28px;
+            margin-bottom: 44px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .slp-cta-btn {
+            display: inline-block;
+            padding: 18px 44px;
+            background: #8FB9A8;
+            color: #0a1628;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+        }
+
+        .slp-cta-btn:hover {
+            background: #ffffff;
+            color: #0a1628;
+        }
+
+        /* ── REFERRAL LINK ── */
+        .slp-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 40px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #8FB9A8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .slp-link:hover {
+            color: #ffffff;
+        }
+
+        .slp-link svg {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.2s ease;
+        }
+
+        .slp-link:hover svg {
+            transform: translateX(3px);
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            .slp-container {
+                padding: 0 24px;
+            }
+
+            .slp-hero {
+                padding: 120px 0 80px;
+            }
+
+            .slp-section {
+                padding: 90px 0;
+            }
+
+            .slp-section-body,
+            .slp-persona-list li,
+            .slp-persona-standalone,
+            .slp-commitment p,
+            .slp-founder-text {
+                font-size: 16px;
+            }
+
+            .slp-commitment {
+                gap: 20px;
+                padding: 28px 0;
+            }
+
+            .slp-commitment-num {
+                font-size: 36px;
+                width: 36px;
+            }
+
+            .slp-founder {
+                padding: 40px 28px;
+            }
+
+            .slp-founder-section {
+                padding: 90px 0;
+            }
+
+            .slp-cta-section {
+                padding: 100px 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .slp-container {
+                padding: 0 20px;
+            }
+
+            .slp-hero {
+                padding: 100px 0 60px;
+            }
+
+            .slp-section {
+                padding: 64px 0;
+            }
+
+            .slp-commitment {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .slp-commitment-num {
+                font-size: 28px;
+            }
+
+            .slp-founder {
+                padding: 28px 20px;
+            }
+
+            .slp-founder-section {
+                padding: 64px 0;
+            }
+
+            .slp-cta-section {
+                padding: 80px 0;
+            }
+
+            .slp-cta-btn {
+                padding: 16px 36px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAV_PLACEHOLDER -->
+
+<!-- Hero -->
+<section class="slp-hero">
+    <div class="slp-hero-waves">
+        <svg viewBox="0 0 900 1100" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <path d="M500,-100 C650,50 900,200 850,400 C800,600 550,650 500,850 C450,1050 700,1100 900,1200 L900,-100 Z" fill="rgba(15,30,55,0.9)"/>
+            <path d="M550,-50 C680,100 880,220 840,420 C800,620 580,680 540,870 C500,1060 720,1120 900,1200 L900,-50 Z" fill="rgba(18,36,62,0.8)"/>
+            <path d="M600,0 C720,140 860,260 830,440 C800,620 610,700 580,880 C550,1060 740,1130 900,1200 L900,0 Z" fill="rgba(22,42,70,0.7)"/>
+            <path d="M650,40 C750,180 850,290 825,460 C800,630 650,720 625,890 C600,1060 760,1140 900,1200 L900,40 Z" fill="rgba(26,50,80,0.6)"/>
+            <path d="M700,80 C780,210 845,320 825,480 C805,640 690,740 670,900 C650,1060 780,1150 900,1200 L900,80 Z" fill="rgba(30,58,90,0.45)"/>
+            <path d="M745,120 C810,240 845,350 830,500 C815,650 730,750 715,905 C700,1060 800,1155 900,1200 L900,120 Z" fill="rgba(35,65,100,0.3)"/>
+            <path d="M790,170 C835,280 855,380 845,520 C835,660 775,760 765,910 C755,1060 825,1160 900,1200 L900,170 Z" fill="rgba(44,95,120,0.18)"/>
+            <path d="M830,230 C858,320 870,410 862,540 C854,670 815,770 808,910 C801,1050 850,1160 900,1200 L900,230 Z" fill="rgba(143,185,168,0.08)"/>
+        </svg>
+    </div>
+    <div class="slp-container">
+        <div class="slp-hero-content">
+            <h1 class="slp-hero-heading">The Rollr Academy is<br>not built against you.</h1>
+            <div class="slp-hero-sub">It's built for you.</div>
+        </div>
+    </div>
+</section>
+
+<hr class="slp-rule">
+
+<!-- Section 1 -->
+<section class="slp-section">
+    <div class="slp-container">
+        <div class="slp-section-label">01</div>
+        <h2 class="slp-section-heading">You taught the world how to fix the R&nbsp;sound.</h2>
+        <div class="slp-section-body">
+            <p>We just refused to let distance, cost, and silence be the reason someone never found&nbsp;out.</p>
+        </div>
+    </div>
+</section>
+
+<hr class="slp-rule">
+
+<!-- Section 2 -->
+<section class="slp-section">
+    <div class="slp-container">
+        <div class="slp-section-label">02</div>
+        <h2 class="slp-section-heading">The person Rollr serves never booked an&nbsp;appointment.</h2>
+        <ul class="slp-persona-list">
+            <li>They practiced alone in their car.</li>
+            <li>They got good at avoiding the word entirely.</li>
+            <li>They were too shy to find clinical help.</li>
+        </ul>
+        <p class="slp-persona-standalone">They were never in a clinic to begin with.</p>
+    </div>
+</section>
+
+<hr class="slp-rule">
+
+<!-- Section 3 -->
+<section class="slp-section">
+    <div class="slp-container">
+        <div class="slp-section-label">03</div>
+        <h2 class="slp-section-heading">Every step inside Rollr came from your&nbsp;science.</h2>
+        <div class="slp-section-body">
+            <p>Isolation. Words. Phrases. Conversation. The progression SLPs spent decades proving &mdash; we didn't invent&nbsp;it.</p>
+            <p>We made it available at midnight, in private, in any country, on a&nbsp;phone.</p>
+        </div>
+    </div>
+</section>
+
+<hr class="slp-rule">
+
+<!-- Section 4: Three Commitments -->
+<section class="slp-section">
+    <div class="slp-container">
+        <div class="slp-section-label">Our commitments</div>
+        <h2 class="slp-section-heading">Three things we'll always stand&nbsp;behind.</h2>
+        <div class="slp-commitments">
+            <div class="slp-commitment">
+                <div class="slp-commitment-num">1</div>
+                <p>We don't do clinical diagnosis. When someone needs an SLP, we say so &mdash; directly, and without&nbsp;hesitation.</p>
+            </div>
+            <div class="slp-commitment">
+                <div class="slp-commitment-num">2</div>
+                <p>We go where clinics can't reach. Rural towns. Different countries. 2am. People who can't afford sessions or can't find a clinic that treats adult&nbsp;articulation.</p>
+            </div>
+            <div class="slp-commitment">
+                <div class="slp-commitment-num">3</div>
+                <p>When they need more than we can give, we send them to you. Rollr is not the destination. For many, it's the&nbsp;door.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr class="slp-rule">
+
+<!-- Section 5: The Invitation -->
+<section class="slp-section">
+    <div class="slp-container">
+        <div class="slp-section-label">The invitation</div>
+        <h2 class="slp-section-heading">We'd rather build this with&nbsp;you.</h2>
+        <div class="slp-section-body">
+            <p>If your waitlist is long, Rollr holds the gap. If a client has been discharged but still needs practice, Rollr is the bridge. If you think we're getting something wrong, we want to hear&nbsp;it.</p>
+        </div>
+        <a href="/therollracademy/support.html" class="slp-link">
+            Talk to us about referrals
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </a>
+    </div>
+</section>
+
+<!-- Founder Note -->
+<section class="slp-founder-section">
+    <div class="slp-container">
+        <div class="slp-founder">
+            <div class="slp-founder-label">From the founders</div>
+            <div class="slp-founder-text">
+                <p>The Rollr Academy was founded by people who personally struggled with rhotacism into adulthood.</p>
+                <p>We know the frustration. The embarrassment. The quiet impact it has on confidence &mdash; in interviews, in conversations, in rooms where you had something to say but let someone else say it.</p>
+                <p>The one who spent twenty years speaking faster than the moment required, because slowing down meant the R would show.</p>
+                <p>We built something accessible, private, and effective, combining the evidence-based techniques SLPs established with technology that meets people where they are.</p>
+                <p>Clear speech should be within reach &mdash; for everyone.</p>
+            </div>
+            <div class="slp-founder-sig">&mdash; The Rollr Academy Team</div>
+        </div>
+    </div>
+</section>
+
+<!-- Closing CTA -->
+<section class="slp-cta-section">
+    <div class="slp-container">
+        <h2 class="slp-cta-heading">Your R is fixable.</h2>
+        <h2 class="slp-cta-heading">It always was.</h2>
+        <p class="slp-cta-sub">Try the free 2-minute assessment.</p>
+        <a href="/therollracademy/assessment.html" class="slp-cta-btn">Start Assessment</a>
+    </div>
+</section>
+
+<!-- FOOTER_PLACEHOLDER -->
+
+<!-- Login Modal -->
+<div class="login-modal" id="loginModal"></div>
+
+<script src="/therollracademy/js/nav.js"></script>
+<script src="/therollracademy/js/login-modal.js"></script>
+<script src="/therollracademy/js/google-signin-init.js"></script>
+
+</body>
+</html>

@@ -53,54 +53,14 @@
             line-height: 1.6;
             color: #333;
             overflow-x: hidden;
-            background: linear-gradient(to bottom,
-                    #1a1a1a 0%,
-                    #1c1c1c 8%,
-                    #1e1e00 15%,
-                    #252500 22%,
-                    #2d2d00 28%,
-                    #353500 35%,
-                    #3d3d00 42%,
-                    #454500 48%,
-                    #4d4d00 54%,
-                    #555500 60%,
-                    #5d5d00 66%,
-                    #656500 72%,
-                    #757510 78%,
-                    #858518 84%,
-                    #9a901a 90%,
-                    #b09a1a 94%,
-                    #1a1a1a 100%);
+            background: linear-gradient(160deg, #1a1a1a 0%, #252500 40%, #454500 70%, #1a1a1a 100%);
             background-attachment: fixed;
             min-height: 100vh;
         }
 
-        /* Mobile-specific - pseudo-element workaround for fixed gradient */
         @media (max-width: 768px) {
             body {
-                background: #1a1a1a;
-            }
-
-            body::before {
-                content: '';
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: -1;
-                background: linear-gradient(to bottom,
-                        #1e1e00 0%,
-                        #252500 10%,
-                        #2d2d00 20%,
-                        #353500 30%,
-                        #3d3d00 40%,
-                        #454500 50%,
-                        #4d4d00 60%,
-                        #555500 70%,
-                        #5d5d00 80%,
-                        #656500 90%,
-                        #555500 100%);
+                background: linear-gradient(160deg, #1a1a1a 0%, #252500 40%, #454500 70%, #1a1a1a 100%);
             }
         }
 
@@ -357,7 +317,7 @@
         }
 
         .hero-link {
-            color: #000000;
+            color: #ffffff;
             font-weight: 600;
             text-decoration: underline;
         }
@@ -773,10 +733,7 @@ font-style: italic;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(to bottom,
-                    #c5a732 0%,
-                    #d4b73a 50%,
-                    #c5a732 100%);
+            background: linear-gradient(160deg, #1a1a1a 0%, #252500 40%, #454500 70%, #1a1a1a 100%);
             z-index: 10001;
             overflow-y: auto;
         }
@@ -1242,7 +1199,7 @@ font-style: italic;
             }
 
             .hero-link {
-                color: #000000;
+                color: #ffffff;
             }
 
             .stats-grid {
