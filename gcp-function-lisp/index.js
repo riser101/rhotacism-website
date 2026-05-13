@@ -4,8 +4,19 @@ const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const cors = require('cors');
 const fs = require('fs');
+const { SpeechClient } = require('@google-cloud/speech').v2;
 
 ffmpeg.setFfmpegPath(ffmpegPath);
+
+const STT_PROJECT = process.env.GCP_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || '';
+const STT_LOCATION = process.env.STT_LOCATION || 'us-central1';
+const STT_RECOGNIZER = `projects/${STT_PROJECT}/locations/${STT_LOCATION}/recognizers/_`;
+const STT_MODEL = process.env.STT_MODEL || 'chirp_2';
+const STT_LANGUAGE = process.env.STT_LANGUAGE || 'en-US';
+
+const speechClient = new SpeechClient({
+  apiEndpoint: `${STT_LOCATION}-speech.googleapis.com`
+});
 
 const corsOptions = {
   origin: [
@@ -16,7 +27,9 @@ const corsOptions = {
     'http://localhost:8000',
     'http://127.0.0.1:8000',
     'http://127.0.0.1:5502',
-    'http://localhost:5502'
+    'http://localhost:5502',
+    'http://127.0.0.1:5501',
+    'http://localhost:5501'
   ],
   methods: ['POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
@@ -213,8 +226,87 @@ function parseGeminiTable(rawText, expectedCount) {
   return { result: rawText, gri, words: rows };
 }
 
+// Convert any input audio (WebM/Opus, etc.) to LINEAR16 16-kHz mono WAV bytes for STT v2.
+async function transcodeToLinear16(inputBase64) {
+  const inPath = `/tmp/stt_in_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const outPath = `${inPath}.wav`;
+  fs.writeFileSync(inPath, Buffer.from(stripDataUrlPrefix(inputBase64), 'base64'));
+  try {
+    await new Promise((resolve, reject) => {
+      ffmpeg(inPath)
+        .toFormat('wav')
+        .audioCodec('pcm_s16le')
+        .audioChannels(1)
+        .audioFrequency(16000)
+        .on('end', resolve)
+        .on('error', reject)
+        .save(outPath);
+    });
+    return fs.readFileSync(outPath);
+  } finally {
+    if (fs.existsSync(inPath)) fs.unlinkSync(inPath);
+    if (fs.existsSync(outPath)) fs.unlinkSync(outPath);
+  }
+}
+
+function fuzzyMatch(transcript, target) {
+  if (!transcript || !target) return false;
+  const norm = s => s.toLowerCase().replace(/[^a-z]/g, '');
+  const t = norm(transcript);
+  const g = norm(target);
+  if (!t || !g) return false;
+  if (t.includes(g)) return true;
+  // Lisp tolerance: /s/ → /θ/ substitution. Replace "th" with "s" and retry.
+  const tDelisp = t.replace(/th/g, 's');
+  const gDelisp = g.replace(/th/g, 's');
+  if (tDelisp.includes(gDelisp)) return true;
+  // Accept if first 3 chars match (handles "sun" → "thun", "buth" → "bus" partials).
+  if (g.length >= 3 && tDelisp.slice(0, 3) === gDelisp.slice(0, 3)) return true;
+  return false;
+}
+
+async function verifyWordWithSTT(audioBase64, targetWord) {
+  console.log(`[STT] ▶ verify start target="${targetWord}" b64Len=${audioBase64?.length || 0}`);
+  if (!STT_PROJECT) throw new Error('GCP_PROJECT env var not set');
+  console.log(`[STT] project=${STT_PROJECT} recognizer=${STT_RECOGNIZER} model=${STT_MODEL} lang=${STT_LANGUAGE}`);
+
+  const wavBytes = await transcodeToLinear16(audioBase64);
+  console.log(`[STT] transcoded to LINEAR16 wav, bytes=${wavBytes.length}`);
+
+  const phraseSet = targetWord ? {
+    inlinePhraseSet: {
+      phrases: [{ value: targetWord, boost: 10 }]
+    }
+  } : undefined;
+
+  const request = {
+    recognizer: STT_RECOGNIZER,
+    config: {
+      autoDecodingConfig: {},
+      languageCodes: [STT_LANGUAGE],
+      model: STT_MODEL,
+      features: { enableWordConfidence: true, enableWordTimeOffsets: true },
+      ...(phraseSet ? { adaptation: { phraseSets: [phraseSet] } } : {})
+    },
+    content: wavBytes
+  };
+  console.log(`[STT] sending recognize request...`);
+
+  const [response] = await speechClient.recognize(request);
+  console.log(`[STT] raw response:`, JSON.stringify(response, null, 2));
+
+  const results = response.results || [];
+  console.log(`[STT] results count=${results.length}`);
+  const best = results[0]?.alternatives?.[0];
+  const transcript = (best?.transcript || '').trim();
+  const confidence = best?.confidence ?? 0;
+  const matched = fuzzyMatch(transcript, targetWord);
+  console.log(`[STT] transcript="${transcript}" confidence=${confidence} matched=${matched}`);
+  return { transcript, confidence, matched, hasSpeech: !!transcript };
+}
+
 functions.http('analyzeLispSpeech', async (req, res) => {
-  console.log('🚀 Lisp analysis request received');
+  console.log('🚀 Lisp request received');
   corsMiddleware(req, res, async () => {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -222,6 +314,15 @@ functions.http('analyzeLispSpeech', async (req, res) => {
     try {
       if (!req.headers['content-type']?.includes('application/json')) {
         return res.status(400).json({ error: 'Expected application/json' });
+      }
+
+      // Per-word STT verification route.
+      if (req.body?.action === 'verify_word') {
+        const { audio_base64, target_word } = req.body;
+        if (!audio_base64) return res.status(400).json({ error: 'audio_base64 required' });
+        const result = await verifyWordWithSTT(audio_base64, target_word || '');
+        console.log(`🎙️ STT verify "${target_word}" → "${result.transcript}" (matched=${result.matched}, conf=${result.confidence})`);
+        return res.status(200).json(result);
       }
 
       const { words, fftData } = req.body || {};

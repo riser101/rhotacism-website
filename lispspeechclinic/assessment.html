@@ -966,8 +966,6 @@
         }
     </style>
     <link rel="stylesheet" href="css/nav.css">
-    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/bundle.min.js"></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -1274,8 +1272,8 @@
         const FORMEASY_URL = 'https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec';
         // Point this at the deployed lisp cloud function (analyzeLispSpeech).
         // For local dev run `npx functions-framework --target=analyzeLispSpeech` in gcp-function-lisp/.
-        const GCP_ANALYZE_URL = 'https://analyze-lisp-speech-653307587559.us-central1.run.app';
-        // const GCP_ANALYZE_URL = 'http://localhost:8080';
+        // const GCP_ANALYZE_URL = 'https://analyze-lisp-speech-653307587559.us-central1.run.app';
+        const GCP_ANALYZE_URL = 'http://localhost:8080';
         // Recording state
         let mediaRecorder = null;
         let audioChunks = [];
@@ -1411,6 +1409,7 @@
         const WORD_TIMEOUT = 5000;
         let lastSpeechTime = 0;
         let wordTimedOut = false;
+        let sttVerifying = false;
 
         function initWordRecording() {
             currentWordIndex = 0;
@@ -1518,7 +1517,15 @@
             const live = document.getElementById('liveInstruction');
             if (live) live.classList.remove('recording', 'done');
 
-            if (allWordsRecorded) {
+            if (sttVerifying) {
+                btn.disabled = true;
+                label.textContent = 'PROCESSING…';
+                badge.classList.add('visible');
+                if (live) {
+                    live.classList.add('recording');
+                    live.innerHTML = `Processing <span class="live-word">'${TEST_WORDS[currentWordIndex]}'</span>…`;
+                }
+            } else if (allWordsRecorded) {
                 check.style.display = 'block';
                 btn.classList.add('done');
                 btn.disabled = true;
@@ -1562,15 +1569,19 @@
             }
         }
 
-        // Main record button handler
+        // Main record button handler.
+        // Tap once → record. Tap again → stop + STT verify. Locked during STT.
         async function handleRecordTap() {
             if (allWordsRecorded) return;
+            if (sttVerifying) {
+                console.log('[REC] tap ignored — STT verifying');
+                return;
+            }
             userGender = 'male';
             if (isRecording) {
-                // Manual stop = discard; only VAD onSpeechEnd commits + advances
-                stopWordRecording(true);
+                console.log('[REC] manual stop → commit + verify');
+                stopWordRecording(false);
             } else if (isWaitingForNext) {
-                // Advance to next word and start recording
                 isWaitingForNext = false;
                 currentWordIndex++;
                 wordTimedOut = false;
@@ -1619,15 +1630,6 @@
                 updateRecordButton();
                 startVuMeter();
                 startWordTimer();
-                startVad(audioStream);
-
-                // Timeout: if no speech after 5 seconds, flag it
-                silenceTimer = setTimeout(() => {
-                    if (isRecording && !speechDetected) {
-                        wordTimedOut = true;
-                        stopWordRecording(true); // discard
-                    }
-                }, WORD_TIMEOUT);
 
             } catch (err) {
                 console.error('Microphone error:', err);
@@ -1687,22 +1689,13 @@
                     if (lvl > maxLevel) maxLevel = lvl;
                 }
 
-                // Fallback amplitude-based detection only if VAD failed to initialize
-                if (!vadInstance) {
-                    if (maxLevel > SPEECH_THRESHOLD) {
-                        if (!speechDetected) {
-                            speechDetected = true;
-                            speechStartTime = Date.now();
-                        }
-                        lastSpeechTime = Date.now();
+                // Track speech for "silent recording" check; no auto-stop.
+                if (maxLevel > SPEECH_THRESHOLD) {
+                    if (!speechDetected) {
+                        speechDetected = true;
+                        speechStartTime = Date.now();
                     }
-                    if (speechDetected && lastSpeechTime > 0 && (Date.now() - lastSpeechTime) > SILENCE_DURATION) {
-                        const speechDuration = lastSpeechTime - speechStartTime;
-                        if (speechDuration >= MIN_SPEECH_DURATION) {
-                            stopWordRecording();
-                            return;
-                        }
-                    }
+                    lastSpeechTime = Date.now();
                 }
 
                 vuAnimFrame = requestAnimationFrame(animate);
@@ -1746,62 +1739,35 @@
                 mediaRecorder.stop();
                 audioStream.getTracks().forEach(t => t.stop());
                 if (audioContext) { audioContext.close(); audioContext = null; }
-                stopVad();
             }
         }
 
-        // Silero VAD v5 — detects human speech only, ignores fans/static/clicks
-        const VAD_ASSET_BASE = 'https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/';
-        const ORT_WASM_BASE  = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/';
-        let vadInstance = null;
-        async function startVad(stream) {
+        // STT v2 verify: confirms user said the target word (or close approximation
+        // accounting for lisp). Replaces Silero VAD's noise/word filtering role.
+        async function verifyWordWithSTT(blob, targetWord) {
+            const t0 = Date.now();
+            console.log(`[STT] ▶ verify start target="${targetWord}" blobSize=${blob.size}B mime=${blob.type}`);
             try {
-                if (!window.vad || !window.vad.MicVAD) return;
-                vadInstance = await window.vad.MicVAD.new({
-                    model: 'v5',
-                    baseAssetPath: VAD_ASSET_BASE,
-                    onnxWASMBasePath: ORT_WASM_BASE,
-                    getStream: async () => stream,
-                    pauseStream: async () => {},
-                    resumeStream: async () => stream,
-                    startOnLoad: false,
-                    positiveSpeechThreshold: 0.6,
-                    negativeSpeechThreshold: 0.4,
-                    minSpeechFrames: 3,
-                    redemptionFrames: 12,
-                    onSpeechStart: () => {
-                        console.log('[VAD] ✅ human voice detected — speech start');
-                        if (!isRecording) return;
-                        if (!speechDetected) {
-                            speechDetected = true;
-                            speechStartTime = Date.now();
-                        }
-                        lastSpeechTime = Date.now();
-                    },
-                    onSpeechEnd: (audio) => {
-                        const dur = Date.now() - speechStartTime;
-                        console.log('[VAD] 🛑 human voice ended — duration ' + dur + 'ms, samples=' + (audio ? audio.length : 0));
-                        if (!isRecording) return;
-                        lastSpeechTime = Date.now();
-                        if (dur >= MIN_SPEECH_DURATION) {
-                            stopWordRecording();
-                        }
-                    },
-                    onVADMisfire: () => {
-                        console.log('[VAD] ⚠️ misfire — sound too short, ignored as non-speech');
-                    },
+                const b64 = await blobToBase64(blob);
+                console.log(`[STT] base64 ready (${b64.length} chars), POST → ${GCP_ANALYZE_URL}`);
+                const resp = await fetch(GCP_ANALYZE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'verify_word', target_word: targetWord, audio_base64: b64 })
                 });
-                vadInstance.start();
-                console.log('[VAD] started — listening for human voice (ignores noise amplitude)');
+                console.log(`[STT] HTTP ${resp.status} (${Date.now() - t0}ms)`);
+                if (!resp.ok) {
+                    const errBody = await resp.text();
+                    console.warn(`[STT] ❌ request failed body="${errBody}"`);
+                    return { matched: true, transcript: '', skipped: true };
+                }
+                const data = await resp.json();
+                console.log(`[STT] ✅ response`, data);
+                console.log(`[STT] target="${targetWord}" heard="${data.transcript}" matched=${data.matched} conf=${data.confidence} hasSpeech=${data.hasSpeech}`);
+                return data;
             } catch (e) {
-                console.warn('VAD init failed, falling back to amplitude detection:', e);
-                vadInstance = null;
-            }
-        }
-        function stopVad() {
-            if (vadInstance) {
-                try { vadInstance.pause(); vadInstance.destroy && vadInstance.destroy(); } catch (_) {}
-                vadInstance = null;
+                console.warn('[STT] ❌ verify error, accepting recording:', e);
+                return { matched: true, transcript: '', skipped: true };
             }
         }
 
@@ -1809,8 +1775,7 @@
         async function onWordRecordingStopped() {
             const blob = new Blob(audioChunks, { type: 'audio/webm' });
 
-            // Validate audio: reject if no speech detected during capture or
-            // post-recording RMS shows silence. Prompt user to re-record.
+            // Validate audio: reject if no speech detected during capture.
             if (!speechDetected) {
                 wordTimedOut = true;
                 audioChunks = [];
@@ -1818,6 +1783,32 @@
                     const bar = document.getElementById('vuBar' + i);
                     if (bar) bar.style.height = '6px';
                 }
+                updateRecordButton();
+                return;
+            }
+
+            // STT verify: check user actually said the target word.
+            const targetWord = TEST_WORDS[currentWordIndex];
+            const live = document.getElementById('liveStatus');
+            sttVerifying = true;
+            if (live) live.innerHTML = `Processing <span class="live-word">'${targetWord}'</span>…`;
+            updateRecordButton();
+            const verify = await verifyWordWithSTT(blob, targetWord);
+            sttVerifying = false;
+
+            if (!verify.skipped && (!verify.hasSpeech || !verify.matched)) {
+                wordTimedOut = true;
+                audioChunks = [];
+                for (let i = 0; i < VU_BAR_COUNT; i++) {
+                    const bar = document.getElementById('vuBar' + i);
+                    if (bar) bar.style.height = '6px';
+                }
+                if (live) {
+                    live.innerHTML = verify.hasSpeech
+                        ? `Heard "<em>${verify.transcript}</em>". Tap mic to re-record <span class="live-word">'${targetWord}'</span>.`
+                        : `No clear speech. Tap mic to re-record <span class="live-word">'${targetWord}'</span>.`;
+                }
+                console.log('[STT] mismatch → wait for user tap to re-record');
                 updateRecordButton();
                 return;
             }
