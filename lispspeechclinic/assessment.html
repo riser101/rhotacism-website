@@ -1306,40 +1306,67 @@
             if (_chimeCtx.state === 'suspended') _chimeCtx.resume();
             return _chimeCtx;
         }
-        // Bubble pop: sine with rapid upward pitch sweep, soft lowpass, click-short.
-        function _bubble(startOffset, startFreq, endFreq, duration, peakGain) {
+        // Wispr-style push-to-talk button: tight click transient + short tonal tail.
+        function _pttButton(startOffset, toneFreq, peakGain, isPress) {
             const ctx = _getChimeCtx();
             if (!ctx) return;
             const t0 = ctx.currentTime + startOffset;
-            const tEnd = t0 + duration;
+            const noiseDur = 0.005;    // ~5ms whisper transient
+            const toneDur  = 0.085;    // ~85ms softer tonal tail
+            const tEnd = t0 + Math.max(noiseDur, toneDur);
 
-            // Main sine — upward sweep gives that watery "bloop"
+            // 1) Tiny noise click — finger-on-button transient
+            const bufLen = Math.ceil(ctx.sampleRate * noiseDur);
+            const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < bufLen; i++) data[i] = (Math.random() * 2 - 1);
+            const noise = ctx.createBufferSource();
+            noise.buffer = buf;
+
+            // Bandpass instead of highpass — narrower, less hiss
+            const hp = ctx.createBiquadFilter();
+            hp.type = 'bandpass';
+            hp.frequency.value = 1800;
+            hp.Q.value = 1.5;
+
+            const nGain = ctx.createGain();
+            nGain.gain.setValueAtTime(0, t0);
+            nGain.gain.linearRampToValueAtTime(peakGain * 0.18, t0 + 0.002);
+            nGain.gain.exponentialRampToValueAtTime(0.0001, t0 + noiseDur);
+
+            noise.connect(hp).connect(nGain).connect(ctx.destination);
+            noise.start(t0);
+            noise.stop(t0 + noiseDur + 0.005);
+
+            // 2) Tonal body — gentler pitch glide. Press: up-tick. Release: down-tick.
+            const endFreq = isPress ? toneFreq * 1.10 : toneFreq * 0.86;
+
             const osc = ctx.createOscillator();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(startFreq, t0);
-            osc.frequency.exponentialRampToValueAtTime(endFreq, tEnd);
+            osc.frequency.setValueAtTime(toneFreq, t0);
+            osc.frequency.exponentialRampToValueAtTime(endFreq, t0 + toneDur);
 
-            // Soft body — triangle one octave below at low level
             const sub = ctx.createOscillator();
             sub.type = 'triangle';
-            sub.frequency.setValueAtTime(startFreq * 0.5, t0);
-            sub.frequency.exponentialRampToValueAtTime(endFreq * 0.5, tEnd);
+            sub.frequency.setValueAtTime(toneFreq, t0);
+            sub.frequency.exponentialRampToValueAtTime(endFreq, t0 + toneDur);
 
             const gMain = ctx.createGain();
             gMain.gain.setValueAtTime(0, t0);
-            gMain.gain.linearRampToValueAtTime(peakGain, t0 + 0.006);
-            gMain.gain.exponentialRampToValueAtTime(0.0001, tEnd);
+            // Slower attack ~12ms = softer onset
+            gMain.gain.linearRampToValueAtTime(peakGain, t0 + 0.012);
+            gMain.gain.exponentialRampToValueAtTime(0.0001, t0 + toneDur);
 
             const gSub = ctx.createGain();
             gSub.gain.setValueAtTime(0, t0);
-            gSub.gain.linearRampToValueAtTime(peakGain * 0.25, t0 + 0.006);
-            gSub.gain.exponentialRampToValueAtTime(0.0001, tEnd);
+            gSub.gain.linearRampToValueAtTime(peakGain * 0.22, t0 + 0.012);
+            gSub.gain.exponentialRampToValueAtTime(0.0001, t0 + toneDur);
 
-            // Lowpass keeps it watery, not harsh
+            // Lower lowpass cutoff = warmer, less bright
             const lp = ctx.createBiquadFilter();
             lp.type = 'lowpass';
-            lp.frequency.value = 2200;
-            lp.Q.value = 0.5;
+            lp.frequency.value = 1800;
+            lp.Q.value = 0.4;
 
             osc.connect(gMain).connect(lp);
             sub.connect(gSub).connect(lp);
@@ -1350,17 +1377,17 @@
         }
 
         /**
-         * Bubble pop — start (rising bloop).
+         * PTT press — slight upward tick.
          */
         function playStartChime() {
-            _bubble(0, 380, 1100, 0.10, 0.35);
+            _pttButton(0, 720, 0.32, true);
         }
 
         /**
-         * Bubble pop — stop (slightly lower rising bloop).
+         * PTT release — slight downward tick.
          */
         function playStopChime() {
-            _bubble(0, 300, 880, 0.11, 0.35);
+            _pttButton(0, 620, 0.32, false);
         }
 
         // =============================================
@@ -1657,7 +1684,7 @@
             try {
                 audioStream = await navigator.mediaDevices.getUserMedia({
                     audio: {
-                        echoCancellation: false,
+                        echoCancellation: true,   // cancel chime bleed via system AEC
                         noiseSuppression: false,
                         autoGainControl: false,
                         sampleRate: 48000,
