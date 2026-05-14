@@ -28,7 +28,8 @@ export default async function handler(req, res) {
         form.append('model', 'whisper-large-v3-turbo');
         form.append('response_format', 'json');
         form.append('language', 'en');
-        form.append('temperature', '0');
+        // temp 0.4 → less autocorrection of lisped pronunciations (preserves th/s substitutions).
+        form.append('temperature', '0.4');
         if (prompt) form.append('prompt', prompt);
 
         const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
