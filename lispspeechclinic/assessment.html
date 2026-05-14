@@ -1675,7 +1675,7 @@
                 mediaRecorder.start();
                 isRecording = true;
                 wordStartTime = Date.now();
-                playStartChime();
+                // playStartChime();
 
                 updateRecordButton();
                 startVuMeter();
@@ -1793,7 +1793,7 @@
 
             if (mediaRecorder && isRecording) {
                 isRecording = false;
-                if (!discard) playStopChime();
+                // if (!discard) playStopChime();
                 if (discard) {
                     mediaRecorder.ondataavailable = null;
                     mediaRecorder.onstop = () => {
