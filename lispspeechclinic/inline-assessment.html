@@ -2290,7 +2290,7 @@
                     peakHz: overall.peakHz,
                     hfRatio: overall.hfRatio,
                     score,
-                    note: 'Computed locally from sibilant frames via FFT.',
+                    note: '',
                     words: perWord
                 };
             } catch (err) {
@@ -2529,7 +2529,7 @@
                 window.location.href = embedded
                     ? '/lispspeechclinic/inline-assessment-results.html'
                     : '/lispspeechclinic/assessment-results.html';
-            }, 1500);
+            }, 10);
         }
 
         // =============================================
