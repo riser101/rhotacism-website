@@ -1259,11 +1259,11 @@
         // Sibilant /s/ word list. Each Set = target + STT autocorrects of lisped speech.
         // First item = target word. Set lookup O(1). Any transcript token in Set → pass.
         const TEST_WORD_SETS = [
-            new Set(['sun', 'thun', 'ton', 'son', 'sunn']),
+            new Set(['sun', 'thun', 'ton', 'son', 'sunn','tan','ten','10','done']),
             new Set(['soap', 'thoap','top', 'toap', 'soup', 'sop']),
-            new Set(['seven', 'theven', 'teven', 'sevin']),
+            new Set(['seven', 'theven', 'teven', 'sevin','tevin']),
             new Set(['pencil', 'penthil', 'pentil', 'pencel', 'pensil', 'pencils']),
-            new Set(['glasses', 'glathes', 'glattes', 'classes', 'glases']),
+            new Set(['glasses', 'glathes', 'glattes', 'classes', 'glases','glad']),
             new Set(['bicycle', 'bithycle', 'bitycle', 'bicicle', 'bycycle']),
             new Set(['bus', 'buth', 'but', 'bath', 'buss']),
             new Set(['mouse', 'mouth', 'mout', 'mouthe', 'moose']),
@@ -1560,7 +1560,7 @@
                 label.textContent = 'TAP TO RETRY';
                 label.classList.add('timeout');
                 hint.style.display = 'block';
-                if (live) live.textContent = 'No speech detected. Tap microphone to retry.';
+                if (live) live.textContent = "Didn't match. Tap microphone to retry.";
             } else if (currentWordIndex === 0 && wordRecordings.length === 0) {
                 mic.style.display = 'block';
                
@@ -1805,14 +1805,14 @@
             const blob = new Blob(audioChunks, { type: 'audio/webm' });
             const target = TEST_WORDS[currentWordIndex];
 
-            // Single Whisper transcribe on full audio.
+            // Transcript = authoritative gate. VAD only triggers auto-stop on silence.
             const transcript = await transcribeBlob(blob, target);
-            if (transcript && transcriptMatchesTarget(transcript, target)) {
-                speechDetected = true;
-            }
+            const matched = !!(transcript && transcriptMatchesTarget(transcript, target));
+            const setForTarget = TEST_WORD_SETS[TEST_WORDS.indexOf(target)] || new Set();
+            console.log('[Match]', { target, transcript, matched, set: [...setForTarget] });
+            speechDetected = matched;
 
-            // Validate audio: reject if no speech detected during capture or
-            // post-recording RMS shows silence. Prompt user to re-record.
+            // Reject if transcript empty or no token in accepted Set. Prompt re-record.
             if (!speechDetected) {
                 wordTimedOut = true;
                 audioChunks = [];
