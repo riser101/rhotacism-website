@@ -1917,20 +1917,13 @@
                 sibilantBand: band
             };
 
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000);
-            try {
-                const resp = await fetch(GCP_ANALYZE_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                    signal: controller.signal
-                });
-                if (!resp.ok) throw new Error('Backend error: ' + resp.status + ' - ' + (await resp.text()));
-                return await resp.json();
-            } finally {
-                clearTimeout(timeoutId);
-            }
+            const resp = await fetch(GCP_ANALYZE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!resp.ok) throw new Error('Backend error: ' + resp.status + ' - ' + (await resp.text()));
+            return await resp.json();
         }
 
         // Denoise the blob (bandpass 300-9000 Hz) to suppress room noise before FFT.
