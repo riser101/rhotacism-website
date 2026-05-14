@@ -1294,6 +1294,76 @@
         let analysisPromise = null;    // Tracks the backend API call
 
         // =============================================
+        // MIC FEEDBACK CHIMES (Wispr-style)
+        // =============================================
+        let _chimeCtx = null;
+        function _getChimeCtx() {
+            if (!_chimeCtx) {
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+                if (!Ctx) return null;
+                _chimeCtx = new Ctx();
+            }
+            if (_chimeCtx.state === 'suspended') _chimeCtx.resume();
+            return _chimeCtx;
+        }
+        // Bubble pop: sine with rapid upward pitch sweep, soft lowpass, click-short.
+        function _bubble(startOffset, startFreq, endFreq, duration, peakGain) {
+            const ctx = _getChimeCtx();
+            if (!ctx) return;
+            const t0 = ctx.currentTime + startOffset;
+            const tEnd = t0 + duration;
+
+            // Main sine — upward sweep gives that watery "bloop"
+            const osc = ctx.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(startFreq, t0);
+            osc.frequency.exponentialRampToValueAtTime(endFreq, tEnd);
+
+            // Soft body — triangle one octave below at low level
+            const sub = ctx.createOscillator();
+            sub.type = 'triangle';
+            sub.frequency.setValueAtTime(startFreq * 0.5, t0);
+            sub.frequency.exponentialRampToValueAtTime(endFreq * 0.5, tEnd);
+
+            const gMain = ctx.createGain();
+            gMain.gain.setValueAtTime(0, t0);
+            gMain.gain.linearRampToValueAtTime(peakGain, t0 + 0.006);
+            gMain.gain.exponentialRampToValueAtTime(0.0001, tEnd);
+
+            const gSub = ctx.createGain();
+            gSub.gain.setValueAtTime(0, t0);
+            gSub.gain.linearRampToValueAtTime(peakGain * 0.25, t0 + 0.006);
+            gSub.gain.exponentialRampToValueAtTime(0.0001, tEnd);
+
+            // Lowpass keeps it watery, not harsh
+            const lp = ctx.createBiquadFilter();
+            lp.type = 'lowpass';
+            lp.frequency.value = 2200;
+            lp.Q.value = 0.5;
+
+            osc.connect(gMain).connect(lp);
+            sub.connect(gSub).connect(lp);
+            lp.connect(ctx.destination);
+
+            osc.start(t0); sub.start(t0);
+            osc.stop(tEnd + 0.02); sub.stop(tEnd + 0.02);
+        }
+
+        /**
+         * Bubble pop — start (rising bloop).
+         */
+        function playStartChime() {
+            _bubble(0, 380, 1100, 0.10, 0.35);
+        }
+
+        /**
+         * Bubble pop — stop (slightly lower rising bloop).
+         */
+        function playStopChime() {
+            _bubble(0, 300, 880, 0.11, 0.35);
+        }
+
+        // =============================================
         // NAVIGATION
         // =============================================
         function updateProgress() {
@@ -1615,6 +1685,7 @@
                 mediaRecorder.start();
                 isRecording = true;
                 wordStartTime = Date.now();
+                playStartChime();
 
                 updateRecordButton();
                 startVuMeter();
@@ -1732,6 +1803,7 @@
 
             if (mediaRecorder && isRecording) {
                 isRecording = false;
+                if (!discard) playStopChime();
                 if (discard) {
                     mediaRecorder.ondataavailable = null;
                     mediaRecorder.onstop = () => {
