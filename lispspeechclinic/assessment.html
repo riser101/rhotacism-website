@@ -1307,87 +1307,48 @@
             return _chimeCtx;
         }
         // Wispr-style push-to-talk button: tight click transient + short tonal tail.
-        function _pttButton(startOffset, toneFreq, peakGain, isPress) {
+        // Soft "pop": single sine with quick pitch arc, slow attack, warm lowpass.
+        function _pop(startOffset, startFreq, peakFreq, peakGain) {
             const ctx = _getChimeCtx();
             if (!ctx) return;
             const t0 = ctx.currentTime + startOffset;
-            const noiseDur = 0.005;    // ~5ms whisper transient
-            const toneDur  = 0.085;    // ~85ms softer tonal tail
-            const tEnd = t0 + Math.max(noiseDur, toneDur);
-
-            // 1) Tiny noise click — finger-on-button transient
-            const bufLen = Math.ceil(ctx.sampleRate * noiseDur);
-            const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
-            const data = buf.getChannelData(0);
-            for (let i = 0; i < bufLen; i++) data[i] = (Math.random() * 2 - 1);
-            const noise = ctx.createBufferSource();
-            noise.buffer = buf;
-
-            // Bandpass instead of highpass — narrower, less hiss
-            const hp = ctx.createBiquadFilter();
-            hp.type = 'bandpass';
-            hp.frequency.value = 1800;
-            hp.Q.value = 1.5;
-
-            const nGain = ctx.createGain();
-            nGain.gain.setValueAtTime(0, t0);
-            nGain.gain.linearRampToValueAtTime(peakGain * 0.18, t0 + 0.002);
-            nGain.gain.exponentialRampToValueAtTime(0.0001, t0 + noiseDur);
-
-            noise.connect(hp).connect(nGain).connect(ctx.destination);
-            noise.start(t0);
-            noise.stop(t0 + noiseDur + 0.005);
-
-            // 2) Tonal body — gentler pitch glide. Press: up-tick. Release: down-tick.
-            const endFreq = isPress ? toneFreq * 1.10 : toneFreq * 0.86;
+            const duration = 0.09;        // ~90ms total
+            const tEnd = t0 + duration;
 
             const osc = ctx.createOscillator();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(toneFreq, t0);
-            osc.frequency.exponentialRampToValueAtTime(endFreq, t0 + toneDur);
+            // Quick arc: start → peak (in ~25ms) → fall back below start
+            osc.frequency.setValueAtTime(startFreq, t0);
+            osc.frequency.exponentialRampToValueAtTime(peakFreq, t0 + 0.025);
+            osc.frequency.exponentialRampToValueAtTime(startFreq * 0.7, tEnd);
 
-            const sub = ctx.createOscillator();
-            sub.type = 'triangle';
-            sub.frequency.setValueAtTime(toneFreq, t0);
-            sub.frequency.exponentialRampToValueAtTime(endFreq, t0 + toneDur);
+            const gain = ctx.createGain();
+            gain.gain.setValueAtTime(0, t0);
+            gain.gain.linearRampToValueAtTime(peakGain, t0 + 0.018);   // soft attack
+            gain.gain.exponentialRampToValueAtTime(0.0001, tEnd);
 
-            const gMain = ctx.createGain();
-            gMain.gain.setValueAtTime(0, t0);
-            // Slower attack ~12ms = softer onset
-            gMain.gain.linearRampToValueAtTime(peakGain, t0 + 0.012);
-            gMain.gain.exponentialRampToValueAtTime(0.0001, t0 + toneDur);
-
-            const gSub = ctx.createGain();
-            gSub.gain.setValueAtTime(0, t0);
-            gSub.gain.linearRampToValueAtTime(peakGain * 0.22, t0 + 0.012);
-            gSub.gain.exponentialRampToValueAtTime(0.0001, t0 + toneDur);
-
-            // Lower lowpass cutoff = warmer, less bright
             const lp = ctx.createBiquadFilter();
             lp.type = 'lowpass';
-            lp.frequency.value = 1800;
-            lp.Q.value = 0.4;
+            lp.frequency.value = 1400;     // warm, no hiss
+            lp.Q.value = 0.3;
 
-            osc.connect(gMain).connect(lp);
-            sub.connect(gSub).connect(lp);
-            lp.connect(ctx.destination);
-
-            osc.start(t0); sub.start(t0);
-            osc.stop(tEnd + 0.02); sub.stop(tEnd + 0.02);
+            osc.connect(gain).connect(lp).connect(ctx.destination);
+            osc.start(t0);
+            osc.stop(tEnd + 0.02);
         }
 
         /**
-         * PTT press — slight upward tick.
+         * Soft pop — start (mid).
          */
         function playStartChime() {
-            _pttButton(0, 720, 0.32, true);
+            _pop(0, 420, 620, 0.12);
         }
 
         /**
-         * PTT release — slight downward tick.
+         * Soft pop — stop (lower).
          */
         function playStopChime() {
-            _pttButton(0, 620, 0.32, false);
+            _pop(0, 340, 500, 0.12);
         }
 
         // =============================================
