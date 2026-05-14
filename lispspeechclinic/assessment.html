@@ -71,7 +71,9 @@
                 // Fallback to session id when PostHog blocked/not ready (e.g. localhost).
                 const userId = posthogId ? `ph_${posthogId}` : `anon_${sessionId}`;
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                const filePath = `recordings/lisp/${userId}/${timestamp}_${wordIndex}_lisp_${word}.webm`;
+                const isLocal = window.location.host.includes('localhost') || window.location.host.includes('127.0.0.1');
+                const pathPrefix = isLocal ? 'recordings/lisp/local-testing' : 'recordings/lisp';
+                const filePath = `${pathPrefix}/${userId}/${timestamp}_${wordIndex}_lisp_${word}.webm`;
 
                 const storageRef = ref(storage, filePath);
                 const metadata = {
