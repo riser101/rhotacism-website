@@ -966,8 +966,6 @@
         }
     </style>
     <link rel="stylesheet" href="css/nav.css">
-    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/bundle.min.js"></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -1258,19 +1256,22 @@
         const TOTAL_STEPS = 4;
         const FINAL_SCREEN_STEP = 4;
         const VU_BAR_COUNT = 14;
-        // Sibilant /s/ word list — initial, medial, final position
-        const TEST_WORD_META = [
-            { word: 'sun',     position: 'initial' },
-            { word: 'soap',    position: 'initial' },
-            { word: 'seven',   position: 'initial' },
-            { word: 'pencil',  position: 'medial' },
-            { word: 'glasses', position: 'medial' },
-            { word: 'bicycle', position: 'medial' },
-            { word: 'bus',     position: 'final' },
-            { word: 'mouse',   position: 'final' },
-            { word: 'glass',   position: 'final' }
+        // Sibilant /s/ word list. Each Set = target + STT autocorrects of lisped speech.
+        // First item = target word. Set lookup O(1). Any transcript token in Set → pass.
+        const TEST_WORD_SETS = [
+            new Set(['sun', 'thun', 'ton', 'son', 'sunn']),
+            new Set(['soap', 'thoap','top', 'toap', 'soup', 'sop']),
+            new Set(['seven', 'theven', 'teven', 'sevin']),
+            new Set(['pencil', 'penthil', 'pentil', 'pencel', 'pensil', 'pencils']),
+            new Set(['glasses', 'glathes', 'glattes', 'classes', 'glases']),
+            new Set(['bicycle', 'bithycle', 'bitycle', 'bicicle', 'bycycle']),
+            new Set(['bus', 'buth', 'but', 'bath', 'buss']),
+            new Set(['mouse', 'mouth', 'mout', 'mouthe', 'moose']),
+            new Set(['glass', 'glath', 'glat', 'class', 'glas', 'glad'])
         ];
-        const TEST_WORDS = TEST_WORD_META.map(w => w.word);
+        const TEST_POSITIONS = ['initial','initial','initial','medial','medial','medial','final','final','final'];
+        const TEST_WORDS = TEST_WORD_SETS.map(s => s.values().next().value);
+        const TEST_WORD_META = TEST_WORDS.map((word, i) => ({ word, position: TEST_POSITIONS[i] }));
         const FORMEASY_URL = 'https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec';
         // Point this at the deployed lisp cloud function (analyzeLispSpeech).
         // For local dev run `npx functions-framework --target=analyzeLispSpeech` in gcp-function-lisp/.
@@ -1408,8 +1409,17 @@
         const SPEECH_THRESHOLD = 0.08;
         const MIN_SPEECH_DURATION = 400;
         const SILENCE_DURATION = 600;
-        const WORD_TIMEOUT = 5000;
+        const WORD_TIMEOUT = 3000;
+        // VAD tuning (RMS-based with adaptive noise floor)
+        const VAD_RMS_ON = 0.05;          // base RMS threshold to count as speech
+        const VAD_RMS_OFF = 0.04;         // hysteresis: below this = silent (raised for noisy rooms)
+        const VAD_ONSET_FRAMES = 2;       // consecutive loud frames before onset
+        const VAD_SILENCE_MS = 400;       // trailing silence to auto-stop
+        const VAD_MIN_SPEECH_MS = 200;    // ignore stops before this much speech
+        const VAD_NOISE_MARGIN = 2.5;     // speech must exceed noise floor * margin
+        let vadNoiseFloor = 0.01;         // EMA estimate of room noise floor
         let lastSpeechTime = 0;
+        let vadLoudFrames = 0;
         let wordTimedOut = false;
 
         function initWordRecording() {
@@ -1597,7 +1607,10 @@
                 mediaRecorder = new MediaRecorder(audioStream);
                 audioChunks = [];
                 speechDetected = false;
+                speechStartTime = 0;
                 lastSpeechTime = 0;
+                vadLoudFrames = 0;
+                vadNoiseFloor = 0.01;
 
                 // Set up audio analyser for VU meter + silence detection
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -1612,20 +1625,18 @@
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                 mediaRecorder.onstop = () => onWordRecordingStopped();
 
-                mediaRecorder.start();
+                mediaRecorder.start(750);
                 isRecording = true;
                 wordStartTime = Date.now();
 
                 updateRecordButton();
                 startVuMeter();
                 startWordTimer();
-                startVad(audioStream);
 
-                // Timeout: if no speech after 5 seconds, flag it
+                // Auto-stop after WORD_TIMEOUT; transcribe decides validity.
                 silenceTimer = setTimeout(() => {
-                    if (isRecording && !speechDetected) {
-                        wordTimedOut = true;
-                        stopWordRecording(true); // discard
+                    if (isRecording) {
+                        stopWordRecording(false);
                     }
                 }, WORD_TIMEOUT);
 
@@ -1680,28 +1691,28 @@
                     if (bar) bar.style.height = prevHeights[i].toFixed(1) + 'px';
                 }
 
-                // Speech-detection level from frequency data (unchanged behavior)
-                let maxLevel = 0;
-                for (let i = 0; i < freqArray.length; i++) {
-                    const lvl = freqArray[i] / 255;
-                    if (lvl > maxLevel) maxLevel = lvl;
+                // RMS-based VAD with hysteresis + onset debounce + adaptive noise floor.
+                const now = Date.now();
+                // Track noise floor only when no speech detected yet (EMA on quiet frames).
+                if (!speechStartTime && rms < VAD_RMS_ON) {
+                    vadNoiseFloor = 0.95 * vadNoiseFloor + 0.05 * rms;
                 }
-
-                // Fallback amplitude-based detection only if VAD failed to initialize
-                if (!vadInstance) {
-                    if (maxLevel > SPEECH_THRESHOLD) {
-                        if (!speechDetected) {
-                            speechDetected = true;
-                            speechStartTime = Date.now();
-                        }
-                        lastSpeechTime = Date.now();
+                const onThresh = Math.max(VAD_RMS_ON, vadNoiseFloor * VAD_NOISE_MARGIN);
+                const offThresh = Math.max(VAD_RMS_OFF, vadNoiseFloor * 1.5);
+                if (rms > onThresh) {
+                    vadLoudFrames++;
+                    if (vadLoudFrames >= VAD_ONSET_FRAMES) {
+                        if (!speechStartTime) speechStartTime = now;
+                        lastSpeechTime = now;
+                        speechDetected = true;
                     }
-                    if (speechDetected && lastSpeechTime > 0 && (Date.now() - lastSpeechTime) > SILENCE_DURATION) {
-                        const speechDuration = lastSpeechTime - speechStartTime;
-                        if (speechDuration >= MIN_SPEECH_DURATION) {
-                            stopWordRecording();
-                            return;
-                        }
+                } else if (rms < offThresh) {
+                    vadLoudFrames = 0;
+                    if (speechStartTime && isRecording &&
+                        now - speechStartTime > VAD_MIN_SPEECH_MS &&
+                        now - lastSpeechTime > VAD_SILENCE_MS) {
+                        stopWordRecording(false);
+                        return;
                     }
                 }
 
@@ -1746,68 +1757,59 @@
                 mediaRecorder.stop();
                 audioStream.getTracks().forEach(t => t.stop());
                 if (audioContext) { audioContext.close(); audioContext = null; }
-                stopVad();
             }
         }
 
-        // Silero VAD v5 — detects human speech only, ignores fans/static/clicks
-        const VAD_ASSET_BASE = 'https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/';
-        const ORT_WASM_BASE  = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/';
-        let vadInstance = null;
-        async function startVad(stream) {
-            try {
-                if (!window.vad || !window.vad.MicVAD) return;
-                vadInstance = await window.vad.MicVAD.new({
-                    model: 'v5',
-                    baseAssetPath: VAD_ASSET_BASE,
-                    onnxWASMBasePath: ORT_WASM_BASE,
-                    getStream: async () => stream,
-                    pauseStream: async () => {},
-                    resumeStream: async () => stream,
-                    startOnLoad: false,
-                    positiveSpeechThreshold: 0.6,
-                    negativeSpeechThreshold: 0.4,
-                    minSpeechFrames: 3,
-                    redemptionFrames: 12,
-                    onSpeechStart: () => {
-                        console.log('[VAD] ✅ human voice detected — speech start');
-                        if (!isRecording) return;
-                        if (!speechDetected) {
-                            speechDetected = true;
-                            speechStartTime = Date.now();
-                        }
-                        lastSpeechTime = Date.now();
-                    },
-                    onSpeechEnd: (audio) => {
-                        const dur = Date.now() - speechStartTime;
-                        console.log('[VAD] 🛑 human voice ended — duration ' + dur + 'ms, samples=' + (audio ? audio.length : 0));
-                        if (!isRecording) return;
-                        lastSpeechTime = Date.now();
-                        if (dur >= MIN_SPEECH_DURATION) {
-                            stopWordRecording();
-                        }
-                    },
-                    onVADMisfire: () => {
-                        console.log('[VAD] ⚠️ misfire — sound too short, ignored as non-speech');
-                    },
-                });
-                vadInstance.start();
-                console.log('[VAD] started — listening for human voice (ignores noise amplitude)');
-            } catch (e) {
-                console.warn('VAD init failed, falling back to amplitude detection:', e);
-                vadInstance = null;
-            }
+        // Whisper transcription — single call on full recording.
+        const WHISPER_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+            ? 'http://localhost:8081/'
+            : '/api/transcribe';
+
+        function normalizeForMatch(s) {
+            return (s || '').toLowerCase().replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim();
         }
-        function stopVad() {
-            if (vadInstance) {
-                try { vadInstance.pause(); vadInstance.destroy && vadInstance.destroy(); } catch (_) {}
-                vadInstance = null;
+
+        function transcriptMatchesTarget(transcript, target) {
+            const t = normalizeForMatch(transcript);
+            if (!t) return false;
+            const idx = TEST_WORDS.indexOf(target);
+            const accepted = idx >= 0 ? TEST_WORD_SETS[idx] : new Set([normalizeForMatch(target)]);
+            // O(1) per token lookup against accepted Set
+            for (const tok of t.split(' ')) {
+                if (accepted.has(tok)) return true;
+            }
+            return false;
+        }
+
+        async function transcribeBlob(blob, target) {
+            try {
+                if (!blob || blob.size < 2000) return '';
+                const b64 = await blobToBase64(blob);
+                const resp = await fetch(WHISPER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ audioData: b64, mimeType: 'audio/webm', prompt: target })
+                });
+                if (!resp.ok) return '';
+                const data = await resp.json();
+                console.log('[Whisper] transcript:', JSON.stringify(data.text), '| target:', target);
+                return data.text || '';
+            } catch (e) {
+                console.warn('[Whisper] error:', e);
+                return '';
             }
         }
 
         // Called when a word recording finishes
         async function onWordRecordingStopped() {
             const blob = new Blob(audioChunks, { type: 'audio/webm' });
+            const target = TEST_WORDS[currentWordIndex];
+
+            // Single Whisper transcribe on full audio.
+            const transcript = await transcribeBlob(blob, target);
+            if (transcript && transcriptMatchesTarget(transcript, target)) {
+                speechDetected = true;
+            }
 
             // Validate audio: reject if no speech detected during capture or
             // post-recording RMS shows silence. Prompt user to re-record.
@@ -1915,13 +1917,20 @@
                 sibilantBand: band
             };
 
-            const resp = await fetch(GCP_ANALYZE_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (!resp.ok) throw new Error('Backend error: ' + resp.status + ' - ' + (await resp.text()));
-            return await resp.json();
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            try {
+                const resp = await fetch(GCP_ANALYZE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                    signal: controller.signal
+                });
+                if (!resp.ok) throw new Error('Backend error: ' + resp.status + ' - ' + (await resp.text()));
+                return await resp.json();
+            } finally {
+                clearTimeout(timeoutId);
+            }
         }
 
         // Denoise the blob (bandpass 300-9000 Hz) to suppress room noise before FFT.
@@ -2350,7 +2359,7 @@
             for (let i = 1; i <= 3; i++) document.getElementById('loading' + i).classList.add('completed');
 
             // Redirect to results
-            setTimeout(() => { window.location.href = 'assessment-results.html'; }, 1500);
+            setTimeout(() => { window.location.href = 'assessment-results.html'; }, 10);
         }
 
         // =============================================
