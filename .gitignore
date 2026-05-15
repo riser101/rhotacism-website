@@ -2,3 +2,11 @@
 node_modules/
 .env
 .DS_Store
+thestutteracademy/
+thelispacademy/
+
+venv/
+.venv/
+**/venv/
+__pycache__/
+*.pyc
