@@ -1296,61 +1296,19 @@
         let analysisPromise = null;    // Tracks the backend API call
 
         // =============================================
-        // MIC FEEDBACK CHIMES (Wispr-style)
+        // MIC FEEDBACK CHIMES (wav samples)
         // =============================================
-        let _chimeCtx = null;
-        function _getChimeCtx() {
-            if (!_chimeCtx) {
-                const Ctx = window.AudioContext || window.webkitAudioContext;
-                if (!Ctx) return null;
-                _chimeCtx = new Ctx();
-            }
-            if (_chimeCtx.state === 'suspended') _chimeCtx.resume();
-            return _chimeCtx;
-        }
-        // Wispr-style push-to-talk button: tight click transient + short tonal tail.
-        // Soft "pop": single sine with quick pitch arc, slow attack, warm lowpass.
-        function _pop(startOffset, startFreq, peakFreq, peakGain) {
-            const ctx = _getChimeCtx();
-            if (!ctx) return;
-            const t0 = ctx.currentTime + startOffset;
-            const duration = 0.09;        // ~90ms total
-            const tEnd = t0 + duration;
+        const _startSfx = new Audio('/dictation-start.wav');
+        const _stopSfx = new Audio('/dictation-stop.wav');
+        _startSfx.preload = 'auto';
+        _stopSfx.preload = 'auto';
 
-            const osc = ctx.createOscillator();
-            osc.type = 'sine';
-            // Quick arc: start → peak (in ~25ms) → fall back below start
-            osc.frequency.setValueAtTime(startFreq, t0);
-            osc.frequency.exponentialRampToValueAtTime(peakFreq, t0 + 0.025);
-            osc.frequency.exponentialRampToValueAtTime(startFreq * 0.7, tEnd);
-
-            const gain = ctx.createGain();
-            gain.gain.setValueAtTime(0, t0);
-            gain.gain.linearRampToValueAtTime(peakGain, t0 + 0.018);   // soft attack
-            gain.gain.exponentialRampToValueAtTime(0.0001, tEnd);
-
-            const lp = ctx.createBiquadFilter();
-            lp.type = 'lowpass';
-            lp.frequency.value = 1400;     // warm, no hiss
-            lp.Q.value = 0.3;
-
-            osc.connect(gain).connect(lp).connect(ctx.destination);
-            osc.start(t0);
-            osc.stop(tEnd + 0.02);
-        }
-
-        /**
-         * Soft pop — start (mid).
-         */
         function playStartChime() {
-            _pop(0, 420, 620, 0.12);
+            try { _startSfx.currentTime = 0; _startSfx.play().catch(() => {}); } catch (e) {}
         }
 
-        /**
-         * Soft pop — stop (lower).
-         */
         function playStopChime() {
-            _pop(0, 340, 500, 0.12);
+            try { _stopSfx.currentTime = 0; _stopSfx.play().catch(() => {}); } catch (e) {}
         }
 
         // =============================================
@@ -1675,7 +1633,7 @@
                 mediaRecorder.start();
                 isRecording = true;
                 wordStartTime = Date.now();
-                // playStartChime();
+                playStartChime();
 
                 updateRecordButton();
                 startVuMeter();
@@ -1793,7 +1751,7 @@
 
             if (mediaRecorder && isRecording) {
                 isRecording = false;
-                // if (!discard) playStopChime();
+                if (!discard) playStopChime();
                 if (discard) {
                     mediaRecorder.ondataavailable = null;
                     mediaRecorder.onstop = () => {
