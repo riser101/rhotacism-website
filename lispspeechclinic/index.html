@@ -58,12 +58,20 @@
             min-height: 100vh;
         }
 
+        /* Mobile-specific - pseudo-element workaround for fixed gradient */
         @media (max-width: 768px) {
             body {
+                background: #1a1a1a;
+            }
+            body::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: -1;
                 background: linear-gradient(160deg, #1a1a1a 0%, #252500 40%, #454500 70%, #1a1a1a 100%);
-                background-attachment: scroll;
-                background-size: 100% 100vh;
-                background-repeat: repeat-y;
             }
         }
 
