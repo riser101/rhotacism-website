@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lisp Speech Clinic — Pricing</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <meta name="description" content="Fix your lisp in 20 weeks. Choose the Foundation, Momentum, or Mastery program from Lisp Speech Clinic. 7-day full refund.">
+    <link rel="canonical" href="https://topspeech.health/lispspeechclinic/pricing">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Lisp Speech Clinic — Pricing">
+    <meta property="og:description" content="Fix your lisp in 20 weeks. Foundation, Momentum, and Mastery programs.">
+    <meta property="og:url" content="https://topspeech.health/lispspeechclinic/pricing">
+    <meta property="og:type" content="website">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css">
+    <link rel="stylesheet" href="/lispspeechclinic/css/nav.css">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-584ZMQTPSE');
+    </script>
+
+    <style>
+        .login-nav, .mobile-get-started { display: none !important; }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            background: linear-gradient(160deg, #1a1a1a 0%, #252500 40%, #454500 70%, #1a1a1a 100%);
+            background-attachment: fixed;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .pricing-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 120px 24px 0;
+        }
+
+        .pricing-header {
+            text-align: center;
+            max-width: 1120px;
+            width: 100%;
+        }
+        .pricing-header h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(26px, 4.4vw, 52px);
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.05;
+            letter-spacing: -0.025em;
+            margin: 0 0 18px;
+            text-wrap: balance;
+        }
+        .pricing-header p {
+            font-size: 17px;
+            line-height: 1.55;
+            color: #fff;
+            margin: 0;
+            font-weight: 700;
+            text-wrap: pretty;
+        }
+        .shield-icon {
+            display: inline;
+            vertical-align: middle;
+            margin-right: 4px;
+            position: relative;
+            top: -1px;
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+        @media (max-width: 640px) {
+            .shield-icon { width: 20px; height: 20px; }
+        }
+
+        .pricing-grid {
+            width: 100%;
+            max-width: 1120px;
+            margin-top: 56px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        .card-wrap {
+            position: relative;
+            padding-top: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .card-wrap.has-badge { padding-top: 50px; }
+
+        .badge {
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #0291F7 0%, #026db9 100%);
+            color: #fff;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            padding: 7px 14px;
+            border-radius: 999px;
+            box-shadow: 0 6px 18px rgba(2,145,247,0.4);
+            white-space: nowrap;
+            z-index: 2;
+        }
+
+        .pricing-card {
+            position: relative;
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 20px;
+            padding: 32px 28px 28px;
+            box-shadow: 0 20px 64px 8px rgba(0,0,0,0.14);
+            cursor: pointer;
+            transition: transform .25s cubic-bezier(0.4,0,0.2,1), box-shadow .25s;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 520px;
+        }
+        .pricing-card.highlight {
+            box-shadow: 0 32px 90px -10px rgba(0,0,0,0.28), 0 16px 60px 10px rgba(0,0,0,0.16);
+            transform: translateY(-6px);
+        }
+        .pricing-card:hover { transform: translateY(-6px); }
+
+        .plan-eyebrow {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.55);
+            margin-bottom: 6px;
+        }
+        .pricing-card.highlight .plan-eyebrow { color: #0291F7; }
+
+        .plan-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.01em;
+            margin-bottom: 8px;
+        }
+
+        .plan-desc {
+            font-size: 13.5px;
+            line-height: 1.55;
+            color: #fff;
+            font-weight: 600;
+            margin: 0 0 22px;
+        }
+
+        .price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        .price-currency {
+            font-size: 18px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+            transform: translateY(-14px);
+        }
+        .price-amount {
+            font-size: 60px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+        .price-suffix {
+            font-size: 14px;
+            color: rgba(255,255,255,0.55);
+            margin-left: 4px;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+            margin: 22px 0 20px;
+        }
+
+        .features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-grow: 1;
+        }
+        .features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 14.5px;
+            line-height: 1.4;
+            color: rgba(255,255,255,0.92);
+            font-weight: 700;
+            font-family: 'DM Sans', 'Inter', sans-serif;
+        }
+        .check {
+            flex: 0 0 18px;
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+        }
+
+        .cta {
+            margin-top: 24px;
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.18);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.005em;
+            color: #fff;
+            background: rgba(255,255,255,0.06);
+            transition: transform .15s, box-shadow .25s, background .25s;
+        }
+        .cta:hover {
+            transform: translateY(-1px);
+            background: rgba(255,255,255,0.12);
+        }
+        .pricing-card.highlight .cta {
+            border: none;
+            background: linear-gradient(135deg, #0291F7 0%, #026db9 100%);
+            box-shadow: 0 10px 28px rgba(2,145,247,0.33);
+        }
+        .pricing-card.highlight .cta:hover {
+            background: linear-gradient(135deg, #0291F7 0%, #026db9 100%);
+        }
+
+        .trust-strip {
+            margin-top: 40px;
+            width: 100%;
+            max-width: 1120px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+        .trust-pill {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 999px;
+            font-size: 13px;
+            color: #111;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 960px) {
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                max-width: 560px;
+            }
+        }
+        @media (max-width: 640px) {
+            .pricing-page { padding: 88px 16px 60px; }
+            .pricing-header p { font-size: 15px; }
+            .pricing-grid { margin-top: 36px; gap: 16px; }
+            .pricing-card { min-height: auto; padding: 24px 20px 20px; }
+            .price-amount { font-size: 50px; }
+            .features li { font-size: 14px; }
+            .trust-strip {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                max-width: 320px;
+                padding: 0 4px;
+            }
+            .trust-pill { padding: 9px 12px; font-size: 12px; }
+        }
+
+        .footer-separator-wrap {
+            margin-top: 60px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            width: 100%;
+        }
+        .footer-accent-bar {
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, #454500 25%, #9a901a 50%, #454500 75%, transparent 100%);
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <!-- NAV_PLACEHOLDER -->
+
+    <main class="pricing-page">
+        <section class="pricing-header">
+            <h1>Fix Your Lisp In 20 Weeks. Guaranteed.</h1>
+            <p>
+                <img src="/lispspeechclinic/images/shield-blue.png" alt="" class="shield-icon" aria-hidden="true">
+                No Risk. Cancel within 7 days for a full refund for any reason.
+            </p>
+        </section>
+
+        <section class="pricing-grid">
+
+            <!-- Card 1: 3-month / Momentum -->
+            <div class="card-wrap">
+                <article class="pricing-card">
+                    <div class="plan-eyebrow">The Core Correction Window</div>
+                    <div class="plan-title">Momentum Program</div>
+                    <p class="plan-desc">Unlocks 12 Weeks Of Progressive Training—Giving Your Brain &amp; Tongue The Time Needed To Break Old Habits &amp; Automate Lisp-free Speech.</p>
+                    <div class="price-row">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount">249</span>
+                        <span class="price-suffix">one-time</span>
+                    </div>
+                    <div class="divider"></div>
+                    <ul class="features">
+                        <li class="bold"><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Everything In Foundation Program.</span></li>
+                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>The 12-Week Habit Rewire: The Critical Timeframe Needed To Lock-in Your New, Lisp-free Speech.</span></li>
+                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Achieve Perfect, Lisp-free Speech At The Syllable Level (Sa, See, Is).</span></li>
+                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Achieve Perfect, Lisp-free Speech At Word Level (yes, so, and because).</span></li>
+                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Speak in full, Connected Sentences Without Losing Your Lisp-free Accuracy.</span></li>
+                    </ul>
+                    <button class="cta" type="button">Start 3-month program</button>
+                </article>
+            </div>
+
+            <!-- Card 2: 6-month / Mastery (highlighted) -->
+            <div class="card-wrap">
+                <article class="pricing-card highlight">
+                    <div class="plan-eyebrow">The Complete Protocol</div>
+                    <div class="plan-title">Mastery Program</div>
+                    <p class="plan-desc">Recommended Track. Covers Full 12 Week Sequential Curriculum, And Unlocks a Dedicated Maintenance Track To Ensure Your Lisp Never Returns.</p>
+                    <div class="price-row">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount">448</span>
+                        <span class="price-suffix">one-time</span>
+                    </div>
+                    <div class="divider"></div>
+                    <ul class="features">
+                        <li class="bold"><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Everything In Foundation + Momentum Programs.</span></li>
+                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Tools To Perfect Crystal-Clear Articulation During Longer Conversations &amp; Stories While Learning To Seamlessly Self-Correct On The Fly.</span></li>
+                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Perfect Your New Speech Skills Out In The Wild: Structured Role-Play, Simulate Real-World Scenarios. You'll Drop The Mental Gymnastics And Start Speaking Naturally.</span></li>
+                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Tools To Make Your Lisp-Free Speech 100% Automatic—Even Under Pressure.</span></li>
+                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Maintenance &amp; Relapse-Prevention Track.</span></li>
+                    </ul>
+                    <button class="cta" type="button">Start 6-month program</button>
+                </article>
+            </div>
+
+            <!-- Card 3: 1-month / Foundation -->
+            <div class="card-wrap">
+                <article class="pricing-card">
+                    <div class="plan-eyebrow">Phase 1: Weeks 1–4</div>
+                    <div class="plan-title">Foundation Program</div>
+                    <p class="plan-desc">Every Transformation Starts At Week One. Unlocks Four Weeks of Foundational Speech Exercises.</p>
+                    <div class="price-row">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount">99</span>
+                        <span class="price-suffix">one-time</span>
+                    </div>
+                    <div class="divider"></div>
+                    <ul class="features">
+                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Build Correct Foundation For Sibilant Sounds (S, Z, Sh, Zh, Ch, J).</span></li>
+                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Master Tongue Placement with Real-Time Visual Feedback.</span></li>
+                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Your Progress, Quantified: Side-by-Side Audio &amp; Clinical Insights.</span></li>
+                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Catch and Correct Speech Mistakes Instantly with Quick Feedback Check Tool.</span></li>
+                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Build a Bulletproof Daily Practice Habit with Intelligent Reminders.</span></li>
+                    </ul>
+                    <button class="cta" type="button">Start 1-month program</button>
+                </article>
+            </div>
+
+        </section>
+
+        <section class="trust-strip">
+            <div class="trust-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3L4 6V12C4 16.5 7.5 20.7 12 22C16.5 20.7 20 16.5 20 12V6L12 3Z" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                HIPAA-compliant
+            </div>
+            <div class="trust-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#111" stroke-width="1.8"/><path d="M8 12L11 15L16 9" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Clinical Oversight
+            </div>
+            <div class="trust-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 12C7 9.2 9.2 7 12 7C14.8 7 17 9.2 17 12" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M3 12H5M19 12H21M12 3V5" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="14" r="3" stroke="#111" stroke-width="1.8"/></svg>
+                Evidence based
+            </div>
+            <div class="trust-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="9" r="3" stroke="#111" stroke-width="1.8"/><circle cx="17" cy="10" r="2.5" stroke="#111" stroke-width="1.8"/><path d="M3 19C3 16 5.7 14 9 14C12.3 14 15 16 15 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M15 19C15 17 16.5 15.5 19 15.5C21 15.5 22 17 22 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/></svg>
+                Trusted in 94+ Countries
+            </div>
+        </section>
+    </main>
+
+    <div class="footer-separator-wrap">
+        <div class="footer-accent-bar"></div>
+    </div>
+
+    <!-- FOOTER_PLACEHOLDER -->
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="/lispspeechclinic/js/login-modal.js"></script>
+    <script src="/lispspeechclinic/js/enhanced-analytics.js"></script>
+    <script src="/lispspeechclinic/js/nav.js"></script>
+</body>
+</html>
