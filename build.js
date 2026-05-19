@@ -75,7 +75,11 @@ for (const file of htmlFiles) {
   let changed = false;
 
   if (content.includes(NAV_PLACEHOLDER)) {
-    content = content.replace(NAV_PLACEHOLDER, navContent);
+    let navForFile = navContent;
+    if (product === 'lispspeechclinic' && relativePath === path.join('lispspeechclinic', 'index.html')) {
+      navForFile = navForFile.replace(/Get Started/g, 'Purchase Now');
+    }
+    content = content.replace(NAV_PLACEHOLDER, navForFile);
     changed = true;
   }
 
