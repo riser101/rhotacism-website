@@ -169,6 +169,7 @@ function updateProfileDisplay() {
         const loginButton = document.querySelector('.login-nav');
         const profileDropdown = document.querySelector('.profile-dropdown');
         const profileInitial = document.getElementById('profileInitial');
+        const userLoginNodes = document.querySelectorAll('.user-login-nav');
 
         if ((!loginButton || !profileDropdown) && attempts < maxAttempts) {
             attempts++;
@@ -180,6 +181,7 @@ function updateProfileDisplay() {
             if (isLoggedIn) {
                 loginButton.style.setProperty('display', 'none', 'important');
                 profileDropdown.style.setProperty('display', 'flex', 'important');
+                userLoginNodes.forEach(n => n.style.setProperty('display', 'none', 'important'));
 
                 if (profileInitial) {
                     const email = userEmail || (userAuth ? JSON.parse(userAuth).email : '');
@@ -188,6 +190,7 @@ function updateProfileDisplay() {
             } else {
                 loginButton.style.setProperty('display', 'flex', 'important');
                 profileDropdown.style.setProperty('display', 'none', 'important');
+                userLoginNodes.forEach(n => n.style.removeProperty('display'));
             }
         }
     };
