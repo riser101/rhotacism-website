@@ -1156,6 +1156,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/bundle.min.js"></script>
     <script>
         // =============================================
         // STATE
@@ -1260,6 +1262,22 @@
                 }
                 default: return true;
             }
+        }
+
+        // =============================================
+        // MIC FEEDBACK CHIMES (wav samples)
+        // =============================================
+        const _startSfx = new Audio('/dictation-start.wav');
+        const _stopSfx = new Audio('/dictation-stop.wav');
+        _startSfx.preload = 'auto';
+        _stopSfx.preload = 'auto';
+
+        function playStartChime() {
+            try { _startSfx.currentTime = 0; _startSfx.play().catch(() => {}); } catch (e) {}
+        }
+
+        function playStopChime() {
+            try { _stopSfx.currentTime = 0; _stopSfx.play().catch(() => {}); } catch (e) {}
         }
 
         // =============================================
@@ -1416,7 +1434,8 @@
         async function handleRecordTap() {
             if (allWordsRecorded) return;
             if (isRecording) {
-                stopWordRecording();
+                // Manual stop = discard; only VAD onSpeechEnd commits + advances
+                stopWordRecording(true);
             } else if (isWaitingForNext) {
                 // Advance to next word and start recording
                 isWaitingForNext = false;
@@ -1452,10 +1471,12 @@
                 mediaRecorder.start();
                 isRecording = true;
                 wordStartTime = Date.now();
+                playStartChime();
 
                 updateRecordButton();
                 startVuMeter();
                 startWordTimer();
+                startVad(audioStream);
 
                 // Timeout: if no speech after 5 seconds, flag it
                 silenceTimer = setTimeout(() => {
@@ -1497,21 +1518,22 @@
                     if (bar) bar.style.height = Math.max(2, level * 56) + 'px';
                 }
 
-                // Speech detection
-                if (maxLevel > SPEECH_THRESHOLD) {
-                    if (!speechDetected) {
-                        speechDetected = true;
-                        speechStartTime = Date.now();
+                // Amplitude-based fallback only if VAD failed to initialize
+                if (!vadInstance) {
+                    if (maxLevel > SPEECH_THRESHOLD) {
+                        if (!speechDetected) {
+                            speechDetected = true;
+                            speechStartTime = Date.now();
+                        }
+                        lastSpeechTime = Date.now();
                     }
-                    lastSpeechTime = Date.now();
-                }
 
-                // Auto-stop after silence following speech
-                if (speechDetected && lastSpeechTime > 0 && (Date.now() - lastSpeechTime) > SILENCE_DURATION) {
-                    const speechDuration = lastSpeechTime - speechStartTime;
-                    if (speechDuration >= MIN_SPEECH_DURATION) {
-                        stopWordRecording();
-                        return;
+                    if (speechDetected && lastSpeechTime > 0 && (Date.now() - lastSpeechTime) > SILENCE_DURATION) {
+                        const speechDuration = lastSpeechTime - speechStartTime;
+                        if (speechDuration >= MIN_SPEECH_DURATION) {
+                            stopWordRecording();
+                            return;
+                        }
                     }
                 }
 
@@ -1539,9 +1561,11 @@
             clearTimeout(silenceTimer);
             if (wordTimer) cancelAnimationFrame(wordTimer);
             if (vuAnimFrame) cancelAnimationFrame(vuAnimFrame);
+            stopVad();
 
             if (mediaRecorder && isRecording) {
                 isRecording = false;
+                if (!discard) playStopChime();
                 if (discard) {
                     mediaRecorder.ondataavailable = null;
                     mediaRecorder.onstop = () => {
@@ -1559,9 +1583,72 @@
             }
         }
 
+        // Silero VAD v5 — detects human speech only, ignores fans/static/clicks
+        const VAD_ASSET_BASE = 'https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/';
+        const ORT_WASM_BASE  = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/';
+        let vadInstance = null;
+        async function startVad(stream) {
+            try {
+                if (!window.vad || !window.vad.MicVAD) return;
+                vadInstance = await window.vad.MicVAD.new({
+                    model: 'v5',
+                    baseAssetPath: VAD_ASSET_BASE,
+                    onnxWASMBasePath: ORT_WASM_BASE,
+                    getStream: async () => stream,
+                    pauseStream: async () => {},
+                    resumeStream: async () => stream,
+                    startOnLoad: false,
+                    positiveSpeechThreshold: 0.6,
+                    negativeSpeechThreshold: 0.4,
+                    minSpeechFrames: 3,
+                    redemptionFrames: 12,
+                    onSpeechStart: () => {
+                        if (!isRecording) return;
+                        if (!speechDetected) {
+                            speechDetected = true;
+                            speechStartTime = Date.now();
+                        }
+                        lastSpeechTime = Date.now();
+                    },
+                    onSpeechEnd: (audio) => {
+                        const dur = Date.now() - speechStartTime;
+                        if (!isRecording) return;
+                        lastSpeechTime = Date.now();
+                        if (dur >= MIN_SPEECH_DURATION) {
+                            stopWordRecording();
+                        }
+                    },
+                    onVADMisfire: () => {},
+                });
+                vadInstance.start();
+            } catch (e) {
+                console.warn('VAD init failed, falling back to amplitude detection:', e);
+                vadInstance = null;
+            }
+        }
+        function stopVad() {
+            if (vadInstance) {
+                try { vadInstance.pause(); vadInstance.destroy && vadInstance.destroy(); } catch (_) {}
+                vadInstance = null;
+            }
+        }
+
         // Called when a word recording finishes
         async function onWordRecordingStopped() {
             const blob = new Blob(audioChunks, { type: 'audio/webm' });
+
+            // Validate: reject if no speech detected during capture. Prompt re-record.
+            if (!speechDetected) {
+                wordTimedOut = true;
+                audioChunks = [];
+                for (let i = 0; i < 12; i++) {
+                    const bar = document.getElementById('vuBar' + i);
+                    if (bar) bar.style.height = '2px';
+                }
+                updateRecordButton();
+                return;
+            }
+
             wordRecordings.push(blob);
 
             // Upload individual word recording to Firebase Storage
@@ -1580,10 +1667,12 @@
             }
 
             if (currentWordIndex < TEST_WORDS.length - 1) {
-                // Wait for user to tap for next word
-                isWaitingForNext = true;
+                // Auto-advance active word; user taps to record next
+                currentWordIndex++;
+                wordTimedOut = false;
+                isWaitingForNext = false;
+                renderWordPicker();
                 updateRecordButton();
-                renderWordPicker(); // update dots
             } else {
                 // All 8 words recorded
                 allWordsRecorded = true;
