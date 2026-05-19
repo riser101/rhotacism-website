@@ -18,8 +18,8 @@ const productIncludes = {};
 
 function getDefaultIncludes() {
   if (!defaultIncludes.nav) {
-    defaultIncludes.nav = fs.readFileSync(DEFAULT_NAV_FILE, 'utf8');
-    defaultIncludes.footer = fs.readFileSync(DEFAULT_FOOTER_FILE, 'utf8');
+    defaultIncludes.nav = fs.readFileSync(DEFAULT_NAV_FILE, 'utf8').trim();
+    defaultIncludes.footer = fs.readFileSync(DEFAULT_FOOTER_FILE, 'utf8').trim();
   }
   return defaultIncludes;
 }
@@ -27,8 +27,8 @@ function getDefaultIncludes() {
 function getProductIncludes(product) {
   if (!productIncludes[product]) {
     productIncludes[product] = {
-      nav: fs.readFileSync(path.join(ROOT, `${product}/includes/nav.html`), 'utf8'),
-      footer: fs.readFileSync(path.join(ROOT, `${product}/includes/footer.html`), 'utf8')
+      nav: fs.readFileSync(path.join(ROOT, `${product}/includes/nav.html`), 'utf8').trim(),
+      footer: fs.readFileSync(path.join(ROOT, `${product}/includes/footer.html`), 'utf8').trim()
     };
   }
   return productIncludes[product];
