@@ -1727,6 +1727,27 @@ font-style: italic;
         });
     </script>
 
+    <style>
+        /* Hero Purchase Now button - white w/ black text, orange on hover */
+        .purchase-now-btn.hero-main-cta {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .purchase-now-btn.hero-main-cta:hover {
+            background: #E85600;
+            color: #ffffff;
+        }
+
+        /* Bigger on mobile */
+        @media (max-width: 480px) {
+            .purchase-now-btn.hero-main-cta {
+                font-size: 16px !important;
+                padding: 16px 20px !important;
+            }
+        }
+    </style>
+
     <link rel="stylesheet" href="/lispspeechclinic/css/nav.css">
 </head>
 
@@ -1769,7 +1790,7 @@ Learn more about <a
 
                 <div class="hero-cta-container">
                     <div class="cta-buttons" style="width: 100%;">
-                        <a href="/lispspeechclinic/pricing.html" class="btn btn-primary hero-main-cta" style="flex: 2.4; padding: 15px 16px !important; min-height: auto !important; font-size: 18px;" onclick="gtag('event', 'purchase_click', { event_category: 'conversion', event_label: 'hero_cta' }); posthog.capture('purchase_clicked_from_home', { section: 'hero_cta' });">Purchase Now</a>
+                        <a href="/lispspeechclinic/pricing.html" class="btn hero-main-cta purchase-now-btn" style="flex: 2.4; padding: 15px 16px !important; min-height: auto !important; font-size: 18px;" onclick="gtag('event', 'purchase_click', { event_category: 'conversion', event_label: 'hero_cta' }); posthog.capture('purchase_clicked_from_home', { section: 'hero_cta' });">Purchase Now</a>
                         <div class="nav-toggle">
                             <span></span>
                             <span></span>
