@@ -1732,6 +1732,7 @@ font-style: italic;
         .purchase-now-btn.hero-main-cta {
             background: #ffffff;
             color: #000000;
+            border-radius: 3px !important;
         }
 
         .purchase-now-btn.hero-main-cta:hover {
@@ -1745,6 +1746,18 @@ font-style: italic;
                 font-size: 16px !important;
                 padding: 16px 20px !important;
             }
+        }
+
+        /* Uniform 3px radius on all buttons */
+        .btn,
+        .btn-mega,
+        .custom-rollr-btn,
+        .benefit-button,
+        .add-todo-btn,
+        .download-button,
+        .app-store-btn,
+        .hero-main-cta {
+            border-radius: 3px !important;
         }
     </style>
 
@@ -2068,7 +2081,7 @@ Learn more about <a
             <p class="cta-subtitle">Join the priority list to transform your speech with Lisp Speech Clinic. Overcome your lisp once
                 and for all.</p>
 
-            <a href="/lispspeechclinic/pricing.html" class="btn btn-mega btn-primary" onclick="gtag('event', 'purchase_click', { event_category: 'conversion', event_label: 'bottom_cta' }); posthog.capture('purchase_clicked_from_home', { section: 'bottom_cta' });" style="display: inline-block;">Purchase Now</a>
+            <a href="/lispspeechclinic/pricing.html" class="btn btn-primary hero-main-cta" onclick="gtag('event', 'purchase_click', { event_category: 'conversion', event_label: 'bottom_cta' }); posthog.capture('purchase_clicked_from_home', { section: 'bottom_cta' });" style="display: inline-flex; padding: 15px 32px !important; min-height: auto !important; font-size: 18px;">Purchase Now</a>
 
 
 
