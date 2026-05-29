@@ -2034,11 +2034,7 @@ Learn more about <a
                     <p class="benefit-description">No awkward appointments. No waiting rooms. Practice when you want,
                         where you want. Your progress stays 100% confidential. Finally feel comfortable improving your
                         speech.</p>
-                    <form id="waitlistFormBenefit" class="benefit-signup-form" style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px;">
-                        <input type="email" id="waitlistEmailBenefit" placeholder="Enter your email" required class="waitlist-input" style="display: none; width: 100%; border-radius: 25px; text-align: center; padding: 12px 16px; font-size: 14px; color: #000000; border: 2px solid #000000; background: transparent;">
-                        <style>#waitlistEmailBenefit::placeholder { color: rgba(0, 0, 0, 0.5); }</style>
-                        <button type="button" id="waitlistSubmitBenefit" class="benefit-button" onclick="var input = this.parentElement.querySelector('.waitlist-input'); if(input.style.display === 'none') { input.style.display = 'block'; this.textContent = 'Submit →'; this.type = 'submit'; }" style="margin-top: 1 ; font-family: inherit; line-height: normal; padding: 20px 50px; font-size: 14px;">Sign Up →</button>
-                    </form>
+                    <a href="/lispspeechclinic/pricing.html" class="benefit-button" onclick="gtag('event', 'purchase_click', { event_category: 'conversion', event_label: 'benefit_card' }); posthog.capture('purchase_clicked_from_home', { section: 'benefit_card' });" style="margin-top: 20px; font-family: inherit; line-height: normal; padding: 20px 50px; font-size: 14px;">Purchase Now →</a>
                 </div>
             </div>
         </div>
@@ -2051,11 +2047,7 @@ Learn more about <a
             <p class="cta-subtitle">Join the priority list to transform your speech with Lisp Speech Clinic. Overcome your lisp once
                 and for all.</p>
 
-            <form id="waitlistFormBottom" class="waitlist-form" style="margin: 0 auto;">
-                <input type="email" id="waitlistEmailBottom" placeholder="Enter your email" required
-                    class="waitlist-input">
-                <button type="submit" id="waitlistSubmitBottom" class="btn btn-mega btn-primary">Sign Up</button>
-            </form>
+            <a href="/lispspeechclinic/pricing.html" class="btn btn-mega btn-primary" onclick="gtag('event', 'purchase_click', { event_category: 'conversion', event_label: 'bottom_cta' }); posthog.capture('purchase_clicked_from_home', { section: 'bottom_cta' });" style="display: inline-block;">Purchase Now</a>
 
 
 
