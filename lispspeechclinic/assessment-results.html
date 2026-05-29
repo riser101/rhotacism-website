@@ -926,7 +926,7 @@
                 </div> -->
 
                 <!-- Estimated Timeline -->
-                <div class="report-section">
+                <div class="report-section" id="timelineSection">
                     <h2 class="section-title">Estimated Treatment Timeline</h2>
                     <div class="timeline-box">
                         <div class="timeline-header">Projected Duration: 8–10 weeks</div>
@@ -949,7 +949,7 @@
                 </div>
 
                 <!-- Custom Recommendations -->
-                <div class="report-section">
+                <div class="report-section" id="protocolSection">
                     <h2 class="section-title">Recommended Practice Protocol</h2>
                     <div class="section-content">
                         <p><strong>Priority Focus Areas</strong></p>
@@ -970,7 +970,7 @@
 
 
             <!-- Next Steps Section -->
-            <div class="next-steps-section">
+            <div class="next-steps-section" id="nextStepsSection">
                 <h2 class="next-steps-title">Recommended Next Steps</h2>
                 <div class="next-steps-content">
                     <div class="next-steps-text">
@@ -1080,6 +1080,13 @@
                 .replace(/\n/g, '<br>');
 
             return '<div style="line-height: 1.75; font-size: 15px; color: #2D3748;">' + html + '</div>';
+        }
+
+        function hideGenericSections() {
+            ['timelineSection', 'protocolSection', 'nextStepsSection'].forEach(function(id) {
+                var s = document.getElementById(id);
+                if (s) s.style.display = 'none';
+            });
         }
 
         function displayAnalysisResults(data) {
@@ -1261,17 +1268,24 @@
                 if (stored) userRecordings = JSON.parse(stored);
             } catch (e) {}
 
+            var matchedCount = 0;
+            var accurateCount = 0;
+
             rows.forEach(function(tr) {
                 var tds = tr.querySelectorAll('td');
                 if (tds.length < 6) return;
 
                 var wordCell = tds[0];
                 var heardCell = tds[2];
+                var accuracyCell = tds[3];
                 var qualityCell = tds[4];
 
                 var cellText = wordCell.textContent.trim().toLowerCase();
                 var matchedWord = TEST_WORDS.find(function(w) { return w === cellText; });
                 if (!matchedWord) return;
+
+                matchedCount++;
+                if (accuracyCell.textContent.trim().toLowerCase() === 'accurate') accurateCount++;
 
                 // Word text + Target play button on next line
                 wordCell.innerHTML = '<div><strong>' + wordCell.textContent.trim() + '</strong></div>';
@@ -1300,6 +1314,11 @@
                     }
                 }
             });
+
+            // All productions accurate → no therapy needed, hide timeline/protocol/next-steps
+            if (matchedCount > 0 && accurateCount === matchedCount) {
+                hideGenericSections();
+            }
 
             // Rename the "Quality" header to "Severity"
             var ths = container.querySelectorAll('thead th');
