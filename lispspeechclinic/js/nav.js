@@ -169,6 +169,7 @@ function updateProfileDisplay() {
         const loginButton = document.querySelector('.login-nav');
         const profileDropdown = document.querySelector('.profile-dropdown');
         const profileInitial = document.getElementById('profileInitial');
+        const userLoginNodes = document.querySelectorAll('.user-login-nav');
 
         if ((!loginButton || !profileDropdown) && attempts < maxAttempts) {
             attempts++;
@@ -177,21 +178,19 @@ function updateProfileDisplay() {
         }
 
         if (loginButton && profileDropdown) {
-            // Get Started button disabled for now
-            loginButton.style.setProperty('display', 'none', 'important');
             if (isLoggedIn) {
-                // User logged in - show profile
-                // loginButton.style.setProperty('display', 'none', 'important');
+                loginButton.style.setProperty('display', 'none', 'important');
                 profileDropdown.style.setProperty('display', 'flex', 'important');
+                userLoginNodes.forEach(n => n.style.setProperty('display', 'none', 'important'));
 
                 if (profileInitial) {
                     const email = userEmail || (userAuth ? JSON.parse(userAuth).email : '');
                     profileInitial.textContent = email ? email.charAt(0).toUpperCase() : 'U';
                 }
             } else {
-                // User logged out - hide profile (login button hidden above)
-                // loginButton.style.setProperty('display', 'flex', 'important');
+                loginButton.style.setProperty('display', 'flex', 'important');
                 profileDropdown.style.setProperty('display', 'none', 'important');
+                userLoginNodes.forEach(n => n.style.removeProperty('display'));
             }
         }
     };

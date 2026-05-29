@@ -578,6 +578,13 @@ body.user-logged-in .login-nav {
     }
 }
 
+/* Login nav button (matches Get Started) */
+.user-login-nav {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+
 /* Mega Menu Styles */
 .nav-mega-dropdown {
     position: relative;
