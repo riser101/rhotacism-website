@@ -1752,7 +1752,7 @@
             </div>
 
             <!-- Step 1: Instant Recording (The Hook) -->
-            <div class="assessment-step active" id="step1" style="background:transparent;box-shadow:none;padding:0;">
+            <div class="assessment-step" id="step1" style="background:transparent;box-shadow:none;padding:0;">
                 <div id="recordingHost">
                 <div class="rec-layout">
                     <aside class="rec-aside">
@@ -1823,7 +1823,7 @@
             </div>
 
             <!-- Step 2: Login (PWA-style) -->
-            <div class="assessment-step ob-step-wrap" id="step2">
+            <div class="assessment-step ob-step-wrap active" id="step2">
               <div class="ob-split">
                 <div class="ob-panel-left">
                 <div class="ob-card">
@@ -2000,7 +2000,10 @@
         // =============================================
         // STATE
         // =============================================
-        let currentStepNum = 1;
+        // Flow order (DOM step ids): login → recording → survey → analyzing
+        const STEP_ORDER = [2, 1, 3, 4];
+        let orderIdx = 0;
+        let currentStepNum = STEP_ORDER[orderIdx]; // 2 = login shows first
         let step4SubmitPromise = null;
         const TOTAL_STEPS = 4;
         const FINAL_SCREEN_STEP = 4;
@@ -2060,9 +2063,8 @@
         // NAVIGATION
         // =============================================
         function updateProgress() {
-            // Visible numbering: skip login step (step2). Steps 3/4/5 display as 2/3/4 of 4.
-            let visible = 1;
-            if (currentStepNum >= 3) visible = currentStepNum - 1;
+            // Login (orderIdx 0) has no visible number; recording/survey/analyzing → 1..3 of 4
+            const visible = orderIdx === 0 ? 1 : orderIdx;
             const denom = 4;
             document.getElementById('progressFill').style.width = ((visible / denom) * 100) + '%';
             document.getElementById('currentStep').textContent = visible;
@@ -2086,10 +2088,12 @@
 
             if (await validateCurrentStep()) {
                 document.getElementById('step' + currentStepNum).classList.remove('active');
-                currentStepNum++;
-                if (currentStepNum <= FINAL_SCREEN_STEP) {
+                if (orderIdx < STEP_ORDER.length - 1) {
+                    orderIdx++;
+                    currentStepNum = STEP_ORDER[orderIdx];
                     document.getElementById('step' + currentStepNum).classList.add('active');
                     updateProgress();
+                    if (currentStepNum === 1) { initWordRecording(); moveRecordingTo('recordingHost'); }
                     if (currentStepNum === 3 && typeof window.initStep3Wizard === 'function') window.initStep3Wizard();
                     if (currentStepNum === FINAL_SCREEN_STEP) startProcessing();
                 }
@@ -2100,11 +2104,13 @@
         }
 
         function prevStep() {
-            if (currentStepNum > 1) {
+            if (orderIdx > 0) {
                 document.getElementById('step' + currentStepNum).classList.remove('active');
-                currentStepNum--;
+                orderIdx--;
+                currentStepNum = STEP_ORDER[orderIdx];
                 document.getElementById('step' + currentStepNum).classList.add('active');
                 updateProgress();
+                if (currentStepNum === 1) moveRecordingTo('recordingHost');
                 if (currentStepNum === 3 && typeof window.initStep3Wizard === 'function') window.initStep3Wizard();
             }
         }
@@ -3212,7 +3218,8 @@
             function maybeJumpToLogin() {
                 if (location.hash === '#login' || location.hash === '#/login') {
                     document.getElementById('step' + currentStepNum).classList.remove('active');
-                    currentStepNum = 2;
+                    orderIdx = 0;
+                    currentStepNum = STEP_ORDER[orderIdx];
                     document.getElementById('step2').classList.add('active');
                     updateProgress();
                 }
@@ -3546,6 +3553,7 @@
                         // Switch to step2 if not already
                         if (currentStepNum !== 2) {
                             document.getElementById('step' + currentStepNum).classList.remove('active');
+                            orderIdx = 0;
                             currentStepNum = 2;
                             document.getElementById('step2').classList.add('active');
                             updateProgress();
