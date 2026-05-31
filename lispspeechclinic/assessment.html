@@ -18,7 +18,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
         import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js';
-        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithCredential } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
+        import { getAuth, signInAnonymously, GoogleAuthProvider, OAuthProvider, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyAMttgCdssC5eilsw08XcS5QxNURmvXhNg",
@@ -98,6 +98,42 @@
             }
         };
 
+        // Expose Firebase auth handlers for login step
+        window.obFirebaseEmailSignIn = async function(email, password) {
+            const cred = await signInWithEmailAndPassword(auth, email, password);
+            return cred.user;
+        };
+        window.obFirebaseGoogleSignIn = async function() {
+            const provider = new GoogleAuthProvider();
+            const cred = await signInWithPopup(auth, provider);
+            return cred.user;
+        };
+        window.obFirebaseAppleSignIn = async function() {
+            const provider = new OAuthProvider('apple.com');
+            provider.addScope('email');
+            provider.addScope('name');
+            const cred = await signInWithPopup(auth, provider);
+            return cred.user;
+        };
+        window.obFirebasePasswordReset = async function(email) {
+            await sendPasswordResetEmail(auth, email);
+        };
+        window.obFirebaseSendEmailLink = async function(email) {
+            const actionCodeSettings = {
+                url: window.location.origin + '/lispspeechclinic/assessment.html#login',
+                handleCodeInApp: true
+            };
+            await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+            window.localStorage.setItem('emailForSignIn', email);
+        };
+        window.obFirebaseIsEmailLink = function(url) {
+            return isSignInWithEmailLink(auth, url);
+        };
+        window.obFirebaseCompleteEmailLink = async function(email, url) {
+            const cred = await signInWithEmailLink(auth, email, url);
+            return cred.user;
+        };
+
         // If user is already logged in with Google, upgrade to Google auth in Firebase
         window.upgradeFirebaseAuth = async function(googleCredentialToken) {
             try {
@@ -168,6 +204,8 @@
             line-height: 1.6;
             color: #333;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         /* Footer container */
@@ -190,7 +228,7 @@
             padding: 0 20px;
         }
         .assessment-container:has(#step1.active) {
-            max-width: 1000px;
+            max-width: 1140px;
         }
         .assessment-container:has(#step1.active) .progress-container,
         .assessment-container:has(#step1.active) .assessment-header {
@@ -268,9 +306,7 @@
         }
 
         #step1 {
-            width: min(1080px, calc(100vw - 40px));
-            margin-left: 50%;
-            transform: translateX(-50%);
+            width: 100%;
         }
 
         .step-title {
@@ -414,15 +450,88 @@
             line-height: 1.4;
         }
 
-        /* Clinical Recording Section — matches app */
+        /* Cyan accent override for assessment recording UI */
+        :root { --asmt-cyan: #22D3EE; }
+
+        /* Recording card centered; aside floats in left whitespace (matches Lisp PWA) */
+        .rec-layout {
+            position: relative;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .recording-section-wrap {
+            width: 100%;
+        }
+        .rec-aside {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        @media (min-width: 1100px) {
+            .rec-aside {
+                position: absolute;
+                top: 0;
+                right: calc(100% + 32px);
+                width: 320px;
+                margin-bottom: 0;
+            }
+        }
+        .aside-box {
+            background: #fff;
+            border: 1px solid rgba(15,23,42,0.12);
+            border-radius: 14px;
+            padding: 22px 20px 18px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            margin: 0;
+            position: relative;
+        }
+        .aside-legend {
+            position: absolute;
+            top: -7px;
+            left: 18px;
+            background: #fff;
+            padding: 0 8px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: var(--asmt-cyan);
+            text-transform: uppercase;
+            margin: 0;
+        }
+        .aside-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            margin-top: 12px;
+            font-size: 14px;
+            color: #1f2937;
+            line-height: 1.5;
+        }
+        .aside-num {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--asmt-cyan);
+            color: #fff;
+            font-weight: 700;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Clinical Recording Section — near-black card matching Lisp PWA */
         .recording-section {
             text-align: center;
             padding: 0;
-            background: #fff;
+            background: #0B0C0E;
+            color: #fff;
             border-radius: 20px;
-            margin: 20px 0;
-            border: 1px solid rgba(0,0,0,0.08);
-            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            margin: 0;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: none;
             overflow: hidden;
             position: relative;
         }
@@ -432,23 +541,38 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 20px 12px;
+            padding: 16px 20px 0;
         }
         .clinical-header-left {
             text-align: left;
+            flex: 1;
+            width: 100%;
+        }
+        .clinical-heading {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ffffff;
+            font-family: 'Quicksand', 'Inter', sans-serif;
+            text-align: center;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+            padding: 24px 20px 8px;
         }
         .clinical-label {
-            font-size: 8px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
             letter-spacing: 1.5px;
-            color: #FF9800;
+            color: var(--asmt-cyan);
             text-transform: uppercase;
-            
+            text-align: center;
         }
         .clinical-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
-            color: #0F172A;
+            color: #fff;
+            margin-top: 14px;
+            text-align: center;
+            padding-left: 0;
         }
         .rec-badge {
             display: none;
@@ -480,45 +604,45 @@
             font-family: 'Quicksand', 'Inter', sans-serif;
             font-size: 13px;
             font-weight: 600;
-            color: rgba(15,23,42,0.85);
+            color: rgba(255,255,255,0.85);
             text-align: center;
-            background: rgba(255,152,0,0.07);
-            border: 1px solid rgba(255,152,0,0.22);
+            background: rgba(34,211,238,0.08);
+            border: 1px solid rgba(34,211,238,0.25);
             border-radius: 9px;
             line-height: 1.3;
             transition: background 0.25s ease, color 0.25s ease;
         }
         .live-instruction.recording {
-            background: rgba(244,67,54,0.08);
-            border-color: rgba(244,67,54,0.3);
-            color: #b71c1c;
+            background: rgba(244,67,54,0.12);
+            border-color: rgba(244,67,54,0.35);
+            color: #fecaca;
         }
         .live-instruction.done {
-            background: rgba(76,175,80,0.1);
-            border-color: rgba(76,175,80,0.3);
-            color: #1b5e20;
+            background: rgba(76,175,80,0.15);
+            border-color: rgba(76,175,80,0.35);
+            color: #bbf7d0;
         }
         .live-instruction .live-word {
-            color: #FF9800;
+            color: var(--asmt-cyan);
             font-weight: 700;
         }
         .instruction-tagline {
             font-size: 13px;
-            color: rgba(15,23,42,0.6);
+            color: rgba(255,255,255,0.6);
             line-height: 1.45;
         }
 
         /* Word picker — glass card */
         .word-picker-label {
             font-size: 14px;
-            color: rgba(15,23,42,0.6);
+            color: rgba(255,255,255,0.6);
             margin-bottom: 8px;
         }
         .word-picker {
-            margin: 0 20px 16px;
-            background: rgba(15,23,42,0.04);
+            margin: 0 80px 16px;
+            background: rgba(255,255,255,0.06);
             border-radius: 28px;
-            border: 1px solid rgba(15,23,42,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
             display: flex;
             overflow: hidden;
             position: relative;
@@ -537,19 +661,22 @@
             justify-content: center;
             font-size: 16px;
             font-weight: 400;
-            color: rgba(15,23,42,0.35);
+            color: rgba(255,255,255,0.35);
             font-family: 'Inter', sans-serif;
             width: 100%;
             transition: all 0.3s;
+            text-transform: capitalize;
         }
-        .context-word.below { color: rgba(15,23,42,0.45); }
-        .context-word.far { color: rgba(15,23,42,0.2); }
+        .context-word.below { color: rgba(255,255,255,0.45); }
+        .context-word.far { color: rgba(255,255,255,0.2); }
 
-        /* Active pill */
+        /* Active pill — stretches across picker with breathing room */
         .active-pill {
             height: 56px;
-            margin: 0 10px;
-            border: 2px solid #FF9800;
+            margin: 4px 10px;
+            width: calc(100% - 20px);
+            box-sizing: border-box;
+            border: 2px solid var(--asmt-cyan);
             border-radius: 36px;
             display: flex;
             align-items: center;
@@ -560,7 +687,7 @@
             font-size: 15px;
             font-weight: 500;
             font-family: monospace;
-            color: #FF9800;
+            color: var(--asmt-cyan);
             width: 48px;
             text-align: left;
         }
@@ -568,9 +695,10 @@
             flex: 1;
             font-size: 26px;
             font-weight: 700;
-            color: #0F172A;
+            color: #ffffff;
             text-align: center;
             font-family: 'Inter', sans-serif;
+            text-transform: capitalize;
         }
         .pill-spacer { width: 48px; }
 
@@ -581,7 +709,7 @@
             bottom: 14px;
             right: 44px;
             width: 1px;
-            background: rgba(15,23,42,0.12);
+            background: rgba(0,0,0,0.12);
             margin: 0;
         }
         .word-picker-dots {
@@ -598,16 +726,16 @@
         }
         .picker-dot {
             border-radius: 50%;
-            background: rgba(15,23,42,0.2);
+            background: rgba(0,0,0,0.2);
             transition: all 0.3s;
         }
-        .picker-dot.active { background: #FF9800; }
-        .picker-dot.next   { background: #FF9800; }
-        .picker-dot.done   { background: rgba(255,152,0,0.55); }
+        .picker-dot.active { background: var(--asmt-cyan); }
+        .picker-dot.next   { background: var(--asmt-cyan); }
+        .picker-dot.done   { background: rgba(34,211,238,0.55); }
 
         .word-divider {
             height: 1px;
-            background: rgba(15,23,42,0.12);
+            background: rgba(0,0,0,0.12);
             margin: 0 32px;
             width: calc(100% - 64px);
         }
@@ -625,7 +753,7 @@
         .vu-bar {
             width: 6px;
             border-radius: 999px;
-            background: #FF9800;
+            background: var(--asmt-cyan);
             transition: height 0.08s ease;
             min-height: 6px;
             flex-shrink: 0;
@@ -641,7 +769,7 @@
         .record-circle-btn {
             width: 68px; height: 68px;
             border-radius: 50%;
-            border: 3px solid rgba(255,152,0,0.3);
+            border: 3px solid rgba(34,211,238,0.35);
             background: transparent;
             cursor: pointer;
             position: relative;
@@ -656,11 +784,11 @@
         .record-circle-inner {
             width: 54px; height: 54px;
             border-radius: 50%;
-            background: #FF9800;
+            background: var(--asmt-cyan);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 24px rgba(255,152,0,0.4);
+            box-shadow: 0 0 24px rgba(34,211,238,0.45);
             transition: background 0.2s;
         }
         .record-circle-inner svg {
@@ -695,7 +823,7 @@
             font-size: 9px;
             font-weight: 600;
             letter-spacing: 1px;
-            color: rgba(15,23,42,0.55);
+            color: rgba(255,255,255,0.55);
             text-transform: uppercase;
         }
         .record-label.timeout {
@@ -896,75 +1024,632 @@
             }
         }
 
-        /* Recording card — split into 2 columns on wider screens:
-           left = HOW IT WORKS, right = word picker / meter / record button */
-        @media (min-width: 720px) {
-            .recording-section {
-                display: grid;
-                grid-template-columns: minmax(180px, 220px) minmax(360px, 480px) minmax(180px, 220px);
-                grid-template-rows: auto auto auto auto auto;
-                column-gap: 28px;
-                align-items: start;
-                justify-content: center;
-                padding-bottom: 12px;
-                max-width: 820px;
-                margin: 20px auto;
-            }
-            .clinical-header {
-                grid-column: 1 / -1 !important;
-            }
-            .clinical-header {
-                grid-column: 1 / -1;
-                grid-row: 1;
-                justify-content: center;
-                position: relative;
-            }
-            .clinical-header-left {
-                text-align: center;
-            }
-            .clinical-header .rec-badge.visible {
-                position: absolute;
-                right: 20px;
-                top: 50%;
-                transform: translateY(-50%);
-            }
-            .recording-panel {
-                grid-column: 2;
-                grid-row: 2 / 6;
-                justify-self: center;
-                width: 100%;
-                margin: 0 12px 0 0;
+        /* Recording panel inside dark card */
+        .recording-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 8px 0 4px;
+        }
+        .clinical-header { position: relative; }
+        .clinical-header-left { text-align: left; }
+        .clinical-header .rec-badge.visible {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        /* Hide dynamic instruction banner — PWA original omits it */
+        .live-instruction { display: none !important; }
+        /* Hide right-side dots column + divider — original word-picker is clean */
+        .word-picker-divider-line,
+        .word-picker-dots { display: none !important; }
+        .word-picker-words { padding: 16px 0; }
+
+        /* ========================================================
+           PWA-style white background override (match Lisp-pwa)
+           ======================================================== */
+        body {
+            background: #ffffff !important;
+        }
+        @media (max-width: 768px) {
+            body { background: #ffffff !important; }
+        }
+        .assessment-title { color: #0B0C0E; }
+        .assessment-subtitle { color: #475569; }
+        .assessment-tagline { color: #64748b; }
+        .progress-label { color: #475569; }
+        .progress-bar { background: rgba(15,23,42,0.08); }
+        .assessment-header { display: none; }
+        .progress-container { display: none; }
+        /* Wizard + analyzing both fullscreen split panels — no outer header/progress */
+        .assessment-container:has(#step3.active),
+        .assessment-container:has(#step4.active) {
+            max-width: none; padding: 0; margin: 0; width: 100vw;
+        }
+        .assessment-page:has(#step3.active),
+        .assessment-page:has(#step4.active) {
+            padding: 0 !important; margin: 0; min-height: 100vh;
+        }
+        #step3.assessment-step,
+        #step4.assessment-step {
+            padding: 0; margin: 0; border-radius: 0; border: none;
+            box-shadow: none; height: 100vh; min-height: 600px;
+            background: #fff;
+        }
+        #step3 .ob-split,
+        #step4 .ob-split { height: 100%; }
+        #step4 .ob-panel-left { padding-top: 80px; padding-bottom: 24px; }
+        /* Wizard left panel: card centered between nav and a pinned footer (PWA layout) */
+        #step3 .ob-panel-left {
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            padding: 0;
+        }
+        #step3 .ob-wiz-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            align-items: safe center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 88px 28px 12px;
+        }
+        #step3 .ob-wiz-foot {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px 28px 22px;
+        }
+        #step3 .obw-card { max-width: 460px; }
+        #step3 .ob-wiz-foot .obw-cta { max-width: 460px; width: 100%; margin: 0 auto; }
+        #step3 .ob-wiz-foot .obw-foot-links { display: flex; justify-content: center; gap: 20px; }
+
+        /* Onboarding wizard styles (port of Lisp-pwa obw-*) */
+        .obw-card {
+            max-width: 460px; width: 100%; text-align: left;
+            position: relative; padding: 0;
+            display: flex; flex-direction: column; gap: 0;
+        }
+        .obw-back {
+            position: absolute; top: -32px; left: 0;
+            background: none; border: none;
+            color: rgba(0,0,0,.45);
+            font: 500 13px 'Inter', sans-serif;
+            cursor: pointer; padding: 4px 0;
+            display: inline-flex; align-items: center; gap: 3px;
+        }
+        .obw-back:hover { color: rgba(0,0,0,.8); }
+        .obw-back[hidden] { visibility: hidden; }
+        .obw-header { margin-bottom: 18px; }
+        .obw-header .ob-logo { margin-bottom: 14px; justify-content: center; display: flex; }
+        .obw-progress { margin-bottom: 14px; }
+        .obw-prog-pills { display: flex; gap: 4px; margin-bottom: 6px; }
+        .obw-prog-pill { flex: 1; height: 3px; border-radius: 2px; background: rgba(0,0,0,.10); transition: background .3s; }
+        .obw-prog-pill.on { background: #FF9800; }
+        .obw-prog-step-label { text-align: center; font-size: 11px; color: rgba(0,0,0,.38); }
+        .obw-prog-circles { display: none; align-items: center; height: 24px; }
+        .obw-prog-circle {
+            width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: transparent; border: 1.5px solid rgba(0,0,0,.15);
+            font: 700 9px 'Inter', sans-serif; color: rgba(0,0,0,.28);
+            transition: all .25s;
+        }
+        .obw-prog-circle.done { background: #FF9800; border-color: #FF9800; color: #fff; }
+        .obw-prog-circle.cur  {
+            background: #FF9800; border-color: #FF9800; color: #fff;
+            width: 22px; height: 22px; font-size: 11px;
+            box-shadow: 0 0 0 4px rgba(255,139,66,.13);
+        }
+        .obw-prog-sep { flex: 1; height: 2px; border-radius: 1px; background: rgba(0,0,0,.10); margin: 0 3px; transition: background .3s; }
+        .obw-prog-sep.on { background: #FF9800; }
+        .obw-title {
+            font: 700 22px 'Quicksand', 'Inter', sans-serif;
+            color: #111; line-height: 1.22; margin: 0 0 4px; text-align: left;
+        }
+        .obw-sub { font: 400 13px 'Inter', sans-serif; color: #4D4D4D; line-height: 1.5; margin: 0; }
+        .obw-rule { margin-top: 14px; border-bottom: 1px solid rgba(0,0,0,.09); }
+        .obw-content { display: flex; flex-direction: column; gap: 10px; }
+        @keyframes obw-slide-fwd { from { opacity:0; transform: translateX(28px); } to { opacity:1; transform:none; } }
+        @keyframes obw-slide-bwd { from { opacity:0; transform: translateX(-28px); } to { opacity:1; transform:none; } }
+        .obw-anim-fwd { animation: obw-slide-fwd .3s cubic-bezier(.4,0,.2,1) both; }
+        .obw-anim-bwd { animation: obw-slide-bwd .3s cubic-bezier(.4,0,.2,1) both; }
+        .obw-opt {
+            width: 100%;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 13px 14px;
+            background: #f8f8f8;
+            border: 2px solid rgba(0,0,0,.09);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background .18s, border-color .18s;
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+            min-height: 52px;
+            color: #111;
+        }
+        .obw-opt:hover { background: #FFF3E0; border-color: #FF9800; }
+        .obw-opt.on    { background: #FFF3E0; border-color: #FF9800; }
+        .obw-opt-label { font-size: 14px; font-weight: 500; color: #111; line-height: 1.3; }
+        .obw-opt-sub   { font-size: 12px; color: #4D4D4D; margin-top: 3px; line-height: 1.45; }
+        .obw-radio {
+            width: 18px; height: 18px; border-radius: 50%;
+            border: 2px solid rgba(0,0,0,.2);
+            background: transparent;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: all .18s;
+        }
+        .obw-radio.on { background: #FF9800; border-color: #FF9800; }
+        .obw-radio > div { width: 6px; height: 6px; border-radius: 50%; background: #fff; opacity: 0; }
+        .obw-radio.on > div { opacity: 1; }
+        .obw-section { display: flex; flex-direction: column; gap: 6px; }
+        .obw-sec-lbl {
+            font: 700 10px 'Inter', sans-serif;
+            letter-spacing: .08em; text-transform: uppercase;
+            color: #FF9800;
+        }
+        .obw-stack { display: flex; flex-direction: column; gap: 7px; }
+        .obw-footer {
+            display: flex; flex-direction: column; gap: 10px;
+            margin-top: 22px;
+        }
+        .obw-cta {
+            width: 100%;
+            max-width: 460px;
+            margin: 0 auto;
+            padding: 14px 20px;
+            background: #222; color: #fff;
+            border: none; border-radius: 12px;
+            font: 600 15px 'Inter', sans-serif;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            min-height: 52px;
+            transition: background .18s, box-shadow .18s, transform .15s;
+        }
+        .obw-cta:hover:not(:disabled) {
+            background: #111;
+            box-shadow: 0 6px 24px rgba(0,0,0,.18);
+            transform: translateY(-1px);
+        }
+        .obw-cta:disabled { background: rgba(0,0,0,.07); color: rgba(0,0,0,.28); cursor: not-allowed; }
+        .obw-foot-links { display: flex; justify-content: center; gap: 20px; }
+        .obw-foot-links a { font-size: 12px; color: #5b6470; text-decoration: none; }
+        .obw-foot-links a:hover { color: #111; }
+        .obw-input {
+            width: 100%; box-sizing: border-box;
+            padding: 14px 16px;
+            background: #f8f8f8;
+            border: 2px solid rgba(0,0,0,.09);
+            border-radius: 12px;
+            outline: none;
+            font: 500 15px 'Inter', sans-serif;
+            color: #111;
+            transition: border-color .18s, background .18s;
+        }
+        .obw-input::placeholder { color: rgba(0,0,0,.35); }
+        .obw-input:focus { background: #FFF8F0; border-color: #FF9800; }
+        .obw-other-input {
+            width: 100%; box-sizing: border-box;
+            padding: 11px 14px;
+            background: #f8f8f8;
+            border: 1.5px solid rgba(255,139,66,.55);
+            border-radius: 12px;
+            outline: none;
+            font: 400 13px 'Inter', sans-serif;
+            color: #111;
+            margin-top: -2px;
+            animation: obw-slide-fwd .22s ease both;
+        }
+        .obw-phone-row { display: flex; gap: 8px; }
+        .obw-phone-row .obw-cc {
+            flex: 0 0 86px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .obw-skip-note {
+            font-size: 12px; color: rgba(0,0,0,.42);
+            text-align: center; margin-top: -2px;
+        }
+
+        /* Analyzing step (step4) — PWA loader, white theme, full-width */
+        #step4 .ob-split { grid-template-columns: 1fr; }
+        #step4 .ob-panel-right { display: none; }
+        #step4 .ob-panel-left {
+            background: #fff;
+            color: #111;
+            padding-top: 0;
+            padding-bottom: 0;
+            align-items: center;
+            justify-content: center;
+        }
+        .asmt-loader {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 28px 20px;
+            gap: 10px;
+            width: 100%;
+            max-width: 460px;
+        }
+        .asmt-loader-orb {
+            position: relative;
+            width: 84px; height: 84px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .asmt-loader-ring-outer { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .asmt-loader-ring-outer circle { fill: none; stroke: rgba(0,0,0,0.18); stroke-width: 1.2; }
+        .asmt-loader-ring-inner {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            animation: asmt-orb-spin 2.4s linear infinite;
+            transform-origin: 50% 50%;
+        }
+        .asmt-loader-ring-inner circle { fill: none; stroke-width: 5; stroke-linecap: round; }
+        .asmt-loader-ring-inner .asmt-arc-bright { stroke: #FF9800; opacity: 0.95; }
+        .asmt-loader-ring-inner .asmt-arc-dim { stroke: #FF9800; opacity: 0.35; }
+        .asmt-loader-core {
+            position: relative;
+            width: 54px; height: 54px; border-radius: 50%;
+            background: transparent;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .asmt-loader-bars {
+            display: flex; align-items: center; gap: 2px; height: 22px;
+            animation: asmt-bars-pulse 1.2s ease-in-out infinite;
+        }
+        .asmt-loader-bars span { display: block; width: 2px; border-radius: 2px; background: #FF9800; }
+        .asmt-loader-bars span:nth-child(1) { height: 30%; }
+        .asmt-loader-bars span:nth-child(2) { height: 70%; }
+        .asmt-loader-bars span:nth-child(3) { height: 100%; }
+        .asmt-loader-bars span:nth-child(4) { height: 60%; }
+        .asmt-loader-bars span:nth-child(5) { height: 40%; }
+        .asmt-loader-eyebrow {
+            font-size: 12px; font-weight: 700; letter-spacing: 2.4px;
+            color: #FF9800; text-transform: uppercase; margin-top: 10px;
+        }
+        .asmt-loader-title {
+            font: 800 30px 'Quicksand', 'Inter', sans-serif;
+            line-height: 1.15; color: #111;
+            letter-spacing: -0.5px; margin: 4px 0 2px;
+            text-align: center;
+        }
+        .asmt-loader-sub {
+            font-size: 14px; color: rgba(0,0,0,0.55);
+            margin: 0; text-align: center;
+        }
+        .asmt-loader-steps {
+            margin-top: 14px; width: 100%; max-width: 360px;
+            background: #f8f8f8;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .asmt-loader-step {
+            display: flex; align-items: center; gap: 12px;
+            font: 600 14px 'Inter', sans-serif; color: #111;
+        }
+        .asmt-loader-step .asmt-step-icon {
+            width: 22px; height: 22px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .asmt-loader-step.done .asmt-step-icon {
+            background: #FF9800; border-radius: 50%; color: #1A202C;
+        }
+        .asmt-loader-step.done .asmt-step-icon svg { width: 14px; height: 14px; }
+        .asmt-loader-step.pending { color: rgba(0,0,0,0.7); }
+        .asmt-loader-step.pending .asmt-step-icon svg {
+            width: 18px; height: 18px; color: #FF9800;
+            animation: asmt-spin 1.4s linear infinite;
+        }
+        @keyframes asmt-orb-spin { to { transform: rotate(360deg); } }
+        @keyframes asmt-spin     { to { transform: rotate(360deg); } }
+        @keyframes asmt-bars-pulse { 0%,100%{opacity:0.85} 50%{opacity:1} }
+
+        /* legacy wrapper kept for any leftover refs (no longer used) */
+        .obw-analyze-wrap {
+            max-width: 460px; width: 100%;
+            display: flex; flex-direction: column; gap: 18px;
+        }
+        .obw-analyze-title {
+            font: 700 24px 'Quicksand', 'Inter', sans-serif;
+            color: #111; margin: 0; text-align: left;
+        }
+        .obw-analyze-sub {
+            font: 400 13px 'Inter', sans-serif;
+            color: #4D4D4D; line-height: 1.5; margin: 0;
+        }
+        .obw-analyze-list { display: flex; flex-direction: column; gap: 12px; }
+        .obw-analyze-row {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 16px;
+            background: #f8f8f8;
+            border: 2px solid rgba(0,0,0,.06);
+            border-radius: 12px;
+            transition: border-color .25s, background .25s;
+        }
+        .obw-analyze-row.active {
+            background: #FFF3E0;
+            border-color: #FF9800;
+        }
+        .obw-analyze-row.completed {
+            background: #ECFDF5;
+            border-color: #22C55E;
+        }
+        .obw-analyze-bullet {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,.06);
+            font: 700 13px 'Inter', sans-serif;
+            color: rgba(0,0,0,.4);
+            flex-shrink: 0;
+            transition: all .25s;
+        }
+        .obw-analyze-row.active .obw-analyze-bullet {
+            background: #FF9800; color: #fff;
+            box-shadow: 0 0 0 4px rgba(255,139,66,.18);
+        }
+        .obw-analyze-row.completed .obw-analyze-bullet {
+            background: #22C55E; color: #fff;
+        }
+        .obw-analyze-text { font: 500 14px 'Inter', sans-serif; color: #111; line-height: 1.4; }
+        .obw-analyze-row.active .obw-analyze-text { color: #B45309; }
+        .obw-analyze-row.completed .obw-analyze-text { color: #166534; }
+        .obw-analyze-foot {
+            margin-top: 6px;
+            font: 400 13px 'Inter', sans-serif;
+            color: #4D4D4D; font-style: italic; text-align: center;
+        }
+        .obw-analyze-foot strong { color: #FF9800; font-weight: 700; font-style: normal; }
+
+        /* Desktop: circles, hide pills */
+        @media (min-width: 881px) {
+            .obw-prog-circles    { display: flex; }
+            .obw-prog-pills      { display: none; }
+            .obw-prog-step-label { display: none; }
+            .obw-title { font-size: 26px; }
+            .obw-back  { top: -8px; }
+        }
+        @media (max-width: 880px) {
+            #step3 .ob-panel-right { display: none; }
+            .obw-card { padding-top: 28px; max-width: 100%; }
+            .obw-back { top: 0; font-size: 14px; }
+            .obw-title { font-size: 20px; }
+            .obw-sub { font-size: 12px; }
+            .obw-cta { padding: 13px 18px; min-height: 48px; font-size: 14px; }
+            .obw-opt { padding: 12px 14px; min-height: 48px; }
+        }
+        .assessment-step {
+            background: #ffffff;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border: 1px solid rgba(15,23,42,0.06);
+        }
+        #step1.assessment-step {
+            background: transparent;
+            box-shadow: none;
+            border: none;
+        }
+        .assessment-container:has(#step2.active) {
+            max-width: none;
+            padding: 0;
+            margin: 0;
+            width: 100vw;
+        }
+        .assessment-page:has(#step2.active) {
+            padding: 0 !important;
+            margin: 0;
+            min-height: 100vh;
+        }
+        #step2.assessment-step {
+            padding: 0;
+            margin: 0;
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+            height: 100vh;
+            min-height: 600px;
+        }
+        #step2 .ob-split { height: 100%; }
+        #step2 .ob-panel-left { padding-top: 100px; }
+        .step-title { color: #0B0C0E; }
+        .loading-title { color: #0B0C0E; }
+
+        /* ========== Login (PWA-style, matches Lisp-pwa exactly) ========== */
+        .ob-step-wrap { padding: 0; }
+        .ob-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+        .ob-panel-left {
+            display: flex; align-items: safe center; justify-content: center;
+            padding: 40px 28px; overflow-y: auto; background: #fff;
+            min-height: 100%;
+        }
+        .ob-card {
+            background: transparent; border: none; padding: 0;
+            max-width: 380px; width: 100%;
+            display: flex; flex-direction: column; align-items: stretch;
+        }
+        .ob-logo { margin-bottom: 28px; display: flex; justify-content: center; }
+        .ob-title {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 32px; font-weight: 700; letter-spacing: -0.015em;
+            color: #0f1115; line-height: 1.15; margin: 0 0 12px; text-align: center;
+        }
+        .ob-sub { color: #5b6470; font-size: 15px; font-weight: 400; line-height: 1.5; margin: 0 0 28px; text-align: center; }
+        .ob-panel-right { position: relative; background: #111; overflow: hidden; min-height: 100%; }
+        .ob-hero-img {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            object-fit: cover; object-position: center center; display: block;
+        }
+        .ob-panel-right::after {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+            height: 52%; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.9));
+            z-index: 1; pointer-events: none;
+        }
+        .ob-photo-badge {
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
+            padding: 20px 28px 26px;
+            display: flex; align-items: flex-end; justify-content: space-between;
+        }
+        .ob-photo-badge-name { font-size: 14px; font-weight: 700; color: #fff; margin: 0 0 3px; line-height: 1.3; }
+        .ob-photo-badge-sub { font-size: 12px; font-weight: 500; color: #fff; margin: 0; }
+        .ob-badge-right { text-align: right; }
+        .ob-badge-day-num {
+            font-size: 38px; font-weight: 800; color: #FF9800;
+            font-family: 'Quicksand', 'Inter', sans-serif; line-height: 1;
+        }
+        .ob-badge-day-label {
+            font-size: 10px; font-weight: 700; color: #FF9800;
+            text-transform: uppercase; letter-spacing: 0.12em; margin-top: 2px;
+        }
+        @media (max-width: 900px) {
+            .ob-split { grid-template-columns: 1fr; grid-template-rows: 32dvh 1fr; }
+            .ob-panel-right { min-height: 32dvh; }
+            .ob-panel-left { padding: 28px 18px; }
+            #step2 .ob-split { grid-template-rows: 1fr; }
+            #step2 .ob-panel-right { display: none; }
+            #step3 .ob-split { grid-template-rows: 1fr; }
+            #step3 .ob-panel-right { display: none; }
+            #step4 .ob-split { grid-template-rows: 1fr; }
+            #step4 .ob-panel-right { display: none; }
+            #step4 .ob-panel-left { flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 88px; }
+            /* Compact step3 so all options + Next fit one viewport */
+            #step3 .ob-wiz-body { padding: 72px 18px 6px; }
+            #step3 .ob-wiz-foot { padding: 8px 18px 14px; }
+            #step3 .obw-header { margin-bottom: 10px; }
+            #step3 .obw-header .ob-logo { display: none; }
+            #step3 .obw-back { position: static; top: auto; margin-bottom: 10px; }
+            #step3 .obw-rule { margin-top: 8px; }
+            #step3 .obw-content { gap: 7px; }
+            #step3 .obw-opt { padding: 9px 12px; min-height: 0; }
+            #step3 .obw-opt-sub { margin-top: 1px; }
+        }
+        .ob-logo { display: flex; justify-content: center; margin-bottom: 18px; }
+        .ob-title { font-family: 'Inter', sans-serif; font-size: 28px; font-weight: 700; color: #0B0C0E; text-align: center; margin: 0 0 8px; }
+        .ob-sub { font-size: 14px; color: #475569; text-align: center; margin: 0 0 22px; line-height: 1.5; }
+        .ob-social-btn {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            width: 100%; height: 52px; padding: 0 16px;
+            background: #fff; border: 1px solid #e6e8ec; border-radius: 10px;
+            color: #0f1115; font-size: 15px; font-weight: 600; font-family: inherit;
+            cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.05s ease;
+        }
+        .ob-social-btn svg { width: 20px; height: 20px; flex: none; }
+        .ob-social-btn:hover:not(:disabled) { background: #fafbfc; border-color: #d6d9de; }
+        .ob-social-btn:active:not(:disabled) { transform: scale(0.98); }
+        .ob-google-btn { margin-bottom: 10px; }
+        .ob-apple-btn { margin-bottom: 4px; background: #000; color: #fff; border-color: #000; }
+        .ob-apple-btn:hover:not(:disabled) { background: #1a1a1a; border-color: #1a1a1a; }
+        .ob-divider {
+            display: flex; align-items: center; gap: 10px;
+            margin: 18px 0 16px; color: rgba(0,0,0,0.35); font-size: 12px;
+        }
+        .ob-divider::before, .ob-divider::after { content: ''; flex: 1; height: 1px; background: rgba(0,0,0,0.1); }
+        .ob-form { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
+        .ob-field { display: flex; flex-direction: column; gap: 6px; }
+        .ob-field-lbl {
+            font-size: 12px; font-weight: 600; color: #4b5563;
+            letter-spacing: 0.02em; text-align: left;
+        }
+        .ob-input {
+            width: 100%; height: 48px; padding: 0 14px;
+            background: #fff; border: 1px solid #e6e8ec; border-radius: 10px;
+            color: #0f1115; font-size: 15px; font-family: inherit;
+            transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box;
+        }
+        .ob-input:focus { outline: none; border-color: #FF8B42; box-shadow: 0 0 0 3px rgba(255,139,66,0.15); }
+        .ob-pw-wrap { position: relative; display: block; }
+        .ob-input-pw { padding-right: 48px; }
+        .ob-pw-toggle {
+            position: absolute; top: 0; right: 0; height: 48px; width: 44px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0; border: none; background: transparent; color: #9aa1ac;
+            cursor: pointer; border-radius: 0 10px 10px 0;
+            transition: color 0.15s, transform 0.1s ease;
+        }
+        .ob-pw-toggle:hover { color: #4b5563; }
+        .ob-primary-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 100%; height: 52px; padding: 0 16px;
+            background: #FF8B42; border: 1px solid #FF8B42; border-radius: 10px;
+            color: #fff; font-size: 15px; font-weight: 600; font-family: inherit;
+            cursor: pointer; margin-top: 4px;
+            transition: background 0.2s, border-color 0.2s, transform 0.05s ease;
+        }
+        .ob-primary-btn:hover:not(:disabled) { background: #e67a35; border-color: #e67a35; }
+        .ob-primary-btn:active:not(:disabled) { transform: scale(0.98); }
+        .ob-primary-btn:disabled { opacity: 0.45; cursor: default; }
+        .ob-link-btn {
+            background: none; border: none; color: #FF8B42; font-size: 13px; font-weight: 600;
+            font-family: inherit; cursor: pointer; padding: 4px; align-self: center;
+            text-decoration: underline; text-underline-offset: 3px;
+        }
+        .ob-link-btn:hover:not(:disabled) { color: #e67a35; }
+        .ob-social-error { display: block; font-size: 12px; color: #dc2626; margin-top: 6px; min-height: 16px; }
+        .ob-privacy-row {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin-top: 12px; flex-wrap: wrap;
+        }
+        .ob-privacy-item {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 12px; font-weight: 700; color: #166534;
+            letter-spacing: 0.01em; white-space: nowrap;
+        }
+        .ob-privacy-dot { width: 3px; height: 3px; border-radius: 50%; background: #c8d8cd; display: inline-block; flex: none; }
+        .ob-slp-badge {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            margin: 12px 0 4px; padding: 7px 14px;
+            background: #f0faf4; border: 1px solid #bbf0d0; border-radius: 20px;
+            font-size: 11.5px; font-weight: 600; color: #166534;
+            letter-spacing: 0.01em; text-align: center; line-height: 1.3;
+        }
+        .ob-social-proof {
+            text-align: center; margin-top: 14px; margin-bottom: 0;
+            font-size: 12px; font-weight: 600; color: #FF8B42; letter-spacing: 0.01em;
+        }
+        /* Hide Free Assessment buttons in nav on this page (keep Login) */
+        .login-nav > .login-nav-button:not(.user-login-button),
+        .mobile-get-started:not(.user-login-nav) {
+            display: none !important;
+        }
+        /* Mobile reorder: HOW IT WORKS → Recording Session → NOTE */
+        @media (max-width: 1099px) {
+            .rec-layout {
                 display: flex;
                 flex-direction: column;
+            }
+            .rec-aside {
+                display: contents;
+            }
+            .rec-aside .aside-box:nth-child(1) { order: 1; margin-bottom: 16px; }
+            .recording-section-wrap { order: 2; margin-bottom: 16px; }
+            .rec-aside .aside-box:nth-child(2) { order: 3; }
+        }
+        /* Tablet / large mobile: vertically center content */
+        @media (min-width: 601px) and (max-width: 1099px) {
+            .assessment-page {
+                min-height: 100vh;
+                display: flex;
                 align-items: center;
-                gap: 12px;
-                background: rgba(15,23,42,0.04);
-                border-radius: 14px;
-                padding: 16px 18px 10px;
+                justify-content: center;
+                padding-top: 100px;
+                padding-bottom: 40px;
             }
-            .recording-panel .word-picker {
-                width: 100%;
-                margin: 0;
-                background: transparent;
-                box-shadow: none;
-                padding: 0;
-            }
-            .recording-panel .vu-meter {
-                margin: 0;
-                padding: 0;
-            }
-            .recording-panel .record-btn-area {
-                margin: 0;
-                padding: 0;
-            }
-            .recording-section > .btn-group {
-                grid-column: 2;
-                grid-row: 6;
-                padding: 0;
-                margin: 20px 12px 0 0;
-                justify-self: center;
+            .assessment-container {
                 width: 100%;
             }
+        }
+        /* Mobile: lightly compact so full card fits viewport */
+        @media (max-width: 768px) {
+            .assessment-page {
+                padding-top: 80px;
+                padding-bottom: 32px;
+            }
+            .clinical-header { padding: 14px 18px 0; }
+            .clinical-title { padding-left: 0; }
+            .word-picker { margin: 0 40px 12px; }
+            .active-pill { margin: 4px 10px; width: calc(100% - 20px); }
+            .record-btn-area { padding: 6px 0 16px; }
         }
     </style>
     <link rel="stylesheet" href="css/nav.css">
@@ -999,9 +1684,89 @@
                 </div>
             </div>
 
+            <!-- Step 3: Survey wizard (comfort + age) — PWA-style -->
+            <div class="assessment-step ob-step-wrap" id="step3">
+              <div class="ob-split">
+                <div class="ob-panel-left">
+                  <div class="ob-wiz-body">
+                    <div class="ob-card obw-card">
+                      <button class="obw-back" id="obwBack" type="button">← Back</button>
+                      <div class="obw-header">
+                        <div class="ob-logo">
+                          <img src="/lispspeechclinic/icons/lisp-speech-clinic.png" alt="Lisp Speech Clinic" style="width:110px;height:auto;display:block;">
+                        </div>
+                        <div class="obw-progress" id="obwProgress"></div>
+                        <h2 class="obw-title" id="obwTitle"></h2>
+                        <p class="obw-sub" id="obwSub"></p>
+                        <div class="obw-rule"></div>
+                      </div>
+                      <div class="obw-content" id="obwContent"></div>
+                    </div>
+                  </div>
+                  <div class="ob-wiz-foot">
+                    <button class="obw-cta" id="obwCta" type="button" disabled>Next</button>
+                    <div class="obw-foot-links">
+                      <a href="https://topspeech.health/therollracademy/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>
+                      <a href="https://topspeech.health/therollracademy/terms.html" target="_blank" rel="noopener">Terms of Service</a>
+                    </div>
+                  </div>
+                </div>
+                <aside class="ob-panel-right" aria-hidden="true">
+                  <img src="/lispspeechclinic/sign-in-page-image.jpg" alt="" class="ob-hero-img">
+                  <div class="ob-photo-badge">
+                    <div class="ob-badge-left">
+                      <p class="ob-photo-badge-name">Anonymous · Teen on family iPhone · Florida</p>
+                      <p class="ob-photo-badge-sub">Improving daily</p>
+                    </div>
+                    <div class="ob-badge-right">
+                      <div class="ob-badge-day-num">98</div>
+                      <div class="ob-badge-day-label">Day streak</div>
+                    </div>
+                  </div>
+                </aside>
+              </div>
+            </div>
+            <!-- Hidden mirror inputs — wizard writes here; existing submit logic reads -->
+            <div style="display:none" aria-hidden="true">
+              <input type="radio" name="troubleWords" value="slight" id="trouble1">
+              <input type="radio" name="troubleWords" value="noticeable" id="trouble2">
+              <input type="radio" name="troubleWords" value="significant" id="trouble3">
+              <input type="radio" name="troubleWords" value="none" id="trouble4">
+              <input type="radio" name="troubleWords" value="not_sure" id="trouble5">
+              <input type="radio" name="ageGroup" value="teen" id="age1">
+              <input type="radio" name="ageGroup" value="young_adult" id="age2">
+              <input type="radio" name="ageGroup" value="adult" id="age3">
+              <input type="radio" name="ageGroup" value="senior" id="age4">
+              <input type="email" id="email">
+              <input type="radio" name="visitReason" value="google_ad" id="reason5">
+              <input type="radio" name="visitReason" value="social_media" id="reason6">
+              <input type="radio" name="visitReason" value="google_search" id="reason7">
+              <input type="radio" name="visitReason" value="reddit_community" id="reason8">
+              <input type="radio" name="visitReason" value="other" id="reason9">
+              <input type="text" id="otherReason">
+              <div id="otherReasonGroup"></div>
+              <input type="text" id="countrySelect" value="🇺🇸 United States">
+              <input type="hidden" id="countryCode" value="+1">
+              <div id="countryOptions"></div>
+              <input type="tel" id="phoneNumber">
+            </div>
+
             <!-- Step 1: Instant Recording (The Hook) -->
             <div class="assessment-step active" id="step1" style="background:transparent;box-shadow:none;padding:0;">
                 <div id="recordingHost">
+                <div class="rec-layout">
+                    <aside class="rec-aside">
+                        <div class="aside-box">
+                            <div class="aside-legend">HOW IT WORKS</div>
+                            <div class="aside-row"><span class="aside-num">1</span><span>Tap to start recording.</span></div>
+                            <div class="aside-row"><span class="aside-num">2</span><span>Speak the word clearly.</span></div>
+                        </div>
+                        <div class="aside-box">
+                            <div class="aside-legend">NOTE</div>
+                            <div class="aside-row"><span>To get the best results, find a quiet spot with zero background noise. Make sure your recording of the test words is loud &amp; clear.</span></div>
+                        </div>
+                    </aside>
+                    <div class="recording-section-wrap">
                 <div class="recording-section">
                     <!-- Header -->
                     <div class="clinical-header">
@@ -1051,118 +1816,78 @@
                     </div>
                     </div>
 
-                    <div class="btn-group btn-group-single" id="recordingBtnGroup" style="margin-top:16px;padding:0 20px 16px;">
-                        <button class="btn btn-primary" onclick="nextStep()" id="recordingContinueBtn" disabled>Continue →</button>
+                </div>
                     </div>
                 </div>
                 </div>
             </div>
 
-            <!-- Step 2: Self-Assessment Questions -->
-            <div class="assessment-step" id="step2">
-                <div class="step-content">
-                    <div class="form-group">
-                        <label class="form-label">How would you describe your comfort level with making the /s/ sound?</label>
-                        <div class="options-group">
-                            <div class="option-item">
-                                <input type="radio" id="trouble1" name="troubleWords" value="slight">
-                                <label for="trouble1">I have slight trouble with /s/ sounds</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="trouble2" name="troubleWords" value="noticeable">
-                                <label for="trouble2">I have noticeable difficulty with /s/ sounds</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="trouble3" name="troubleWords" value="significant">
-                                <label for="trouble3">I have significant trouble pronouncing /s/ sounds</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="trouble4" name="troubleWords" value="no_trouble">
-                                <label for="trouble4">I don't have trouble with /s/ sounds</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="trouble5" name="troubleWords" value="unsure">
-                                <label for="trouble5">Not sure/ want assessment</label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">What's your age group?</label>
-                        <div class="options-group">
-                            <div class="option-item">
-                                <input type="radio" id="age1" name="ageGroup" value="teen">
-                                <label for="age1">Teen (13-17 years)</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="age2" name="ageGroup" value="young_adult">
-                                <label for="age2">Young Adult (18-25 years)</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="age3" name="ageGroup" value="adult">
-                                <label for="age3">Adult (26-54 years)</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="age4" name="ageGroup" value="senior_adult">
-                                <label for="age4">Adult (55+ years)</label>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Step 2: Login (PWA-style) -->
+            <div class="assessment-step ob-step-wrap" id="step2">
+              <div class="ob-split">
+                <div class="ob-panel-left">
+                <div class="ob-card">
+                    <h2 class="ob-title">Assessment</h2>
+                    <p class="ob-sub">Register to unlock your free Speech Assessment &amp; identify the root cause of your lisp today.</p>
 
+                    <button class="ob-social-btn ob-google-btn" id="obGoogleBtn" type="button">
+                        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"/><path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+                        <span>Continue with Google</span>
+                    </button>
+
+                    <button class="ob-social-btn ob-apple-btn" id="obAppleBtn" type="button">
+                        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.05 20.28c-.98.95-2.05.86-3.08.43-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.43C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+                        <span>Continue with Apple</span>
+                    </button>
+
+                    <div class="ob-divider"><span>or</span></div>
+
+                    <form class="ob-form" id="obEmailForm" autocomplete="on" novalidate>
+                        <label class="ob-field">
+                            <span class="ob-field-lbl">Email</span>
+                            <input class="ob-input" id="obEmail" type="email" autocomplete="email" placeholder="you@example.com" required>
+                        </label>
+                        <div class="ob-social-error" id="obError" hidden></div>
+                        <button class="ob-primary-btn" id="obEmailSubmit" type="submit">Continue</button>
+                    </form>
+
+                    <div class="ob-privacy-row">
+                        <span class="ob-privacy-item">
+                            <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path fill="#22C55E" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 14l-3-3 1.41-1.41L11 12.17l4.59-4.58L17 9l-6 6z"/></svg>
+                            HIPAA Compliant
+                        </span>
+                        <span class="ob-privacy-dot"></span>
+                        <span class="ob-privacy-item">
+                            <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path fill="#22C55E" d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                            End-to-end encrypted
+                        </span>
+                    </div>
+                    <div class="ob-slp-badge">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.5 14.5l-4-4 1.41-1.41L10.5 13.67l5.59-5.59L17.5 9.5l-7 7z" fill="#22C55E"/></svg>
+                        Developed by Speech-Language Pathologists
+                    </div>
+                    <p class="ob-social-proof">Join a community of people from 94+ countries.</p>
                 </div>
-                <div class="btn-group">
-                    <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                    <button class="btn btn-primary" onclick="nextStep()" id="step2Continue" disabled>Continue →</button>
                 </div>
+                <aside class="ob-panel-right" aria-hidden="true">
+                    <img src="/lispspeechclinic/sign-in-page-image.jpg" alt="" class="ob-hero-img">
+                    <div class="ob-photo-badge">
+                        <div class="ob-badge-left">
+                            <p class="ob-photo-badge-name">Anonymous · Teen on family iPhone · Florida</p>
+                            <p class="ob-photo-badge-sub">Improving daily</p>
+                        </div>
+                        <div class="ob-badge-right">
+                            <div class="ob-badge-day-num">98</div>
+                            <div class="ob-badge-day-label">Day streak</div>
+                        </div>
+                    </div>
+                </aside>
+              </div>
             </div>
 
-            <!-- Step 3: Email/Data (The "Unlock") -->
-            <div class="assessment-step" id="step3">
-                <div class="step-content">
-                    <div class="form-group">
-                        <label class="form-label" for="email">Email Address:</label>
-                        <input type="email" id="email" class="form-input" placeholder="your.email@example.com" required>
-                        <div class="form-help">
-                            Why? We'll send your personalized results + a custom practice plan
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">How did you learn about Lisp Speech Clinic?</label>
-                        <div class="options-group">
-                            <div class="option-item">
-                                <input type="radio" id="reason5" name="visitReason" value="google_ad">
-                                <label for="reason5">Via Google search ad</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="reason6" name="visitReason" value="social_media">
-                                <label for="reason6">Via Google search results</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="reason7" name="visitReason" value="google_search">
-                                <label for="reason7">Via Instagram</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="reason8" name="visitReason" value="reddit_community">
-                                <label for="reason8">Via Reddit Community</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="reason9" name="visitReason" value="other">
-                                <label for="reason9">Other</label>
-                            </div>
-                        </div>
-                        <div class="form-group" id="otherReasonGroup" style="display: none;">
-                            <label class="form-label" for="otherReason">Please specify:</label>
-                            <input type="text" id="otherReason" class="form-input" placeholder="Please tell us how you found us...">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="phoneNumber">Phone Number (Optional):</label>
-                        <div class="phone-input-container">
-                            <div class="country-dropdown">
-                                <input type="text" id="countrySelect" class="country-select" placeholder="🇺🇸 United States" value="🇺🇸 United States" readonly>
-                                <input type="hidden" id="countryCode" value="+1">
-                                <div class="country-options" id="countryOptions">
+            <!-- Step 4 (old email page) REMOVED — fields are now wizard sub-steps 3/4/5 -->
+            <div style="display:none !important" aria-hidden="true">
+                <div class="country-options" id="countryOptionsDeprecated">
                                     <div class="country-option" data-code="+1" data-country="United States">🇺🇸 United States</div>
                                     <div class="country-option" data-code="+44" data-country="United Kingdom">🇬🇧 United Kingdom</div>
                                     <div class="country-option" data-code="+91" data-country="India">🇮🇳 India</div>
@@ -1206,47 +1931,67 @@
                                     <div class="country-option" data-code="+254" data-country="Kenya">🇰🇪 Kenya</div>
                                     <div class="country-option" data-code="+7" data-country="Russia">🇷🇺 Russia</div>
                                     <div class="country-option" data-code="+380" data-country="Ukraine">🇺🇦 Ukraine</div>
-                                    <div class="country-option" data-code="+852" data-country="Hong Kong">🇭🇰 Hong Kong</div>
-                                    <div class="country-option" data-code="+886" data-country="Taiwan">🇹🇼 Taiwan</div>
                                 </div>
-                            </div>
-                            <input type="tel" id="phoneNumber" class="form-input phone-input" placeholder="(000) 000-0000">
-                        </div>
-                        <div class="form-help">
-                            We may send you text reminders about your practice sessions (optional)
-                        </div>
-                    </div>
-                </div>
-                <div class="btn-group">
-                    <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                    <button class="btn btn-primary" onclick="nextStep()" id="step3Continue" disabled>Continue →</button>
-                </div>
             </div>
 
-            <!-- Step 4: Processing Screen -->
-            <div class="assessment-step" id="step4">
-                <div class="loading-screen">
-                    <h2 class="loading-title">🔬 Analyzing Your /s/ Sound Patterns<span class="loading-dots">.</span><span class="loading-dots">.</span><span class="loading-dots">.</span></h2>
-
-                    <div class="loading-steps">
-                        <div class="loading-step completed" id="loading1">
-                            <span class="icon">⚡</span>
-                            <span>Running FFT spectral analysis on each word...</span>
+            <!-- Step 4: Analyzing (PWA dark loader) -->
+            <div class="assessment-step ob-step-wrap" id="step4">
+              <div class="ob-split">
+                <div class="ob-panel-left">
+                  <div class="asmt-loader">
+                    <div class="asmt-loader-orb">
+                      <svg class="asmt-loader-ring-outer" viewBox="0 0 120 120" aria-hidden="true">
+                        <circle cx="60" cy="60" r="54"/>
+                      </svg>
+                      <svg class="asmt-loader-ring-inner" viewBox="0 0 120 120" aria-hidden="true">
+                        <circle class="asmt-arc-dim" cx="60" cy="60" r="44" stroke-dasharray="60 216" stroke-dashoffset="0"/>
+                        <circle class="asmt-arc-bright" cx="60" cy="60" r="44" stroke-dasharray="60 216" stroke-dashoffset="-70"/>
+                        <circle class="asmt-arc-bright" cx="60" cy="60" r="44" stroke-dasharray="60 216" stroke-dashoffset="-173"/>
+                      </svg>
+                      <div class="asmt-loader-core">
+                        <div class="asmt-loader-bars" aria-hidden="true">
+                          <span></span><span></span><span></span><span></span><span></span>
                         </div>
-                        <div class="loading-step" id="loading2">
-                            <span class="icon">🎯</span>
-                            <span>Identifying sibilant distortions (frontal / lateral / dentalized)...</span>
-                        </div>
-                        <div class="loading-step" id="loading3">
-                            <span class="icon">📊</span>
-                            <span>Generating your custom practice roadmap...</span>
-                        </div>
+                      </div>
                     </div>
-                    
-                    <p style="margin-top: 30px; color: #666; font-style: italic;">
-                        Your results will appear in <span id="countdown">10</span>s...
-                    </p>
+                    <div class="asmt-loader-eyebrow">Processing Data</div>
+                    <h3 class="asmt-loader-title">Analyzing Phonetic Patterns</h3>
+                    <p class="asmt-loader-sub">Running DSP-Lisp analysis engine…</p>
+                    <div class="asmt-loader-steps">
+                      <div class="asmt-loader-step done" id="loading1">
+                        <span class="asmt-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                        <span>Audio segmentation</span>
+                      </div>
+                      <div class="asmt-loader-step done" id="loading2">
+                        <span class="asmt-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                        <span>Formant extraction</span>
+                      </div>
+                      <div class="asmt-loader-step pending" id="loading3">
+                        <span class="asmt-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg></span>
+                        <span>Phonetic classification</span>
+                      </div>
+                      <div class="asmt-loader-step pending" id="loading4">
+                        <span class="asmt-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg></span>
+                        <span>Generating report</span>
+                      </div>
+                    </div>
+                    <span id="countdown" style="display:none;">10</span>
+                  </div>
                 </div>
+                <aside class="ob-panel-right" aria-hidden="true">
+                  <img src="/lispspeechclinic/sign-in-page-image.jpg" alt="" class="ob-hero-img">
+                  <div class="ob-photo-badge">
+                    <div class="ob-badge-left">
+                      <p class="ob-photo-badge-name">Anonymous · Teen on family iPhone · Florida</p>
+                      <p class="ob-photo-badge-sub">Improving daily</p>
+                    </div>
+                    <div class="ob-badge-right">
+                      <div class="ob-badge-day-num">98</div>
+                      <div class="ob-badge-day-label">Day streak</div>
+                    </div>
+                  </div>
+                </aside>
+              </div>
             </div>
         </div>
     </div>
@@ -1315,9 +2060,12 @@
         // NAVIGATION
         // =============================================
         function updateProgress() {
-            const visibleStepNum = Math.min(currentStepNum, TOTAL_STEPS);
-            document.getElementById('progressFill').style.width = ((visibleStepNum / TOTAL_STEPS) * 100) + '%';
-            document.getElementById('currentStep').textContent = visibleStepNum;
+            // Visible numbering: skip login step (step2). Steps 3/4/5 display as 2/3/4 of 4.
+            let visible = 1;
+            if (currentStepNum >= 3) visible = currentStepNum - 1;
+            const denom = 4;
+            document.getElementById('progressFill').style.width = ((visible / denom) * 100) + '%';
+            document.getElementById('currentStep').textContent = visible;
         }
 
         function syncRecordingContinueButton() {
@@ -1328,10 +2076,13 @@
 
         async function nextStep() {
             const btn = document.querySelector('#step' + currentStepNum + ' .btn-primary');
-            if (!btn || btn.disabled) return;
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = 'Loading...';
+            let originalText = null;
+            if (btn) {
+                if (btn.disabled) return;
+                originalText = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = 'Loading...';
+            }
 
             if (await validateCurrentStep()) {
                 document.getElementById('step' + currentStepNum).classList.remove('active');
@@ -1339,9 +2090,10 @@
                 if (currentStepNum <= FINAL_SCREEN_STEP) {
                     document.getElementById('step' + currentStepNum).classList.add('active');
                     updateProgress();
+                    if (currentStepNum === 3 && typeof window.initStep3Wizard === 'function') window.initStep3Wizard();
                     if (currentStepNum === FINAL_SCREEN_STEP) startProcessing();
                 }
-            } else {
+            } else if (btn) {
                 btn.textContent = originalText;
                 btn.disabled = false;
             }
@@ -1353,15 +2105,18 @@
                 currentStepNum--;
                 document.getElementById('step' + currentStepNum).classList.add('active');
                 updateProgress();
+                if (currentStepNum === 3 && typeof window.initStep3Wizard === 'function') window.initStep3Wizard();
             }
         }
 
         // Ensure the recording section is mounted in the recording step host
         function moveRecordingTo(hostId) {
             const host = document.getElementById(hostId);
+            const wrap = host && host.querySelector('.recording-section-wrap');
+            const target = wrap || host;
             const section = document.querySelector('.recording-section');
-            if (host && section && section.parentElement !== host) {
-                host.appendChild(section);
+            if (target && section && section.parentElement !== target) {
+                target.appendChild(section);
             }
             syncRecordingContinueButton();
         }
@@ -1378,32 +2133,15 @@
                     return true;
                 }
                 case 2: {
-                    const comfort = document.querySelector('input[name="troubleWords"]:checked');
-                    const age = document.querySelector('input[name="ageGroup"]:checked');
-                    if (!comfort) { alert('Please answer the /s/ sound comfort level question.'); return false; }
-                    if (!age) { alert('Please select your age group.'); return false; }
-                    submitToFormEasy('assessment_step2', { trouble_words_response: comfort.value, age_group: age.value, voice_type: userGender, message: `Step 2: Trouble words response - ${comfort.value}, Age group - ${age.value}, Voice - ${userGender}` });
+                    if (!window.obLoggedInUser) {
+                        alert('Please sign in to continue.');
+                        return false;
+                    }
+                    submitToFormEasy('assessment_step2_login', { email: window.obLoggedInUser.email, provider: window.obLoggedInUser.provider || 'password', message: `Step 2: Login - ${window.obLoggedInUser.email}` });
                     return true;
                 }
                 case 3: {
-                    const email = document.getElementById('email').value;
-                    if (!email || !email.includes('@')) { alert('Please enter a valid email address.'); return false; }
-                    const reason = document.querySelector('input[name="visitReason"]:checked');
-                    if (!reason) { alert('Please answer how you found us.'); return false; }
-                    if (reason.value === 'other' && !document.getElementById('otherReason').value.trim()) {
-                        alert('Please specify how you found us.'); return false;
-                    }
-                    const phone = document.getElementById('phoneNumber').value.trim();
-                    const code = document.getElementById('countryCode').value;
-                    const foundOn = reason.value === 'other' ? document.getElementById('otherReason').value : reason.value;
-                    const fullPhone = phone ? code + ' ' + phone : '';
-                    registerEmail(email);
-                    step4SubmitPromise = submitToFormEasy('assessment_step4', {
-                        email: email,
-                        found_on: foundOn,
-                        phone_number: fullPhone,
-                        message: `Step 3: Email - ${email}, Found on - ${foundOn}${fullPhone ? ', Phone - ' + fullPhone : ''}`
-                    });
+                    // Wizard validates itself + commits to hidden inputs in wizFinish()
                     return true;
                 }
                 default: return true;
@@ -1460,18 +2198,11 @@
             const wordsEl = document.getElementById('wordPickerWords');
             const dotsEl = document.getElementById('wordPickerDots');
 
-            // Context words
-            const prev = currentWordIndex - 1;
+            // Context words — pill + next two (matches PWA)
             const next1 = currentWordIndex + 1;
             const next2 = currentWordIndex + 2;
 
             wordsEl.innerHTML = '';
-
-            // Previous word
-            const prevDiv = document.createElement('div');
-            prevDiv.className = 'context-word';
-            prevDiv.textContent = prev >= 0 ? TEST_WORDS[prev] : '';
-            wordsEl.appendChild(prevDiv);
 
             // Active pill
             const pill = document.createElement('div');
@@ -1571,11 +2302,11 @@
                 if (live) live.textContent = 'No speech detected. Tap microphone to retry.';
             } else if (currentWordIndex === 0 && wordRecordings.length === 0) {
                 mic.style.display = 'block';
-               
+                label.textContent = 'TAP TO START RECORDING';
                 if (live) live.innerHTML = `Tap microphone to record <span class="live-word">'${TEST_WORDS[0]}'</span>.`;
             } else {
                 mic.style.display = 'block';
-                
+                label.textContent = 'TAP TO BEGIN CAPTURE';
                 if (live) live.innerHTML = `Tap microphone to record <span class="live-word">'${TEST_WORDS[currentWordIndex]}'</span>.`;
             }
         }
@@ -1873,6 +2604,9 @@
                 syncRecordingContinueButton();
                 updateRecordButton();
                 renderWordPicker();
+
+                // Auto-advance to next step after brief delay
+                setTimeout(() => { if (currentStepNum === 1) nextStep(); }, 900);
 
                 // Store word recordings for playback on results page
                 localStorage.setItem('wordRecordings', JSON.stringify(wordRecordingsB64));
@@ -2334,26 +3068,20 @@
             // Submit final data to Google Sheets (non-blocking)
             submitFinalAssessment();
 
-            // Animate loading steps — step 2 at 5s, step 3 at 7s (2s after step 2)
-            const step2Timeout = setTimeout(() => {
-                document.getElementById('loading2').classList.add('completed');
-            }, 5000);
-            const step3Timeout = setTimeout(() => {
-                document.getElementById('loading3').classList.add('completed');
-            }, 7000);
+            // PWA loader transitions pending→done with a check icon swap
+            const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+            function markDone(id) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.remove('pending');
+                el.classList.add('done');
+                const icon = el.querySelector('.asmt-step-icon');
+                if (icon) icon.innerHTML = CHECK_SVG;
+            }
 
-            // Countdown timer — starts after step 3 turns green (at 7s)
-            const countdownEl = document.getElementById('countdown');
-            let countdownInterval = null;
-            setTimeout(() => {
-                let count = 10;
-                if (countdownEl) countdownEl.textContent = count;
-                countdownInterval = setInterval(() => {
-                    count--;
-                    if (countdownEl) countdownEl.textContent = count;
-                    if (count <= 0) clearInterval(countdownInterval);
-                }, 1000);
-            }, 7000);
+            // Stagger pending step transitions
+            const step3Timeout = setTimeout(() => markDone('loading3'), 3000);
+            const step4Timeout = setTimeout(() => markDone('loading4'), 6000);
 
             // Wait for backend analysis + step 4 submit to finish before redirecting
             if (step4SubmitPromise) {
@@ -2363,11 +3091,10 @@
                 await analysisPromise;
             }
 
-            // Mark all steps done
-            clearTimeout(step2Timeout);
+            // Ensure all done
             clearTimeout(step3Timeout);
-            if (countdownInterval) clearInterval(countdownInterval);
-            for (let i = 1; i <= 3; i++) document.getElementById('loading' + i).classList.add('completed');
+            clearTimeout(step4Timeout);
+            for (let i = 1; i <= 4; i++) markDone('loading' + i);
 
             // Redirect to results
             setTimeout(() => { window.location.href = 'assessment-results.html'; }, 10);
@@ -2406,13 +3133,27 @@
             const reason = document.querySelector('input[name="visitReason"]:checked');
             const phone = document.getElementById('phoneNumber').value.trim();
             const code = document.getElementById('countryCode').value;
-            submitToFormEasy('assessment_completion', {
-                trouble_words_response: document.querySelector('input[name="troubleWords"]:checked')?.value || '',
-                age_group: document.querySelector('input[name="ageGroup"]:checked')?.value || '',
-                found_on: reason?.value === 'other' ? document.getElementById('otherReason').value : (reason?.value || ''),
-                phone_number: phone ? code + ' ' + phone : '',
+            const trouble = document.querySelector('input[name="troubleWords"]:checked')?.value || '';
+            const age = document.querySelector('input[name="ageGroup"]:checked')?.value || '';
+            const foundOn = reason?.value === 'other' ? document.getElementById('otherReason').value : (reason?.value || '');
+            const fullPhone = phone ? code + ' ' + phone : '';
+            const parts = [
+                `✅ User completed assessment`,
+                `comfort=${trouble || '—'}`,
+                `age=${age || '—'}`,
+                `found_on=${foundOn || '—'}`,
+                `phone=${fullPhone || '—'}`
+            ];
+            // Use a custom source name — Apps Script hardcodes message text for
+            // 'assessment_completion'. Custom source falls through to writing
+            // our `message` field with full survey answers.
+            step4SubmitPromise = submitToFormEasy('assessment_survey_complete', {
+                trouble_words_response: trouble,
+                age_group: age,
+                found_on: foundOn,
+                phone_number: fullPhone,
                 assessment_completed: true,
-                message: 'User completed full /s/ sound assessment'
+                message: parts.join(' | ')
             });
             gtag('event', 'assessment_completed', { event_category: 'conversion', event_label: 'full_assessment_flow' });
         }
@@ -2420,27 +3161,7 @@
         // =============================================
         // UI EVENT LISTENERS
         // =============================================
-        document.addEventListener('change', function(e) {
-            // Enable step 3 continue when both questions answered
-            if (e.target.name === 'troubleWords' || e.target.name === 'ageGroup') {
-                const both = document.querySelector('input[name="troubleWords"]:checked') && document.querySelector('input[name="ageGroup"]:checked');
-                document.getElementById('step2Continue').disabled = !both;
-            }
-            // Enable step 3 continue + toggle "other" input
-            if (e.target.name === 'visitReason') {
-                const val = e.target.value;
-                document.getElementById('otherReasonGroup').style.display = val === 'other' ? 'block' : 'none';
-                document.getElementById('step3Continue').disabled = val === 'other';
-                if (val !== 'other') document.getElementById('step3Continue').disabled = false;
-            }
-        });
-
-        document.addEventListener('input', function(e) {
-            if (e.target.id === 'otherReason') {
-                const reason = document.querySelector('input[name="visitReason"]:checked');
-                document.getElementById('step3Continue').disabled = !(reason?.value === 'other' && e.target.value.trim());
-            }
-        });
+        // Survey inputs (email/source/phone/etc) are now mirrored by the step3 wizard.
 
         // =============================================
         // COUNTRY SELECTOR
@@ -2486,6 +3207,384 @@
             // Step 1 is recording — initialize recording UI on load
             initWordRecording();
             moveRecordingTo('recordingHost');
+
+            // Hash route: #login jumps straight to login step
+            function maybeJumpToLogin() {
+                if (location.hash === '#login' || location.hash === '#/login') {
+                    document.getElementById('step' + currentStepNum).classList.remove('active');
+                    currentStepNum = 2;
+                    document.getElementById('step2').classList.add('active');
+                    updateProgress();
+                }
+            }
+            maybeJumpToLogin();
+            window.addEventListener('hashchange', maybeJumpToLogin);
+
+            // ===== Step3 Wizard (comfort + age + source + phone) =====
+            const WIZ_TOTAL = 4;
+            const COMFORT_OPTS = [
+                { v: 'slight',      label: 'Slight',       sub: 'I have slight trouble with /s/ sounds' },
+                { v: 'noticeable',  label: 'Noticeable',   sub: 'I have noticeable difficulty with /s/ sounds' },
+                { v: 'significant', label: 'Significant',  sub: 'I have significant trouble pronouncing /s/ sounds' },
+                { v: 'none',        label: 'No trouble',   sub: "I don't have trouble with /s/ sounds" },
+                { v: 'not_sure',    label: "I'm not sure", sub: "I'd like a free assessment" },
+            ];
+            const AGE_OPTS = [
+                { v: 'teen',        label: 'Teen (13–17 years)' },
+                { v: 'young_adult', label: 'Young Adult (18–25 years)' },
+                { v: 'adult',       label: 'Adult (26–54 years)' },
+                { v: 'senior',      label: 'Adult (55+ years)' },
+            ];
+            const SOURCE_OPTS = [
+                { v: 'google_ad',         label: 'Via Google search ad' },
+                { v: 'social_media',      label: 'Via Google search results' },
+                { v: 'google_search',     label: 'Via Instagram' },
+                { v: 'reddit_community',  label: 'Via Reddit Community' },
+                { v: 'other',             label: 'Other' },
+            ];
+            const WIZ_META = [
+                { title: 'How would you describe your comfort with /s/?', sub: 'Be honest — this shapes your starting point' },
+                { title: "What's your age group?", sub: 'Helps us calibrate the target frequency for your practice sessions' },
+                { title: 'How did you learn about Lisp Speech Clinic?', sub: 'Helps us reach more people who need this' },
+                { title: 'Phone number (optional)', sub: 'We may send text reminders about your practice sessions' },
+            ];
+            const wizState = {
+                step: 1, dir: 'fwd', _lastStep: null,
+                trouble: null, age: null,
+                source: null, sourceOther: '',
+                cc: '+1', phone: ''
+            };
+
+            function wizCanAdvance() {
+                switch (wizState.step) {
+                    case 1: return !!wizState.trouble;
+                    case 2: return !!wizState.age;
+                    case 3: return !!wizState.source && (wizState.source !== 'other' || (wizState.sourceOther || '').trim().length > 0);
+                    case 4: return true; // phone optional
+                    default: return false;
+                }
+            }
+
+            function wizProgressHTML() {
+                const pills = Array.from({length: WIZ_TOTAL}, (_, i) =>
+                    `<div class="obw-prog-pill${i + 1 <= wizState.step ? ' on' : ''}"></div>`).join('');
+                const circles = Array.from({length: WIZ_TOTAL}, (_, i) => {
+                    const done = i + 1 < wizState.step;
+                    const cur = i + 1 === wizState.step;
+                    const inner = done
+                        ? `<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+                        : `<span>${i + 1}</span>`;
+                    const sep = i < WIZ_TOTAL - 1
+                        ? `<div class="obw-prog-sep${i + 1 < wizState.step ? ' on' : ''}"></div>` : '';
+                    return `<div class="obw-prog-circle${done ? ' done' : ''}${cur ? ' cur' : ''}">${inner}</div>${sep}`;
+                }).join('');
+                return `
+                    <div class="obw-prog-pills">${pills}</div>
+                    <div class="obw-prog-step-label">Step ${wizState.step} of ${WIZ_TOTAL}</div>
+                    <div class="obw-prog-circles">${circles}</div>
+                `;
+            }
+
+            function wizEsc(s) {
+                return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+            }
+
+            function wizBodyHTML() {
+                if (wizState.step === 1) {
+                    return COMFORT_OPTS.map(o => `
+                        <button class="obw-opt${wizState.trouble === o.v ? ' on' : ''}" data-trouble="${o.v}" type="button">
+                            <div>
+                                <div class="obw-opt-label">${o.label}</div>
+                                <div class="obw-opt-sub">${o.sub}</div>
+                            </div>
+                            <div class="obw-radio${wizState.trouble === o.v ? ' on' : ''}"><div></div></div>
+                        </button>
+                    `).join('');
+                }
+                if (wizState.step === 2) {
+                    return AGE_OPTS.map(o => `
+                        <button class="obw-opt${wizState.age === o.v ? ' on' : ''}" data-age="${o.v}" type="button">
+                            <div class="obw-opt-label">${o.label}</div>
+                            <div class="obw-radio${wizState.age === o.v ? ' on' : ''}"><div></div></div>
+                        </button>
+                    `).join('');
+                }
+                if (wizState.step === 3) {
+                    const opts = SOURCE_OPTS.map(o => `
+                        <button class="obw-opt${wizState.source === o.v ? ' on' : ''}" data-source="${o.v}" type="button">
+                            <div class="obw-opt-label">${o.label}</div>
+                            <div class="obw-radio${wizState.source === o.v ? ' on' : ''}"><div></div></div>
+                        </button>
+                    `).join('');
+                    const other = wizState.source === 'other' ? `
+                        <input class="obw-other-input" id="wizSourceOther" type="text"
+                            placeholder="Please tell us how you found us..."
+                            value="${wizEsc(wizState.sourceOther)}">
+                    ` : '';
+                    return opts + other;
+                }
+                if (wizState.step === 4) {
+                    return `
+                        <div class="obw-phone-row">
+                            <input class="obw-input obw-cc" id="wizCc" type="text" inputmode="tel"
+                                maxlength="5" value="${wizEsc(wizState.cc || '+1')}">
+                            <input class="obw-input" id="wizPhone" type="tel" inputmode="tel"
+                                autocomplete="tel" placeholder="(000) 000-0000"
+                                value="${wizEsc(wizState.phone)}">
+                        </div>
+                        <div class="obw-skip-note">Optional — leave blank to skip</div>
+                    `;
+                }
+                return '';
+            }
+
+            function wizUpdate() {
+                const meta = WIZ_META[wizState.step - 1];
+                const back = document.getElementById('obwBack');
+                const prog = document.getElementById('obwProgress');
+                const title = document.getElementById('obwTitle');
+                const sub = document.getElementById('obwSub');
+                const content = document.getElementById('obwContent');
+                const cta = document.getElementById('obwCta');
+                if (!back || !prog || !title || !sub || !content || !cta) return;
+
+                back.hidden = false; // always allow back (outer prevStep on inner step 1)
+                prog.innerHTML = wizProgressHTML();
+                title.textContent = meta.title;
+                sub.textContent = meta.sub;
+                cta.textContent = wizState.step === WIZ_TOTAL ? 'Continue →' : 'Next';
+                cta.disabled = !wizCanAdvance();
+
+                const stepChanged = wizState._lastStep !== wizState.step;
+                content.innerHTML = wizBodyHTML();
+                content.classList.remove('obw-anim-fwd', 'obw-anim-bwd');
+                if (stepChanged) {
+                    void content.offsetWidth;
+                    content.classList.add(wizState.dir === 'fwd' ? 'obw-anim-fwd' : 'obw-anim-bwd');
+                }
+                wizState._lastStep = wizState.step;
+
+                content.querySelectorAll('[data-trouble]').forEach(btn => {
+                    btn.addEventListener('click', () => { wizState.trouble = btn.dataset.trouble; wizUpdate(); });
+                });
+                content.querySelectorAll('[data-age]').forEach(btn => {
+                    btn.addEventListener('click', () => { wizState.age = btn.dataset.age; wizUpdate(); });
+                });
+                content.querySelectorAll('[data-source]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        wizState.source = btn.dataset.source;
+                        if (wizState.source !== 'other') wizState.sourceOther = '';
+                        wizUpdate();
+                    });
+                });
+                // Live updates for input fields (refresh CTA without re-rendering content)
+                const sourceOtherInp = content.querySelector('#wizSourceOther');
+                if (sourceOtherInp) {
+                    sourceOtherInp.addEventListener('input', e => {
+                        wizState.sourceOther = e.target.value;
+                        document.getElementById('obwCta').disabled = !wizCanAdvance();
+                    });
+                    if (!sourceOtherInp.value) setTimeout(() => sourceOtherInp.focus(), 0);
+                }
+                const ccInp = content.querySelector('#wizCc');
+                if (ccInp) {
+                    ccInp.addEventListener('input', e => { wizState.cc = e.target.value; });
+                }
+                const phoneInp = content.querySelector('#wizPhone');
+                if (phoneInp) {
+                    phoneInp.addEventListener('input', e => { wizState.phone = e.target.value; });
+                    setTimeout(() => phoneInp.focus(), 0);
+                }
+            }
+
+            function wizCommitToHiddenInputs() {
+                if (wizState.trouble) {
+                    const el = document.querySelector(`input[name="troubleWords"][value="${wizState.trouble}"]`);
+                    if (el) el.checked = true;
+                }
+                if (wizState.age) {
+                    const el = document.querySelector(`input[name="ageGroup"][value="${wizState.age}"]`);
+                    if (el) el.checked = true;
+                }
+                const emailEl = document.getElementById('email');
+                const loginEmail = (window.obLoggedInUser && window.obLoggedInUser.email) || '';
+                if (emailEl) emailEl.value = loginEmail;
+                if (wizState.source) {
+                    const el = document.querySelector(`input[name="visitReason"][value="${wizState.source}"]`);
+                    if (el) el.checked = true;
+                }
+                const otherEl = document.getElementById('otherReason');
+                if (otherEl) otherEl.value = wizState.sourceOther || '';
+                const ccEl = document.getElementById('countryCode');
+                if (ccEl) ccEl.value = (wizState.cc || '+1').trim();
+                const phoneEl = document.getElementById('phoneNumber');
+                if (phoneEl) phoneEl.value = (wizState.phone || '').trim();
+            }
+
+            function wizFinish() {
+                wizCommitToHiddenInputs();
+                const email = ((window.obLoggedInUser && window.obLoggedInUser.email) || '').trim();
+                const foundOn = wizState.source === 'other' ? (wizState.sourceOther || '').trim() : wizState.source;
+                const phone = (wizState.phone || '').trim();
+                const cc = (wizState.cc || '+1').trim();
+                const fullPhone = phone ? `${cc} ${phone}` : '';
+                registerEmail(email);
+                // Survey payload (found_on/phone/age/comfort) is sent exactly once by
+                // submitFinalAssessment() during startProcessing as 'assessment_survey_complete'.
+                // No separate 'assessment_step4' send here — it duplicated the same survey row.
+                // wizCommitToHiddenInputs() (called above) already mirrored these answers into
+                // the hidden inputs that submitFinalAssessment() reads.
+            }
+
+            const obwBack = document.getElementById('obwBack');
+            const obwCta = document.getElementById('obwCta');
+            if (obwBack) {
+                obwBack.addEventListener('click', () => {
+                    if (wizState.step === 1) { prevStep(); return; }
+                    wizState.dir = 'bwd'; wizState.step--; wizUpdate();
+                });
+            }
+            if (obwCta) {
+                obwCta.addEventListener('click', () => {
+                    if (!wizCanAdvance()) return;
+                    if (wizState.step === WIZ_TOTAL) {
+                        wizFinish();
+                        nextStep();
+                        return;
+                    }
+                    wizState.dir = 'fwd'; wizState.step++; wizUpdate();
+                });
+            }
+
+            // Re-initialize wizard each time step3 becomes active.
+            // Preserve filled answers so going Back from analyzing doesn't wipe them.
+            window.initStep3Wizard = function() {
+                if (!wizState._lastStep) wizState.step = 1;
+                wizState.dir = 'fwd';
+                wizState._lastStep = null;
+                wizUpdate();
+            };
+
+            // ===== Login (step2) wiring =====
+            const obError = document.getElementById('obError');
+            const obEmail = document.getElementById('obEmail');
+            const obEmailSubmit = document.getElementById('obEmailSubmit');
+            const obEmailForm = document.getElementById('obEmailForm');
+            const obGoogleBtn = document.getElementById('obGoogleBtn');
+
+            function obShowError(msg) {
+                if (!obError) return;
+                obError.textContent = msg;
+                obError.hidden = false;
+            }
+            function obClearError() { if (obError) obError.hidden = true; }
+
+            function obFriendlyError(err) {
+                const code = err && err.code;
+                const map = {
+                    'auth/wrong-password': 'Incorrect password.',
+                    'auth/user-not-found': 'No account for this email.',
+                    'auth/invalid-email': 'Please enter a valid email.',
+                    'auth/invalid-credential': 'Invalid email or password.',
+                    'auth/too-many-requests': 'Too many attempts. Try again later.',
+                    'auth/popup-closed-by-user': 'Sign-in cancelled.',
+                    'auth/network-request-failed': 'Network error. Check your connection.'
+                };
+                return map[code] || (err && err.message) || 'Sign in failed.';
+            }
+
+            function obAfterSignIn(user, provider) {
+                window.obLoggedInUser = { email: user.email, uid: user.uid, provider };
+                try { localStorage.setItem('userAuth', JSON.stringify({ email: user.email, id: user.uid, provider })); } catch (e) {}
+                nextStep();
+            }
+
+            if (obEmailForm) {
+                obEmailForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    obClearError();
+                    const email = obEmail.value.trim();
+                    if (!email || !/^\S+@\S+\.\S+$/.test(email)) return obShowError('Enter a valid email.');
+                    obEmailSubmit.disabled = true;
+                    obEmailSubmit.textContent = 'Sending link…';
+                    try {
+                        await window.obFirebaseSendEmailLink(email);
+                        obEmailSubmit.textContent = 'Check your inbox ✓';
+                        obShowEmailSentNotice(email);
+                    } catch (err) {
+                        obShowError(obFriendlyError(err));
+                        obEmailSubmit.disabled = false;
+                        obEmailSubmit.textContent = 'Continue';
+                    }
+                });
+            }
+
+            function obShowEmailSentNotice(email) {
+                const card = document.querySelector('#step2 .ob-card');
+                if (!card) return;
+                const notice = document.createElement('div');
+                notice.className = 'ob-social-error';
+                notice.style.color = '#166534';
+                notice.style.background = '#f0faf4';
+                notice.style.border = '1px solid #bbf0d0';
+                notice.style.borderRadius = '10px';
+                notice.style.padding = '10px 14px';
+                notice.style.marginTop = '12px';
+                notice.textContent = 'Verification link sent to ' + email + '. Open it on this device to continue.';
+                obEmailForm.appendChild(notice);
+            }
+
+            // Handle return from email link
+            (async () => {
+                if (window.obFirebaseIsEmailLink && window.obFirebaseIsEmailLink(window.location.href)) {
+                    let email = window.localStorage.getItem('emailForSignIn');
+                    if (!email) email = window.prompt('Confirm your email to complete sign-in');
+                    if (!email) return;
+                    try {
+                        const user = await window.obFirebaseCompleteEmailLink(email, window.location.href);
+                        window.localStorage.removeItem('emailForSignIn');
+                        // Switch to step2 if not already
+                        if (currentStepNum !== 2) {
+                            document.getElementById('step' + currentStepNum).classList.remove('active');
+                            currentStepNum = 2;
+                            document.getElementById('step2').classList.add('active');
+                            updateProgress();
+                        }
+                        obAfterSignIn(user, 'email-link');
+                    } catch (err) {
+                        obShowError(obFriendlyError(err));
+                    }
+                }
+            })();
+
+            if (obGoogleBtn) {
+                obGoogleBtn.addEventListener('click', async () => {
+                    obClearError();
+                    obGoogleBtn.disabled = true;
+                    try {
+                        const user = await window.obFirebaseGoogleSignIn();
+                        obAfterSignIn(user, 'google');
+                    } catch (err) {
+                        obShowError(obFriendlyError(err));
+                        obGoogleBtn.disabled = false;
+                    }
+                });
+            }
+
+            const obAppleBtn = document.getElementById('obAppleBtn');
+            if (obAppleBtn) {
+                obAppleBtn.addEventListener('click', async () => {
+                    obClearError();
+                    obAppleBtn.disabled = true;
+                    try {
+                        const user = await window.obFirebaseAppleSignIn();
+                        obAfterSignIn(user, 'apple');
+                    } catch (err) {
+                        obShowError(obFriendlyError(err));
+                        obAppleBtn.disabled = false;
+                    }
+                });
+            }
 
         });
 
