@@ -18,7 +18,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
         import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js';
-        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithCredential } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
+        import { getAuth, onAuthStateChanged, signInAnonymously, GoogleAuthProvider, OAuthProvider, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyAMttgCdssC5eilsw08XcS5QxNURmvXhNg",
@@ -77,6 +77,7 @@
                 const metadata = {
                     contentType: 'audio/webm',
                     customMetadata: {
+                        product: 'rollr',
                         word: word,
                         wordIndex: String(wordIndex),
                         userId: userId,
@@ -94,6 +95,56 @@
                 console.error(`Failed to upload recording for "${word}":`, err);
             }
         };
+
+        // Expose Firebase auth handlers for login step
+        window.obFirebaseEmailSignIn = async function(email, password) {
+            const cred = await signInWithEmailAndPassword(auth, email, password);
+            return cred.user;
+        };
+        window.obFirebaseGoogleSignIn = async function() {
+            const provider = new GoogleAuthProvider();
+            const cred = await signInWithPopup(auth, provider);
+            return cred.user;
+        };
+        window.obFirebaseAppleSignIn = async function() {
+            const provider = new OAuthProvider('apple.com');
+            provider.addScope('email');
+            provider.addScope('name');
+            const cred = await signInWithPopup(auth, provider);
+            return cred.user;
+        };
+        window.obFirebasePasswordReset = async function(email) {
+            await sendPasswordResetEmail(auth, email);
+        };
+        window.obFirebaseSendEmailLink = async function(email) {
+            const continueUrl = window.location.origin + '/therollracademy/assessment.html#login';
+            const resp = await fetch('https://us-central1-rollr-academy.cloudfunctions.net/sendResetEmail', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'signin', email, continueUrl })
+            });
+            if (!resp.ok) {
+                const e = await resp.json().catch(() => ({}));
+                throw new Error(e.error || 'Failed to send sign-in email');
+            }
+            window.localStorage.setItem('emailForSignIn', email);
+        };
+        window.obFirebaseIsEmailLink = function(url) {
+            return isSignInWithEmailLink(auth, url);
+        };
+        window.obFirebaseCompleteEmailLink = async function(email, url) {
+            const cred = await signInWithEmailLink(auth, email, url);
+            return cred.user;
+        };
+        // Returns a signed-in, non-anonymous user if one exists, else null.
+        window.obFirebaseSignedInUser = function() {
+            const u = auth.currentUser;
+            return (u && !u.isAnonymous) ? u : null;
+        };
+        // Resolves once Firebase has restored persisted auth state on this load.
+        window.obFirebaseAuthReady = new Promise((resolve) => {
+            const unsub = onAuthStateChanged(auth, () => { unsub(); resolve(); });
+        });
 
         // If user is already logged in with Google, upgrade to Google auth in Firebase
         window.upgradeFirebaseAuth = async function(googleCredentialToken) {
@@ -165,6 +216,8 @@
             line-height: 1.6;
             color: #333;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         /* Footer container */
@@ -186,19 +239,36 @@
             margin: 0 auto;
             padding: 0 20px;
         }
+        .assessment-container:has(#step1.active) {
+            max-width: 1140px;
+            width: 100%;
+        }
+        /* Vertically center step1 (recording) content in viewport — box size unchanged */
+        .assessment-page:has(#step1.active) {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .assessment-container:has(#step1.active) .progress-container,
+        .assessment-container:has(#step1.active) .assessment-header {
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
 
         .assessment-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 12px;
         }
 
         .assessment-title {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-size: 42px;
+            font-size: 36px;
             font-weight: 700;
             color: white;
             margin-bottom: 16px;
             line-height: 1.2;
+            text-align: center;
         }
 
         .assessment-subtitle {
@@ -215,13 +285,13 @@
 
         /* Progress Bar */
         .progress-container {
-            margin: 40px 0;
+            margin: 4px 0 20px;
         }
 
         .progress-label {
             color: rgba(255, 255, 255, 0.9);
             font-size: 14px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             text-align: center;
         }
 
@@ -252,6 +322,10 @@
 
         .assessment-step.active {
             display: block;
+        }
+
+        #step1 {
+            width: 100%;
         }
 
         .step-title {
@@ -395,16 +469,90 @@
             line-height: 1.4;
         }
 
-        /* Clinical Recording Section — matches app */
+        /* Cyan accent override for assessment recording UI */
+        :root { --asmt-cyan: #22D3EE; }
+
+        /* Recording card centered; aside floats in left whitespace (matches PWA) */
+        .rec-layout {
+            position: relative;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .recording-section-wrap {
+            width: 100%;
+        }
+        .rec-aside {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        @media (min-width: 1100px) {
+            .rec-aside {
+                position: absolute;
+                top: 0;
+                right: calc(100% + 32px);
+                width: 320px;
+                margin-bottom: 0;
+            }
+        }
+        .aside-box {
+            background: #fff;
+            border: 1px solid rgba(15,23,42,0.12);
+            border-radius: 14px;
+            padding: 22px 20px 18px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            margin: 0;
+            position: relative;
+        }
+        .aside-legend {
+            position: absolute;
+            top: -7px;
+            left: 18px;
+            background: #fff;
+            padding: 0 8px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: var(--asmt-cyan);
+            text-transform: uppercase;
+            margin: 0;
+        }
+        .aside-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            margin-top: 12px;
+            font-size: 14px;
+            color: #1f2937;
+            line-height: 1.5;
+        }
+        .aside-num {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--asmt-cyan);
+            color: #fff;
+            font-weight: 700;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Clinical Recording Section — near-black card matching PWA */
         .recording-section {
             text-align: center;
             padding: 0;
-            background: #fff;
+            background: #0B0C0E;
+            color: #fff;
             border-radius: 20px;
-            margin: 20px 0;
-            border: 1px solid rgba(0,0,0,0.08);
-            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            margin: 0;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: none;
             overflow: hidden;
+            position: relative;
         }
 
         /* Header bar */
@@ -412,23 +560,38 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 20px 12px;
+            padding: 16px 20px 0;
         }
         .clinical-header-left {
             text-align: left;
+            flex: 1;
+            width: 100%;
+        }
+        .clinical-heading {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ffffff;
+            font-family: 'Quicksand', 'Inter', sans-serif;
+            text-align: center;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+            padding: 24px 20px 8px;
         }
         .clinical-label {
-            font-size: 10px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
             letter-spacing: 1.5px;
-            color: #14B8A6;
+            color: var(--asmt-cyan);
             text-transform: uppercase;
-            margin-bottom: 2px;
+            text-align: center;
         }
         .clinical-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
-            color: #0F172A;
+            color: #fff;
+            margin-top: 14px;
+            text-align: center;
+            padding-left: 0;
         }
         .rec-badge {
             display: none;
@@ -453,48 +616,55 @@
             color: #ef4444;
         }
 
-        /* Instructions box */
-        .clinical-instructions {
-            margin: 0 20px 12px;
-            padding: 12px 16px;
-            background: rgba(15,23,42,0.04);
-            border-radius: 12px;
-            text-align: left;
-        }
-        .clinical-instructions .clinical-label {
-            margin-bottom: 8px;
-        }
-        .instruction-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            margin-bottom: 6px;
-        }
-        .instruction-num {
-            font-size: 12px;
-            font-weight: 700;
-            font-family: monospace;
-            color: #14B8A6;
-            min-width: 16px;
-        }
-        .instruction-text {
+        /* Live instruction (state-driven dynamic header) */
+        .live-instruction {
+            margin: 0 20px 10px;
+            padding: 8px 12px;
+            font-family: 'Quicksand', 'Inter', sans-serif;
             font-size: 13px;
-            color: rgba(15,23,42,0.7);
+            font-weight: 600;
+            color: rgba(255,255,255,0.85);
+            text-align: center;
+            background: rgba(34,211,238,0.08);
+            border: 1px solid rgba(34,211,238,0.25);
+            border-radius: 9px;
+            line-height: 1.3;
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+        .live-instruction.recording {
+            background: rgba(244,67,54,0.12);
+            border-color: rgba(244,67,54,0.35);
+            color: #fecaca;
+        }
+        .live-instruction.done {
+            background: rgba(76,175,80,0.15);
+            border-color: rgba(76,175,80,0.35);
+            color: #bbf7d0;
+        }
+        .live-instruction .live-word {
+            color: var(--asmt-cyan);
+            font-weight: 700;
+        }
+        .instruction-tagline {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.45;
         }
 
         /* Word picker — glass card */
         .word-picker-label {
             font-size: 14px;
-            color: rgba(15,23,42,0.6);
+            color: rgba(255,255,255,0.6);
             margin-bottom: 8px;
         }
         .word-picker {
-            margin: 0 20px 16px;
-            background: rgba(15,23,42,0.04);
+            margin: 0 80px 16px;
+            background: rgba(255,255,255,0.06);
             border-radius: 28px;
-            border: 1px solid rgba(15,23,42,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
             display: flex;
             overflow: hidden;
+            position: relative;
         }
         .word-picker-words {
             flex: 1;
@@ -510,19 +680,22 @@
             justify-content: center;
             font-size: 16px;
             font-weight: 400;
-            color: rgba(15,23,42,0.35);
+            color: rgba(255,255,255,0.35);
             font-family: 'Inter', sans-serif;
             width: 100%;
             transition: all 0.3s;
+            text-transform: capitalize;
         }
-        .context-word.below { color: rgba(15,23,42,0.45); }
-        .context-word.far { color: rgba(15,23,42,0.2); }
+        .context-word.below { color: rgba(255,255,255,0.45); }
+        .context-word.far { color: rgba(255,255,255,0.2); }
 
-        /* Active pill */
+        /* Active pill — stretches across picker with breathing room */
         .active-pill {
             height: 56px;
-            margin: 0 10px;
-            border: 2px solid #14B8A6;
+            margin: 4px 10px;
+            width: calc(100% - 20px);
+            box-sizing: border-box;
+            border: 2px solid var(--asmt-cyan);
             border-radius: 36px;
             display: flex;
             align-items: center;
@@ -533,7 +706,7 @@
             font-size: 15px;
             font-weight: 500;
             font-family: monospace;
-            color: #14B8A6;
+            color: var(--asmt-cyan);
             width: 48px;
             text-align: left;
         }
@@ -541,19 +714,28 @@
             flex: 1;
             font-size: 26px;
             font-weight: 700;
-            color: #0F172A;
+            color: #ffffff;
             text-align: center;
             font-family: 'Inter', sans-serif;
+            text-transform: capitalize;
         }
         .pill-spacer { width: 48px; }
 
         /* Word picker divider + dots */
         .word-picker-divider-line {
+            position: absolute;
+            top: 14px;
+            bottom: 14px;
+            right: 44px;
             width: 1px;
-            background: rgba(15,23,42,0.12);
-            margin: 14px 0;
+            background: rgba(0,0,0,0.12);
+            margin: 0;
         }
         .word-picker-dots {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -563,36 +745,37 @@
         }
         .picker-dot {
             border-radius: 50%;
-            background: rgba(15,23,42,0.2);
+            background: rgba(0,0,0,0.2);
             transition: all 0.3s;
         }
-        .picker-dot.active { background: #14B8A6; }
-        .picker-dot.next   { background: #14B8A6; }
-        .picker-dot.done   { background: rgba(20,184,166,0.55); }
+        .picker-dot.active { background: var(--asmt-cyan); }
+        .picker-dot.next   { background: var(--asmt-cyan); }
+        .picker-dot.done   { background: rgba(34,211,238,0.55); }
 
         .word-divider {
             height: 1px;
-            background: rgba(15,23,42,0.12);
+            background: rgba(0,0,0,0.12);
             margin: 0 32px;
             width: calc(100% - 64px);
         }
 
-        /* VU Meter */
+        /* VU Meter — centered pill bars */
         .vu-meter {
             display: flex;
             justify-content: center;
-            align-items: flex-end;
-            gap: 3px;
-            height: 60px;
+            align-items: center;
+            gap: 6px;
+            height: 48px;
             padding: 0 20px;
             margin-bottom: 8px;
         }
         .vu-bar {
-            width: 3px;
-            border-radius: 1.5px;
-            background: #14B8A6;
+            width: 6px;
+            border-radius: 999px;
+            background: var(--asmt-cyan);
             transition: height 0.08s ease;
-            min-height: 2px;
+            min-height: 6px;
+            flex-shrink: 0;
         }
 
         /* Record button — circular */
@@ -603,9 +786,9 @@
             padding: 8px 0 20px;
         }
         .record-circle-btn {
-            width: 88px; height: 88px;
+            width: 68px; height: 68px;
             border-radius: 50%;
-            border: 3px solid rgba(20,184,166,0.3);
+            border: 3px solid rgba(34,211,238,0.35);
             background: transparent;
             cursor: pointer;
             position: relative;
@@ -618,48 +801,48 @@
         .record-circle-btn:active { transform: scale(0.95); }
         .record-circle-btn.recording { transform: scale(1.05); }
         .record-circle-inner {
-            width: 72px; height: 72px;
+            width: 54px; height: 54px;
             border-radius: 50%;
-            background: #14B8A6;
+            background: var(--asmt-cyan);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 24px rgba(20,184,166,0.4);
+            box-shadow: 0 0 24px rgba(34,211,238,0.45);
             transition: background 0.2s;
         }
         .record-circle-inner svg {
             fill: #0F172A;
-            width: 28px; height: 28px;
+            width: 22px; height: 22px;
         }
         .record-circle-btn.done .record-circle-inner {
             background: #22c55e;
         }
         /* Stop icon (square) */
         .stop-icon {
-            width: 26px; height: 26px;
-            border-radius: 6px;
+            width: 20px; height: 20px;
+            border-radius: 5px;
             background: #0F172A;
         }
         /* Forward (fast-forward) icon */
         .forward-icon {
-            width: 32px;
-            height: 32px;
+            width: 22px;
+            height: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .forward-icon svg {
-            width: 32px;
-            height: 32px;
+            width: 22px;
+            height: 22px;
             fill: #0F172A;
         }
 
         .record-label {
-            margin-top: 10px;
-            font-size: 11px;
+            margin-top: 8px;
+            font-size: 9px;
             font-weight: 600;
             letter-spacing: 1px;
-            color: rgba(15,23,42,0.55);
+            color: rgba(255,255,255,0.55);
             text-transform: uppercase;
         }
         .record-label.timeout {
@@ -703,6 +886,10 @@
             margin-top: 30px;
         }
 
+        .btn-group.btn-group-single {
+            justify-content: flex-end;
+        }
+
         .btn {
             padding: 16px 32px;
             border: none;
@@ -724,6 +911,16 @@
 
         .btn-primary:hover {
             background: #333333;
+        }
+
+        .btn:disabled,
+        .btn-primary:disabled {
+            background: transparent;
+            color: #374151;
+            border: 2px dashed #9ca3af;
+            cursor: not-allowed;
+            opacity: 1;
+            pointer-events: none;
         }
 
         .btn-secondary {
@@ -845,8 +1042,641 @@
                 padding: 0 15px;
             }
         }
+
+        /* Recording panel inside dark card */
+        .recording-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 8px 0 4px;
+        }
+        .clinical-header { position: relative; }
+        .clinical-header-left { text-align: left; }
+        .clinical-header .rec-badge.visible {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        /* Hide dynamic instruction banner — PWA original omits it */
+        .live-instruction { display: none !important; }
+        /* Hide right-side dots column + divider — original word-picker is clean */
+        .word-picker-divider-line,
+        .word-picker-dots { display: none !important; }
+        .word-picker-words { padding: 16px 0; }
+
+        /* ========================================================
+           PWA-style white background override (match PWA)
+           ======================================================== */
+        body {
+            background: #ffffff !important;
+        }
+        @media (max-width: 768px) {
+            body { background: #ffffff !important; }
+        }
+        .assessment-title { color: #0B0C0E; }
+        .assessment-subtitle { color: #475569; }
+        .assessment-tagline { color: #64748b; }
+        .progress-label { color: #475569; }
+        .progress-bar { background: rgba(15,23,42,0.08); }
+        .assessment-header { display: none; }
+        .progress-container { display: none; }
+        /* Wizard + analyzing both fullscreen split panels — no outer header/progress */
+        .assessment-container:has(#step3.active),
+        .assessment-container:has(#step4.active) {
+            max-width: none; padding: 0; margin: 0; width: 100vw;
+        }
+        .assessment-page:has(#step3.active),
+        .assessment-page:has(#step4.active) {
+            padding: 0 !important; margin: 0; min-height: 100vh;
+        }
+        #step3.assessment-step,
+        #step4.assessment-step {
+            padding: 0; margin: 0; border-radius: 0; border: none;
+            box-shadow: none; height: 100vh; min-height: 600px;
+            background: #fff;
+        }
+        #step3 .ob-split,
+        #step4 .ob-split { height: 100%; }
+        #step4 .ob-panel-left { padding-top: 80px; padding-bottom: 24px; }
+        /* Wizard left panel: card centered between nav and a pinned footer (PWA layout) */
+        #step3 .ob-panel-left {
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            padding: 0;
+        }
+        #step3 .ob-wiz-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            align-items: safe center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 88px 28px 12px;
+        }
+        #step3 .ob-wiz-foot {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px 28px 22px;
+        }
+        #step3 .obw-card { max-width: 460px; }
+        #step3 .ob-wiz-foot .obw-cta { max-width: 460px; width: 100%; margin: 0 auto; }
+        #step3 .ob-wiz-foot .obw-foot-links { display: flex; justify-content: center; gap: 20px; }
+
+        /* Onboarding wizard styles (port of PWA obw-*) */
+        .obw-card {
+            max-width: 460px; width: 100%; text-align: left;
+            position: relative; padding: 0;
+            display: flex; flex-direction: column; gap: 0;
+        }
+        .obw-back {
+            position: absolute; top: -32px; left: 0;
+            background: none; border: none;
+            color: rgba(0,0,0,.45);
+            font: 500 13px 'Inter', sans-serif;
+            cursor: pointer; padding: 4px 0;
+            display: inline-flex; align-items: center; gap: 3px;
+        }
+        .obw-back:hover { color: rgba(0,0,0,.8); }
+        .obw-back[hidden] { visibility: hidden; }
+        .obw-header { margin-bottom: 18px; }
+        .obw-header .ob-logo { margin-bottom: 14px; justify-content: center; display: flex; }
+        .obw-progress { margin-bottom: 14px; }
+        .obw-prog-pills { display: flex; gap: 4px; margin-bottom: 6px; }
+        .obw-prog-pill { flex: 1; height: 3px; border-radius: 2px; background: rgba(0,0,0,.10); transition: background .3s; }
+        .obw-prog-pill.on { background: #FF9800; }
+        .obw-prog-step-label { text-align: center; font-size: 11px; color: rgba(0,0,0,.38); }
+        .obw-prog-circles { display: none; align-items: center; height: 24px; }
+        .obw-prog-circle {
+            width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: transparent; border: 1.5px solid rgba(0,0,0,.15);
+            font: 700 9px 'Inter', sans-serif; color: rgba(0,0,0,.28);
+            transition: all .25s;
+        }
+        .obw-prog-circle.done { background: #FF9800; border-color: #FF9800; color: #fff; }
+        .obw-prog-circle.cur  {
+            background: #FF9800; border-color: #FF9800; color: #fff;
+            width: 22px; height: 22px; font-size: 11px;
+            box-shadow: 0 0 0 4px rgba(255,139,66,.13);
+        }
+        .obw-prog-sep { flex: 1; height: 2px; border-radius: 1px; background: rgba(0,0,0,.10); margin: 0 3px; transition: background .3s; }
+        .obw-prog-sep.on { background: #FF9800; }
+        .obw-title {
+            font: 700 22px 'Quicksand', 'Inter', sans-serif;
+            color: #111; line-height: 1.22; margin: 0 0 4px; text-align: left;
+        }
+        .obw-sub { font: 400 13px 'Inter', sans-serif; color: #4D4D4D; line-height: 1.5; margin: 0; }
+        .obw-rule { margin-top: 14px; border-bottom: 1px solid rgba(0,0,0,.09); }
+        .obw-content { display: flex; flex-direction: column; gap: 10px; }
+        @keyframes obw-slide-fwd { from { opacity:0; transform: translateX(28px); } to { opacity:1; transform:none; } }
+        @keyframes obw-slide-bwd { from { opacity:0; transform: translateX(-28px); } to { opacity:1; transform:none; } }
+        .obw-anim-fwd { animation: obw-slide-fwd .3s cubic-bezier(.4,0,.2,1) both; }
+        .obw-anim-bwd { animation: obw-slide-bwd .3s cubic-bezier(.4,0,.2,1) both; }
+        .obw-opt {
+            width: 100%;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 13px 14px;
+            background: #f8f8f8;
+            border: 2px solid rgba(0,0,0,.09);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background .18s, border-color .18s;
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+            min-height: 52px;
+            color: #111;
+        }
+        .obw-opt:hover { background: #FFF3E0; border-color: #FF9800; }
+        .obw-opt.on    { background: #FFF3E0; border-color: #FF9800; }
+        .obw-opt-label { font-size: 14px; font-weight: 500; color: #111; line-height: 1.3; }
+        .obw-opt-sub   { font-size: 12px; color: #4D4D4D; margin-top: 3px; line-height: 1.45; }
+        .obw-radio {
+            width: 18px; height: 18px; border-radius: 50%;
+            border: 2px solid rgba(0,0,0,.2);
+            background: transparent;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: all .18s;
+        }
+        .obw-radio.on { background: #FF9800; border-color: #FF9800; }
+        .obw-radio > div { width: 6px; height: 6px; border-radius: 50%; background: #fff; opacity: 0; }
+        .obw-radio.on > div { opacity: 1; }
+        .obw-section { display: flex; flex-direction: column; gap: 6px; }
+        .obw-sec-lbl {
+            font: 700 10px 'Inter', sans-serif;
+            letter-spacing: .08em; text-transform: uppercase;
+            color: #FF9800;
+        }
+        .obw-stack { display: flex; flex-direction: column; gap: 7px; }
+        .obw-footer {
+            display: flex; flex-direction: column; gap: 10px;
+            margin-top: 22px;
+        }
+        .obw-cta {
+            width: 100%;
+            max-width: 460px;
+            margin: 0 auto;
+            padding: 14px 20px;
+            background: #222; color: #fff;
+            border: none; border-radius: 12px;
+            font: 600 15px 'Inter', sans-serif;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            min-height: 52px;
+            transition: background .18s, box-shadow .18s, transform .15s;
+        }
+        .obw-cta:hover:not(:disabled) {
+            background: #111;
+            box-shadow: 0 6px 24px rgba(0,0,0,.18);
+            transform: translateY(-1px);
+        }
+        .obw-cta:disabled { background: rgba(0,0,0,.07); color: rgba(0,0,0,.28); cursor: not-allowed; }
+        .obw-foot-links { display: flex; justify-content: center; gap: 20px; }
+        .obw-foot-links a { font-size: 12px; color: #5b6470; text-decoration: none; }
+        .obw-foot-links a:hover { color: #111; }
+        .obw-input {
+            width: 100%; box-sizing: border-box;
+            padding: 14px 16px;
+            background: #f8f8f8;
+            border: 2px solid rgba(0,0,0,.09);
+            border-radius: 12px;
+            outline: none;
+            font: 500 15px 'Inter', sans-serif;
+            color: #111;
+            transition: border-color .18s, background .18s;
+        }
+        .obw-input::placeholder { color: rgba(0,0,0,.35); }
+        .obw-input:focus { background: #FFF8F0; border-color: #FF9800; }
+        .obw-other-input {
+            width: 100%; box-sizing: border-box;
+            padding: 11px 14px;
+            background: #f8f8f8;
+            border: 1.5px solid rgba(255,139,66,.55);
+            border-radius: 12px;
+            outline: none;
+            font: 400 13px 'Inter', sans-serif;
+            color: #111;
+            margin-top: -2px;
+            animation: obw-slide-fwd .22s ease both;
+        }
+        .obw-phone-row { display: flex; gap: 8px; }
+        .obw-phone-row .obw-cc {
+            flex: 0 0 86px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .obw-skip-note {
+            font-size: 12px; color: rgba(0,0,0,.42);
+            text-align: center; margin-top: -2px;
+        }
+
+        /* Analyzing step (step4) — PWA loader, white theme, full-width */
+        #step4 .ob-split { grid-template-columns: 1fr; }
+        #step4 .ob-panel-right { display: none; }
+        #step4 .ob-panel-left {
+            background: #fff;
+            color: #111;
+            padding-top: 0;
+            padding-bottom: 0;
+            align-items: center;
+            justify-content: center;
+        }
+        .asmt-loader {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 28px 20px;
+            gap: 10px;
+            width: 100%;
+            max-width: 460px;
+        }
+        .asmt-loader-orb {
+            position: relative;
+            width: 84px; height: 84px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .asmt-loader-ring-outer { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .asmt-loader-ring-outer circle { fill: none; stroke: rgba(0,0,0,0.18); stroke-width: 1.2; }
+        .asmt-loader-ring-inner {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            animation: asmt-orb-spin 2.4s linear infinite;
+            transform-origin: 50% 50%;
+        }
+        .asmt-loader-ring-inner circle { fill: none; stroke-width: 5; stroke-linecap: round; }
+        .asmt-loader-ring-inner .asmt-arc-bright { stroke: #FF9800; opacity: 0.95; }
+        .asmt-loader-ring-inner .asmt-arc-dim { stroke: #FF9800; opacity: 0.35; }
+        .asmt-loader-core {
+            position: relative;
+            width: 54px; height: 54px; border-radius: 50%;
+            background: transparent;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .asmt-loader-bars {
+            display: flex; align-items: center; gap: 2px; height: 22px;
+            animation: asmt-bars-pulse 1.2s ease-in-out infinite;
+        }
+        .asmt-loader-bars span { display: block; width: 2px; border-radius: 2px; background: #FF9800; }
+        .asmt-loader-bars span:nth-child(1) { height: 30%; }
+        .asmt-loader-bars span:nth-child(2) { height: 70%; }
+        .asmt-loader-bars span:nth-child(3) { height: 100%; }
+        .asmt-loader-bars span:nth-child(4) { height: 60%; }
+        .asmt-loader-bars span:nth-child(5) { height: 40%; }
+        .asmt-loader-eyebrow {
+            font-size: 12px; font-weight: 700; letter-spacing: 2.4px;
+            color: #FF9800; text-transform: uppercase; margin-top: 10px;
+        }
+        .asmt-loader-title {
+            font: 800 30px 'Quicksand', 'Inter', sans-serif;
+            line-height: 1.15; color: #111;
+            letter-spacing: -0.5px; margin: 4px 0 2px;
+            text-align: center;
+        }
+        .asmt-loader-sub {
+            font-size: 14px; color: rgba(0,0,0,0.55);
+            margin: 0; text-align: center;
+        }
+        .asmt-loader-steps {
+            margin-top: 14px; width: 100%; max-width: 360px;
+            background: #f8f8f8;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .asmt-loader-step {
+            display: flex; align-items: center; gap: 12px;
+            font: 600 14px 'Inter', sans-serif; color: #111;
+        }
+        .asmt-loader-step .asmt-step-icon {
+            width: 22px; height: 22px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .asmt-loader-step.done .asmt-step-icon {
+            background: #FF9800; border-radius: 50%; color: #1A202C;
+        }
+        .asmt-loader-step.done .asmt-step-icon svg { width: 14px; height: 14px; }
+        .asmt-loader-step.pending { color: rgba(0,0,0,0.7); }
+        .asmt-loader-step.pending .asmt-step-icon svg {
+            width: 18px; height: 18px; color: #FF9800;
+            animation: asmt-spin 1.4s linear infinite;
+        }
+        @keyframes asmt-orb-spin { to { transform: rotate(360deg); } }
+        @keyframes asmt-spin     { to { transform: rotate(360deg); } }
+        @keyframes asmt-bars-pulse { 0%,100%{opacity:0.85} 50%{opacity:1} }
+
+        /* legacy wrapper kept for any leftover refs (no longer used) */
+        .obw-analyze-wrap {
+            max-width: 460px; width: 100%;
+            display: flex; flex-direction: column; gap: 18px;
+        }
+        .obw-analyze-title {
+            font: 700 24px 'Quicksand', 'Inter', sans-serif;
+            color: #111; margin: 0; text-align: left;
+        }
+        .obw-analyze-sub {
+            font: 400 13px 'Inter', sans-serif;
+            color: #4D4D4D; line-height: 1.5; margin: 0;
+        }
+        .obw-analyze-list { display: flex; flex-direction: column; gap: 12px; }
+        .obw-analyze-row {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 16px;
+            background: #f8f8f8;
+            border: 2px solid rgba(0,0,0,.06);
+            border-radius: 12px;
+            transition: border-color .25s, background .25s;
+        }
+        .obw-analyze-row.active {
+            background: #FFF3E0;
+            border-color: #FF9800;
+        }
+        .obw-analyze-row.completed {
+            background: #ECFDF5;
+            border-color: #22C55E;
+        }
+        .obw-analyze-bullet {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,.06);
+            font: 700 13px 'Inter', sans-serif;
+            color: rgba(0,0,0,.4);
+            flex-shrink: 0;
+            transition: all .25s;
+        }
+        .obw-analyze-row.active .obw-analyze-bullet {
+            background: #FF9800; color: #fff;
+            box-shadow: 0 0 0 4px rgba(255,139,66,.18);
+        }
+        .obw-analyze-row.completed .obw-analyze-bullet {
+            background: #22C55E; color: #fff;
+        }
+        .obw-analyze-text { font: 500 14px 'Inter', sans-serif; color: #111; line-height: 1.4; }
+        .obw-analyze-row.active .obw-analyze-text { color: #B45309; }
+        .obw-analyze-row.completed .obw-analyze-text { color: #166534; }
+        .obw-analyze-foot {
+            margin-top: 6px;
+            font: 400 13px 'Inter', sans-serif;
+            color: #4D4D4D; font-style: italic; text-align: center;
+        }
+        .obw-analyze-foot strong { color: #FF9800; font-weight: 700; font-style: normal; }
+
+        /* Desktop: circles, hide pills */
+        @media (min-width: 881px) {
+            .obw-prog-circles    { display: flex; }
+            .obw-prog-pills      { display: none; }
+            .obw-prog-step-label { display: none; }
+            .obw-title { font-size: 26px; }
+            .obw-back  { top: -8px; }
+        }
+        @media (max-width: 880px) {
+            #step3 .ob-panel-right { display: none; }
+            .obw-card { padding-top: 28px; max-width: 100%; }
+            .obw-back { top: 0; font-size: 14px; }
+            .obw-title { font-size: 20px; }
+            .obw-sub { font-size: 12px; }
+            .obw-cta { padding: 13px 18px; min-height: 48px; font-size: 14px; }
+            .obw-opt { padding: 12px 14px; min-height: 48px; }
+        }
+        .assessment-step {
+            background: #ffffff;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border: 1px solid rgba(15,23,42,0.06);
+        }
+        #step1.assessment-step {
+            background: transparent;
+            box-shadow: none;
+            border: none;
+        }
+        .assessment-container:has(#step2.active) {
+            max-width: none;
+            padding: 0;
+            margin: 0;
+            width: 100vw;
+        }
+        .assessment-page:has(#step2.active) {
+            padding: 0 !important;
+            margin: 0;
+            min-height: 100vh;
+        }
+        #step2.assessment-step {
+            padding: 0;
+            margin: 0;
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+            height: 100vh;
+            min-height: 600px;
+        }
+        #step2 .ob-split { height: 100%; }
+        #step2 .ob-panel-left { padding-top: 100px; }
+        .step-title { color: #0B0C0E; }
+        .loading-title { color: #0B0C0E; }
+
+        /* Hide navbar Login button on assessment page (desktop + mobile) */
+        .user-login-nav { display: none !important; }
+
+        /* ========== Login (PWA-style, matches PWA exactly) ========== */
+        .ob-step-wrap { padding: 0; }
+        .ob-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+        .ob-panel-left {
+            display: flex; align-items: safe center; justify-content: center;
+            padding: 40px 28px; overflow-y: auto; background: #fff;
+            min-height: 100%;
+        }
+        .ob-card {
+            background: transparent; border: none; padding: 0;
+            max-width: 380px; width: 100%;
+            display: flex; flex-direction: column; align-items: stretch;
+        }
+        .ob-logo { margin-bottom: 28px; display: flex; justify-content: center; }
+        .ob-title {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 32px; font-weight: 700; letter-spacing: -0.015em;
+            color: #0f1115; line-height: 1.15; margin: 0 0 12px; text-align: center;
+        }
+        .ob-sub { color: #5b6470; font-size: 15px; font-weight: 400; line-height: 1.5; margin: 0 0 28px; text-align: center; }
+        .ob-panel-right { position: relative; background: #111; overflow: hidden; min-height: 100%; }
+        .ob-hero-img {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            object-fit: cover; object-position: center center; display: block;
+        }
+        .ob-panel-right::after {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+            height: 52%; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.9));
+            z-index: 1; pointer-events: none;
+        }
+        .ob-photo-badge {
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
+            padding: 20px 28px 26px;
+            display: flex; align-items: flex-end; justify-content: space-between;
+        }
+        .ob-photo-badge-name { font-size: 14px; font-weight: 700; color: #fff; margin: 0 0 3px; line-height: 1.3; }
+        .ob-photo-badge-sub { font-size: 12px; font-weight: 500; color: #fff; margin: 0; }
+        .ob-badge-right { text-align: right; }
+        .ob-badge-day-num {
+            font-size: 38px; font-weight: 800; color: #FF9800;
+            font-family: 'Quicksand', 'Inter', sans-serif; line-height: 1;
+        }
+        .ob-badge-day-label {
+            font-size: 10px; font-weight: 700; color: #FF9800;
+            text-transform: uppercase; letter-spacing: 0.12em; margin-top: 2px;
+        }
+        @media (max-width: 900px) {
+            .ob-split { grid-template-columns: 1fr; grid-template-rows: 32dvh 1fr; }
+            .ob-panel-right { min-height: 32dvh; }
+            .ob-panel-left { padding: 28px 18px; }
+            #step2 .ob-split { grid-template-rows: 1fr; }
+            #step2 .ob-panel-right { display: none; }
+            #step3 .ob-split { grid-template-rows: 1fr; }
+            #step3 .ob-panel-right { display: none; }
+            #step4 .ob-split { grid-template-rows: 1fr; }
+            #step4 .ob-panel-right { display: none; }
+            #step4 .ob-panel-left { flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 88px; }
+            /* Compact step3 so all options + Next fit one viewport */
+            #step3 .ob-wiz-body { padding: 72px 18px 6px; }
+            #step3 .ob-wiz-foot { padding: 8px 18px 14px; }
+            #step3 .obw-header { margin-bottom: 10px; }
+            #step3 .obw-header .ob-logo { display: none; }
+            #step3 .obw-back { position: static; top: auto; margin-bottom: 10px; }
+            #step3 .obw-rule { margin-top: 8px; }
+            #step3 .obw-content { gap: 7px; }
+            #step3 .obw-opt { padding: 9px 12px; min-height: 0; }
+            #step3 .obw-opt-sub { margin-top: 1px; }
+        }
+        .ob-logo { display: flex; justify-content: center; margin-bottom: 18px; }
+        .ob-title { font-family: 'Inter', sans-serif; font-size: 28px; font-weight: 700; color: #0B0C0E; text-align: center; margin: 0 0 8px; }
+        .ob-sub { font-size: 14px; color: #475569; text-align: center; margin: 0 0 22px; line-height: 1.5; }
+        .ob-social-btn {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            width: 100%; height: 52px; padding: 0 16px;
+            background: #fff; border: 1px solid #e6e8ec; border-radius: 10px;
+            color: #0f1115; font-size: 15px; font-weight: 600; font-family: inherit;
+            cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.05s ease;
+        }
+        .ob-social-btn svg { width: 20px; height: 20px; flex: none; }
+        .ob-social-btn:hover:not(:disabled) { background: #fafbfc; border-color: #d6d9de; }
+        .ob-social-btn:active:not(:disabled) { transform: scale(0.98); }
+        .ob-google-btn { margin-bottom: 10px; }
+        .ob-apple-btn { margin-bottom: 4px; background: #000; color: #fff; border-color: #000; }
+        .ob-apple-btn:hover:not(:disabled) { background: #1a1a1a; border-color: #1a1a1a; }
+        .ob-divider {
+            display: flex; align-items: center; gap: 10px;
+            margin: 18px 0 16px; color: rgba(0,0,0,0.35); font-size: 12px;
+        }
+        .ob-divider::before, .ob-divider::after { content: ''; flex: 1; height: 1px; background: rgba(0,0,0,0.1); }
+        .ob-form { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
+        .ob-field { display: flex; flex-direction: column; gap: 6px; }
+        .ob-field-lbl {
+            font-size: 12px; font-weight: 600; color: #4b5563;
+            letter-spacing: 0.02em; text-align: left;
+        }
+        .ob-input {
+            width: 100%; height: 48px; padding: 0 14px;
+            background: #fff; border: 1px solid #e6e8ec; border-radius: 10px;
+            color: #0f1115; font-size: 15px; font-family: inherit;
+            transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box;
+        }
+        .ob-input:focus { outline: none; border-color: #FF8B42; box-shadow: 0 0 0 3px rgba(255,139,66,0.15); }
+        .ob-pw-wrap { position: relative; display: block; }
+        .ob-input-pw { padding-right: 48px; }
+        .ob-pw-toggle {
+            position: absolute; top: 0; right: 0; height: 48px; width: 44px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0; border: none; background: transparent; color: #9aa1ac;
+            cursor: pointer; border-radius: 0 10px 10px 0;
+            transition: color 0.15s, transform 0.1s ease;
+        }
+        .ob-pw-toggle:hover { color: #4b5563; }
+        .ob-primary-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 100%; height: 52px; padding: 0 16px;
+            background: #FF8B42; border: 1px solid #FF8B42; border-radius: 10px;
+            color: #fff; font-size: 15px; font-weight: 600; font-family: inherit;
+            cursor: pointer; margin-top: 4px;
+            transition: background 0.2s, border-color 0.2s, transform 0.05s ease;
+        }
+        .ob-primary-btn:hover:not(:disabled) { background: #e67a35; border-color: #e67a35; }
+        .ob-primary-btn:active:not(:disabled) { transform: scale(0.98); }
+        .ob-primary-btn:disabled { opacity: 0.45; cursor: default; }
+        .ob-link-btn {
+            background: none; border: none; color: #FF8B42; font-size: 13px; font-weight: 600;
+            font-family: inherit; cursor: pointer; padding: 4px; align-self: center;
+            text-decoration: underline; text-underline-offset: 3px;
+        }
+        .ob-link-btn:hover:not(:disabled) { color: #e67a35; }
+        .ob-social-error { display: block; font-size: 12px; color: #dc2626; margin-top: 6px; min-height: 16px; }
+        .ob-privacy-row {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin-top: 12px; flex-wrap: wrap;
+        }
+        .ob-privacy-item {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 12px; font-weight: 700; color: #166534;
+            letter-spacing: 0.01em; white-space: nowrap;
+        }
+        .ob-privacy-dot { width: 3px; height: 3px; border-radius: 50%; background: #c8d8cd; display: inline-block; flex: none; }
+        .ob-slp-badge {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            margin: 12px 0 4px; padding: 7px 14px;
+            background: #f0faf4; border: 1px solid #bbf0d0; border-radius: 20px;
+            font-size: 11.5px; font-weight: 600; color: #166534;
+            letter-spacing: 0.01em; text-align: center; line-height: 1.3;
+        }
+        .ob-social-proof {
+            text-align: center; margin-top: 14px; margin-bottom: 0;
+            font-size: 12px; font-weight: 600; color: #FF8B42; letter-spacing: 0.01em;
+        }
+        /* Hide Free Assessment buttons in nav on this page (keep Login) */
+        .login-nav > .login-nav-button:not(.user-login-button),
+        .mobile-get-started:not(.user-login-nav) {
+            display: none !important;
+        }
+        /* Mobile reorder: HOW IT WORKS → Recording Session → NOTE */
+        @media (max-width: 1099px) {
+            .rec-layout {
+                display: flex;
+                flex-direction: column;
+            }
+            .rec-aside {
+                display: contents;
+            }
+            .rec-aside .aside-box:nth-child(1) { order: 1; margin-bottom: 16px; }
+            .recording-section-wrap { order: 2; margin-bottom: 16px; }
+            .rec-aside .aside-box:nth-child(2) { order: 3; }
+        }
+        /* Tablet / large mobile: vertically center content */
+        @media (min-width: 601px) and (max-width: 1099px) {
+            .assessment-page {
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding-top: 100px;
+                padding-bottom: 40px;
+            }
+            .assessment-container {
+                width: 100%;
+            }
+        }
+        /* Mobile: lightly compact so full card fits viewport */
+        @media (max-width: 768px) {
+            .assessment-page {
+                padding-top: 80px;
+                padding-bottom: 32px;
+            }
+            .clinical-header { padding: 14px 18px 0; }
+            .clinical-title { padding-left: 0; }
+            .word-picker { margin: 0 40px 12px; }
+            .active-pill { margin: 4px 10px; width: calc(100% - 20px); }
+            .record-btn-area { padding: 6px 0 16px; }
+        }
     </style>
     <link rel="stylesheet" href="css/nav.css">
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/bundle.min.js"></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -865,41 +1695,100 @@
             <div class="assessment-header">
                 <h1 class="assessment-title">Your Free R-Sound Assessment</h1>
                 <p class="assessment-subtitle">See exactly where your R sound needs work</p>
-                <p class="assessment-tagline">(This takes just 2 minutes)</p>
+                
             </div>
 
             <!-- Progress Bar -->
             <div class="progress-container">
-                <div class="progress-label">Step <span id="currentStep">1</span> of 5</div>
+                <div class="progress-label">Step <span id="currentStep">1</span> of 4</div>
                 <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill" style="width: 20%"></div>
+                    <div class="progress-fill" id="progressFill" style="width: 25%"></div>
                 </div>
             </div>
 
-            <!-- Step 1: Email Capture -->
-            <div class="assessment-step active" id="step1">
-                <h2 class="step-title">Step 1: Basic Information</h2>
-                <div class="step-content">
-                    <div class="form-group">
-                        <label class="form-label" for="email">Email Address:</label>
-                        <input type="email" id="email" class="form-input" placeholder="your.email@example.com" required>
-                        <div class="form-help">
-                            Why? We'll send your personalized results + a custom practice plan
+            <!-- Step 3: Survey wizard (comfort + age) — PWA-style -->
+            <div class="assessment-step ob-step-wrap" id="step3">
+              <div class="ob-split">
+                <div class="ob-panel-left">
+                  <div class="ob-wiz-body">
+                    <div class="ob-card obw-card">
+                      <button class="obw-back" id="obwBack" type="button">← Back</button>
+                      <div class="obw-header">
+                        <div class="ob-logo">
+                          <img src="/therollracademy/website-logo-thick-trans-compress.png" alt="The Rollr Academy" style="width:110px;height:auto;display:block;">
                         </div>
+                        <div class="obw-progress" id="obwProgress"></div>
+                        <h2 class="obw-title" id="obwTitle"></h2>
+                        <p class="obw-sub" id="obwSub"></p>
+                        <div class="obw-rule"></div>
+                      </div>
+                      <div class="obw-content" id="obwContent"></div>
                     </div>
+                  </div>
+                  <div class="ob-wiz-foot">
+                    <button class="obw-cta" id="obwCta" type="button" disabled>Next</button>
+                    <div class="obw-foot-links">
+                      <a href="https://topspeech.health/therollracademy/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>
+                      <a href="https://topspeech.health/therollracademy/terms.html" target="_blank" rel="noopener">Terms of Service</a>
+                    </div>
+                  </div>
                 </div>
-                <div class="btn-group">
-                    <div></div>
-                    <button class="btn btn-primary" onclick="nextStep()">Continue to Assessment →</button>
-                </div>
-                <div class="security-badge">
-                    <span class="icon">🔒</span>
-                    <span class="security-text">Your information is 100% confidential</span>
-                </div>
+                <aside class="ob-panel-right" aria-hidden="true">
+                  <img src="/therollracademy/sign-in-page-image.jpg" alt="" class="ob-hero-img">
+                  <div class="ob-photo-badge">
+                    <div class="ob-badge-left">
+                      <p class="ob-photo-badge-name">Anonymous · Teen on family iPhone · Florida</p>
+                      <p class="ob-photo-badge-sub">Improving daily</p>
+                    </div>
+                    <div class="ob-badge-right">
+                      <div class="ob-badge-day-num">98</div>
+                      <div class="ob-badge-day-label">Day streak</div>
+                    </div>
+                  </div>
+                </aside>
+              </div>
+            </div>
+            <!-- Hidden mirror inputs — wizard writes here; existing submit logic reads -->
+            <div style="display:none" aria-hidden="true">
+              <input type="radio" name="troubleWords" value="slight" id="trouble1">
+              <input type="radio" name="troubleWords" value="noticeable" id="trouble2">
+              <input type="radio" name="troubleWords" value="significant" id="trouble3">
+              <input type="radio" name="troubleWords" value="no_trouble" id="trouble4">
+              <input type="radio" name="troubleWords" value="unsure" id="trouble5">
+              <input type="radio" name="ageGroup" value="teen" id="age1">
+              <input type="radio" name="ageGroup" value="young_adult" id="age2">
+              <input type="radio" name="ageGroup" value="adult" id="age3">
+              <input type="radio" name="ageGroup" value="senior_adult" id="age4">
+              <input type="email" id="email">
+              <input type="radio" name="visitReason" value="google_ad" id="reason5">
+              <input type="radio" name="visitReason" value="social_media" id="reason6">
+              <input type="radio" name="visitReason" value="google_search" id="reason7">
+              <input type="radio" name="visitReason" value="reddit_community" id="reason8">
+              <input type="radio" name="visitReason" value="other" id="reason9">
+              <input type="text" id="otherReason">
+              <div id="otherReasonGroup"></div>
+              <input type="text" id="countrySelect" value="🇺🇸 United States">
+              <input type="hidden" id="countryCode" value="+1">
+              <div id="countryOptions"></div>
+              <input type="tel" id="phoneNumber">
             </div>
 
-            <!-- Step 2: Clinical Voice Recording (matches app UI) -->
-            <div class="assessment-step" id="step2" style="background:transparent;box-shadow:none;padding:0;">
+            <!-- Step 1: Instant Recording (The Hook) -->
+            <div class="assessment-step" id="step1" style="background:transparent;box-shadow:none;padding:0;">
+                <div id="recordingHost">
+                <div class="rec-layout">
+                    <aside class="rec-aside">
+                        <div class="aside-box">
+                            <div class="aside-legend">HOW IT WORKS</div>
+                            <div class="aside-row"><span class="aside-num">1</span><span>Tap to start recording.</span></div>
+                            <div class="aside-row"><span class="aside-num">2</span><span>Speak the word clearly.</span></div>
+                        </div>
+                        <div class="aside-box">
+                            <div class="aside-legend">NOTE</div>
+                            <div class="aside-row"><span>To get the best results, find a quiet spot with zero background noise. Make sure your recording of the test words is loud &amp; clear.</span></div>
+                        </div>
+                    </aside>
+                    <div class="recording-section-wrap">
                 <div class="recording-section">
                     <!-- Header -->
                     <div class="clinical-header">
@@ -913,27 +1802,11 @@
                         </div>
                     </div>
 
-                    <!-- Instructions -->
-                    <div class="clinical-instructions">
-                        <div class="clinical-label">HOW IT WORKS</div>
-                        <div class="instruction-row">
-                            <span class="instruction-num">1</span>
-                            <span class="instruction-text">Tap the button below to start recording</span>
-                        </div>
-                        <div class="instruction-row">
-                            <span class="instruction-num">2</span>
-                            <span class="instruction-text">Say the highlighted word clearly</span>
-                        </div>
-                        <div class="instruction-row">
-                            <span class="instruction-num">3</span>
-                            <span class="instruction-text">Tap again to record the next word</span>
-                        </div>
-                    </div>
-
-                    <!-- Word picker label -->
-                    <div class="word-picker-label">Speak the following <strong>words</strong> one at a time.</div>
-
-                    <!-- Word picker (glass card) -->
+                    <!-- Unified recording panel: word picker + waveform + record button -->
+                    <div class="recording-panel">
+                    <!-- Live instruction (state-driven) -->
+                    <div class="live-instruction" id="liveInstruction">Tap the microphone to start.</div>
+                    <!-- Word picker -->
                     <div class="word-picker" id="wordPicker">
                         <div class="word-picker-words" id="wordPickerWords">
                             <!-- filled by JS -->
@@ -956,118 +1829,87 @@
                                 <!-- Mic icon (default) -->
                                 <svg id="micIcon" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                                 <div class="stop-icon" id="stopIcon" style="display:none;"></div>
-                                <div class="forward-icon" id="forwardIcon" style="display:none;"><svg viewBox="0 0 24 24"><path d="M4 5v14l8-7-8-7zm9 0v14l8-7-8-7z"/></svg></div>
+                                <div class="forward-icon" id="forwardIcon" style="display:none;"><svg viewBox="0 0 24 24"><path d="M4 5v14l8-7-8-7zm9 0v14l8-7-8-7z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg></div>
                                 <svg id="checkIcon" style="display:none;" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
                             </div>
                         </button>
-                        <div class="record-label" id="recordLabel">TAP TO START RECORDING</div>
+                        <div class="record-label" id="recordLabel"></div>
                         <div class="timeout-hint" id="timeoutHint" style="display:none;">No speech detected — try again</div>
                     </div>
-                </div>
+                    </div>
 
-                <div class="btn-group" style="margin-top:16px;">
-                    <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                    <button class="btn btn-primary" onclick="nextStep()" id="step2Continue" disabled>Continue →</button>
+                </div>
+                    </div>
+                </div>
                 </div>
             </div>
 
-            <!-- Step 3: Self-Assessment Questions -->
-            <div class="assessment-step" id="step3">
-                <div class="step-content">
-                    <div class="form-group">
-                        <label class="form-label">How would you describe your comfort level with making the 'R' sound?</label>
-                        <div class="options-group">
-                            <div class="option-item">
-                                <input type="radio" id="trouble1" name="troubleWords" value="slight">
-                                <label for="trouble1">I have slight trouble with R sounds</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="trouble2" name="troubleWords" value="noticeable">
-                                <label for="trouble2">I have noticeable difficulty with R sounds</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="trouble3" name="troubleWords" value="significant">
-                                <label for="trouble3">I have significant trouble pronouncing R sounds</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="trouble4" name="troubleWords" value="no_trouble">
-                                <label for="trouble4">I don't have trouble with R sounds</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="trouble5" name="troubleWords" value="unsure">
-                                <label for="trouble5">Not sure/want assessment</label>
-                            </div>
+            <!-- Step 2: Login (PWA-style) -->
+            <div class="assessment-step ob-step-wrap active" id="step2">
+              <div class="ob-split">
+                <div class="ob-panel-left">
+                <div class="ob-card">
+                    <h2 class="ob-title">Assessment</h2>
+                    <p class="ob-sub">Register to unlock your free Speech Assessment &amp; identify the root cause of your rhotacism today.</p>
+
+                    <button class="ob-social-btn ob-google-btn" id="obGoogleBtn" type="button">
+                        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"/><path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+                        <span>Continue with Google</span>
+                    </button>
+
+                    <button class="ob-social-btn ob-apple-btn" id="obAppleBtn" type="button">
+                        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.05 20.28c-.98.95-2.05.86-3.08.43-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.43C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+                        <span>Continue with Apple</span>
+                    </button>
+
+                    <div class="ob-divider"><span>or</span></div>
+
+                    <form class="ob-form" id="obEmailForm" autocomplete="on" novalidate>
+                        <label class="ob-field">
+                            <span class="ob-field-lbl">Email</span>
+                            <input class="ob-input" id="obEmail" type="email" autocomplete="email" placeholder="you@example.com" required>
+                        </label>
+                        <div class="ob-social-error" id="obError" hidden></div>
+                        <button class="ob-primary-btn" id="obEmailSubmit" type="submit">Continue</button>
+                    </form>
+
+                    <div class="ob-privacy-row">
+                        <span class="ob-privacy-item">
+                            <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path fill="#22C55E" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 14l-3-3 1.41-1.41L11 12.17l4.59-4.58L17 9l-6 6z"/></svg>
+                            HIPAA Compliant
+                        </span>
+                        <span class="ob-privacy-dot"></span>
+                        <span class="ob-privacy-item">
+                            <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path fill="#22C55E" d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                            End-to-end encrypted
+                        </span>
+                    </div>
+                    <div class="ob-slp-badge">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.5 14.5l-4-4 1.41-1.41L10.5 13.67l5.59-5.59L17.5 9.5l-7 7z" fill="#22C55E"/></svg>
+                        Developed by Speech-Language Pathologists
+                    </div>
+                    <p class="ob-social-proof">Join a community of people from 94+ countries.</p>
+                </div>
+                </div>
+                <aside class="ob-panel-right" aria-hidden="true">
+                    <img src="/therollracademy/sign-in-page-image.jpg" alt="" class="ob-hero-img">
+                    <div class="ob-photo-badge">
+                        <div class="ob-badge-left">
+                            <p class="ob-photo-badge-name">Anonymous · Teen on family iPhone · Florida</p>
+                            <p class="ob-photo-badge-sub">Improving daily</p>
+                        </div>
+                        <div class="ob-badge-right">
+                            <div class="ob-badge-day-num">98</div>
+                            <div class="ob-badge-day-label">Day streak</div>
                         </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">What's your age group?</label>
-                        <div class="options-group">
-                            <div class="option-item">
-                                <input type="radio" id="age1" name="ageGroup" value="teen">
-                                <label for="age1">Teen (13-17 years)</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="age2" name="ageGroup" value="young_adult">
-                                <label for="age2">Young Adult (18-25 years)</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="age3" name="ageGroup" value="adult">
-                                <label for="age3">Adult (26-54 years)</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="age4" name="ageGroup" value="senior_adult">
-                                <label for="age4">Adult (55+ years)</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="btn-group">
-                    <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                    <button class="btn btn-primary" onclick="nextStep()" id="step3Continue" disabled>Continue →</button>
-                </div>
+                </aside>
+              </div>
             </div>
 
-            <!-- Step 4: Visit Reason -->
-            <div class="assessment-step" id="step4">
-                <div class="step-content">
-                    <div class="form-group">
-                        <label class="form-label">How did you learn about Rollr Academy?</label>
-                        <div class="options-group">
-                            <div class="option-item">
-                                <input type="radio" id="reason5" name="visitReason" value="google_ad">
-                                <label for="reason5">Via Google search ad</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="reason6" name="visitReason" value="social_media">
-                                <label for="reason6">Via Google search results</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="reason7" name="visitReason" value="google_search">
-                                <label for="reason7">Via Instagram</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="reason8" name="visitReason" value="reddit_community">
-                                <label for="reason8">Via Reddit Community</label>
-                            </div>
-                            <div class="option-item">
-                                <input type="radio" id="reason9" name="visitReason" value="other">
-                                <label for="reason9">Other</label>
-                            </div>
-                        </div>
-                        <div class="form-group" id="otherReasonGroup" style="display: none;">
-                            <label class="form-label" for="otherReason">Please specify:</label>
-                            <input type="text" id="otherReason" class="form-input" placeholder="Please tell us how you found us...">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="phoneNumber">Phone Number (Optional):</label>
-                        <div class="phone-input-container">
-                            <div class="country-dropdown">
-                                <input type="text" id="countrySelect" class="country-select" placeholder="🇺🇸 United States" value="🇺🇸 United States" readonly>
-                                <input type="hidden" id="countryCode" value="+1">
-                                <div class="country-options" id="countryOptions">
+            <!-- Step 4 (old email page) REMOVED — fields are now wizard sub-steps 3/4/5 -->
+            <div style="display:none !important" aria-hidden="true">
+                <div class="country-options" id="countryOptionsDeprecated">
                                     <div class="country-option" data-code="+1" data-country="United States">🇺🇸 United States</div>
                                     <div class="country-option" data-code="+44" data-country="United Kingdom">🇬🇧 United Kingdom</div>
                                     <div class="country-option" data-code="+91" data-country="India">🇮🇳 India</div>
@@ -1111,64 +1953,88 @@
                                     <div class="country-option" data-code="+254" data-country="Kenya">🇰🇪 Kenya</div>
                                     <div class="country-option" data-code="+7" data-country="Russia">🇷🇺 Russia</div>
                                     <div class="country-option" data-code="+380" data-country="Ukraine">🇺🇦 Ukraine</div>
-                                    <div class="country-option" data-code="+852" data-country="Hong Kong">🇭🇰 Hong Kong</div>
-                                    <div class="country-option" data-code="+886" data-country="Taiwan">🇹🇼 Taiwan</div>
                                 </div>
-                            </div>
-                            <input type="tel" id="phoneNumber" class="form-input phone-input" placeholder="(000) 000-0000">
-                        </div>
-                        <div class="form-help">
-                            We may send you text reminders about your practice sessions (optional)
-                        </div>
-                    </div>
-                </div>
-                <div class="btn-group">
-                    <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                    <button class="btn btn-primary" onclick="nextStep()" id="step4Continue" disabled>Continue →</button>
-                </div>
             </div>
 
-            <!-- Step 5: Processing Screen -->
-            <div class="assessment-step" id="step5">
-                <div class="loading-screen">
-                    <h2 class="loading-title">🔬 Analyzing Your R Sound Patterns<span class="loading-dots">.</span><span class="loading-dots">.</span><span class="loading-dots">.</span></h2>
-                    
-                    <div class="loading-steps">
-                        <div class="loading-step completed" id="loading1">
-                            <span class="icon">⚡</span>
-                            <span>Identifying substitution patterns...</span>
+            <!-- Step 4: Analyzing (PWA dark loader) -->
+            <div class="assessment-step ob-step-wrap" id="step4">
+              <div class="ob-split">
+                <div class="ob-panel-left">
+                  <div class="asmt-loader">
+                    <div class="asmt-loader-orb">
+                      <svg class="asmt-loader-ring-outer" viewBox="0 0 120 120" aria-hidden="true">
+                        <circle cx="60" cy="60" r="54"/>
+                      </svg>
+                      <svg class="asmt-loader-ring-inner" viewBox="0 0 120 120" aria-hidden="true">
+                        <circle class="asmt-arc-dim" cx="60" cy="60" r="44" stroke-dasharray="60 216" stroke-dashoffset="0"/>
+                        <circle class="asmt-arc-bright" cx="60" cy="60" r="44" stroke-dasharray="60 216" stroke-dashoffset="-70"/>
+                        <circle class="asmt-arc-bright" cx="60" cy="60" r="44" stroke-dasharray="60 216" stroke-dashoffset="-173"/>
+                      </svg>
+                      <div class="asmt-loader-core">
+                        <div class="asmt-loader-bars" aria-hidden="true">
+                          <span></span><span></span><span></span><span></span><span></span>
                         </div>
-                        <div class="loading-step" id="loading2">
-                            <span class="icon">🎯</span>
-                            <span>Calculating tongue placement corrections...</span>
-                        </div>
-                        <div class="loading-step" id="loading3">
-                            <span class="icon">📊</span>
-                            <span>Generating your custom 16-week roadmap...</span>
-                        </div>
+                      </div>
                     </div>
-                    
-                    <p style="margin-top: 30px; color: #666; font-style: italic;">
-                        Your results will appear in <span id="countdown">5</span>... 
-                    </p>
+                    <div class="asmt-loader-eyebrow">Processing Data</div>
+                    <h3 class="asmt-loader-title">Analyzing Phonetic Patterns</h3>
+                    <p class="asmt-loader-sub">Running DSP-Rhotic analysis engine…</p>
+                    <div class="asmt-loader-steps">
+                      <div class="asmt-loader-step done" id="loading1">
+                        <span class="asmt-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                        <span>Audio segmentation</span>
+                      </div>
+                      <div class="asmt-loader-step done" id="loading2">
+                        <span class="asmt-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                        <span>Formant extraction</span>
+                      </div>
+                      <div class="asmt-loader-step pending" id="loading3">
+                        <span class="asmt-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg></span>
+                        <span>Phonetic classification</span>
+                      </div>
+                      <div class="asmt-loader-step pending" id="loading4">
+                        <span class="asmt-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg></span>
+                        <span>Generating report</span>
+                      </div>
+                    </div>
+                    <span id="countdown" style="display:none;">10</span>
+                  </div>
                 </div>
+                <aside class="ob-panel-right" aria-hidden="true">
+                  <img src="/therollracademy/sign-in-page-image.jpg" alt="" class="ob-hero-img">
+                  <div class="ob-photo-badge">
+                    <div class="ob-badge-left">
+                      <p class="ob-photo-badge-name">Anonymous · Teen on family iPhone · Florida</p>
+                      <p class="ob-photo-badge-sub">Improving daily</p>
+                    </div>
+                    <div class="ob-badge-right">
+                      <div class="ob-badge-day-num">98</div>
+                      <div class="ob-badge-day-label">Day streak</div>
+                    </div>
+                  </div>
+                </aside>
+              </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/bundle.min.js"></script>
     <script>
         // =============================================
         // STATE
         // =============================================
-        let currentStepNum = 1;
-        const TOTAL_STEPS = 5;
+        // Flow order (DOM step ids): login → recording → survey → analyzing
+        const STEP_ORDER = [2, 1, 3, 4];
+        let orderIdx = 0;
+        let currentStepNum = STEP_ORDER[orderIdx]; // 2 = login shows first
+        let step4SubmitPromise = null;
+        const TOTAL_STEPS = 4;
+        const FINAL_SCREEN_STEP = 4;
+        const VU_BAR_COUNT = 14;
+        // R-sound test word list
         const TEST_WORDS = ['red', 'car', 'tree', 'around', 'forest', 'problem', 'girl', 'world'];
+        const FORMEASY_URL = 'https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec';
         const GCP_ANALYZE_URL = 'https://us-central1-detache-platform.cloudfunctions.net/analyzeSpeech';
         //const GCP_ANALYZE_URL = 'http://localhost:8080';
-        const FORMEASY_URL = 'https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec';
-
         // Recording state
         let mediaRecorder = null;
         let audioChunks = [];
@@ -1179,90 +2045,8 @@
         let wordRecordings = [];       // Blob per word
         let wordRecordingsB64 = {};    // base64 per word (for playback on results page)
         let allWordsRecorded = false;
+        let userGender = 'male';
         let analysisPromise = null;    // Tracks the backend API call
-
-        // =============================================
-        // NAVIGATION
-        // =============================================
-        function updateProgress() {
-            document.getElementById('progressFill').style.width = ((currentStepNum / TOTAL_STEPS) * 100) + '%';
-            document.getElementById('currentStep').textContent = currentStepNum;
-        }
-
-        async function nextStep() {
-            const btn = document.querySelector('#step' + currentStepNum + ' .btn-primary');
-            if (!btn || btn.disabled) return;
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = 'Loading...';
-
-            if (await validateCurrentStep()) {
-                document.getElementById('step' + currentStepNum).classList.remove('active');
-                currentStepNum++;
-                if (currentStepNum <= TOTAL_STEPS) {
-                    document.getElementById('step' + currentStepNum).classList.add('active');
-                    updateProgress();
-                    if (currentStepNum === 2) initWordRecording();
-                    if (currentStepNum === 5) startProcessing();
-                }
-            } else {
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
-        }
-
-        function prevStep() {
-            if (currentStepNum > 1) {
-                document.getElementById('step' + currentStepNum).classList.remove('active');
-                currentStepNum--;
-                document.getElementById('step' + currentStepNum).classList.add('active');
-                updateProgress();
-            }
-        }
-
-        // =============================================
-        // VALIDATION
-        // =============================================
-        async function validateCurrentStep() {
-            switch (currentStepNum) {
-                case 1: {
-                    const email = document.getElementById('email').value;
-                    if (!email || !email.includes('@')) { alert('Please enter a valid email address.'); return false; }
-                    registerEmail(email);
-                    return true;
-                }
-                case 2: {
-                    if (!allWordsRecorded) { alert('Please record all 8 words.'); return false; }
-                    return true;
-                }
-                case 3: {
-                    const comfort = document.querySelector('input[name="troubleWords"]:checked');
-                    const age = document.querySelector('input[name="ageGroup"]:checked');
-                    if (!comfort) { alert('Please answer the R sound comfort level question.'); return false; }
-                    if (!age) { alert('Please select your age group.'); return false; }
-                    submitToFormEasy('assessment_step3', { trouble_words_response: comfort.value, age_group: age.value, message: `Step 3: Trouble words response - ${comfort.value}, Age group - ${age.value}` });
-                    return true;
-                }
-                case 4: {
-                    const reason = document.querySelector('input[name="visitReason"]:checked');
-                    if (!reason) { alert('Please answer how you found us.'); return false; }
-                    if (reason.value === 'other' && !document.getElementById('otherReason').value.trim()) {
-                        alert('Please specify how you found us.'); return false;
-                    }
-                    const phone = document.getElementById('phoneNumber').value.trim();
-                    const code = document.getElementById('countryCode').value;
-                    const foundOn = reason.value === 'other' ? document.getElementById('otherReason').value : reason.value;
-                    const fullPhone = phone ? code + ' ' + phone : '';
-                    await submitToFormEasy('assessment_step4', {
-                        found_on: foundOn,
-                        phone_number: fullPhone,
-                        message: `Step 4: Found on - ${foundOn}${fullPhone ? ', Phone - ' + fullPhone : ''}`
-                    });
-                    return true;
-                }
-                default: return true;
-            }
-        }
 
         // =============================================
         // MIC FEEDBACK CHIMES (wav samples)
@@ -1278,6 +2062,106 @@
 
         function playStopChime() {
             try { _stopSfx.currentTime = 0; _stopSfx.play().catch(() => {}); } catch (e) {}
+        }
+
+        // =============================================
+        // NAVIGATION
+        // =============================================
+        function updateProgress() {
+            // Login (orderIdx 0) has no visible number; recording/survey/analyzing → 1..3 of 4
+            const visible = orderIdx === 0 ? 1 : orderIdx;
+            const denom = 4;
+            document.getElementById('progressFill').style.width = ((visible / denom) * 100) + '%';
+            document.getElementById('currentStep').textContent = visible;
+            updateFooterVisibility();
+        }
+
+        // Hide site footer on login (step2) and onboarding survey (step3)
+        function updateFooterVisibility() {
+            const footer = document.querySelector('footer');
+            if (!footer) return;
+            footer.style.display = (currentStepNum === 2 || currentStepNum === 3) ? 'none' : '';
+        }
+
+        function syncRecordingContinueButton() {
+            const cont = document.getElementById('recordingContinueBtn');
+            if (!cont) return;
+            cont.disabled = !allWordsRecorded;
+        }
+
+        async function nextStep() {
+            const btn = document.querySelector('#step' + currentStepNum + ' .btn-primary');
+            let originalText = null;
+            if (btn) {
+                if (btn.disabled) return;
+                originalText = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = 'Loading...';
+            }
+
+            if (await validateCurrentStep()) {
+                document.getElementById('step' + currentStepNum).classList.remove('active');
+                if (orderIdx < STEP_ORDER.length - 1) {
+                    orderIdx++;
+                    currentStepNum = STEP_ORDER[orderIdx];
+                    document.getElementById('step' + currentStepNum).classList.add('active');
+                    updateProgress();
+                    if (currentStepNum === 1) { initWordRecording(); moveRecordingTo('recordingHost'); }
+                    if (currentStepNum === 3 && typeof window.initStep3Wizard === 'function') window.initStep3Wizard();
+                    if (currentStepNum === FINAL_SCREEN_STEP) startProcessing();
+                }
+            } else if (btn) {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function prevStep() {
+            if (orderIdx > 0) {
+                document.getElementById('step' + currentStepNum).classList.remove('active');
+                orderIdx--;
+                currentStepNum = STEP_ORDER[orderIdx];
+                document.getElementById('step' + currentStepNum).classList.add('active');
+                updateProgress();
+                if (currentStepNum === 1) moveRecordingTo('recordingHost');
+                if (currentStepNum === 3 && typeof window.initStep3Wizard === 'function') window.initStep3Wizard();
+            }
+        }
+
+        // Ensure the recording section is mounted in the recording step host
+        function moveRecordingTo(hostId) {
+            const host = document.getElementById(hostId);
+            const wrap = host && host.querySelector('.recording-section-wrap');
+            const target = wrap || host;
+            const section = document.querySelector('.recording-section');
+            if (target && section && section.parentElement !== target) {
+                target.appendChild(section);
+            }
+            syncRecordingContinueButton();
+        }
+
+        // =============================================
+        // VALIDATION
+        // =============================================
+        async function validateCurrentStep() {
+            switch (currentStepNum) {
+                case 1: {
+                    if (!allWordsRecorded) { alert('Please record all ' + TEST_WORDS.length + ' words.'); return false; }
+                    return true;
+                }
+                case 2: {
+                    if (!window.obLoggedInUser) {
+                        alert('Please sign in to continue.');
+                        return false;
+                    }
+                    return true;
+                }
+                case 3: {
+                    // Wizard validates itself + commits to hidden inputs in wizFinish()
+                    return true;
+                }
+                default: return true;
+            }
         }
 
         // =============================================
@@ -1316,11 +2200,11 @@
         function renderVuMeter() {
             const vu = document.getElementById('vuMeter');
             vu.innerHTML = '';
-            for (let i = 0; i < 12; i++) {
+            for (let i = 0; i < VU_BAR_COUNT; i++) {
                 const bar = document.createElement('div');
                 bar.className = 'vu-bar';
                 bar.id = 'vuBar' + i;
-                bar.style.height = '2px';
+                bar.style.height = '6px';
                 vu.appendChild(bar);
             }
         }
@@ -1330,18 +2214,11 @@
             const wordsEl = document.getElementById('wordPickerWords');
             const dotsEl = document.getElementById('wordPickerDots');
 
-            // Context words
-            const prev = currentWordIndex - 1;
+            // Context words — pill + next two (matches PWA)
             const next1 = currentWordIndex + 1;
             const next2 = currentWordIndex + 2;
 
             wordsEl.innerHTML = '';
-
-            // Previous word
-            const prevDiv = document.createElement('div');
-            prevDiv.className = 'context-word';
-            prevDiv.textContent = prev >= 0 ? TEST_WORDS[prev] : '';
-            wordsEl.appendChild(prevDiv);
 
             // Active pill
             const pill = document.createElement('div');
@@ -1403,36 +2280,57 @@
             label.classList.remove('timeout');
             btn.disabled = false;
 
+            const live = document.getElementById('liveInstruction');
+            if (live) live.classList.remove('recording', 'done');
+
             if (allWordsRecorded) {
                 check.style.display = 'block';
                 btn.classList.add('done');
                 btn.disabled = true;
                 label.textContent = 'ALL WORDS CAPTURED';
+                if (live) {
+                    live.classList.add('done');
+                    live.textContent = "Good. Tap 'Continue' ";
+                }
             } else if (isRecording) {
                 stop.style.display = 'block';
                 btn.classList.add('recording');
                 badge.classList.add('visible');
-                label.textContent = 'LISTENING...';
+                
+                if (live) {
+                    live.classList.add('recording');
+                    live.innerHTML = `Now, say <span class="live-word">'${TEST_WORDS[currentWordIndex]}'</span> clearly.`;
+                }
             } else if (isWaitingForNext) {
                 fwd.style.display = 'block';
                 label.textContent = 'TAP FOR NEXT WORD';
+                if (live) {
+                    const next = TEST_WORDS[currentWordIndex + 1];
+                    live.innerHTML = next
+                        ? `Good. Tap to record <span class="live-word">'${next}'</span>.`
+                        : "Good. Tap to record next word.";
+                }
             } else if (wordTimedOut) {
                 mic.style.display = 'block';
                 label.textContent = 'TAP TO RETRY';
                 label.classList.add('timeout');
                 hint.style.display = 'block';
+                if (live) live.textContent = 'No speech detected. Tap microphone to retry.';
             } else if (currentWordIndex === 0 && wordRecordings.length === 0) {
                 mic.style.display = 'block';
                 label.textContent = 'TAP TO START RECORDING';
+                if (live) live.innerHTML = `Tap microphone to record <span class="live-word">'${TEST_WORDS[0]}'</span>.`;
             } else {
                 mic.style.display = 'block';
                 label.textContent = 'TAP TO BEGIN CAPTURE';
+                if (live) live.innerHTML = `Tap microphone to record <span class="live-word">'${TEST_WORDS[currentWordIndex]}'</span>.`;
             }
         }
 
         // Main record button handler
         async function handleRecordTap() {
             if (allWordsRecorded) return;
+            userGender = 'male';
             if (isRecording) {
                 // Manual stop = discard; only VAD onSpeechEnd commits + advances
                 stopWordRecording(true);
@@ -1452,7 +2350,15 @@
         // Start recording one word with audio analysis
         async function startWordRecording() {
             try {
-                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,   // cancel chime bleed via system AEC
+                        noiseSuppression: false,
+                        autoGainControl: false,
+                        sampleRate: 48000,
+                        channelCount: 1
+                    }
+                });
                 mediaRecorder = new MediaRecorder(audioStream);
                 audioChunks = [];
                 speechDetected = false;
@@ -1463,6 +2369,9 @@
                 const source = audioContext.createMediaStreamSource(audioStream);
                 analyserNode = audioContext.createAnalyser();
                 analyserNode.fftSize = 256;
+                analyserNode.smoothingTimeConstant = 0.4;
+                analyserNode.minDecibels = -90;
+                analyserNode.maxDecibels = -20;
                 source.connect(analyserNode);
 
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
@@ -1492,33 +2401,59 @@
             }
         }
 
-        // VU meter animation
+        // VU meter animation — water-wave ripple
         function startVuMeter() {
-            const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+            const freqArray = new Uint8Array(analyserNode.frequencyBinCount);
+            const timeArray = new Uint8Array(analyserNode.fftSize);
+            // History buffer: new amplitude enters at center, ripples outward
+            const history = new Array(VU_BAR_COUNT).fill(6);
+            const prevHeights = new Array(VU_BAR_COUNT).fill(6);
+            const center = Math.floor(VU_BAR_COUNT / 2);
             function animate() {
                 if (!isRecording && !isWaitingForNext) {
-                    // Reset bars
-                    for (let i = 0; i < 12; i++) {
+                    for (let i = 0; i < VU_BAR_COUNT; i++) {
                         const bar = document.getElementById('vuBar' + i);
-                        if (bar) bar.style.height = '2px';
+                        if (bar) bar.style.height = '6px';
+                        history[i] = 6;
+                        prevHeights[i] = 6;
                     }
                     return;
                 }
-                analyserNode.getByteFrequencyData(dataArray);
+                analyserNode.getByteFrequencyData(freqArray);
+                analyserNode.getByteTimeDomainData(timeArray);
 
-                // Calculate levels for 12 bars
-                const step = Math.floor(dataArray.length / 12);
-                let maxLevel = 0;
-                for (let i = 0; i < 12; i++) {
-                    let sum = 0;
-                    for (let j = 0; j < step; j++) sum += dataArray[i * step + j];
-                    const level = (sum / step) / 255;
-                    maxLevel = Math.max(maxLevel, level);
+                // Overall RMS amplitude from time-domain samples
+                let sumSq = 0;
+                for (let i = 0; i < timeArray.length; i++) {
+                    const v = (timeArray[i] - 128) / 128;
+                    sumSq += v * v;
+                }
+                const rms = Math.sqrt(sumSq / timeArray.length);
+                const visualLevel = Math.min(1, Math.pow(rms * 14, 0.7));
+                const newHeight = Math.max(6, visualLevel * 68);
+
+                // Ripple outward: shift history away from center each frame,
+                // inject the new amplitude at the center.
+                for (let i = 0; i < center - 1; i++) history[i] = history[i + 1];
+                for (let i = VU_BAR_COUNT - 1; i > center; i--) history[i] = history[i - 1];
+                history[center - 1] = newHeight;
+                history[center] = newHeight;
+
+                // Smooth each bar toward its history value for fluid water-like easing
+                for (let i = 0; i < VU_BAR_COUNT; i++) {
+                    prevHeights[i] += (history[i] - prevHeights[i]) * 0.45;
                     const bar = document.getElementById('vuBar' + i);
-                    if (bar) bar.style.height = Math.max(2, level * 56) + 'px';
+                    if (bar) bar.style.height = prevHeights[i].toFixed(1) + 'px';
                 }
 
-                // Amplitude-based fallback only if VAD failed to initialize
+                // Speech-detection level from frequency data (unchanged behavior)
+                let maxLevel = 0;
+                for (let i = 0; i < freqArray.length; i++) {
+                    const lvl = freqArray[i] / 255;
+                    if (lvl > maxLevel) maxLevel = lvl;
+                }
+
+                // Fallback amplitude-based detection only if VAD failed to initialize
                 if (!vadInstance) {
                     if (maxLevel > SPEECH_THRESHOLD) {
                         if (!speechDetected) {
@@ -1527,7 +2462,6 @@
                         }
                         lastSpeechTime = Date.now();
                     }
-
                     if (speechDetected && lastSpeechTime > 0 && (Date.now() - lastSpeechTime) > SILENCE_DURATION) {
                         const speechDuration = lastSpeechTime - speechStartTime;
                         if (speechDuration >= MIN_SPEECH_DURATION) {
@@ -1561,7 +2495,6 @@
             clearTimeout(silenceTimer);
             if (wordTimer) cancelAnimationFrame(wordTimer);
             if (vuAnimFrame) cancelAnimationFrame(vuAnimFrame);
-            stopVad();
 
             if (mediaRecorder && isRecording) {
                 isRecording = false;
@@ -1570,9 +2503,9 @@
                     mediaRecorder.ondataavailable = null;
                     mediaRecorder.onstop = () => {
                         // Reset VU bars
-                        for (let i = 0; i < 12; i++) {
+                        for (let i = 0; i < VU_BAR_COUNT; i++) {
                             const bar = document.getElementById('vuBar' + i);
-                            if (bar) bar.style.height = '2px';
+                            if (bar) bar.style.height = '6px';
                         }
                         updateRecordButton();
                     };
@@ -1580,6 +2513,7 @@
                 mediaRecorder.stop();
                 audioStream.getTracks().forEach(t => t.stop());
                 if (audioContext) { audioContext.close(); audioContext = null; }
+                stopVad();
             }
         }
 
@@ -1603,6 +2537,7 @@
                     minSpeechFrames: 3,
                     redemptionFrames: 12,
                     onSpeechStart: () => {
+                        console.log('[VAD] ✅ human voice detected — speech start');
                         if (!isRecording) return;
                         if (!speechDetected) {
                             speechDetected = true;
@@ -1612,15 +2547,19 @@
                     },
                     onSpeechEnd: (audio) => {
                         const dur = Date.now() - speechStartTime;
+                        console.log('[VAD] 🛑 human voice ended — duration ' + dur + 'ms, samples=' + (audio ? audio.length : 0));
                         if (!isRecording) return;
                         lastSpeechTime = Date.now();
                         if (dur >= MIN_SPEECH_DURATION) {
                             stopWordRecording();
                         }
                     },
-                    onVADMisfire: () => {},
+                    onVADMisfire: () => {
+                        console.log('[VAD] ⚠️ misfire — sound too short, ignored as non-speech');
+                    },
                 });
                 vadInstance.start();
+                console.log('[VAD] started — listening for human voice (ignores noise amplitude)');
             } catch (e) {
                 console.warn('VAD init failed, falling back to amplitude detection:', e);
                 vadInstance = null;
@@ -1637,19 +2576,21 @@
         async function onWordRecordingStopped() {
             const blob = new Blob(audioChunks, { type: 'audio/webm' });
 
-            // Validate: reject if no speech detected during capture. Prompt re-record.
+            // Validate audio: reject if no speech detected during capture or
+            // post-recording RMS shows silence. Prompt user to re-record.
             if (!speechDetected) {
                 wordTimedOut = true;
                 audioChunks = [];
-                for (let i = 0; i < 12; i++) {
+                for (let i = 0; i < VU_BAR_COUNT; i++) {
                     const bar = document.getElementById('vuBar' + i);
-                    if (bar) bar.style.height = '2px';
+                    if (bar) bar.style.height = '6px';
                 }
                 updateRecordButton();
                 return;
             }
 
             wordRecordings.push(blob);
+            syncRecordingContinueButton();
 
             // Upload individual word recording to Firebase Storage
             if (typeof window.uploadRecordingToFirebase === 'function') {
@@ -1661,9 +2602,9 @@
             wordRecordingsB64[TEST_WORDS[currentWordIndex]] = b64;
 
             // Reset VU bars
-            for (let i = 0; i < 12; i++) {
+            for (let i = 0; i < VU_BAR_COUNT; i++) {
                 const bar = document.getElementById('vuBar' + i);
-                if (bar) bar.style.height = '2px';
+                if (bar) bar.style.height = '6px';
             }
 
             if (currentWordIndex < TEST_WORDS.length - 1) {
@@ -1674,25 +2615,27 @@
                 renderWordPicker();
                 updateRecordButton();
             } else {
-                // All 8 words recorded
+                // All words recorded
                 allWordsRecorded = true;
-                document.getElementById('step2Continue').disabled = false;
+                syncRecordingContinueButton();
                 updateRecordButton();
                 renderWordPicker();
+
+                // Auto-advance to next step after brief delay
+                setTimeout(() => { if (currentStepNum === 1) nextStep(); }, 900);
 
                 // Store word recordings for playback on results page
                 localStorage.setItem('wordRecordings', JSON.stringify(wordRecordingsB64));
 
-                // Start backend analysis in background
+                // Start backend analysis in background (formant + GCP analyzeSpeech)
                 analysisPromise = sendAudioToBackend();
             }
         }
 
         // =============================================
-        // GEMINI ANALYSIS
+        // LOCAL FFT ANALYSIS (no formant extraction, no backend)
         // =============================================
 
-        // Convert blob to base64 string
         function blobToBase64(blob) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1711,7 +2654,6 @@
                 for (let i = 0; i < TEST_WORDS.length; i++) {
                     const b64 = wordRecordingsB64[TEST_WORDS[i]];
                     if (b64) {
-                        // Strip the data URL prefix (data:audio/webm;base64,)
                         const audioOnly = b64.includes(',') ? b64.split(',')[1] : b64;
                         wordEntries.push({ word: TEST_WORDS[i], audio_base64: audioOnly });
                     }
@@ -1728,7 +2670,6 @@
                 const results = await resp.json();
                 console.log('✅ Formant data:', results);
 
-                // Format as JSON string matching the app's format
                 return JSON.stringify(results.map(e => ({
                     word: e.word,
                     trough_f3: e.trough_f3 || 0,
@@ -1744,7 +2685,6 @@
         // Send combined audio to GCP backend for analysis
         async function sendAudioToBackend() {
             try {
-                // Run formant extraction and audio prep in parallel
                 const [f3Data, wordEntries] = await Promise.all([
                     extractFormantData(),
                     (async () => {
@@ -1793,7 +2733,6 @@
             const words = [];
 
             for (const line of rawText.split('\n')) {
-                // Extract table rows (skip headers/separators)
                 const cells = line.split('|').map(c => c.trim()).filter(c => c);
                 if (cells.length >= 5 && !cells[0].includes('---') && cells[0].toLowerCase() !== 'word') {
                     words.push({
@@ -1803,8 +2742,6 @@
                 }
             }
 
-            // Compute GRI as mean of per-word qualities across all 8 expected words
-            // Words missing from the table count as 0 quality
             const totalWords = TEST_WORDS.length;
             const qualitySum = words.reduce((sum, w) => sum + w.quality, 0);
             const griScore = Math.min(100, Math.max(0, Math.round(qualitySum / totalWords)));
@@ -1819,26 +2756,36 @@
             // Submit final data to Google Sheets (non-blocking)
             submitFinalAssessment();
 
-            // Animate loading steps
-            let step = 1;
-            const interval = setInterval(() => {
-                if (step <= 3) {
-                    document.getElementById('loading' + step).classList.add('completed');
-                    step++;
-                }
-            }, 1000);
+            // PWA loader transitions pending→done with a check icon swap
+            const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+            function markDone(id) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.remove('pending');
+                el.classList.add('done');
+                const icon = el.querySelector('.asmt-step-icon');
+                if (icon) icon.innerHTML = CHECK_SVG;
+            }
 
-            // Wait for backend analysis to finish before redirecting
+            // Stagger pending step transitions
+            const step3Timeout = setTimeout(() => markDone('loading3'), 3000);
+            const step4Timeout = setTimeout(() => markDone('loading4'), 6000);
+
+            // Wait for backend analysis + step 4 submit to finish before redirecting
+            if (step4SubmitPromise) {
+                try { await step4SubmitPromise; } catch (e) {}
+            }
             if (analysisPromise) {
                 await analysisPromise;
             }
 
-            // Mark all steps done
-            clearInterval(interval);
-            for (let i = 1; i <= 3; i++) document.getElementById('loading' + i).classList.add('completed');
+            // Ensure all done
+            clearTimeout(step3Timeout);
+            clearTimeout(step4Timeout);
+            for (let i = 1; i <= 4; i++) markDone('loading' + i);
 
             // Redirect to results
-            setTimeout(() => { window.location.href = 'assessment-results.html'; }, 1500);
+            setTimeout(() => { window.location.href = 'assessment-results.html'; }, 10);
         }
 
         // =============================================
@@ -1889,27 +2836,7 @@
         // =============================================
         // UI EVENT LISTENERS
         // =============================================
-        document.addEventListener('change', function(e) {
-            // Enable step 3 continue when both questions answered
-            if (e.target.name === 'troubleWords' || e.target.name === 'ageGroup') {
-                const both = document.querySelector('input[name="troubleWords"]:checked') && document.querySelector('input[name="ageGroup"]:checked');
-                document.getElementById('step3Continue').disabled = !both;
-            }
-            // Enable step 4 continue + toggle "other" input
-            if (e.target.name === 'visitReason') {
-                const val = e.target.value;
-                document.getElementById('otherReasonGroup').style.display = val === 'other' ? 'block' : 'none';
-                document.getElementById('step4Continue').disabled = val === 'other';
-                if (val !== 'other') document.getElementById('step4Continue').disabled = false;
-            }
-        });
-
-        document.addEventListener('input', function(e) {
-            if (e.target.id === 'otherReason') {
-                const reason = document.querySelector('input[name="visitReason"]:checked');
-                document.getElementById('step4Continue').disabled = !(reason?.value === 'other' && e.target.value.trim());
-            }
-        });
+        // Survey inputs (email/source/phone/etc) are now mirrored by the step3 wizard.
 
         // =============================================
         // COUNTRY SELECTOR
@@ -1918,6 +2845,7 @@
         let allCountries = [];
 
         document.addEventListener('DOMContentLoaded', function() {
+            updateFooterVisibility();
             const countrySelect = document.getElementById('countrySelect');
             const countryOptions = document.getElementById('countryOptions');
             allCountries = Array.from(document.querySelectorAll('.country-option'));
@@ -1951,6 +2879,421 @@
             });
 
             allCountries.forEach(o => o.addEventListener('click', () => selectCountry(o)));
+
+            // Step 1 is recording — initialize recording UI on load
+            initWordRecording();
+            moveRecordingTo('recordingHost');
+
+            // Hash route: #login jumps straight to login step
+            function maybeJumpToLogin() {
+                if (location.hash === '#login' || location.hash === '#/login') {
+                    document.getElementById('step' + currentStepNum).classList.remove('active');
+                    orderIdx = 0;
+                    currentStepNum = STEP_ORDER[orderIdx];
+                    document.getElementById('step2').classList.add('active');
+                    updateProgress();
+                }
+            }
+            maybeJumpToLogin();
+            window.addEventListener('hashchange', maybeJumpToLogin);
+
+            // ===== Step3 Wizard (comfort + age + source + phone) =====
+            const WIZ_TOTAL = 4;
+            const COMFORT_OPTS = [
+                { v: 'slight',      label: 'Slight',       sub: 'I have slight trouble with R sounds' },
+                { v: 'noticeable',  label: 'Noticeable',   sub: 'I have noticeable difficulty with R sounds' },
+                { v: 'significant', label: 'Significant',  sub: 'I have significant trouble pronouncing R sounds' },
+                { v: 'no_trouble',  label: 'No trouble',   sub: "I don't have trouble with R sounds" },
+                { v: 'unsure',      label: "I'm not sure", sub: "I'd like a free assessment" },
+            ];
+            const AGE_OPTS = [
+                { v: 'teen',         label: 'Teen (13–17 years)' },
+                { v: 'young_adult',  label: 'Young Adult (18–25 years)' },
+                { v: 'adult',        label: 'Adult (26–54 years)' },
+                { v: 'senior_adult', label: 'Adult (55+ years)' },
+            ];
+            const SOURCE_OPTS = [
+                { v: 'google_ad',         label: 'Via Google search ad' },
+                { v: 'social_media',      label: 'Via Google search results' },
+                { v: 'google_search',     label: 'Via Instagram' },
+                { v: 'reddit_community',  label: 'Via Reddit Community' },
+                { v: 'other',             label: 'Other' },
+            ];
+            const WIZ_META = [
+                { title: 'How would you describe your comfort with the R sound?', sub: 'Be honest — this shapes your starting point' },
+                { title: "What's your age group?", sub: 'Helps us calibrate the target frequency for your practice sessions' },
+                { title: 'How did you learn about The Rollr Academy?', sub: 'Helps us reach more people who need this' },
+                { title: 'Phone number (optional)', sub: 'We may send text reminders about your practice sessions' },
+            ];
+            const wizState = {
+                step: 1, dir: 'fwd', _lastStep: null,
+                trouble: null, age: null,
+                source: null, sourceOther: '',
+                cc: '+1', phone: ''
+            };
+
+            function wizCanAdvance() {
+                switch (wizState.step) {
+                    case 1: return !!wizState.trouble;
+                    case 2: return !!wizState.age;
+                    case 3: return !!wizState.source && (wizState.source !== 'other' || (wizState.sourceOther || '').trim().length > 0);
+                    case 4: return true; // phone optional
+                    default: return false;
+                }
+            }
+
+            function wizProgressHTML() {
+                const pills = Array.from({length: WIZ_TOTAL}, (_, i) =>
+                    `<div class="obw-prog-pill${i + 1 <= wizState.step ? ' on' : ''}"></div>`).join('');
+                const circles = Array.from({length: WIZ_TOTAL}, (_, i) => {
+                    const done = i + 1 < wizState.step;
+                    const cur = i + 1 === wizState.step;
+                    const inner = done
+                        ? `<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+                        : `<span>${i + 1}</span>`;
+                    const sep = i < WIZ_TOTAL - 1
+                        ? `<div class="obw-prog-sep${i + 1 < wizState.step ? ' on' : ''}"></div>` : '';
+                    return `<div class="obw-prog-circle${done ? ' done' : ''}${cur ? ' cur' : ''}">${inner}</div>${sep}`;
+                }).join('');
+                return `
+                    <div class="obw-prog-pills">${pills}</div>
+                    <div class="obw-prog-step-label">Step ${wizState.step} of ${WIZ_TOTAL}</div>
+                    <div class="obw-prog-circles">${circles}</div>
+                `;
+            }
+
+            function wizEsc(s) {
+                return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+            }
+
+            function wizBodyHTML() {
+                if (wizState.step === 1) {
+                    return COMFORT_OPTS.map(o => `
+                        <button class="obw-opt${wizState.trouble === o.v ? ' on' : ''}" data-trouble="${o.v}" type="button">
+                            <div>
+                                <div class="obw-opt-label">${o.label}</div>
+                                <div class="obw-opt-sub">${o.sub}</div>
+                            </div>
+                            <div class="obw-radio${wizState.trouble === o.v ? ' on' : ''}"><div></div></div>
+                        </button>
+                    `).join('');
+                }
+                if (wizState.step === 2) {
+                    return AGE_OPTS.map(o => `
+                        <button class="obw-opt${wizState.age === o.v ? ' on' : ''}" data-age="${o.v}" type="button">
+                            <div class="obw-opt-label">${o.label}</div>
+                            <div class="obw-radio${wizState.age === o.v ? ' on' : ''}"><div></div></div>
+                        </button>
+                    `).join('');
+                }
+                if (wizState.step === 3) {
+                    const opts = SOURCE_OPTS.map(o => `
+                        <button class="obw-opt${wizState.source === o.v ? ' on' : ''}" data-source="${o.v}" type="button">
+                            <div class="obw-opt-label">${o.label}</div>
+                            <div class="obw-radio${wizState.source === o.v ? ' on' : ''}"><div></div></div>
+                        </button>
+                    `).join('');
+                    const other = wizState.source === 'other' ? `
+                        <input class="obw-other-input" id="wizSourceOther" type="text"
+                            placeholder="Please tell us how you found us..."
+                            value="${wizEsc(wizState.sourceOther)}">
+                    ` : '';
+                    return opts + other;
+                }
+                if (wizState.step === 4) {
+                    return `
+                        <div class="obw-phone-row">
+                            <input class="obw-input obw-cc" id="wizCc" type="text" inputmode="tel"
+                                maxlength="5" value="${wizEsc(wizState.cc || '+1')}">
+                            <input class="obw-input" id="wizPhone" type="tel" inputmode="tel"
+                                autocomplete="tel" placeholder="(000) 000-0000"
+                                value="${wizEsc(wizState.phone)}">
+                        </div>
+                        <div class="obw-skip-note">Optional — leave blank to skip</div>
+                    `;
+                }
+                return '';
+            }
+
+            function wizUpdate() {
+                const meta = WIZ_META[wizState.step - 1];
+                const back = document.getElementById('obwBack');
+                const prog = document.getElementById('obwProgress');
+                const title = document.getElementById('obwTitle');
+                const sub = document.getElementById('obwSub');
+                const content = document.getElementById('obwContent');
+                const cta = document.getElementById('obwCta');
+                if (!back || !prog || !title || !sub || !content || !cta) return;
+
+                back.hidden = false; // always allow back (outer prevStep on inner step 1)
+                prog.innerHTML = wizProgressHTML();
+                title.textContent = meta.title;
+                sub.textContent = meta.sub;
+                cta.textContent = wizState.step === WIZ_TOTAL ? 'Continue →' : 'Next';
+                cta.disabled = !wizCanAdvance();
+
+                const stepChanged = wizState._lastStep !== wizState.step;
+                content.innerHTML = wizBodyHTML();
+                content.classList.remove('obw-anim-fwd', 'obw-anim-bwd');
+                if (stepChanged) {
+                    void content.offsetWidth;
+                    content.classList.add(wizState.dir === 'fwd' ? 'obw-anim-fwd' : 'obw-anim-bwd');
+                }
+                wizState._lastStep = wizState.step;
+
+                content.querySelectorAll('[data-trouble]').forEach(btn => {
+                    btn.addEventListener('click', () => { wizState.trouble = btn.dataset.trouble; wizUpdate(); });
+                });
+                content.querySelectorAll('[data-age]').forEach(btn => {
+                    btn.addEventListener('click', () => { wizState.age = btn.dataset.age; wizUpdate(); });
+                });
+                content.querySelectorAll('[data-source]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        wizState.source = btn.dataset.source;
+                        if (wizState.source !== 'other') wizState.sourceOther = '';
+                        wizUpdate();
+                    });
+                });
+                // Live updates for input fields (refresh CTA without re-rendering content)
+                const sourceOtherInp = content.querySelector('#wizSourceOther');
+                if (sourceOtherInp) {
+                    sourceOtherInp.addEventListener('input', e => {
+                        wizState.sourceOther = e.target.value;
+                        document.getElementById('obwCta').disabled = !wizCanAdvance();
+                    });
+                    if (!sourceOtherInp.value) setTimeout(() => sourceOtherInp.focus(), 0);
+                }
+                const ccInp = content.querySelector('#wizCc');
+                if (ccInp) {
+                    ccInp.addEventListener('input', e => { wizState.cc = e.target.value; });
+                }
+                const phoneInp = content.querySelector('#wizPhone');
+                if (phoneInp) {
+                    phoneInp.addEventListener('input', e => { wizState.phone = e.target.value; });
+                    setTimeout(() => phoneInp.focus(), 0);
+                }
+            }
+
+            function wizCommitToHiddenInputs() {
+                if (wizState.trouble) {
+                    const el = document.querySelector(`input[name="troubleWords"][value="${wizState.trouble}"]`);
+                    if (el) el.checked = true;
+                }
+                if (wizState.age) {
+                    const el = document.querySelector(`input[name="ageGroup"][value="${wizState.age}"]`);
+                    if (el) el.checked = true;
+                }
+                const emailEl = document.getElementById('email');
+                const loginEmail = (window.obLoggedInUser && window.obLoggedInUser.email) || '';
+                if (emailEl) emailEl.value = loginEmail;
+                if (wizState.source) {
+                    const el = document.querySelector(`input[name="visitReason"][value="${wizState.source}"]`);
+                    if (el) el.checked = true;
+                }
+                const otherEl = document.getElementById('otherReason');
+                if (otherEl) otherEl.value = wizState.sourceOther || '';
+                const ccEl = document.getElementById('countryCode');
+                if (ccEl) ccEl.value = (wizState.cc || '+1').trim();
+                const phoneEl = document.getElementById('phoneNumber');
+                if (phoneEl) phoneEl.value = (wizState.phone || '').trim();
+            }
+
+            function wizFinish() {
+                wizCommitToHiddenInputs();
+                const email = ((window.obLoggedInUser && window.obLoggedInUser.email) || '').trim();
+                const foundOn = wizState.source === 'other' ? (wizState.sourceOther || '').trim() : wizState.source;
+                const phone = (wizState.phone || '').trim();
+                const cc = (wizState.cc || '+1').trim();
+                const fullPhone = phone ? `${cc} ${phone}` : '';
+                registerEmail(email);
+                // Mirror original per-step FormEasy submissions (comfort/age, then found_on/phone).
+                submitToFormEasy('assessment_step3', {
+                    trouble_words_response: wizState.trouble || '',
+                    age_group: wizState.age || '',
+                    message: `Step 3: Trouble words response - ${wizState.trouble}, Age group - ${wizState.age}`
+                });
+                submitToFormEasy('assessment_step4', {
+                    found_on: foundOn,
+                    phone_number: fullPhone,
+                    message: `Step 4: Found on - ${foundOn}${fullPhone ? ', Phone - ' + fullPhone : ''}`
+                });
+            }
+
+            const obwBack = document.getElementById('obwBack');
+            const obwCta = document.getElementById('obwCta');
+            if (obwBack) {
+                obwBack.addEventListener('click', () => {
+                    if (wizState.step === 1) { prevStep(); return; }
+                    wizState.dir = 'bwd'; wizState.step--; wizUpdate();
+                });
+            }
+            if (obwCta) {
+                obwCta.addEventListener('click', () => {
+                    if (!wizCanAdvance()) return;
+                    if (wizState.step === WIZ_TOTAL) {
+                        wizFinish();
+                        nextStep();
+                        return;
+                    }
+                    wizState.dir = 'fwd'; wizState.step++; wizUpdate();
+                });
+            }
+
+            // Re-initialize wizard each time step3 becomes active.
+            // Preserve filled answers so going Back from analyzing doesn't wipe them.
+            window.initStep3Wizard = function() {
+                if (!wizState._lastStep) wizState.step = 1;
+                wizState.dir = 'fwd';
+                wizState._lastStep = null;
+                wizUpdate();
+            };
+
+            // ===== Login (step2) wiring =====
+            const obError = document.getElementById('obError');
+            const obEmail = document.getElementById('obEmail');
+            const obEmailSubmit = document.getElementById('obEmailSubmit');
+            const obEmailForm = document.getElementById('obEmailForm');
+            const obGoogleBtn = document.getElementById('obGoogleBtn');
+
+            function obShowError(msg) {
+                if (!obError) return;
+                obError.textContent = msg;
+                obError.hidden = false;
+            }
+            function obClearError() { if (obError) obError.hidden = true; }
+
+            function obFriendlyError(err) {
+                const code = err && err.code;
+                const map = {
+                    'auth/wrong-password': 'Incorrect password.',
+                    'auth/user-not-found': 'No account for this email.',
+                    'auth/invalid-email': 'Please enter a valid email.',
+                    'auth/invalid-credential': 'Invalid email or password.',
+                    'auth/too-many-requests': 'Too many attempts. Try again later.',
+                    'auth/popup-closed-by-user': 'Sign-in cancelled.',
+                    'auth/network-request-failed': 'Network error. Check your connection.'
+                };
+                return map[code] || (err && err.message) || 'Sign in failed.';
+            }
+
+            function obAfterSignIn(user, provider) {
+                window.obLoggedInUser = { email: user.email, uid: user.uid, provider };
+                try { localStorage.setItem('userAuth', JSON.stringify({ email: user.email, id: user.uid, provider })); } catch (e) {}
+                nextStep();
+            }
+
+            if (obEmailForm) {
+                obEmailForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    obClearError();
+                    const email = obEmail.value.trim();
+                    if (!email || !/^\S+@\S+\.\S+$/.test(email)) return obShowError('Enter a valid email.');
+                    obEmailSubmit.disabled = true;
+                    obEmailSubmit.textContent = 'Sending link…';
+                    try {
+                        await window.obFirebaseSendEmailLink(email);
+                        obEmailSubmit.textContent = 'Check your inbox ✓';
+                        obShowEmailSentNotice(email);
+                    } catch (err) {
+                        obShowError(obFriendlyError(err));
+                        obEmailSubmit.disabled = false;
+                        obEmailSubmit.textContent = 'Continue';
+                    }
+                });
+            }
+
+            function obShowEmailSentNotice(email) {
+                const card = document.querySelector('#step2 .ob-card');
+                if (!card) return;
+                const notice = document.createElement('div');
+                notice.className = 'ob-social-error';
+                notice.style.color = '#166534';
+                notice.style.background = '#f0faf4';
+                notice.style.border = '1px solid #bbf0d0';
+                notice.style.borderRadius = '10px';
+                notice.style.padding = '10px 14px';
+                notice.style.marginTop = '12px';
+                notice.textContent = 'Verification link sent to ' + email + '. Open it on this device to continue.';
+                obEmailForm.appendChild(notice);
+            }
+
+            // Handle return from email link
+            (async () => {
+                if (!window.obFirebaseIsEmailLink || !window.obFirebaseIsEmailLink(window.location.href)) return;
+
+                const advanceToStep2 = () => {
+                    if (currentStepNum !== 2) {
+                        document.getElementById('step' + currentStepNum).classList.remove('active');
+                        orderIdx = 0;
+                        currentStepNum = 2;
+                        document.getElementById('step2').classList.add('active');
+                        updateProgress();
+                    }
+                };
+
+                let email = window.localStorage.getItem('emailForSignIn');
+                // No stored email: if we're already signed in (e.g. a second click
+                // on an already-used link), just continue instead of prompting.
+                if (!email) {
+                    if (window.obFirebaseAuthReady) await window.obFirebaseAuthReady;
+                    const existing = window.obFirebaseSignedInUser && window.obFirebaseSignedInUser();
+                    if (existing) {
+                        advanceToStep2();
+                        obAfterSignIn(existing, 'email-link');
+                        return;
+                    }
+                    email = window.prompt('Confirm your email to complete sign-in');
+                }
+                if (!email) return;
+
+                try {
+                    const user = await window.obFirebaseCompleteEmailLink(email, window.location.href);
+                    // Keep emailForSignIn so re-clicking the (now spent) link still
+                    // has the email and continues without prompting.
+                    advanceToStep2();
+                    obAfterSignIn(user, 'email-link');
+                } catch (err) {
+                    // Link already consumed but the user is still signed in from the
+                    // first click — treat as success rather than showing an error.
+                    const existing = window.obFirebaseSignedInUser && window.obFirebaseSignedInUser();
+                    if (existing && err && err.code === 'auth/invalid-action-code') {
+                        advanceToStep2();
+                        obAfterSignIn(existing, 'email-link');
+                        return;
+                    }
+                    obShowError(obFriendlyError(err));
+                }
+            })();
+
+            if (obGoogleBtn) {
+                obGoogleBtn.addEventListener('click', async () => {
+                    obClearError();
+                    obGoogleBtn.disabled = true;
+                    try {
+                        const user = await window.obFirebaseGoogleSignIn();
+                        obAfterSignIn(user, 'google');
+                    } catch (err) {
+                        obShowError(obFriendlyError(err));
+                        obGoogleBtn.disabled = false;
+                    }
+                });
+            }
+
+            const obAppleBtn = document.getElementById('obAppleBtn');
+            if (obAppleBtn) {
+                obAppleBtn.addEventListener('click', async () => {
+                    obClearError();
+                    obAppleBtn.disabled = true;
+                    try {
+                        const user = await window.obFirebaseAppleSignIn();
+                        obAfterSignIn(user, 'apple');
+                    } catch (err) {
+                        obShowError(obFriendlyError(err));
+                        obAppleBtn.disabled = false;
+                    }
+                });
+            }
+
         });
 
         function selectCountry(option) {
