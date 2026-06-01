@@ -2590,6 +2590,8 @@
             }
 
             wordRecordings.push(blob);
+            // Haptic feedback on word capture (mobile) — matches iOS heavy impact
+            if (navigator.vibrate) navigator.vibrate(40);
             syncRecordingContinueButton();
 
             // Upload individual word recording to Firebase Storage
