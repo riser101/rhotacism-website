@@ -243,6 +243,13 @@
         }
         .assessment-container:has(#step1.active) {
             max-width: 1140px;
+            width: 100%;
+        }
+        /* Vertically center step1 (recording) content in viewport — box size unchanged */
+        .assessment-page:has(#step1.active) {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         .assessment-container:has(#step1.active) .progress-container,
         .assessment-container:has(#step1.active) .assessment-header {
