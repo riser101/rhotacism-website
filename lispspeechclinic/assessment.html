@@ -1470,6 +1470,9 @@
         .step-title { color: #0B0C0E; }
         .loading-title { color: #0B0C0E; }
 
+        /* Hide navbar Login button on assessment page (desktop + mobile) */
+        .user-login-nav { display: none !important; }
+
         /* ========== Login (PWA-style, matches Lisp-pwa exactly) ========== */
         .ob-step-wrap { padding: 0; }
         .ob-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
@@ -2082,6 +2085,14 @@
             const denom = 4;
             document.getElementById('progressFill').style.width = ((visible / denom) * 100) + '%';
             document.getElementById('currentStep').textContent = visible;
+            updateFooterVisibility();
+        }
+
+        // Hide site footer on login (step2) and onboarding survey (step3)
+        function updateFooterVisibility() {
+            const footer = document.querySelector('footer');
+            if (!footer) return;
+            footer.style.display = (currentStepNum === 2 || currentStepNum === 3) ? 'none' : '';
         }
 
         function syncRecordingContinueButton() {
@@ -3190,6 +3201,7 @@
         let allCountries = [];
 
         document.addEventListener('DOMContentLoaded', function() {
+            updateFooterVisibility();
             const countrySelect = document.getElementById('countrySelect');
             const countryOptions = document.getElementById('countryOptions');
             allCountries = Array.from(document.querySelectorAll('.country-option'));
