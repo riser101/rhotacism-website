@@ -2330,6 +2330,8 @@
         // Main record button handler
         async function handleRecordTap() {
             if (allWordsRecorded) return;
+            // Haptic tick on tap (mobile) — fires inside user gesture
+            if (navigator.vibrate) navigator.vibrate(20);
             userGender = 'male';
             if (isRecording) {
                 // Manual stop = discard; only VAD onSpeechEnd commits + advances
