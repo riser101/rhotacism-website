@@ -2100,6 +2100,7 @@
             }
 
             if (await validateCurrentStep()) {
+                if (currentStepNum === 1) releaseMic(); // leaving capture step
                 document.getElementById('step' + currentStepNum).classList.remove('active');
                 if (orderIdx < STEP_ORDER.length - 1) {
                     orderIdx++;
@@ -2118,6 +2119,7 @@
 
         function prevStep() {
             if (orderIdx > 0) {
+                if (currentStepNum === 1) releaseMic(); // leaving capture step
                 document.getElementById('step' + currentStepNum).classList.remove('active');
                 orderIdx--;
                 currentStepNum = STEP_ORDER[orderIdx];
@@ -2327,11 +2329,33 @@
             }
         }
 
+        // Cross-platform haptic. Android: Vibration API. iOS 17.4+ Safari: the
+        // hidden <input switch> toggle trick (only way to fire Taptic from web).
+        const _iosHaptic = (() => {
+            let label = null;
+            return function () {
+                if (!label) {
+                    label = document.createElement('label');
+                    label.setAttribute('aria-hidden', 'true');
+                    label.style.cssText = 'position:absolute;left:-9999px;width:0;height:0;overflow:hidden';
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.setAttribute('switch', '');
+                    label.appendChild(cb);
+                    document.body.appendChild(label);
+                }
+                label.click();
+            };
+        })();
+        function triggerHaptic(ms) {
+            if ('vibrate' in navigator) { navigator.vibrate(ms || 20); return; }
+            _iosHaptic(); // iOS fallback (single light tick, no duration control)
+        }
+
         // Main record button handler
         async function handleRecordTap() {
             if (allWordsRecorded) return;
-            // Haptic tick on tap (mobile) — fires inside user gesture
-            if (navigator.vibrate) navigator.vibrate(20);
+            triggerHaptic(20); // tap tick — fires inside user gesture
             userGender = 'male';
             if (isRecording) {
                 // Manual stop = discard; only VAD onSpeechEnd commits + advances
@@ -2349,32 +2373,56 @@
             }
         }
 
+        // Acquire mic + audio graph ONCE; reuse across all words. Standard Web
+        // APIs only — universal across mobile. Stops iOS re-prompt/re-arm per
+        // word; also cuts re-acquire lag + chime glitches on Android.
+        async function ensureMicStream() {
+            const live = audioStream && audioStream.getTracks().some(t => t.readyState === 'live');
+            if (live) {
+                if (audioContext && audioContext.state === 'suspended') {
+                    try { await audioContext.resume(); } catch (_) {}
+                }
+                return;
+            }
+            audioStream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,   // cancel chime bleed via system AEC
+                    noiseSuppression: false,
+                    autoGainControl: false,
+                    sampleRate: 48000,
+                    channelCount: 1
+                }
+            });
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createMediaStreamSource(audioStream);
+            analyserNode = audioContext.createAnalyser();
+            analyserNode.fftSize = 256;
+            analyserNode.smoothingTimeConstant = 0.4;
+            analyserNode.minDecibels = -90;
+            analyserNode.maxDecibels = -20;
+            source.connect(analyserNode);
+        }
+
+        // Fully release mic + audio graph (session end / leaving capture step).
+        function releaseMic() {
+            if (audioStream) {
+                audioStream.getTracks().forEach(t => t.stop());
+                audioStream = null;
+            }
+            if (audioContext) {
+                try { audioContext.close(); } catch (_) {}
+                audioContext = null;
+            }
+        }
+
         // Start recording one word with audio analysis
         async function startWordRecording() {
             try {
-                audioStream = await navigator.mediaDevices.getUserMedia({
-                    audio: {
-                        echoCancellation: true,   // cancel chime bleed via system AEC
-                        noiseSuppression: false,
-                        autoGainControl: false,
-                        sampleRate: 48000,
-                        channelCount: 1
-                    }
-                });
+                await ensureMicStream();
                 mediaRecorder = new MediaRecorder(audioStream);
                 audioChunks = [];
                 speechDetected = false;
                 lastSpeechTime = 0;
-
-                // Set up audio analyser for VU meter + silence detection
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const source = audioContext.createMediaStreamSource(audioStream);
-                analyserNode = audioContext.createAnalyser();
-                analyserNode.fftSize = 256;
-                analyserNode.smoothingTimeConstant = 0.4;
-                analyserNode.minDecibels = -90;
-                analyserNode.maxDecibels = -20;
-                source.connect(analyserNode);
 
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                 mediaRecorder.onstop = () => onWordRecordingStopped();
@@ -2513,8 +2561,8 @@
                     };
                 }
                 mediaRecorder.stop();
-                audioStream.getTracks().forEach(t => t.stop());
-                if (audioContext) { audioContext.close(); audioContext = null; }
+                // Keep mic stream + audioContext alive for next word (avoids
+                // re-prompt / re-arm). Released via releaseMic() at session end.
                 stopVad();
             }
         }
@@ -2592,8 +2640,7 @@
             }
 
             wordRecordings.push(blob);
-            // Haptic feedback on word capture (mobile) — matches iOS heavy impact
-            if (navigator.vibrate) navigator.vibrate(40);
+            triggerHaptic(40); // word capture — matches iOS heavy impact
             syncRecordingContinueButton();
 
             // Upload individual word recording to Firebase Storage
@@ -2619,8 +2666,9 @@
                 renderWordPicker();
                 updateRecordButton();
             } else {
-                // All words recorded
+                // All words recorded — release mic (capture done)
                 allWordsRecorded = true;
+                releaseMic();
                 syncRecordingContinueButton();
                 updateRecordButton();
                 renderWordPicker();
@@ -3162,9 +3210,16 @@
             function obShowError(msg) {
                 if (!obError) return;
                 obError.textContent = msg;
+                obError.style.color = '#dc2626';
                 obError.hidden = false;
             }
-            function obClearError() { if (obError) obError.hidden = true; }
+            function obShowSuccess(msg) {
+                if (!obError) return;
+                obError.textContent = msg;
+                obError.style.color = '#22C55E';
+                obError.hidden = false;
+            }
+            function obClearError() { if (obError) { obError.hidden = true; obError.style.color = ''; } }
 
             function obFriendlyError(err) {
                 const code = err && err.code;
@@ -3197,28 +3252,13 @@
                     try {
                         await window.obFirebaseSendEmailLink(email);
                         obEmailSubmit.textContent = 'Check your inbox ✓';
-                        obShowEmailSentNotice(email);
+                        obShowSuccess('Verification link sent.');
                     } catch (err) {
                         obShowError(obFriendlyError(err));
                         obEmailSubmit.disabled = false;
                         obEmailSubmit.textContent = 'Continue';
                     }
                 });
-            }
-
-            function obShowEmailSentNotice(email) {
-                const card = document.querySelector('#step2 .ob-card');
-                if (!card) return;
-                const notice = document.createElement('div');
-                notice.className = 'ob-social-error';
-                notice.style.color = '#166534';
-                notice.style.background = '#f0faf4';
-                notice.style.border = '1px solid #bbf0d0';
-                notice.style.borderRadius = '10px';
-                notice.style.padding = '10px 14px';
-                notice.style.marginTop = '12px';
-                notice.textContent = 'Verification link sent to ' + email + '. Open it on this device to continue.';
-                obEmailForm.appendChild(notice);
             }
 
             // Handle return from email link
