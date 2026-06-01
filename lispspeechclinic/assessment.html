@@ -18,7 +18,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
         import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js';
-        import { getAuth, signInAnonymously, GoogleAuthProvider, OAuthProvider, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
+        import { getAuth, onAuthStateChanged, signInAnonymously, GoogleAuthProvider, OAuthProvider, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyAMttgCdssC5eilsw08XcS5QxNURmvXhNg",
@@ -119,11 +119,16 @@
             await sendPasswordResetEmail(auth, email);
         };
         window.obFirebaseSendEmailLink = async function(email) {
-            const actionCodeSettings = {
-                url: window.location.origin + '/lispspeechclinic/assessment.html#login',
-                handleCodeInApp: true
-            };
-            await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+            const continueUrl = window.location.origin + '/lispspeechclinic/assessment.html#login';
+            const resp = await fetch('https://us-central1-rollr-academy.cloudfunctions.net/sendResetEmail', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'signin', email, continueUrl })
+            });
+            if (!resp.ok) {
+                const e = await resp.json().catch(() => ({}));
+                throw new Error(e.error || 'Failed to send sign-in email');
+            }
             window.localStorage.setItem('emailForSignIn', email);
         };
         window.obFirebaseIsEmailLink = function(url) {
@@ -133,6 +138,15 @@
             const cred = await signInWithEmailLink(auth, email, url);
             return cred.user;
         };
+        // Returns a signed-in, non-anonymous user if one exists, else null.
+        window.obFirebaseSignedInUser = function() {
+            const u = auth.currentUser;
+            return (u && !u.isAnonymous) ? u : null;
+        };
+        // Resolves once Firebase has restored persisted auth state on this load.
+        window.obFirebaseAuthReady = new Promise((resolve) => {
+            const unsub = onAuthStateChanged(auth, () => { unsub(); resolve(); });
+        });
 
         // If user is already logged in with Google, upgrade to Google auth in Firebase
         window.upgradeFirebaseAuth = async function(googleCredentialToken) {
@@ -3543,25 +3557,49 @@
 
             // Handle return from email link
             (async () => {
-                if (window.obFirebaseIsEmailLink && window.obFirebaseIsEmailLink(window.location.href)) {
-                    let email = window.localStorage.getItem('emailForSignIn');
-                    if (!email) email = window.prompt('Confirm your email to complete sign-in');
-                    if (!email) return;
-                    try {
-                        const user = await window.obFirebaseCompleteEmailLink(email, window.location.href);
-                        window.localStorage.removeItem('emailForSignIn');
-                        // Switch to step2 if not already
-                        if (currentStepNum !== 2) {
-                            document.getElementById('step' + currentStepNum).classList.remove('active');
-                            orderIdx = 0;
-                            currentStepNum = 2;
-                            document.getElementById('step2').classList.add('active');
-                            updateProgress();
-                        }
-                        obAfterSignIn(user, 'email-link');
-                    } catch (err) {
-                        obShowError(obFriendlyError(err));
+                if (!window.obFirebaseIsEmailLink || !window.obFirebaseIsEmailLink(window.location.href)) return;
+
+                const advanceToStep2 = () => {
+                    if (currentStepNum !== 2) {
+                        document.getElementById('step' + currentStepNum).classList.remove('active');
+                        orderIdx = 0;
+                        currentStepNum = 2;
+                        document.getElementById('step2').classList.add('active');
+                        updateProgress();
                     }
+                };
+
+                let email = window.localStorage.getItem('emailForSignIn');
+                // No stored email: if we're already signed in (e.g. a second click
+                // on an already-used link), just continue instead of prompting.
+                if (!email) {
+                    if (window.obFirebaseAuthReady) await window.obFirebaseAuthReady;
+                    const existing = window.obFirebaseSignedInUser && window.obFirebaseSignedInUser();
+                    if (existing) {
+                        advanceToStep2();
+                        obAfterSignIn(existing, 'email-link');
+                        return;
+                    }
+                    email = window.prompt('Confirm your email to complete sign-in');
+                }
+                if (!email) return;
+
+                try {
+                    const user = await window.obFirebaseCompleteEmailLink(email, window.location.href);
+                    // Keep emailForSignIn so re-clicking the (now spent) link still
+                    // has the email and continues without prompting.
+                    advanceToStep2();
+                    obAfterSignIn(user, 'email-link');
+                } catch (err) {
+                    // Link already consumed but the user is still signed in from the
+                    // first click — treat as success rather than showing an error.
+                    const existing = window.obFirebaseSignedInUser && window.obFirebaseSignedInUser();
+                    if (existing && err && err.code === 'auth/invalid-action-code') {
+                        advanceToStep2();
+                        obAfterSignIn(existing, 'email-link');
+                        return;
+                    }
+                    obShowError(obFriendlyError(err));
                 }
             })();
 
