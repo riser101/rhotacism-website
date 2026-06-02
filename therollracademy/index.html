@@ -1549,6 +1549,40 @@ padding: 1px 3px !important;
         });
     </script>
 
+    <style>
+        /* Hero assessment button - white w/ black text, orange on hover (style from lisp home) */
+        .assessment-hero-btn.hero-main-cta {
+            background: #ffffff;
+            color: #000000;
+            border-radius: 3px !important;
+        }
+
+        .assessment-hero-btn.hero-main-cta:hover {
+            background: #E85600;
+            color: #ffffff;
+        }
+
+        /* Bigger on mobile */
+        @media (max-width: 480px) {
+            .assessment-hero-btn.hero-main-cta {
+                font-size: 16px !important;
+                padding: 16px 20px !important;
+            }
+        }
+
+        /* Uniform 3px radius on all buttons */
+        .btn,
+        .btn-mega,
+        .custom-rollr-btn,
+        .benefit-button,
+        .add-todo-btn,
+        .download-button,
+        .app-store-btn,
+        .hero-main-cta {
+            border-radius: 3px !important;
+        }
+    </style>
+
     <link rel="stylesheet" href="/therollracademy/css/nav.css">
 </head>
 <body>
@@ -1587,7 +1621,7 @@ padding: 1px 3px !important;
 
                 <div class="hero-cta-container">
                     <div class="cta-buttons" style="width: 100%;">
-                        <a href="assessment.html" class="btn btn-primary hero-main-cta" style="flex: 2.4; padding: 15px 16px !important; min-height: auto !important; font-size: 18px;" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'hero_cta' }); posthog.capture('assessment_started_from_home', { section: 'hero_cta' });">Take Free 2-Mins Clinical Assessment</a>
+                        <a href="assessment.html" class="btn btn-primary hero-main-cta assessment-hero-btn" style="flex: 2.4; padding: 15px 16px !important; min-height: auto !important; font-size: 18px;" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'hero_cta' }); posthog.capture('assessment_started_from_home', { section: 'hero_cta' });">Take Free 2-Mins Clinical Assessment</a>
                         <div class="nav-toggle">
                             <span></span>
                             <span></span>
