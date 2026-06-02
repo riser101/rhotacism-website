@@ -1309,7 +1309,7 @@
                         var severity;
                         if (score < 35)      severity = 'Severe';
                         else if (score < 70) severity = 'Moderate';
-                        else                 severity = 'Clear /s/';
+                        else                 severity = 'WNL';
                         qualityCell.textContent = severity;
                     }
                 }
@@ -1334,6 +1334,19 @@
                     tr.insertBefore(cells[2], cells[1]);
                 }
             });
+
+            // Severity legend below the table
+            if (matchedCount > 0 && !container.querySelector('.severity-legend')) {
+                var legend = document.createElement('div');
+                legend.className = 'severity-legend';
+                legend.style.cssText = 'margin-top:16px; font-size:13px; color:#718096; line-height:1.6;';
+                legend.innerHTML =
+                    '<strong style="color:#4A5568;">Severity key:</strong> ' +
+                    '<strong>WNL</strong> = Within Normal Limits · ' +
+                    '<strong>Moderate</strong> = noticeable distortion · ' +
+                    '<strong>Severe</strong> = strong lisp pattern.';
+                container.appendChild(legend);
+            }
         }
 
         // =============================================
