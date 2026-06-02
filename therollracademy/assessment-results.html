@@ -1244,14 +1244,42 @@
                     heardCell.appendChild(createPlayButton(src, 'Yours'));
                 }
 
-                // Plain quality score
-                var score = parseInt(qualityCell.textContent.trim()) || 0;
-                qualityCell.textContent = score;
+                // Bucket the quality score into Severe / Moderate / WNL
+                var qRaw = qualityCell.textContent.trim();
+                if (qRaw) {
+                    var score = parseInt(qRaw);
+                    if (!isNaN(score)) {
+                        var severity;
+                        if (score < 35)      severity = 'Severe';
+                        else if (score < 70) severity = 'Moderate';
+                        else                 severity = 'WNL';
+                        qualityCell.textContent = severity;
+                    }
+                }
             });
 
             // All productions accurate → no therapy needed, hide timeline/protocol/next-steps
             if (matchedCount > 0 && accurateCount === matchedCount) {
                 hideGenericSections();
+            }
+
+            // Rename the "Quality" header to "Severity"
+            var ths = container.querySelectorAll('thead th');
+            ths.forEach(function(th) {
+                if (th.textContent.trim().toLowerCase() === 'quality') th.textContent = 'Severity';
+            });
+
+            // Severity legend below the table
+            if (matchedCount > 0 && !container.querySelector('.severity-legend')) {
+                var legend = document.createElement('div');
+                legend.className = 'severity-legend';
+                legend.style.cssText = 'margin-top:16px; font-size:13px; color:#718096; line-height:1.6;';
+                legend.innerHTML =
+                    '<strong style="color:#4A5568;">Severity key:</strong> ' +
+                    '<strong>WNL</strong> = Within Normal Limits · ' +
+                    '<strong>Moderate</strong> = noticeable distortion · ' +
+                    '<strong>Severe</strong> = strong rhotacism pattern.';
+                container.appendChild(legend);
             }
         }
 
