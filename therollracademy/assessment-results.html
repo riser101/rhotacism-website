@@ -1150,6 +1150,18 @@
             'world':   '/therollracademy/target-audio/world-female.mpga'
         };
 
+        // Phonetic position of /r/ in each test word (frontend-derived, no backend change)
+        var POSITION_MAP = {
+            'red':     'Initial',
+            'car':     'Final',
+            'tree':    'Initial',
+            'around':  'Medial',
+            'forest':  'Medial',
+            'problem': 'Initial',
+            'girl':    'Medial',
+            'world':   'Medial'
+        };
+
         var activeAudio = null;
         var activeBtn = null;
 
@@ -1256,7 +1268,28 @@
                         qualityCell.textContent = severity;
                     }
                 }
+
+                // Inject Position cell (col 1, after Word) — frontend-derived
+                var posTd = document.createElement('td');
+                posTd.className = 'analysis-td';
+                posTd.style.cssText = 'padding: 12px 16px; color: #4A5568;';
+                posTd.textContent = POSITION_MAP[matchedWord] || '—';
+                tr.insertBefore(posTd, judgmentCell);
             });
+
+            // Sort rows by position: Initial → Medial → Final
+            var POS_RANK = { 'initial': 0, 'medial': 1, 'final': 2 };
+            var tbody = container.querySelector('tbody');
+            if (tbody) {
+                var bodyRows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+                bodyRows
+                    .sort(function(a, b) {
+                        var pa = a.children[2] ? a.children[2].textContent.trim().toLowerCase() : '';
+                        var pb = b.children[2] ? b.children[2].textContent.trim().toLowerCase() : '';
+                        return (POS_RANK[pa] != null ? POS_RANK[pa] : 99) - (POS_RANK[pb] != null ? POS_RANK[pb] : 99);
+                    })
+                    .forEach(function(tr) { tbody.appendChild(tr); });
+            }
 
             // All productions accurate → no therapy needed, hide timeline/protocol/next-steps
             if (matchedCount > 0 && accurateCount === matchedCount) {
@@ -1268,6 +1301,16 @@
             ths.forEach(function(th) {
                 if (th.textContent.trim().toLowerCase() === 'quality') th.textContent = 'Severity';
             });
+
+            // Insert "Position" header as 2nd column (after Word)
+            var headRow = container.querySelector('thead tr');
+            if (headRow && matchedCount > 0 && !headRow.querySelector('.position-th')) {
+                var posTh = document.createElement('th');
+                posTh.className = 'analysis-th position-th';
+                posTh.style.cssText = 'padding: 12px 16px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;';
+                posTh.textContent = 'Position';
+                headRow.insertBefore(posTh, headRow.children[2]);
+            }
 
             // Severity legend below the table
             if (matchedCount > 0 && !container.querySelector('.severity-legend')) {
