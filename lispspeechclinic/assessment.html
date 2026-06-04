@@ -72,7 +72,7 @@
                 const userId = posthogId ? `ph_${posthogId}` : `anon_${sessionId}`;
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
                 const isLocal = window.location.host.includes('localhost') || window.location.host.includes('127.0.0.1');
-                const pathPrefix = isLocal ? 'recordings/lisp/local-testing' : 'recordings/lisp';
+                const pathPrefix = isLocal ? 'recordings/lisp/local-testing' : 'recordings/lispv2';
                 const filePath = `${pathPrefix}/${userId}/${timestamp}_${wordIndex}_lisp_${word}.webm`;
 
                 const storageRef = ref(storage, filePath);
@@ -653,6 +653,71 @@
             line-height: 1.45;
         }
 
+        /* Tier progress stepper (display only) */
+        .tier-progress {
+            margin: 0 80px 16px;
+        }
+        .tier-steps {
+            display: flex;
+            align-items: center;
+            padding: 0 6px;
+        }
+        .tier-step-dot {
+            flex: 0 0 auto;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            background: transparent;
+            border: 1.5px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.35);
+            transition: all 0.3s;
+        }
+        .tier-step-dot.done {
+            width: 18px;
+            height: 18px;
+            background: var(--asmt-cyan);
+            border-color: var(--asmt-cyan);
+            color: #fff;
+        }
+        .tier-step-dot.current {
+            width: 22px;
+            height: 22px;
+            font-size: 11px;
+            background: var(--asmt-cyan);
+            border-color: var(--asmt-cyan);
+            color: #fff;
+            box-shadow: 0 0 0 4px rgba(34,211,238,0.13);
+        }
+        .tier-step-line {
+            flex: 1 1 auto;
+            height: 2px;
+            min-width: 20px;
+            margin: 0 6px;
+            background: rgba(255,255,255,0.15);
+            transition: background 0.3s;
+        }
+        .tier-step-line.done { background: var(--asmt-cyan); }
+        /* Long probes (Tier 3 sentences / passage) inside the pill */
+        .context-word {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 88%;
+        }
+        .active-pill.is-long { height: auto; min-height: 56px; padding: 12px; }
+        .pill-word.is-long {
+            font-size: 17px;
+            font-weight: 600;
+            line-height: 1.35;
+            text-transform: none;
+        }
+
         /* Word picker — glass card */
         .word-picker-label {
             font-size: 14px;
@@ -669,27 +734,37 @@
             position: relative;
         }
         .word-picker-words {
-            flex: 1;
+            flex: 1 1 0;
+            min-width: 0;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: stretch;
             padding: 10px 0;
         }
         .context-word {
             height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            line-height: 32px;
+            display: block;
+            text-align: center;
             font-size: 16px;
             font-weight: 400;
             color: rgba(255,255,255,0.35);
             font-family: 'Inter', sans-serif;
             width: 100%;
-            transition: all 0.3s;
+            max-width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
+            padding: 0 24px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color 0.3s;
             text-transform: capitalize;
         }
         .context-word.below { color: rgba(255,255,255,0.45); }
         .context-word.far { color: rgba(255,255,255,0.2); }
+        /* Long sentence previews shrink so they don't crowd the pill */
+        .context-word.preview-long { font-size: 13px; letter-spacing: 0.01em; }
 
         /* Active pill — stretches across picker with breathing room */
         .active-pill {
@@ -1713,6 +1788,8 @@
             .clinical-title { margin-top: 6px; font-size: 17px; padding-left: 0; }
             .recording-panel { gap: 8px; padding: 6px 0 2px; }
             .word-picker { margin: 0 28px 8px; }
+            .tier-progress { margin: 0 28px 10px; }
+            .pill-word.is-long { font-size: 15px; }
             .word-picker-words { padding: 10px 0; }
             .active-pill { height: 50px; margin: 4px 10px; width: calc(100% - 20px); }
             .pill-word { font-size: 22px; }
@@ -1855,6 +1932,10 @@
 
                     <!-- Unified recording panel: word picker + waveform + record button -->
                     <div class="recording-panel">
+                    <!-- Tier progress stepper (display only; backend unchanged) -->
+                    <div class="tier-progress" id="tierProgress">
+                        <div class="tier-steps" id="tierSteps"><!-- filled by JS --></div>
+                    </div>
                     <!-- Live instruction (state-driven) -->
                     <div class="live-instruction" id="liveInstruction">Tap the microphone to start.</div>
                     <!-- Word picker -->
@@ -2081,19 +2162,135 @@
         const TOTAL_STEPS = 4;
         const FINAL_SCREEN_STEP = 4;
         const VU_BAR_COUNT = 14;
-        // Sibilant /s/ word list — initial, medial, final position
-        const TEST_WORD_META = [
-            { word: 'sun',     position: 'initial' },
-            { word: 'soap',    position: 'initial' },
-            { word: 'seven',   position: 'initial' },
-            { word: 'pencil',  position: 'medial' },
-            { word: 'glasses', position: 'medial' },
-            { word: 'bicycle', position: 'medial' },
-            { word: 'bus',     position: 'final' },
-            { word: 'mouse',   position: 'final' },
-            { word: 'glass',   position: 'final' }
+        // =============================================
+        // TIERED SIBILANT ASSESSMENT WORD BANK
+        // UI shows tier + word progress only; backend scoring updated later.
+        // Each tier groups probes by sound + word position.
+        // =============================================
+        const ASSESSMENT_TIERS = [
+            {
+                id: 1, name: 'Core', short: 'Core Sounds',
+                label: 'Core /s/ & /z/',
+                words: [
+                    // /s/ initial
+                    { word: 'sun',     position: 'initial', sound: '/s/' },
+                    { word: 'soap',    position: 'initial', sound: '/s/' },
+                    { word: 'sock',    position: 'initial', sound: '/s/' },
+                    { word: 'seat',    position: 'initial', sound: '/s/' },
+                    { word: 'sing',    position: 'initial', sound: '/s/' },
+                    { word: 'soup',    position: 'initial', sound: '/s/' },
+                    // /s/ medial
+                    { word: 'pencil',  position: 'medial', sound: '/s/' },
+                    { word: 'bicycle', position: 'medial', sound: '/s/' },
+                    { word: 'dinosaur',position: 'medial', sound: '/s/' },
+                    { word: 'whisper', position: 'medial', sound: '/s/' },
+                    { word: 'racecar', position: 'medial', sound: '/s/' },
+                    { word: 'messy',   position: 'medial', sound: '/s/' },
+                    // /s/ final
+                    { word: 'bus',     position: 'final', sound: '/s/' },
+                    { word: 'house',   position: 'final', sound: '/s/' },
+                    { word: 'mouse',   position: 'final', sound: '/s/' },
+                    { word: 'glass',   position: 'final', sound: '/s/' },
+                    { word: 'dress',   position: 'final', sound: '/s/' },
+                    { word: 'ice',     position: 'final', sound: '/s/' },
+                    // /z/ initial
+                    { word: 'zoo',     position: 'initial', sound: '/z/' },
+                    { word: 'zebra',   position: 'initial', sound: '/z/' },
+                    { word: 'zipper',  position: 'initial', sound: '/z/' },
+                    { word: 'zero',    position: 'initial', sound: '/z/' },
+                    // /z/ medial
+                    { word: 'music',   position: 'medial', sound: '/z/' },
+                    { word: 'lazy',    position: 'medial', sound: '/z/' },
+                    { word: 'dizzy',   position: 'medial', sound: '/z/' },
+                    { word: 'puzzle',  position: 'medial', sound: '/z/' },
+                    { word: 'daisy',   position: 'medial', sound: '/z/' },
+                    { word: 'raisin',  position: 'medial', sound: '/z/' },
+                    // /z/ final
+                    { word: 'nose',    position: 'final', sound: '/z/' },
+                    { word: 'rose',    position: 'final', sound: '/z/' },
+                    { word: 'eyes',    position: 'final', sound: '/z/' },
+                    { word: 'keys',    position: 'final', sound: '/z/' },
+                    { word: 'bees',    position: 'final', sound: '/z/' },
+                    { word: 'buzz',    position: 'final', sound: '/z/' },
+                    // s-clusters (initial)
+                    { word: 'spoon',   position: 'cluster', sound: '/sp/' },
+                    { word: 'star',    position: 'cluster', sound: '/st/' },
+                    { word: 'school',  position: 'cluster', sound: '/sk/' },
+                    { word: 'slide',   position: 'cluster', sound: '/sl/' },
+                    { word: 'smile',   position: 'cluster', sound: '/sm/' },
+                    { word: 'snake',   position: 'cluster', sound: '/sn/' },
+                    { word: 'swing',   position: 'cluster', sound: '/sw/' },
+                    // s-clusters (final)
+                    { word: 'box',     position: 'cluster', sound: '/ks/' },
+                    { word: 'six',     position: 'cluster', sound: '/ks/' },
+                    { word: 'nest',    position: 'cluster', sound: '/st/' },
+                    { word: 'mask',    position: 'cluster', sound: '/sk/' },
+                    { word: 'boats',   position: 'cluster', sound: '/ts/' }
+                ]
+            },
+            {
+                id: 2, name: 'Extended', short: 'More Sounds',
+                label: 'Extended sibilants',
+                words: [
+                    // /ʃ/ (sh)
+                    { word: 'shoe',    position: 'initial', sound: '/ʃ/' },
+                    { word: 'ship',    position: 'initial', sound: '/ʃ/' },
+                    { word: 'ocean',   position: 'medial', sound: '/ʃ/' },
+                    { word: 'washing', position: 'medial', sound: '/ʃ/' },
+                    { word: 'fish',    position: 'final', sound: '/ʃ/' },
+                    { word: 'brush',   position: 'final', sound: '/ʃ/' },
+                    // /tʃ/ (ch)
+                    { word: 'chair',   position: 'initial', sound: '/tʃ/' },
+                    { word: 'cherry',  position: 'initial', sound: '/tʃ/' },
+                    { word: 'kitchen', position: 'medial', sound: '/tʃ/' },
+                    { word: 'teacher', position: 'medial', sound: '/tʃ/' },
+                    { word: 'watch',   position: 'final', sound: '/tʃ/' },
+                    { word: 'beach',   position: 'final', sound: '/tʃ/' },
+                    // /dʒ/ (j)
+                    { word: 'jump',    position: 'initial', sound: '/dʒ/' },
+                    { word: 'jar',     position: 'initial', sound: '/dʒ/' },
+                    { word: 'magic',   position: 'medial', sound: '/dʒ/' },
+                    { word: 'engine',  position: 'medial', sound: '/dʒ/' },
+                    { word: 'bridge',  position: 'final', sound: '/dʒ/' },
+                    { word: 'orange',  position: 'final', sound: '/dʒ/' }
+                ]
+            },
+            {
+                id: 3, name: 'Connected', short: 'Sentences',
+                label: 'Connected speech',
+                words: [
+                    { word: 'Sally sells seashells by the seashore.',   position: 'connected', sound: 'sentence', type: 'sentence' },
+                    { word: 'The sun sets slowly in the misty sky.',     position: 'connected', sound: 'sentence', type: 'sentence' },
+                    { word: 'Six swift swans swam past the castle.',     position: 'connected', sound: 'sentence', type: 'sentence' },
+                    { word: 'She sells fresh fish at the busy market.',  position: 'connected', sound: 'sentence', type: 'sentence' },
+                    { word: "Sam's sister saw seven small spaceships.",  position: 'connected', sound: 'sentence', type: 'sentence' },
+                    { word: 'The snake slid silently across the grass.', position: 'connected', sound: 'sentence', type: 'sentence' },
+                    { word: 'Please pass the salt and the spicy sauce.', position: 'connected', sound: 'sentence', type: 'sentence' },
+                    { word: "Susan's bicycle has a loose silver basket.",position: 'connected', sound: 'sentence', type: 'sentence' }
+                ]
+            }
         ];
+
+        // Flatten tiers → linear probe list (recording loop is index-driven).
+        const TEST_WORD_META = ASSESSMENT_TIERS.flatMap(t =>
+            t.words.map(w => ({ ...w, tier: t.id, tierName: t.short })));
         const TEST_WORDS = TEST_WORD_META.map(w => w.word);
+
+        // Tier boundaries for the progress bar (cumulative start index per tier).
+        const TIER_BOUNDS = (() => {
+            let acc = 0;
+            return ASSESSMENT_TIERS.map(t => {
+                const b = { id: t.id, short: t.short, label: t.label, start: acc, count: t.words.length };
+                acc += t.words.length;
+                return b;
+            });
+        })();
+        function tierOfIndex(idx) {
+            for (const b of TIER_BOUNDS) {
+                if (idx < b.start + b.count) return b;
+            }
+            return TIER_BOUNDS[TIER_BOUNDS.length - 1];
+        }
         const FORMEASY_URL = 'https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec';
         // Point this at the deployed lisp cloud function (analyzeLispSpeech).
         // For local dev run `npx functions-framework --target=analyzeLispSpeech` in gcp-function-lisp/.
@@ -2293,17 +2490,30 @@
 
             wordsEl.innerHTML = '';
 
-            // Active pill
+            // Active pill — long probes (Tier 3 sentences/passage) wrap + shrink
+            const curMeta = TEST_WORD_META[currentWordIndex] || {};
+            const isLong = curMeta.type === 'sentence' || curMeta.type === 'passage';
             const pill = document.createElement('div');
-            pill.className = 'active-pill';
-            pill.innerHTML = '<span class="pill-timer" id="pillTimer">0:00</span>' +
-                '<span class="pill-word">' + TEST_WORDS[currentWordIndex] + '</span>' +
-                '<span class="pill-spacer"></span>';
+            pill.className = 'active-pill' + (isLong ? ' is-long' : '');
+            const wordSpan = document.createElement('span');
+            wordSpan.className = 'pill-word' + (isLong ? ' is-long' : '');
+            wordSpan.textContent = TEST_WORDS[currentWordIndex];
+            pill.innerHTML = '<span class="pill-timer" id="pillTimer">0:00</span>';
+            pill.appendChild(wordSpan);
+            const spacer = document.createElement('span');
+            spacer.className = 'pill-spacer';
+            pill.appendChild(spacer);
             wordsEl.appendChild(pill);
 
-            // Next word
+            // Context preview meta — long sentence/passage previews render smaller
+            const nm1 = TEST_WORD_META[next1] || {};
+            const nm2 = TEST_WORD_META[next2] || {};
+            const long1 = nm1.type === 'sentence' || nm1.type === 'passage';
+            const long2 = nm2.type === 'sentence' || nm2.type === 'passage';
+
+            // Next word — preview (truncates via CSS ellipsis for long sentences)
             const nextDiv = document.createElement('div');
-            nextDiv.className = 'context-word below';
+            nextDiv.className = 'context-word below' + (long1 ? ' preview-long' : '');
             nextDiv.textContent = next1 < TEST_WORDS.length ? TEST_WORDS[next1] : '';
             wordsEl.appendChild(nextDiv);
 
@@ -2314,7 +2524,7 @@
 
             // Next+2 word
             const next2Div = document.createElement('div');
-            next2Div.className = 'context-word far';
+            next2Div.className = 'context-word far' + (long2 ? ' preview-long' : '');
             next2Div.textContent = next2 < TEST_WORDS.length ? TEST_WORDS[next2] : '';
             wordsEl.appendChild(next2Div);
 
@@ -2330,6 +2540,32 @@
                 else if (i === currentWordIndex || i === currentWordIndex + 1) dot.classList.add('active');
                 dotsEl.appendChild(dot);
             }
+
+            renderTierProgress();
+        }
+
+        // Tier progress stepper (display only — conveys scope to user)
+        function renderTierProgress() {
+            const total = TEST_WORDS.length;
+            const doneCount = allWordsRecorded ? total : currentWordIndex; // completed probes
+            const cur = tierOfIndex(allWordsRecorded ? total - 1 : currentWordIndex);
+            const stepsEl = document.getElementById('tierSteps');
+            if (!stepsEl) return;
+            stepsEl.innerHTML = '';
+            TIER_BOUNDS.forEach((b, i) => {
+                const localDone = Math.max(0, Math.min(b.count, doneCount - b.start));
+                const tierDone = localDone >= b.count;
+                const isCurrent = !allWordsRecorded && b.id === cur.id;
+                const dot = document.createElement('div');
+                dot.className = 'tier-step-dot' + (tierDone ? ' done' : '') + (isCurrent ? ' current' : '');
+                dot.textContent = String(b.id);
+                stepsEl.appendChild(dot);
+                if (i < TIER_BOUNDS.length - 1) {
+                    const line = document.createElement('div');
+                    line.className = 'tier-step-line' + (tierDone ? ' done' : '');
+                    stepsEl.appendChild(line);
+                }
+            });
         }
 
         // Update the circular record button appearance
@@ -2583,7 +2819,9 @@
                         }
                         lastSpeechTime = Date.now();
                     }
-                    if (speechDetected && lastSpeechTime > 0 && (Date.now() - lastSpeechTime) > SILENCE_DURATION) {
+                    const fbType = (TEST_WORD_META[currentWordIndex] || {}).type;
+                    const fbSilence = (fbType === 'sentence' || fbType === 'passage') ? 1400 : SILENCE_DURATION;
+                    if (speechDetected && lastSpeechTime > 0 && (Date.now() - lastSpeechTime) > fbSilence) {
                         const speechDuration = lastSpeechTime - speechStartTime;
                         if (speechDuration >= MIN_SPEECH_DURATION) {
                             stopWordRecording();
@@ -2645,6 +2883,11 @@
         async function startVad(stream) {
             try {
                 if (!window.vad || !window.vad.MicVAD) return;
+                // Sentences are spoken with natural breaks between phrases. Each VAD
+                // frame ≈ 32ms; words tolerate ~384ms silence (12 frames), sentences
+                // tolerate ~1.4s (45 frames) so mid-sentence pauses don't end recording.
+                const curType = (TEST_WORD_META[currentWordIndex] || {}).type;
+                const isSentenceProbe = curType === 'sentence' || curType === 'passage';
                 vadInstance = await window.vad.MicVAD.new({
                     model: 'v5',
                     baseAssetPath: VAD_ASSET_BASE,
@@ -2656,7 +2899,7 @@
                     positiveSpeechThreshold: 0.6,
                     negativeSpeechThreshold: 0.4,
                     minSpeechFrames: 3,
-                    redemptionFrames: 12,
+                    redemptionFrames: isSentenceProbe ? 45 : 12,
                     onSpeechStart: () => {
                         console.log('[VAD] ✅ human voice detected — speech start');
                         if (!isRecording) return;
@@ -2784,30 +3027,10 @@
             });
         }
 
-        // Send per-word audio + client FFT metrics to the lisp cloud function.
-        async function sendAudioToBackend(local) {
-            const wordEntries = TEST_WORDS.map((word, i) => {
-                const b64 = wordRecordingsB64[word];
-                return b64 ? { word, position: TEST_WORD_META[i].position, audio_base64: b64 } : null;
-            }).filter(Boolean);
-
-            if (!wordEntries.length) return null;
-
-            const fftData = (local && Array.isArray(local.words)) ? local.words.map(w => ({
-                word: w.word,
-                position: w.position,
-                peakHz: w.peakHz || 0,
-                targetHz: w.targetHz || 7000
-            })) : [];
-
-            const band = getSibilantBand();
-            const payload = {
-                words: wordEntries,
-                fftData,
-                voiceType: userGender,
-                sibilantBand: band
-            };
-
+        // All probes (64 words + sentences) go to Gemini in ONE request. The
+        // backend returns two tables — words and sentences — which we group into
+        // tier categories for the results page.
+        async function postToBackend(payload) {
             const resp = await fetch(GCP_ANALYZE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2815,6 +3038,91 @@
             });
             if (!resp.ok) throw new Error('Backend error: ' + resp.status + ' - ' + (await resp.text()));
             return await resp.json();
+        }
+
+        async function sendAudioToBackend(local) {
+            const band = getSibilantBand();
+
+            // All recorded probes, tagged word vs. sentence, in test order.
+            const probes = [];
+            TEST_WORD_META.forEach(meta => {
+                const b64 = wordRecordingsB64[meta.word];
+                if (!b64) return;
+                probes.push({
+                    word: meta.word,
+                    position: meta.position,
+                    type: meta.type === 'sentence' ? 'sentence' : 'word',
+                    tier: meta.tier,
+                    audio_base64: b64
+                });
+            });
+            if (!probes.length) return null;
+
+            const fftByWord = {};
+            if (local && Array.isArray(local.words)) local.words.forEach(w => { fftByWord[w.word] = w; });
+
+            const fftData = probes.filter(p => p.type === 'word').map(p => {
+                const f = fftByWord[p.word] || {};
+                return { word: p.word, position: p.position, peakHz: f.peakHz || 0, targetHz: f.targetHz || band.target };
+            });
+
+            const payload = {
+                mode: 'combined',
+                words: probes.map(p => ({ word: p.word, position: p.position, type: p.type, audio_base64: p.audio_base64 })),
+                fftData,
+                voiceType: userGender,
+                sibilantBand: band
+            };
+
+            let wordRows = [], sentenceRows = [];
+            try {
+                const res = await postToBackend(payload);
+                const tierByWord = {};
+                TEST_WORD_META.forEach(m => { tierByWord[m.word] = m.tier; });
+                wordRows = (res.words || []).map(r => ({ ...r, tier: tierByWord[r.word] || 1 }));
+                sentenceRows = res.rows || [];
+            } catch (err) {
+                console.warn('Combined analysis failed:', err);
+            }
+
+            return buildStructuredResult(wordRows, sentenceRows);
+        }
+
+        // Group word + sentence rows into the three tier categories the results
+        // page renders as accordions, and compute the overall clarity score.
+        function buildStructuredResult(wordRows, sentenceRows) {
+            const tierLabel = {};
+            ASSESSMENT_TIERS.forEach(t => { tierLabel[t.id] = t.label; });
+
+            const categories = [];
+            [1, 2].forEach(tid => {
+                const rows = (wordRows || []).filter(r => r.tier === tid);
+                if (!rows.length) return;
+                const avg = Math.round(rows.reduce((s, r) => s + (r.quality || 0), 0) / rows.length);
+                categories.push({ id: tid, title: tierLabel[tid] || ('Tier ' + tid), type: 'words', rows, avg });
+            });
+            if (sentenceRows && sentenceRows.length) {
+                const avg = Math.round(sentenceRows.reduce((s, r) => s + (r.quality || 0), 0) / sentenceRows.length);
+                categories.push({ id: 3, title: tierLabel[3] || 'Connected speech', type: 'sentences', rows: sentenceRows, avg });
+            }
+
+            const allQ = [].concat(wordRows || [], sentenceRows || []).map(r => r.quality || 0);
+            const gri = allQ.length ? Math.max(0, Math.min(100, Math.round(allQ.reduce((a, b) => a + b, 0) / allQ.length))) : 0;
+
+            return { gri, categories, result: structuredToMarkdown(categories) };
+        }
+
+        // Backward-compatible markdown fallback for any consumer that still
+        // renders data.result instead of data.categories.
+        function structuredToMarkdown(categories) {
+            return categories.map(cat => {
+                if (cat.type === 'sentences') {
+                    const head = '## ' + cat.title + '\n\n| Sentence | Judgment | Quality | Mistakes |\n| --- | --- | --- | --- |\n';
+                    return head + cat.rows.map(r => `| ${r.sentence} | ${r.judgment} | ${r.quality} | ${r.mistakes} |`).join('\n');
+                }
+                const head = '## ' + cat.title + '\n\n| Word | Position | Heard | Judgment | Quality | Observation |\n| --- | --- | --- | --- | --- | --- |\n';
+                return head + cat.rows.map(r => `| ${r.word} | ${r.position || ''} | ${r.heard || ''} | ${r.judgment} | ${r.quality} | ${r.observation || ''} |`).join('\n');
+            }).join('\n\n');
         }
 
         // Denoise the blob (bandpass 300-9000 Hz) to suppress room noise before FFT.
@@ -3043,19 +3351,29 @@
         // Convert local result to the shape expected by the results page.
         // GRI = 100 - lisp score (higher = cleaner).
         function buildFinalAnalysis(local) {
-            const words = (local.words || []).map(w => {
+            const metaByWord = {};
+            TEST_WORD_META.forEach(m => { metaByWord[m.word] = m; });
+
+            const wordRows = [], sentenceRows = [];
+            (local.words || []).forEach(w => {
                 const judgment = classifyLisp(w);
                 const quality = Math.max(0, 100 - (w.score || 0));
-                return {
-                    word: w.word,
-                    heard: w.word,
-                    judgment,
-                    quality,
-                    observation: acousticNote(w, judgment)
-                };
+                const meta = metaByWord[w.word] || {};
+                if (meta.type === 'sentence') {
+                    sentenceRows.push({ sentence: w.word, judgment, quality, mistakes: acousticNote(w, judgment) });
+                } else {
+                    wordRows.push({
+                        word: w.word,
+                        position: meta.position || '',
+                        heard: w.word,
+                        judgment,
+                        quality,
+                        observation: acousticNote(w, judgment),
+                        tier: meta.tier || 1
+                    });
+                }
             });
-            const gri = Math.max(0, 100 - (local.score || 0));
-            return { result: local.note || '', gri, words };
+            return buildStructuredResult(wordRows, sentenceRows);
         }
 
         function classifyLisp(w) {
@@ -3358,7 +3676,46 @@
                     updateProgress();
                 }
             }
-            maybeJumpToLogin();
+            // TEMP TEST ROUTE: #test skips login → jumps straight to the
+            // recording session so we can iterate on the capture phase without
+            // signing in every time. Remove before production.
+            function maybeSkipLogin() {
+                const h = location.hash;
+                // #test1/#test2/#test3 → skip login AND jump to that tier's first probe.
+                const tierMatch = h.match(/^#test([123])$/);
+                if (h !== '#test' && h !== '#test-record' && h !== '#skip-login' && !tierMatch) return false;
+                // Drop the login step from the flow.
+                const li = STEP_ORDER.indexOf(2);
+                if (li !== -1) STEP_ORDER.splice(li, 1);
+                // Seed throwaway auth so downstream reads don't choke.
+                try {
+                    if (!localStorage.getItem('userAuth')) {
+                        localStorage.setItem('userAuth', JSON.stringify({ email: 'tester@local', id: 'test-skip', provider: 'test' }));
+                    }
+                } catch (e) {}
+                window.obLoggedInUser = window.obLoggedInUser || { email: 'tester@local', uid: 'test-skip', provider: 'test' };
+                // Activate the recording step directly.
+                document.querySelectorAll('.assessment-step.active').forEach(el => el.classList.remove('active'));
+                orderIdx = 0;
+                currentStepNum = STEP_ORDER[orderIdx]; // 1 = recording
+                document.getElementById('step' + currentStepNum).classList.add('active');
+                updateProgress();
+                initWordRecording();
+                moveRecordingTo('recordingHost');
+                // Jump straight to a tier's first probe when #test1/#test2/#test3.
+                if (tierMatch) {
+                    const b = TIER_BOUNDS[parseInt(tierMatch[1], 10) - 1];
+                    if (b) {
+                        currentWordIndex = b.start;
+                        renderWordPicker();
+                        renderVuMeter();
+                        updateRecordButton();
+                    }
+                }
+                return true;
+            }
+
+            if (!maybeSkipLogin()) maybeJumpToLogin();
             window.addEventListener('hashchange', maybeJumpToLogin);
 
             // ===== Step3 Wizard (comfort + age + source + phone) =====

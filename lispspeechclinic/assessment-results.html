@@ -1298,7 +1298,42 @@
         // =============================================
         // CONFIG
         // =============================================
-        const TEST_WORDS = ['sun', 'soap', 'seven', 'pencil', 'glasses', 'bicycle', 'bus', 'mouse', 'glass'];
+        // Full single-word bank (Tier 1 + Tier 2 from assessment.html). Sentences
+        // are handled by their own table and intentionally excluded here.
+        const TEST_WORDS = [
+            // Tier 1 — Core /s/ & /z/
+            'sun', 'soap', 'sock', 'seat', 'sing', 'soup',
+            'pencil', 'bicycle', 'dinosaur', 'whisper', 'racecar', 'messy',
+            'bus', 'house', 'mouse', 'glass', 'dress', 'ice',
+            'zoo', 'zebra', 'zipper', 'zero',
+            'music', 'lazy', 'dizzy', 'puzzle', 'daisy', 'raisin',
+            'nose', 'rose', 'eyes', 'keys', 'bees', 'buzz',
+            'spoon', 'star', 'school', 'slide', 'smile', 'snake', 'swing',
+            'box', 'six', 'nest', 'mask', 'boats',
+            // Tier 2 — Extended sibilants
+            'shoe', 'ship', 'ocean', 'washing', 'fish', 'brush',
+            'chair', 'cherry', 'kitchen', 'teacher', 'watch', 'beach',
+            'jump', 'jar', 'magic', 'engine', 'bridge', 'orange'
+        ];
+
+        // Tier 3 — connected speech. Keys match the recording keys saved by
+        // assessment.html (full sentence string in localStorage 'wordRecordings').
+        const TEST_SENTENCES = [
+            'Sally sells seashells by the seashore.',
+            'The sun sets slowly in the misty sky.',
+            'Six swift swans swam past the castle.',
+            'She sells fresh fish at the busy market.',
+            "Sam's sister saw seven small spaceships.",
+            'The snake slid silently across the grass.',
+            'Please pass the salt and the spicy sauce.',
+            "Susan's bicycle has a loose silver basket."
+        ];
+
+        // Collapse to comparable form (lowercase, alphanumerics only) so a
+        // truncated cell ("Sally sells seashells...") still matches its full key.
+        function normalizeSentence(s) {
+            return (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
 
         // Word → /s/ position (for personalized CTA copy)
         const LISP_POSITION_MAP = {
@@ -1359,6 +1394,7 @@
             gtag('event', 'results_page_view', { event_category: 'engagement', event_label: 'assessment_completion' });
             loadAnalysisFromStorage();
             enhanceTableRows();
+            enhanceSentenceRows();
         });
 
         // =============================================
@@ -1421,7 +1457,7 @@
             });
 
             html = html
-                .replace(/## (.+)/g, '<h3 style="color: #1A202C; margin: 24px 0 12px 0; font-size: 17px; font-weight: 600;">$1</h3>')
+                .replace(/## (.+)/g, function(_, t) { return '<h3 style="color: #1A202C; margin: 24px 0 12px 0; font-size: 17px; font-weight: 600;">' + t.replace(/^\s*Tier\s*\d+\s*[—–-]\s*/i, '') + '</h3>'; })
                 .replace(/\*\*(.+?)\*\*/g, '<strong style="color: #1A202C;">$1</strong>')
                 .replace(/^- (.+)/gm, '<div style="margin: 8px 0; padding-left: 16px; color: #2D3748;">&bull; $1</div>')
                 .replace(/\n\n/g, '</p><p style="margin: 16px 0; color: #2D3748;">')
@@ -1437,6 +1473,72 @@
             });
         }
 
+        function sevLabel(q) {
+            q = parseInt(q) || 0;
+            return q < 35 ? 'Severe' : q < 70 ? 'Moderate' : 'WNL';
+        }
+
+        // Word table markdown — same column order the old single table used, so
+        // convertMarkdownToHTML + enhanceTableRows decorate it identically
+        // (Target/Yours playback, Severity labels, Position/Heard swap).
+        function wordCatMarkdown(rows) {
+            var h = '| Word | Position | Heard | Judgment | Quality | Observation |\n| --- | --- | --- | --- | --- | --- |\n';
+            return h + (rows || []).map(function(r) {
+                return '| ' + (r.word || '') + ' | ' + (r.position || '') + ' | ' + (r.heard || '')
+                    + ' | ' + (r.judgment || '') + ' | ' + (r.quality || 0) + ' | ' + (r.observation || '') + ' |';
+            }).join('\n');
+        }
+
+        // Sentence table — no Heard column; tell the user where they slipped.
+        function sentenceCatMarkdown(rows) {
+            var h = '| Sentence | Recording | Judgment | Severity | Where you slipped |\n| --- | --- | --- | --- | --- |\n';
+            return h + (rows || []).map(function(r) {
+                return '| ' + (r.sentence || '') + ' |  | ' + (r.judgment || '') + ' | ' + sevLabel(r.quality) + ' | ' + (r.mistakes || '') + ' |';
+            }).join('\n');
+        }
+
+        // Build one collapsible card per tier category. Collapsed by default so
+        // the page stays short; tap a header to expand its table.
+        function renderCategoryAccordions(categories) {
+            var html = '<div class="cat-accordions" style="margin: 24px 0; display: flex; flex-direction: column; gap: 12px;">';
+
+            categories.forEach(function(cat, idx) {
+                var bodyId = 'catBody-' + idx;
+                var count = (cat.rows || []).length;
+                var countLabel = cat.type === 'sentences' ? (count + ' sentences') : (count + ' words');
+                var bodyClass = cat.type === 'sentences' ? 'cat-sentences' : 'cat-words';
+                var inner = cat.type === 'sentences'
+                    ? convertMarkdownToHTML(sentenceCatMarkdown(cat.rows))
+                    : convertMarkdownToHTML(wordCatMarkdown(cat.rows));
+
+                html += '<div class="cat-card" style="border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #fff;">';
+                html += '<button type="button" class="cat-header" aria-expanded="false" onclick="toggleCategory(\'' + bodyId + '\', this)" '
+                    + 'style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px 18px; background: #F8FAFC; border: none; cursor: pointer; text-align: left;">';
+                // Keep heading simple — drop any leading "Tier N — " prefix that
+                // older stored results may carry (e.g. "Tier 1 — Core /s/ & /z/").
+                var catTitle = (cat.title || '').replace(/^\s*Tier\s*\d+\s*[—–-]\s*/i, '');
+                html += '<span style="flex: 1; font-weight: 600; font-size: 15px; color: #1A202C;">' + catTitle + '</span>';
+                html += '<span style="font-size: 12px; color: #64748B; white-space: nowrap;">' + countLabel + '</span>';
+                html += '<span class="cat-chevron" style="transition: transform 0.2s; color: #94A3B8; font-size: 14px;">▾</span>';
+                html += '</button>';
+                html += '<div id="' + bodyId + '" class="cat-body ' + bodyClass + '" style="display: none; padding: 0 14px 8px;">' + inner + '</div>';
+                html += '</div>';
+            });
+
+            html += '</div>';
+            return html;
+        }
+
+        function toggleCategory(bodyId, btn) {
+            var body = document.getElementById(bodyId);
+            if (!body) return;
+            var open = body.style.display !== 'none';
+            body.style.display = open ? 'none' : 'block';
+            btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+            var chev = btn.querySelector('.cat-chevron');
+            if (chev) chev.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+
         function displayAnalysisResults(data) {
             var el = document.getElementById('voiceAnalysisContent');
 
@@ -1446,8 +1548,13 @@
             }
 
             if (typeof data === 'object' && data !== null) {
-                var text = data.analysis || data.result || data.response || JSON.stringify(data, null, 2);
-                el.innerHTML = convertMarkdownToHTML(text);
+                // Preferred path: structured categories → collapsible accordions.
+                if (Array.isArray(data.categories) && data.categories.length) {
+                    el.innerHTML = renderCategoryAccordions(data.categories);
+                } else {
+                    var text = data.analysis || data.result || data.response || JSON.stringify(data, null, 2);
+                    el.innerHTML = convertMarkdownToHTML(text);
+                }
 
                 // Render GRI hero gauge if available
                 if (typeof data.gri === 'number') {
@@ -1592,22 +1699,31 @@
             return btn;
         }
 
-        var MODEL_AUDIO_MAP = {
-            'sun':     '/lispspeechclinic/target-audio/sun.mp3',
-            'soap':    '/lispspeechclinic/target-audio/soap.mp3',
-            'seven':   '/lispspeechclinic/target-audio/seven.mp3',
-            'pencil':  '/lispspeechclinic/target-audio/pencil.mp3',
-            'glasses': '/lispspeechclinic/target-audio/glasses.mp3',
-            'bicycle': '/lispspeechclinic/target-audio/bicycle.mp3',
-            'bus':     '/lispspeechclinic/target-audio/bus.mp3',
-            'mouse':   '/lispspeechclinic/target-audio/mouse.mp3',
-            'glass':   '/lispspeechclinic/target-audio/glass.mp3'
-        };
+        var MODEL_AUDIO_MAP = (function () {
+            var words = [
+                'beach', 'bees', 'bicycle', 'boats', 'box', 'bridge', 'brush', 'bus', 'buzz',
+                'chair', 'cherry', 'daisy', 'dinosaur', 'dizzy', 'dress', 'engine', 'eyes',
+                'fish', 'glass', 'glasses', 'house', 'ice', 'jar', 'jump', 'keys', 'kitchen',
+                'lazy', 'magic', 'mask', 'messy', 'mouse', 'music', 'nest', 'nose', 'ocean',
+                'orange', 'pencil', 'puzzle', 'racecar', 'raisin', 'rose', 'school', 'seat',
+                'seven', 'ship', 'shoe', 'sing', 'six', 'slide', 'smile', 'snake', 'soap',
+                'sock', 'soup', 'spoon', 'star', 'sun', 'swing', 'teacher', 'washing', 'watch',
+                'whisper', 'zebra', 'zero', 'zipper', 'zoo'
+            ];
+            var map = {};
+            words.forEach(function (w) {
+                map[w] = '/lispspeechclinic/target-audio/' + w + '.mp3';
+            });
+            return map;
+        })();
 
         function enhanceTableRows() {
             var container = document.getElementById('voiceAnalysisContent');
             if (!container) return;
-            var rows = container.querySelectorAll('tbody tr');
+            // When rendered as tier accordions, only decorate the word tables —
+            // sentence tables have a different shape and must be left alone.
+            var scope = container.querySelector('.cat-words') ? '.cat-words ' : '';
+            var rows = container.querySelectorAll(scope + 'tbody tr');
 
             // Load user recordings from localStorage
             var userRecordings = {};
@@ -1630,7 +1746,7 @@
                 var accuracyCell = tds[3];
                 var qualityCell = tds[4];
 
-                var cellText = wordCell.textContent.trim().toLowerCase();
+                var cellText = wordCell.textContent.trim().toLowerCase().replace(/^\d+[\.\)]\s*/, '');
                 var matchedWord = TEST_WORDS.find(function(w) { return w === cellText; });
                 if (!matchedWord) return;
 
@@ -1681,13 +1797,13 @@
             }
 
             // Rename the "Quality" header to "Severity"
-            var ths = container.querySelectorAll('thead th');
+            var ths = container.querySelectorAll(scope + 'thead th');
             ths.forEach(function(th) {
                 if (th.textContent.trim().toLowerCase() === 'quality') th.textContent = 'Severity';
             });
 
             // Swap Heard (col 2) and Position (col 1)
-            var allRows = container.querySelectorAll('tr');
+            var allRows = container.querySelectorAll(scope + 'tr');
             allRows.forEach(function(tr) {
                 var cells = tr.children;
                 if (cells.length >= 3) {
@@ -1707,6 +1823,42 @@
                     '<strong>Severe</strong> = strong lisp pattern.';
                 container.appendChild(legend);
             }
+        }
+
+        // Sentence table — add a "Yours" play button so users can hear their own
+        // connected-speech recording, mirroring the word table.
+        function enhanceSentenceRows() {
+            var container = document.getElementById('voiceAnalysisContent');
+            if (!container) return;
+            var rows = container.querySelectorAll('.cat-sentences tbody tr');
+            if (!rows.length) return;
+
+            var userRecordings = {};
+            try {
+                var stored = localStorage.getItem('wordRecordings');
+                if (stored) userRecordings = JSON.parse(stored);
+            } catch (e) {}
+
+            rows.forEach(function(tr) {
+                var tds = tr.querySelectorAll('td');
+                if (tds.length < 2) return;
+                var sentenceCell = tds[0];
+                var recordingCell = tds[1];
+
+                var cellNorm = normalizeSentence(sentenceCell.textContent);
+                if (!cellNorm) return;
+
+                // Match truncated cell text to a full recording key by prefix.
+                var matched = TEST_SENTENCES.find(function(s) {
+                    var n = normalizeSentence(s);
+                    return n.indexOf(cellNorm) === 0 || cellNorm.indexOf(n) === 0;
+                });
+                if (!matched || !userRecordings[matched]) return;
+
+                var b64 = userRecordings[matched];
+                var src = b64.startsWith('data:') ? b64 : 'data:audio/webm;base64,' + b64;
+                recordingCell.appendChild(createPlayButton(src, 'Yours'));
+            });
         }
 
         // =============================================
