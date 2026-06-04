@@ -655,7 +655,7 @@
 
         /* Tier progress stepper (display only) */
         .tier-progress {
-            margin: 0 80px 16px;
+            display: none;
         }
         .tier-steps {
             display: flex;
@@ -1756,15 +1756,20 @@
         /* Mobile: compact so HOW IT WORKS + card + NOTE fit one viewport */
         @media (max-width: 768px) {
             .assessment-page { padding-top: 84px; padding-bottom: 16px; }
-            .assessment-page:has(#step1.active) { padding-top: 72px; padding-bottom: 12px; }
+            .assessment-page:has(#step1.active) {
+                padding-top: 72px; padding-bottom: 72px;
+                justify-content: center;
+            }
             /* Spacing between stacked components */
             .rec-layout { gap: 12px; }
             /* HOW IT WORKS → single inline line inside compact box */
             .rec-aside .aside-box:nth-child(1) {
                 padding: 12px 16px; display: flex; flex-wrap: nowrap;
                 justify-content: center; align-items: center; gap: 20px;
-                margin-bottom: 20px;
+                margin-bottom: 4px;
             }
+            /* Protocol box not needed on mobile */
+            .rec-aside .aside-box.proto-box { display: none; }
             .rec-aside .aside-box:nth-child(1) .aside-legend { display: none; }
             .rec-aside .aside-box:nth-child(1) .aside-row {
                 margin-top: 0; font-size: 13px; line-height: 1.3;
@@ -1787,19 +1792,224 @@
             .clinical-label { font-size: 10px; }
             .clinical-title { margin-top: 6px; font-size: 17px; padding-left: 0; }
             .recording-panel { gap: 8px; padding: 6px 0 2px; }
-            .word-picker { margin: 0 28px 8px; }
+            .word-picker { margin: 0 28px 6px; }
             .tier-progress { margin: 0 28px 10px; }
-            .pill-word.is-long { font-size: 15px; }
-            .word-picker-words { padding: 10px 0; }
-            .active-pill { height: 50px; margin: 4px 10px; width: calc(100% - 20px); }
-            .pill-word { font-size: 22px; }
-            .context-word { height: 26px; font-size: 15px; }
+            .pill-word.is-long { font-size: 14px; }
+            .word-picker-words { padding: 8px 0; }
+            .active-pill { height: 44px; margin: 4px 10px; width: calc(100% - 20px); }
+            .pill-word { font-size: 19px; }
+            .context-word { height: 22px; font-size: 14px; }
             .context-word:empty { display: none; }
-            .vu-meter { height: 32px; margin-bottom: 4px; }
-            .record-btn-area { padding: 4px 0 12px; }
-            .record-circle-btn { width: 60px; height: 60px; }
-            .record-circle-inner { width: 48px; height: 48px; }
+            .vu-meter { height: 28px; margin-bottom: 4px; }
+            .record-btn-area { padding: 4px 0 10px; }
+            .record-circle-btn { width: 54px; height: 54px; }
+            .record-circle-inner { width: 42px; height: 42px; }
             .record-label { font-size: 10px; }
+            .seg-block { margin: 0 28px; padding: 6px 16px 7px; }
+            .seg-header { margin-bottom: 6px; }
+            .tier-badge { font-size: 8px; padding: 2px 6px; }
+            .seg-phoneme { font-size: 13px; }
+            .seg-sep { font-size: 10px; }
+            .seg-position { font-size: 9px; }
+            .seg-counter { font-size: 10px; }
+            .seg-pip { height: 3px; }
+            .word-progress { margin: 0 28px; }
+        }
+
+        /* Tall mobiles (14 Pro/Max, Pixel 7, etc.): SE stays compact,
+           larger screens breathe — scale spacing + elements up to fill height. */
+        @media (max-width: 768px) and (min-height: 760px) {
+            .rec-layout { gap: 18px; }
+            .rec-aside .aside-box:nth-child(1) { margin-bottom: 14px; }
+            .clinical-header { padding: 18px 18px 0; }
+            .clinical-title { margin-top: 8px; font-size: 19px; }
+            .recording-panel { gap: 14px; padding: 10px 0 6px; }
+            .seg-block { padding: 12px 22px 14px; }
+            .seg-header { margin-bottom: 10px; }
+            .tier-badge { font-size: 9px; padding: 3px 8px; }
+            .seg-phoneme { font-size: 16px; }
+            .seg-sep { font-size: 12px; }
+            .seg-position { font-size: 10px; }
+            .seg-counter { font-size: 11px; }
+            .seg-pip { height: 4px; }
+            .word-picker { margin: 0 28px 12px; }
+            .word-picker-words { padding: 12px 0; }
+            .active-pill { height: 54px; }
+            .pill-word { font-size: 24px; }
+            .pill-word.is-long { font-size: 16px; }
+            .context-word { height: 30px; font-size: 16px; }
+            .vu-meter { height: 40px; margin-bottom: 8px; }
+            .record-btn-area { padding: 10px 0 16px; }
+            .record-circle-btn { width: 68px; height: 68px; }
+            .record-circle-inner { width: 54px; height: 54px; }
+        }
+        /* Extra-tall mobiles (Pixel 7 915h, 14 Pro Max 932h): a touch more room. */
+        @media (max-width: 768px) and (min-height: 880px) {
+            .rec-layout { gap: 24px; }
+            .rec-aside .aside-box:nth-child(1) { margin-bottom: 18px; }
+            .recording-panel { gap: 18px; }
+            .seg-block { padding: 14px 22px 16px; }
+            .active-pill { height: 58px; }
+            .vu-meter { height: 48px; }
+            .record-btn-area { padding: 14px 0 20px; }
+        }
+
+        /* ===================================================
+           Segment identity + protocol (ported from standalone)
+           =================================================== */
+        .seg-block {
+            margin: 16px 20px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 8px 24px 10px;
+            text-align: left;
+        }
+        .seg-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+        .seg-left {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-wrap: wrap;
+        }
+        .tier-badge {
+            font-family: monospace;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid currentColor;
+            color: var(--asmt-cyan);
+            white-space: nowrap;
+            transition: color 0.3s, border-color 0.3s;
+        }
+        .seg-phoneme {
+            font-family: monospace;
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.03em;
+        }
+        .seg-sep { color: rgba(255,255,255,0.2); font-size: 12px; }
+        .seg-position {
+            font-family: monospace;
+            font-size: 10px;
+            font-weight: 500;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+        }
+        .seg-counter {
+            font-family: monospace;
+            font-size: 11px;
+            color: #fff;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+        }
+        .seg-counter b { font-weight: 600; color: var(--asmt-cyan); }
+        .seg-strip {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 3px;
+        }
+        .seg-pip {
+            height: 4px;
+            border-radius: 1px;
+            background: rgba(255,255,255,0.07);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .seg-pip.done-t1 { background: rgba(34,211,238,0.35); }
+        .seg-pip.cur-t1  { background: var(--asmt-cyan); box-shadow: 0 0 10px rgba(34,211,238,0.8); }
+        .seg-pip.done-t2 { background: rgba(20,184,168,0.35); }
+        .seg-pip.cur-t2  { background: #14B8A8; box-shadow: 0 0 10px rgba(20,184,168,0.8); }
+        .seg-pip.done-t3 { background: rgba(245,158,11,0.35); }
+        .seg-pip.cur-t3  { background: #F59E0B; box-shadow: 0 0 10px rgba(245,158,11,0.8); }
+
+        /* Word-level progress (within current segment) */
+        .word-progress {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 0 80px;
+            padding: 0 2px;
+            gap: 12px;
+        }
+        .word-count-label {
+            font-family: monospace;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .word-count-label b { font-weight: 600; }
+        .word-dots {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .word-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            transition: background 0.2s, transform 0.2s;
+        }
+        .word-dot.done    { background: rgba(34,211,238,0.35); }
+        .word-dot.current { background: var(--asmt-cyan); transform: scale(1.25); }
+
+        /* Protocol aside card (light — matches .aside-box) */
+        .proto-list { display: flex; flex-direction: column; gap: 0; margin-top: 4px; }
+        .proto-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 11px 0;
+            border-bottom: 1px solid #F0F4F8;
+            transition: opacity 0.25s ease;
+        }
+        .proto-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .proto-row.inactive { opacity: 0.38; }
+        .proto-indicator {
+            flex: none;
+            margin-top: 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #CBD5E0;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .proto-indicator.t1 { background: var(--asmt-cyan); box-shadow: 0 0 8px rgba(34,211,238,0.5); }
+        .proto-indicator.t2 { background: #14B8A8; box-shadow: 0 0 8px rgba(20,184,168,0.5); }
+        .proto-indicator.t3 { background: #F59E0B; box-shadow: 0 0 8px rgba(245,158,11,0.5); }
+        .proto-tier-label {
+            font-family: monospace;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .proto-tier-label.t1 { color: var(--asmt-cyan); }
+        .proto-tier-label.t2 { color: #14B8A8; }
+        .proto-tier-label.t3 { color: #F59E0B; }
+        .proto-name { font-size: 13.5px; font-weight: 600; color: #1A202C; line-height: 1.3; }
+        .proto-segs { font-family: monospace; font-size: 11px; color: #A0AEC0; margin-top: 2px; }
+
+        /* Protocol box ordering on mobile (after HOW IT WORKS / card / NOTE) */
+        @media (max-width: 1099px) {
+            .rec-aside .aside-box.proto-box { order: 4; }
         }
     </style>
     <link rel="stylesheet" href="css/nav.css">
@@ -1915,6 +2125,10 @@
                             <div class="aside-legend">NOTE</div>
                             <div class="aside-row"><span>To get the best results, find a quiet spot with zero background noise. Make sure your recording of the test words is loud &amp; clear.</span></div>
                         </div>
+                        <div class="aside-box proto-box">
+                            <div class="aside-legend">PROTOCOL</div>
+                            <div class="proto-list" id="protoList"><!-- filled by JS --></div>
+                        </div>
                     </aside>
                     <div class="recording-section-wrap">
                 <div class="recording-section">
@@ -1932,6 +2146,19 @@
 
                     <!-- Unified recording panel: word picker + waveform + record button -->
                     <div class="recording-panel">
+                    <!-- Segment identity + 12-segment progress strip -->
+                    <div class="seg-block">
+                        <div class="seg-header">
+                            <div class="seg-left">
+                                <span class="tier-badge" id="segTierBadge">TIER 1</span>
+                                <span class="seg-phoneme" id="segPhoneme">/s/</span>
+                                <span class="seg-sep">·</span>
+                                <span class="seg-position" id="segPosition">INITIAL</span>
+                            </div>
+                            <div class="seg-counter">SEG <b id="segNum">01</b>/<span id="segOf">12</span></div>
+                        </div>
+                        <div class="seg-strip" id="segStrip"><!-- pips filled by JS --></div>
+                    </div>
                     <!-- Tier progress stepper (display only; backend unchanged) -->
                     <div class="tier-progress" id="tierProgress">
                         <div class="tier-steps" id="tierSteps"><!-- filled by JS --></div>
@@ -1947,6 +2174,12 @@
                         <div class="word-picker-dots" id="wordPickerDots">
                             <!-- filled by JS -->
                         </div>
+                    </div>
+
+                    <!-- Word-level progress (within current segment) -->
+                    <div class="word-progress">
+                        <div class="word-count-label">WORD <b id="segWordNum">1</b> / <span id="segWordOf">6</span></div>
+                        <div class="word-dots" id="segWordDots"><!-- filled by JS --></div>
                     </div>
 
                     <!-- VU Meter -->
@@ -2291,6 +2524,120 @@
             }
             return TIER_BOUNDS[TIER_BOUNDS.length - 1];
         }
+
+        // =============================================
+        // SEGMENT METADATA — 12 segments across 3 tiers.
+        // Partitions the linear TEST_WORDS list (sound + position groups).
+        // Display only; recording loop stays index-driven.
+        // =============================================
+        const SEGMENTS = [
+            { tier: 1, phoneme: '/s/',   pos: 'INITIAL',      count: 6 },
+            { tier: 1, phoneme: '/s/',   pos: 'MEDIAL',       count: 6 },
+            { tier: 1, phoneme: '/s/',   pos: 'FINAL',        count: 6 },
+            { tier: 1, phoneme: '/z/',   pos: 'INITIAL',      count: 4 },
+            { tier: 1, phoneme: '/z/',   pos: 'MEDIAL',       count: 6 },
+            { tier: 1, phoneme: '/z/',   pos: 'FINAL',        count: 6 },
+            { tier: 1, phoneme: '/s/',   pos: 'CLUSTERS (I)', count: 7 },
+            { tier: 1, phoneme: '/s/',   pos: 'CLUSTERS (F)', count: 5 },
+            { tier: 2, phoneme: '/ʃ/',   pos: 'SH',           count: 6 },
+            { tier: 2, phoneme: '/tʃ/',  pos: 'CH',           count: 6 },
+            { tier: 2, phoneme: '/dʒ/',  pos: 'J',            count: 6 },
+            { tier: 3, phoneme: '/s,z/', pos: 'SENTENCES',    count: 8 },
+        ];
+        const SEG_TIER_META = {
+            1: { label: 'TIER 1', name: 'Core /s/ and /z/',   cls: 't1', color: '#22D3EE', border: 'rgba(34,211,238,0.4)',  doneCls: 'done-t1', curCls: 'cur-t1' },
+            2: { label: 'TIER 2', name: 'Extended sibilants', cls: 't2', color: '#14B8A8', border: 'rgba(20,184,168,0.4)',  doneCls: 'done-t2', curCls: 'cur-t2' },
+            3: { label: 'TIER 3', name: 'Connected speech',   cls: 't3', color: '#F59E0B', border: 'rgba(245,158,11,0.4)',  doneCls: 'done-t3', curCls: 'cur-t3' },
+        };
+        // Cumulative bounds; last segment absorbs any count mismatch.
+        const SEG_BOUNDS = (() => {
+            let acc = 0;
+            const out = SEGMENTS.map(s => { const o = { ...s, start: acc, end: acc + s.count }; acc += s.count; return o; });
+            if (acc !== TEST_WORDS.length && out.length) out[out.length - 1].end = TEST_WORDS.length;
+            return out;
+        })();
+        function segmentOfIndex(idx) {
+            for (let i = 0; i < SEG_BOUNDS.length; i++) {
+                const b = SEG_BOUNDS[i];
+                if (idx < b.end) return { i, seg: b, wordInSeg: Math.max(0, idx - b.start) };
+            }
+            const last = SEG_BOUNDS.length - 1, b = SEG_BOUNDS[last];
+            return { i: last, seg: b, wordInSeg: (b.end - b.start) - 1 };
+        }
+
+        // Build the static pieces (12 pips + protocol rows) once.
+        let _segMetaBuilt = false;
+        function buildSegMetaOnce() {
+            if (_segMetaBuilt) return;
+            const strip = document.getElementById('segStrip');
+            const proto = document.getElementById('protoList');
+            if (!strip || !proto) return;
+            strip.innerHTML = '';
+            SEGMENTS.forEach(() => { const p = document.createElement('div'); p.className = 'seg-pip'; strip.appendChild(p); });
+            const segOf = document.getElementById('segOf');
+            if (segOf) segOf.textContent = SEGMENTS.length;
+            proto.innerHTML = '';
+            [1, 2, 3].forEach(t => {
+                const m = SEG_TIER_META[t];
+                const segs = SEGMENTS.filter(s => s.tier === t).length;
+                const row = document.createElement('div');
+                row.className = 'proto-row';
+                row.dataset.tier = t;
+                row.innerHTML =
+                    '<div class="proto-indicator" data-ind="' + t + '"></div>' +
+                    '<div class="proto-text">' +
+                        '<div class="proto-tier-label ' + m.cls + '">' + m.label + '</div>' +
+                        '<div class="proto-name">' + m.name + '</div>' +
+                        '<div class="proto-segs">' + segs + ' segment' + (segs > 1 ? 's' : '') + '</div>' +
+                    '</div>';
+                proto.appendChild(row);
+            });
+            _segMetaBuilt = true;
+        }
+
+        // Sync segment header, pips, word-progress + protocol to current state.
+        function renderSegmentMeta() {
+            buildSegMetaOnce();
+            const total = TEST_WORDS.length;
+            const idx = allWordsRecorded ? total - 1 : currentWordIndex;
+            const info = segmentOfIndex(idx);
+            const meta = SEG_TIER_META[info.seg.tier];
+
+            const badge = document.getElementById('segTierBadge');
+            if (badge) { badge.textContent = meta.label; badge.style.color = meta.color; badge.style.borderColor = meta.border; }
+            const ph = document.getElementById('segPhoneme'); if (ph) ph.textContent = info.seg.phoneme;
+            const pos = document.getElementById('segPosition'); if (pos) pos.textContent = info.seg.pos;
+            const num = document.getElementById('segNum'); if (num) num.textContent = String(info.i + 1).padStart(2, '0');
+
+            document.querySelectorAll('#segStrip .seg-pip').forEach((p, i) => {
+                p.className = 'seg-pip';
+                const m = SEG_TIER_META[SEGMENTS[i].tier];
+                if (allWordsRecorded || i < info.i) p.classList.add(m.doneCls);
+                else if (i === info.i) p.classList.add(m.curCls);
+            });
+
+            const segCount = info.seg.end - info.seg.start;
+            const wn = document.getElementById('segWordNum'); if (wn) wn.textContent = info.wordInSeg + 1;
+            const wof = document.getElementById('segWordOf'); if (wof) wof.textContent = segCount;
+            const dots = document.getElementById('segWordDots');
+            if (dots) {
+                dots.innerHTML = '';
+                for (let i = 0; i < segCount; i++) {
+                    const d = document.createElement('div');
+                    d.className = 'word-dot' + (allWordsRecorded || i < info.wordInSeg ? ' done' : i === info.wordInSeg ? ' current' : '');
+                    dots.appendChild(d);
+                }
+            }
+
+            document.querySelectorAll('.proto-row').forEach(row => {
+                row.classList.toggle('inactive', parseInt(row.dataset.tier) !== info.seg.tier);
+            });
+            document.querySelectorAll('[data-ind]').forEach(ind => {
+                const t = parseInt(ind.dataset.ind);
+                ind.className = 'proto-indicator';
+                if (t === info.seg.tier) ind.classList.add(SEG_TIER_META[t].cls);
+            });
+        }
         const FORMEASY_URL = 'https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec';
         // Point this at the deployed lisp cloud function (analyzeLispSpeech).
         // For local dev run `npx functions-framework --target=analyzeLispSpeech` in gcp-function-lisp/.
@@ -2306,6 +2653,35 @@
         let wordRecordings = [];       // Blob per word
         let wordRecordingsB64 = {};    // base64 per word (for playback on results page)
         let allWordsRecorded = false;
+
+        // =============================================
+        // SESSION RESUME — survive page refresh mid-recording.
+        // Persist progress (word index + captured audio) after every word so a
+        // refresh drops the user back into the recording step, not the login.
+        // =============================================
+        const SESSION_PROGRESS_KEY = 'assessmentProgress';
+        function saveSessionProgress() {
+            try {
+                // Audio lives under the existing 'wordRecordings' key (also read by
+                // the results page) — keep it in sync here so we don't duplicate
+                // multi-MB of base64 and blow the localStorage quota.
+                localStorage.setItem('wordRecordings', JSON.stringify(wordRecordingsB64));
+                localStorage.setItem(SESSION_PROGRESS_KEY, JSON.stringify({
+                    idx: currentWordIndex,
+                    done: allWordsRecorded,
+                    updatedAt: Date.now()
+                }));
+            } catch (e) { /* quota / serialization — non-fatal */ }
+        }
+        function clearSessionProgress() {
+            try { localStorage.removeItem(SESSION_PROGRESS_KEY); } catch (e) {}
+        }
+        function base64ToBlob(b64, type) {
+            const bin = atob(b64);
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            return new Blob([bytes], { type: type || 'audio/webm' });
+        }
         let userGender = 'male';
         // Use the male-calibrated /s/ frequency band for every assessment.
         function getSibilantBand() {
@@ -2542,6 +2918,7 @@
             }
 
             renderTierProgress();
+            renderSegmentMeta();
         }
 
         // Tier progress stepper (display only — conveys scope to user)
@@ -2979,6 +3356,8 @@
                 isWaitingForNext = false;
                 renderWordPicker();
                 updateRecordButton();
+                // Persist so a refresh resumes at this word, not the login.
+                saveSessionProgress();
             } else {
                 // All words recorded — release mic (capture done)
                 allWordsRecorded = true;
@@ -2986,6 +3365,7 @@
                 syncRecordingContinueButton();
                 updateRecordButton();
                 renderWordPicker();
+                saveSessionProgress();
 
                 // Auto-advance to next step after brief delay
                 setTimeout(() => { if (currentStepNum === 1) nextStep(); }, 900);
@@ -3553,6 +3933,8 @@
             clearTimeout(step4Timeout);
             for (let i = 1; i <= 4; i++) markDone('loading' + i);
 
+            // Assessment complete — drop the resume checkpoint.
+            clearSessionProgress();
             // Redirect to results
             setTimeout(() => { window.location.href = 'assessment-results.html'; }, 10);
         }
@@ -3715,7 +4097,74 @@
                 return true;
             }
 
-            if (!maybeSkipLogin()) maybeJumpToLogin();
+            // Resume an in-progress recording session after a page refresh.
+            // Logged-in user mid-capture should land back on the recording step
+            // with their words restored — not bounced to the login screen.
+            function maybeResumeSession() {
+                // Special routes own the flow; don't fight them.
+                const h = location.hash;
+                if (h === '#login' || h === '#/login') return false;
+                if (window.obFirebaseIsEmailLink && window.obFirebaseIsEmailLink(window.location.href)) return false;
+
+                let auth = null, prog = null, savedB64 = null;
+                try { auth = JSON.parse(localStorage.getItem('userAuth') || 'null'); } catch (e) {}
+                try { prog = JSON.parse(localStorage.getItem(SESSION_PROGRESS_KEY) || 'null'); } catch (e) {}
+                try { savedB64 = JSON.parse(localStorage.getItem('wordRecordings') || 'null'); } catch (e) {}
+                if (!auth) return false;                       // not signed in → normal login flow
+                if (!prog || !savedB64) return false;          // nothing to resume
+                // Don't resurrect a stale half-session (>24h old).
+                if (prog.updatedAt && Date.now() - prog.updatedAt > 24 * 60 * 60 * 1000) {
+                    clearSessionProgress();
+                    return false;
+                }
+
+                // Rebuild the captured-blob array in word order, stopping at the
+                // first gap so indices stay aligned with TEST_WORDS/TEST_WORD_META.
+                const restored = [];
+                const restoredB64 = {};
+                for (let i = 0; i < TEST_WORDS.length; i++) {
+                    const b64 = savedB64[TEST_WORDS[i]];
+                    if (!b64) break;
+                    restored.push(base64ToBlob(b64, 'audio/webm'));
+                    restoredB64[TEST_WORDS[i]] = b64;
+                }
+                if (!restored.length) return false;       // no usable audio → don't resume
+
+                wordRecordings = restored;
+                wordRecordingsB64 = restoredB64;
+
+                let resumeIdx = typeof prog.idx === 'number' ? prog.idx : restored.length;
+                // If the capture had completed, re-arm the final word so finishing
+                // it re-triggers the analysis path that a refresh wiped from memory.
+                if (prog.done || resumeIdx >= TEST_WORDS.length) {
+                    resumeIdx = TEST_WORDS.length - 1;
+                    wordRecordings.pop();
+                    delete wordRecordingsB64[TEST_WORDS[resumeIdx]];
+                }
+                currentWordIndex = Math.max(0, Math.min(resumeIdx, TEST_WORDS.length - 1));
+                allWordsRecorded = false;
+
+                // Seed downstream auth reads + drop the login step from the flow.
+                window.obLoggedInUser = window.obLoggedInUser || { email: auth.email, uid: auth.id, provider: auth.provider };
+                const li = STEP_ORDER.indexOf(2);
+                if (li !== -1) STEP_ORDER.splice(li, 1);
+
+                // Activate the recording step directly.
+                document.querySelectorAll('.assessment-step.active').forEach(el => el.classList.remove('active'));
+                orderIdx = 0;
+                currentStepNum = STEP_ORDER[orderIdx]; // 1 = recording
+                document.getElementById('step' + currentStepNum).classList.add('active');
+                updateProgress();
+                // NOTE: do NOT call initWordRecording() here — it resets
+                // currentWordIndex/wordRecordings and would wipe the restore.
+                moveRecordingTo('recordingHost');
+                renderWordPicker();
+                renderVuMeter();
+                updateRecordButton();
+                return true;
+            }
+
+            if (!maybeSkipLogin() && !maybeResumeSession()) maybeJumpToLogin();
             window.addEventListener('hashchange', maybeJumpToLogin);
 
             // ===== Step3 Wizard (comfort + age + source + phone) =====
