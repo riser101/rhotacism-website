@@ -18,6 +18,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
         import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js';
+        import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
         import { getAuth, onAuthStateChanged, signInAnonymously, GoogleAuthProvider, OAuthProvider, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
 
         const firebaseConfig = {
@@ -33,6 +34,7 @@
         const firebaseApp = initializeApp(firebaseConfig);
         const storage = getStorage(firebaseApp);
         const auth = getAuth(firebaseApp);
+        const db = getFirestore(firebaseApp);
 
         // Sign in anonymously as fallback so uploads always work
         signInAnonymously(auth).catch(err => console.warn('Firebase anonymous auth failed:', err));
@@ -95,6 +97,37 @@
                 console.log(`Uploaded recording: ${filePath}`);
             } catch (err) {
                 console.error(`Failed to upload recording for "${word}":`, err);
+            }
+        };
+
+        // Persist the Gemini analysis result to Firestore (lisp-users collection),
+        // keyed by Firebase auth uid (anonymous or signed-in). Merge-write so other
+        // app-owned fields on the doc are preserved.
+        window.saveAnalysisToFirestore = async function(analysis) {
+            try {
+                const uid = auth.currentUser?.uid;
+                if (!uid) { console.warn('No Firebase uid — skipping Firestore save'); return; }
+                const userAuth = JSON.parse(localStorage.getItem('userAuth') || 'null');
+                const docRef = doc(db, 'lisp-users', uid);
+                await setDoc(docRef, {
+                    product: 'lisp',
+                    uid,
+                    sessionId: getAssessmentSessionId(),
+                    posthogId: getPosthogId() || '',
+                    authUserId: userAuth?.id ? String(userAuth.id) : '',
+                    email: userAuth?.email || auth.currentUser?.email || '',
+                    isAnonymous: !!auth.currentUser?.isAnonymous,
+                    latestAssessment: {
+                        gri: analysis?.gri ?? null,
+                        categories: analysis?.categories ?? [],
+                        result: analysis?.result ?? '',
+                        completedAt: new Date().toISOString()
+                    },
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+                console.log('Saved analysis to Firestore: lisp-users/' + uid);
+            } catch (err) {
+                console.error('Failed to save analysis to Firestore:', err);
             }
         };
 
@@ -3385,7 +3418,12 @@
                     // Fire-and-wait Gemini analysis — resolves before step 5 redirects.
                     try {
                         const gemini = await sendAudioToBackend(local);
-                        if (gemini) localStorage.setItem('analysisResult', JSON.stringify(gemini));
+                        if (gemini) {
+                            localStorage.setItem('analysisResult', JSON.stringify(gemini));
+                            if (typeof window.saveAnalysisToFirestore === 'function') {
+                                window.saveAnalysisToFirestore(gemini);
+                            }
+                        }
                     } catch (err) {
                         console.warn('Gemini analysis failed, keeping local fallback:', err);
                     }
