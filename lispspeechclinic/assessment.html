@@ -3388,7 +3388,7 @@
                         if (gemini) {
                             localStorage.setItem('analysisResult', JSON.stringify(gemini));
                             if (typeof window.saveAnalysisToFirestore === 'function') {
-                                window.saveAnalysisToFirestore(gemini);
+                                await window.saveAnalysisToFirestore(gemini);
                             }
                         }
                     } catch (err) {
