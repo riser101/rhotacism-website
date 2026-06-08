@@ -2277,18 +2277,6 @@
                     </div>
                     <!-- Current speaking condition (prompt / reading passage) -->
                     <div class="cond-card" id="condCard"><!-- filled by JS --></div>
-                    <!-- LIVE TRANSCRIPT (spontaneous conversation only) -->
-                    <style>@keyframes ltpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.8)}}#ltDot.is-live{animation:ltpulse 1.2s infinite}</style>
-                    <div id="liveTranscriptPanel" style="display:none;margin:6px 0;background:#0b0f17;border:none;border-radius:14px;padding:10px 18px 4px;">
-                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-                            <span id="ltDot" style="width:9px;height:9px;border-radius:50%;background:#6CCDFF;display:inline-block;"></span>
-                            <span style="color:#6CCDFF;font-weight:700;font-size:12px;letter-spacing:1px;">LIVE TRANSCRIPT</span>
-                            <span id="ltStatus" style="margin-left:auto;color:rgba(255,255,255,0.45);font-size:11px;"></span>
-                        </div>
-                        <div id="ltBox" style="min-height:64px;max-height:200px;overflow-y:auto;background:rgba(108,205,255,0.05);border:1px solid rgba(108,205,255,0.18);border-radius:10px;padding:16px;color:#00E5FF;font-size:15px;line-height:1.6;">
-                            <span style="color:rgba(255,255,255,0.4);">Waiting for speech…</span>
-                        </div>
-                    </div>
                     <!-- Live instruction (state-driven) -->
                     <div class="live-instruction" id="liveInstruction">Tap the microphone to start.</div>
 
@@ -2794,200 +2782,6 @@
         // recState: 'idle' (ready) | 'recording' | 'recorded' (captured, tap to continue)
         let recState = 'idle';
 
-        // =============================================
-        // LIVE TRANSCRIPT — Gemini Live streaming transcription for the
-        // spontaneous-conversation sample only ("silent audit" — transcribe what
-        // the speaker says in real time, no AI talk-back). Ported from Lisp-pwa
-        // js/live-conversation.js. Reuses the existing mic stream + AudioContext.
-        // Token comes from /api/live-token (GCP deploy comes later).
-        // =============================================
-        // Prod (Vercel): same-origin serverless fn (api/live-token.js). Local
-        // (Live Server only serves static files → POST 405): use this repo's
-        // standalone token server — `node backend/live-token-server.js` (:8787).
-        const LIVE_TOKEN_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-            ? 'http://localhost:8787/live-token'
-            : '/api/live-token';
-        const LIVE_MODEL = 'models/gemini-3.1-flash-live-preview';
-        const SPONTANEOUS_COND_ID = 'conversation';
-
-        // PCM downsample worklet (16 kHz Int16), loaded from a Blob URL so this
-        // page stays self-contained — no extra file to deploy.
-        const PCM_WORKLET_SRC =
-            "class PCMWorklet extends AudioWorkletProcessor{constructor(o){super();this.targetRate=(o&&o.processorOptions&&o.processorOptions.targetRate)||16000;this.inputRate=sampleRate;this.ratio=this.inputRate/this.targetRate;this.buffer=[];this.acc=0;}process(inputs){const input=inputs[0];if(!input||!input[0])return true;const ch=input[0];for(let i=0;i<ch.length;i++){this.acc+=1;if(this.acc>=this.ratio){this.acc-=this.ratio;let s=ch[i];if(s>1)s=1;else if(s<-1)s=-1;this.buffer.push(s<0?s*0x8000:s*0x7fff);}}if(this.buffer.length>=160){const out=new Int16Array(this.buffer.length);for(let i=0;i<this.buffer.length;i++)out[i]=this.buffer[i]|0;this.buffer=[];this.port.postMessage(out.buffer,[out.buffer]);}return true;}}registerProcessor('pcm-worklet',PCMWorklet);";
-        let _pcmWorkletUrl = null;
-        function pcmWorkletUrl() {
-            if (!_pcmWorkletUrl) _pcmWorkletUrl = URL.createObjectURL(new Blob([PCM_WORKLET_SRC], { type: 'application/javascript' }));
-            return _pcmWorkletUrl;
-        }
-
-        function int16ToBase64(buffer) {
-            const bytes = new Uint8Array(buffer);
-            let s = '';
-            const chunk = 0x8000;
-            for (let i = 0; i < bytes.length; i += chunk) s += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
-            return btoa(s);
-        }
-
-        async function fetchLiveToken(topic) {
-            const resp = await fetch(LIVE_TOKEN_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic: topic || '' }),
-            });
-            if (!resp.ok) throw new Error('HTTP ' + resp.status);
-            const json = await resp.json();
-            if (!json.token) throw new Error('No token in response');
-            return json.token;
-        }
-
-        class LiveTranscriber {
-            constructor({ stream, audioContext, topic, onTranscript, onStatus, onError }) {
-                this.stream = stream;
-                this.ctx = audioContext;
-                this.topic = topic || '';
-                this.onTranscript = onTranscript || (() => {});
-                this.onStatus = onStatus || (() => {});
-                this.onError = onError || (() => {});
-                this.ws = null;
-                this.workletNode = null;
-                this.source = null;
-                this.running = false;
-            }
-            async start() {
-                if (this.running) return;
-                this.running = true;
-                this.onStatus('connecting');
-                let token;
-                try { token = await fetchLiveToken(this.topic); }
-                catch (e) { this.running = false; this.onError('Token failed: ' + e.message); return; }
-
-                const wsUrl = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=' + encodeURIComponent(token);
-                this.ws = new WebSocket(wsUrl);
-
-                this.ws.onopen = () => {
-                    this.ws.send(JSON.stringify({
-                        setup: {
-                            model: LIVE_MODEL,
-                            generationConfig: { responseModalities: ['AUDIO'], temperature: 0.0, topP: 0.5 },
-                            systemInstruction: { parts: [{ text: 'Topic the speaker is discussing: "' + this.topic + '". Listen to the audio and transcribe it as is. No autocorrection.' }] },
-                            inputAudioTranscription: {},
-                            outputAudioTranscription: {},
-                            realtimeInputConfig: {
-                                automaticActivityDetection: { disabled: false, silenceDurationMs: 0, endOfSpeechSensitivity: 'END_SENSITIVITY_LOW' },
-                            },
-                        },
-                    }));
-                };
-
-                this.ws.onmessage = async (ev) => {
-                    let data = ev.data;
-                    if (data instanceof Blob) data = await data.text();
-                    let msg;
-                    try { msg = JSON.parse(data); } catch (e) { return; }
-                    if (msg.setupComplete) { this.onStatus('listening'); await this._startMic(); return; }
-                    const sc = msg.serverContent;
-                    if (!sc) return;
-                    if (sc.inputTranscription && sc.inputTranscription.text) this.onTranscript(sc.inputTranscription.text);
-                };
-
-                this.ws.onerror = () => this.onError('Connection error');
-                this.ws.onclose = () => { this.onStatus('closed'); this._teardown(); this.running = false; };
-            }
-            async _startMic() {
-                try {
-                    if (!this.ctx || this.ctx.state === 'closed') throw new Error('audio context unavailable');
-                    if (this.ctx.state === 'suspended') { try { await this.ctx.resume(); } catch (e) {} }
-                    await this.ctx.audioWorklet.addModule(pcmWorkletUrl());
-                    this.source = this.ctx.createMediaStreamSource(this.stream);
-                    this.workletNode = new AudioWorkletNode(this.ctx, 'pcm-worklet', { processorOptions: { targetRate: 16000 } });
-                    this.workletNode.port.onmessage = (e) => {
-                        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
-                        const b64 = int16ToBase64(e.data);
-                        this.ws.send(JSON.stringify({ realtimeInput: { audio: { data: b64, mimeType: 'audio/pcm;rate=16000' } } }));
-                    };
-                    // Sink through a silent gain so the worklet's process() keeps running.
-                    const silent = this.ctx.createGain();
-                    silent.gain.value = 0;
-                    this.source.connect(this.workletNode);
-                    this.workletNode.connect(silent).connect(this.ctx.destination);
-                    this.onStatus('listening');
-                } catch (e) { this.onError('Mic init failed: ' + e.message); this.stop(); }
-            }
-            _teardown() {
-                try { if (this.workletNode) this.workletNode.disconnect(); } catch (e) {}
-                try { if (this.source) this.source.disconnect(); } catch (e) {}
-                this.workletNode = null;
-                this.source = null;
-            }
-            stop() {
-                this.running = false;
-                this._teardown();
-                try { if (this.ws && this.ws.readyState <= 1) this.ws.close(); } catch (e) {}
-                this.ws = null;
-                this.onStatus('stopped');
-            }
-        }
-
-        let liveTranscriber = null;
-        let liveTranscriptBuf = '';
-
-        function isSpontaneousCondition() {
-            const c = STUTTER_CONDITIONS[Math.min(currentWordIndex, TOTAL_CONDITIONS - 1)];
-            return c && c.id === SPONTANEOUS_COND_ID;
-        }
-
-        function setLtStatus(text, live) {
-            const s = document.getElementById('ltStatus');
-            const dot = document.getElementById('ltDot');
-            if (s) s.textContent = text || '';
-            if (dot) dot.classList.toggle('is-live', !!live);
-        }
-
-        function resetLiveTranscript() {
-            liveTranscriptBuf = '';
-            const box = document.getElementById('ltBox');
-            if (box) box.innerHTML = '<span style="color:rgba(255,255,255,0.4);">Waiting for speech…</span>';
-            setLtStatus('', false);
-        }
-
-        // Transcript box hidden in all conditions (transcription still runs in background).
-        function syncLiveTranscriptPanel() {
-            const panel = document.getElementById('liveTranscriptPanel');
-            if (!panel) return;
-            panel.style.display = 'none';
-        }
-
-        async function startLiveTranscript() {
-            if (liveTranscriber) return;
-            const c = STUTTER_CONDITIONS[currentWordIndex];
-            resetLiveTranscript();
-            const box = document.getElementById('ltBox');
-            liveTranscriber = new LiveTranscriber({
-                stream: audioStream,
-                audioContext: audioContext,
-                topic: (c && c.prompt) || '',
-                onTranscript: (t) => {
-                    if (liveTranscriptBuf === '' && box) box.innerHTML = '';
-                    liveTranscriptBuf += t;
-                    if (liveTranscriptBuf.length > 4000) liveTranscriptBuf = liveTranscriptBuf.slice(-4000);
-                    if (box) { box.textContent = liveTranscriptBuf; box.scrollTop = box.scrollHeight; }
-                },
-                onStatus: (s) => {
-                    if (s === 'connecting') setLtStatus('Connecting…', false);
-                    else if (s === 'listening') setLtStatus('● Listening', true);
-                    else setLtStatus('', false);
-                },
-                onError: (e) => setLtStatus('⚠ ' + e, false),
-            });
-            try { await liveTranscriber.start(); }
-            catch (e) { setLtStatus('⚠ ' + (e.message || e), false); stopLiveTranscript(); }
-        }
-
-        function stopLiveTranscript() {
-            if (liveTranscriber) { try { liveTranscriber.stop(); } catch (e) {} liveTranscriber = null; }
-            setLtStatus('', false);
-        }
-
         function fmtTime(sec) {
             const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
             return m + ':' + String(s).padStart(2, '0');
@@ -3009,7 +2803,6 @@
             renderSegmentMeta();
             renderConditionCard();
             updateRecordButton();
-            syncLiveTranscriptPanel();
         }
 
         function renderVuMeter() {
@@ -3107,7 +2900,6 @@
         function releaseMic() {
             try { if (vuAnimFrame) cancelAnimationFrame(vuAnimFrame); } catch (e) {}
             vuAnimFrame = null;
-            stopLiveTranscript();
             try { if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop(); } catch (e) {}
             try { if (audioStream) audioStream.getTracks().forEach(t => t.stop()); } catch (e) {}
             audioStream = null;
@@ -3150,7 +2942,6 @@
             startVuMeter();
             startCondTimer();
             updateRecordButton();
-            startLiveTranscript();
             // Hard cap so a forgotten session can't run forever.
             clearTimeout(condMaxTimeout);
             condMaxTimeout = setTimeout(() => { if (recState === 'recording') stopConditionRecording(); }, (c.maxSeconds || 180) * 1000);
@@ -3163,7 +2954,6 @@
             isRecording = false;
             triggerHaptic(20);
             playStopChime();
-            stopLiveTranscript();
         }
 
         function onConditionStopped() {
@@ -3183,6 +2973,12 @@
 
             recState = 'recorded';
             renderCondition();
+
+            // Last sample: auto-advance after showing the ✓ complete symbol —
+            // no extra tap needed. advanceCondition() kicks off analysis + survey.
+            if (currentWordIndex >= TOTAL_CONDITIONS - 1) {
+                setTimeout(() => { if (recState === 'recorded') advanceCondition(); }, 900);
+            }
         }
 
         function blobToBase64(blob) {
