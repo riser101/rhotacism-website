@@ -1,0 +1,3899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Stuttering Assessment - Stutter Fluency Centre</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <meta name="description" content="Take your free stuttering assessment. Record real speech samples and get personalized results on your fluency, disfluency patterns, and severity.">
+    <link rel="canonical" href="https://topspeech.health/stutterfluencycentre/assessment.html">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/stutterfluencycentre/css/common-gradient.css">
+    <link rel="stylesheet" href="/stutterfluencycentre/css/login-modal.css">
+
+    <!-- Firebase SDK (modular, from CDN) -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
+        import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js';
+        import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
+        import { getAuth, onAuthStateChanged, signInAnonymously, GoogleAuthProvider, OAuthProvider, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMttgCdssC5eilsw08XcS5QxNURmvXhNg",
+            authDomain: "rollr-academy.firebaseapp.com",
+            projectId: "rollr-academy",
+            storageBucket: "rollr-academy.firebasestorage.app",
+            messagingSenderId: "9267895976",
+            appId: "1:9267895976:web:65729695ff15eb81526c9d",
+            measurementId: "G-1MQSVLDQ13"
+        };
+
+        const firebaseApp = initializeApp(firebaseConfig);
+        const storage = getStorage(firebaseApp);
+        const auth = getAuth(firebaseApp);
+        const db = getFirestore(firebaseApp);
+
+        // Sign in anonymously as fallback so uploads always work
+        signInAnonymously(auth).catch(err => console.warn('Firebase anonymous auth failed:', err));
+
+        // Generate a unique session ID per assessment so anonymous recordings
+        // can be grouped and distinguished from other visitors' recordings
+        function getAssessmentSessionId() {
+            let sessionId = sessionStorage.getItem('assessmentSessionId');
+            if (!sessionId) {
+                const rand = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36)).replace(/-/g, '').slice(0, 12);
+                const datePart = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+                sessionId = `${datePart}_${rand}`;
+                sessionStorage.setItem('assessmentSessionId', sessionId);
+            }
+            return sessionId;
+        }
+
+        // Get PostHog distinct_id (stable per visitor across sessions). Fallback to assessment session id.
+        function getPosthogId() {
+            try {
+                if (window.posthog && typeof window.posthog.get_distinct_id === 'function') {
+                    const id = window.posthog.get_distinct_id();
+                    if (id) return id;
+                }
+            } catch (e) { /* posthog not ready */ }
+            return null;
+        }
+
+        // Expose upload function globally for use by recording logic.
+        // `sampleId` is the speech-sample condition id (conversation, reading, …).
+        window.uploadRecordingToFirebase = async function(blob, sampleId, sampleIndex) {
+            try {
+                const userAuth = JSON.parse(localStorage.getItem('userAuth') || 'null');
+                const sessionId = getAssessmentSessionId();
+                const posthogId = getPosthogId();
+                // Path uses PostHog distinct_id so recordings tie back to PostHog visitor.
+                // Fallback to session id when PostHog blocked/not ready (e.g. localhost).
+                const userId = posthogId ? `ph_${posthogId}` : `anon_${sessionId}`;
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const isLocal = window.location.host.includes('localhost') || window.location.host.includes('127.0.0.1');
+                const pathPrefix = isLocal ? 'recordings/stutter/local-testing' : 'recordings/stutter';
+                const ext = (blob.type && blob.type.includes('mp4')) ? 'mp4' : 'webm';
+                const filePath = `${pathPrefix}/${userId}/${timestamp}_${sampleIndex}_stutter_${sampleId}.${ext}`;
+
+                const storageRef = ref(storage, filePath);
+                const metadata = {
+                    contentType: blob.type || 'audio/webm',
+                    customMetadata: {
+                        product: 'stutter',
+                        sample: sampleId,
+                        sampleIndex: String(sampleIndex),
+                        userId: userId,
+                        posthogId: posthogId || '',
+                        sessionId: sessionId,
+                        authUserId: userAuth?.id ? String(userAuth.id) : '',
+                        userEmail: userAuth?.email || 'unknown',
+                        assessmentDate: new Date().toISOString()
+                    }
+                };
+
+                await uploadBytes(storageRef, blob, metadata);
+                console.log(`Uploaded recording: ${filePath}`);
+            } catch (err) {
+                console.error(`Failed to upload recording for "${sampleId}":`, err);
+            }
+        };
+
+        // Persist the assessment result to Firestore (stutter-users collection),
+        // keyed by Firebase auth uid (anonymous or signed-in). Merge-write so other
+        // app-owned fields on the doc are preserved.
+        window.saveAnalysisToFirestore = async function(analysis) {
+            try {
+                const uid = auth.currentUser?.uid;
+                if (!uid) { console.warn('No Firebase uid — skipping Firestore save'); return; }
+                const userAuth = JSON.parse(localStorage.getItem('userAuth') || 'null');
+                const docRef = doc(db, 'stutter-users', uid);
+                await setDoc(docRef, {
+                    product: 'stutter',
+                    uid,
+                    sessionId: getAssessmentSessionId(),
+                    posthogId: getPosthogId() || '',
+                    authUserId: userAuth?.id ? String(userAuth.id) : '',
+                    email: userAuth?.email || auth.currentUser?.email || '',
+                    isAnonymous: !!auth.currentUser?.isAnonymous,
+                    latestAssessment: {
+                        gri: analysis?.gri ?? null,
+                        categories: analysis?.categories ?? [],
+                        result: analysis?.result ?? '',
+                        completedAt: new Date().toISOString()
+                    },
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+                console.log('Saved analysis to Firestore: stutter-users/' + uid);
+            } catch (err) {
+                console.error('Failed to save analysis to Firestore:', err);
+            }
+        };
+
+        // Expose Firebase auth handlers for login step
+        window.obFirebaseEmailSignIn = async function(email, password) {
+            const cred = await signInWithEmailAndPassword(auth, email, password);
+            return cred.user;
+        };
+        window.obFirebaseGoogleSignIn = async function() {
+            const provider = new GoogleAuthProvider();
+            const cred = await signInWithPopup(auth, provider);
+            return cred.user;
+        };
+        window.obFirebaseAppleSignIn = async function() {
+            const provider = new OAuthProvider('apple.com');
+            provider.addScope('email');
+            provider.addScope('name');
+            const cred = await signInWithPopup(auth, provider);
+            return cred.user;
+        };
+        window.obFirebasePasswordReset = async function(email) {
+            await sendPasswordResetEmail(auth, email);
+        };
+        window.obFirebaseSendEmailLink = async function(email) {
+            const continueUrl = window.location.origin + '/stutterfluencycentre/assessment.html#login';
+            const resp = await fetch('https://us-central1-rollr-academy.cloudfunctions.net/sendResetEmail', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'signin', email, continueUrl })
+            });
+            if (!resp.ok) {
+                const e = await resp.json().catch(() => ({}));
+                throw new Error(e.error || 'Failed to send sign-in email');
+            }
+            window.localStorage.setItem('emailForSignIn', email);
+        };
+        window.obFirebaseIsEmailLink = function(url) {
+            return isSignInWithEmailLink(auth, url);
+        };
+        window.obFirebaseCompleteEmailLink = async function(email, url) {
+            const cred = await signInWithEmailLink(auth, email, url);
+            return cred.user;
+        };
+        // Returns a signed-in, non-anonymous user if one exists, else null.
+        window.obFirebaseSignedInUser = function() {
+            const u = auth.currentUser;
+            return (u && !u.isAnonymous) ? u : null;
+        };
+        // Resolves once Firebase has restored persisted auth state on this load.
+        window.obFirebaseAuthReady = new Promise((resolve) => {
+            const unsub = onAuthStateChanged(auth, () => { unsub(); resolve(); });
+        });
+
+        // If user is already logged in with Google, upgrade to Google auth in Firebase
+        window.upgradeFirebaseAuth = async function(googleCredentialToken) {
+            try {
+                const credential = GoogleAuthProvider.credential(googleCredentialToken);
+                await signInWithCredential(auth, credential);
+                console.log('Firebase auth upgraded to Google credential');
+            } catch (err) {
+                console.warn('Firebase Google auth upgrade failed, continuing with anonymous:', err);
+            }
+        };
+    </script>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-584ZMQTPSE');
+    </script>
+
+    <!-- BEGIN POSTHOG ANALYTICS CODE -->
+    <script>
+        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+
+        // Only initialize PostHog in production (not on localhost/127.0.0.1)
+        if (!window.location.host.includes('127.0.0.1') && !window.location.host.includes('localhost')) {
+            posthog.init('phc_WFJFjSjFujXoTr85nd8fyZ6BdKtdo27RTADMbvnJn2O', { api_host: 'https://us.i.posthog.com', defaults: '2025-11-30' })
+        }
+    </script>
+    <!-- END POSTHOG ANALYTICS CODE -->
+
+    <!-- Load PostHog Event Tracking -->
+    <script src="/stutterfluencycentre/js/posthog-tracking.js"></script>
+
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://topspeech.health/lispspeechclinic"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Assessment",
+          "item": "https://topspeech.health/stutterfluencycentre/assessment.html"
+        }
+      ]
+    }
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Footer container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Assessment Page Styles */
+        .assessment-page {
+            min-height: 100vh;
+            padding-top: 100px;
+            padding-bottom: 60px;
+        }
+
+        .assessment-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .assessment-container:has(#step1.active) {
+            max-width: 1140px;
+            width: 100%;
+        }
+        /* Vertically center step1 (recording) content in viewport — box size unchanged */
+        .assessment-page:has(#step1.active) {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .assessment-container:has(#step1.active) .progress-container,
+        .assessment-container:has(#step1.active) .assessment-header {
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .assessment-header {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .assessment-title {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        .assessment-subtitle {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 8px;
+        }
+
+        .assessment-tagline {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+            font-style: italic;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin: 4px 0 20px;
+        }
+
+        .progress-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF9800, #E65100);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Assessment Steps */
+        .assessment-step {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .assessment-step.active {
+            display: block;
+        }
+
+        #step1 {
+            width: 100%;
+        }
+
+        .step-title {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .step-content {
+            margin-bottom: 30px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #FF9800;
+        }
+        
+        /* Phone Input Styles */
+        .phone-input-container {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .country-select {
+            min-width: 150px;
+            padding: 16px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: text;
+            transition: border-color 0.3s ease;
+            position: relative;
+        }
+        
+        .country-select:focus {
+            outline: none;
+            border-color: #FF9800;
+        }
+        
+        .country-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .country-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .country-option {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+        
+        .country-option:hover,
+        .country-option.highlighted {
+            background: #f8f9fa;
+        }
+        
+        .country-option:last-child {
+            border-bottom: none;
+        }
+        
+        .phone-input {
+            flex: 1;
+        }
+        
+        #otherReasonGroup {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #FF9800;
+        }
+
+        .form-help {
+            font-size: 14px;
+            color: #666;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        /* Radio and Checkbox Options */
+        .options-group {
+            margin: 20px 0;
+        }
+
+        .option-item {
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+
+        .option-item input[type="radio"],
+        .option-item input[type="checkbox"] {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+
+        .option-item label {
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        /* Cyan accent override for assessment recording UI */
+        :root { --asmt-cyan: #22D3EE; }
+
+        /* Recording card centered; aside floats in left whitespace (matches Lisp PWA) */
+        .rec-layout {
+            position: relative;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .recording-section-wrap {
+            width: 100%;
+        }
+        .rec-aside {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        @media (min-width: 1100px) {
+            .rec-aside {
+                position: absolute;
+                top: 0;
+                right: calc(100% + 32px);
+                width: 320px;
+                margin-bottom: 0;
+            }
+        }
+        .aside-box {
+            background: #fff;
+            border: 1px solid rgba(15,23,42,0.12);
+            border-radius: 14px;
+            padding: 22px 20px 18px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            margin: 0;
+            position: relative;
+        }
+        .aside-legend {
+            position: absolute;
+            top: -7px;
+            left: 18px;
+            background: #fff;
+            padding: 0 8px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: var(--asmt-cyan);
+            text-transform: uppercase;
+            margin: 0;
+        }
+        .aside-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            margin-top: 12px;
+            font-size: 14px;
+            color: #1f2937;
+            line-height: 1.5;
+        }
+        .aside-num {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--asmt-cyan);
+            color: #fff;
+            font-weight: 700;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Clinical Recording Section — near-black card matching Lisp PWA */
+        .recording-section {
+            text-align: center;
+            padding: 0;
+            background: #0B0C0E;
+            color: #fff;
+            border-radius: 20px;
+            margin: 0;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: none;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Header bar */
+        .clinical-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px 0;
+        }
+        .clinical-header-left {
+            text-align: left;
+            flex: 1;
+            width: 100%;
+        }
+        .clinical-heading {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ffffff;
+            font-family: 'Quicksand', 'Inter', sans-serif;
+            text-align: center;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+            padding: 24px 20px 8px;
+        }
+        .clinical-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: var(--asmt-cyan);
+            text-transform: uppercase;
+            text-align: center;
+        }
+        .clinical-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            margin-top: 14px;
+            text-align: center;
+            padding-left: 0;
+        }
+        .rec-badge {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: rgba(239,68,68,0.10);
+            border-radius: 6px;
+        }
+        .rec-badge.visible { display: flex; }
+        .rec-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: recPulse 1s infinite;
+        }
+        @keyframes recPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        .rec-text {
+            font-size: 11px;
+            font-weight: 700;
+            font-family: monospace;
+            color: #ef4444;
+        }
+
+        /* Live instruction (state-driven dynamic header) */
+        .live-instruction {
+            margin: 0 20px 10px;
+            padding: 8px 12px;
+            font-family: 'Quicksand', 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.85);
+            text-align: center;
+            background: rgba(34,211,238,0.08);
+            border: 1px solid rgba(34,211,238,0.25);
+            border-radius: 9px;
+            line-height: 1.3;
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+        .live-instruction.recording {
+            background: rgba(244,67,54,0.12);
+            border-color: rgba(244,67,54,0.35);
+            color: #fecaca;
+        }
+        .live-instruction.done {
+            background: rgba(76,175,80,0.15);
+            border-color: rgba(76,175,80,0.35);
+            color: #bbf7d0;
+        }
+        .live-instruction .live-word {
+            color: var(--asmt-cyan);
+            font-weight: 700;
+        }
+        .instruction-tagline {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.45;
+        }
+
+        /* Tier progress stepper (display only) */
+        .tier-progress {
+            display: none;
+        }
+        .tier-steps {
+            display: flex;
+            align-items: center;
+            padding: 0 6px;
+        }
+        .tier-step-dot {
+            flex: 0 0 auto;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            background: transparent;
+            border: 1.5px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.35);
+            transition: all 0.3s;
+        }
+        .tier-step-dot.done {
+            width: 18px;
+            height: 18px;
+            background: var(--asmt-cyan);
+            border-color: var(--asmt-cyan);
+            color: #fff;
+        }
+        .tier-step-dot.current {
+            width: 22px;
+            height: 22px;
+            font-size: 11px;
+            background: var(--asmt-cyan);
+            border-color: var(--asmt-cyan);
+            color: #fff;
+            box-shadow: 0 0 0 4px rgba(34,211,238,0.13);
+        }
+        .tier-step-line {
+            flex: 1 1 auto;
+            height: 2px;
+            min-width: 20px;
+            margin: 0 6px;
+            background: rgba(255,255,255,0.15);
+            transition: background 0.3s;
+        }
+        .tier-step-line.done { background: var(--asmt-cyan); }
+        /* Long probes (Tier 3 sentences / passage) inside the pill */
+        .context-word {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 88%;
+        }
+        .active-pill.is-long { height: auto; min-height: 56px; padding: 12px; }
+        .pill-word.is-long {
+            font-size: 17px;
+            font-weight: 600;
+            line-height: 1.35;
+            text-transform: none;
+        }
+
+        /* Word picker — glass card */
+        .word-picker-label {
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 8px;
+        }
+        .word-picker {
+            margin: 0 80px 16px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 28px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+        .word-picker-words {
+            flex: 1 1 0;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 10px 0;
+        }
+        .context-word {
+            height: 32px;
+            line-height: 32px;
+            display: block;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 400;
+            color: rgba(255,255,255,0.35);
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
+            padding: 0 24px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color 0.3s;
+            text-transform: capitalize;
+        }
+        .context-word.below { color: rgba(255,255,255,0.45); }
+        .context-word.far { color: rgba(255,255,255,0.2); }
+        /* Long sentence previews shrink so they don't crowd the pill */
+        .context-word.preview-long { font-size: 13px; letter-spacing: 0.01em; }
+
+        /* Active pill — stretches across picker with breathing room */
+        .active-pill {
+            height: 56px;
+            margin: 4px 10px;
+            width: calc(100% - 20px);
+            box-sizing: border-box;
+            border: 2px solid var(--asmt-cyan);
+            border-radius: 36px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            position: relative;
+        }
+        .pill-timer {
+            font-size: 15px;
+            font-weight: 500;
+            font-family: monospace;
+            color: var(--asmt-cyan);
+            width: 48px;
+            text-align: left;
+        }
+        .pill-word {
+            flex: 1;
+            font-size: 26px;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+            text-transform: capitalize;
+        }
+        .pill-spacer { width: 48px; }
+
+        /* Word picker divider + dots */
+        .word-picker-divider-line {
+            position: absolute;
+            top: 14px;
+            bottom: 14px;
+            right: 44px;
+            width: 1px;
+            background: rgba(0,0,0,0.12);
+            margin: 0;
+        }
+        .word-picker-dots {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 10px 14px;
+        }
+        .picker-dot {
+            border-radius: 50%;
+            background: rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+        .picker-dot.active { background: var(--asmt-cyan); }
+        .picker-dot.next   { background: var(--asmt-cyan); }
+        .picker-dot.done   { background: rgba(34,211,238,0.55); }
+
+        .word-divider {
+            height: 1px;
+            background: rgba(0,0,0,0.12);
+            margin: 0 32px;
+            width: calc(100% - 64px);
+        }
+
+        /* VU Meter — centered pill bars */
+        .vu-meter {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            height: 48px;
+            padding: 0 20px;
+            margin-bottom: 8px;
+        }
+        .vu-bar {
+            width: 6px;
+            border-radius: 999px;
+            background: var(--asmt-cyan);
+            transition: height 0.08s ease;
+            min-height: 6px;
+            flex-shrink: 0;
+        }
+
+        /* Record button — circular */
+        .record-btn-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 0 20px;
+        }
+        .record-circle-btn {
+            width: 68px; height: 68px;
+            border-radius: 50%;
+            border: 3px solid rgba(34,211,238,0.35);
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .record-circle-btn:active { transform: scale(0.95); }
+        .record-circle-btn.recording { transform: scale(1.05); }
+        .record-circle-inner {
+            width: 54px; height: 54px;
+            border-radius: 50%;
+            background: var(--asmt-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 24px rgba(34,211,238,0.45);
+            transition: background 0.2s;
+        }
+        .record-circle-inner svg {
+            fill: #0F172A;
+            width: 22px; height: 22px;
+        }
+        .record-circle-btn.done .record-circle-inner {
+            background: #22c55e;
+        }
+        /* Stop icon (square) */
+        .stop-icon {
+            width: 20px; height: 20px;
+            border-radius: 5px;
+            background: #0F172A;
+        }
+        /* Forward (fast-forward) icon */
+        .forward-icon {
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .forward-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: #0F172A;
+        }
+
+        .record-label {
+            margin-top: 8px;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.55);
+            text-transform: uppercase;
+        }
+        .record-label.timeout {
+            color: #f97316;
+        }
+        .timeout-hint {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(249,115,22,0.7);
+            margin-top: 2px;
+        }
+
+        .recording-status {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .recording-status.error {
+            color: #dc3545;
+            background: #fff5f5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .recording-status.success {
+            color: #28a745;
+            background: #f8fff9;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 16px;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .btn-group.btn-group-single {
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #000000;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background: #333333;
+        }
+
+        .btn:disabled,
+        .btn-primary:disabled {
+            background: transparent;
+            color: #374151;
+            border: 2px dashed #9ca3af;
+            cursor: not-allowed;
+            opacity: 1;
+            pointer-events: none;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #666;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn-secondary:hover {
+            border-color: #FF9800;
+            color: #FF9800;
+        }
+
+        /* Security Badge */
+        .security-badge {
+            text-align: center;
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(40, 167, 69, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+
+        .security-badge .icon {
+            font-size: 18px;
+            margin-right: 8px;
+        }
+
+        .security-text {
+            font-size: 14px;
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .loading-title {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .loading-animation {
+            margin: 30px 0;
+        }
+
+        .loading-dots {
+            display: inline-block;
+            margin: 0 4px;
+            animation: loadingDots 1.4s infinite ease-in-out;
+        }
+
+        .loading-dots:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes loadingDots {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .loading-steps {
+            text-align: left;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .loading-step {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            font-size: 16px;
+            color: #666;
+        }
+
+        .loading-step.completed {
+            color: #28a745;
+        }
+
+        .loading-step .icon {
+            margin-right: 12px;
+            width: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .assessment-title {
+                font-size: 32px;
+            }
+
+            .assessment-subtitle {
+                font-size: 18px;
+            }
+
+            .assessment-step {
+                padding: 30px 20px;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .assessment-title {
+                font-size: 28px;
+            }
+
+            .assessment-container {
+                padding: 0 15px;
+            }
+        }
+
+        /* Recording panel inside dark card */
+        .recording-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 8px 0 4px;
+        }
+        .clinical-header { position: relative; }
+        .clinical-header-left { text-align: left; }
+        .clinical-header .rec-badge.visible {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        /* Hide dynamic instruction banner — PWA original omits it */
+        .live-instruction { display: none !important; }
+        /* Hide right-side dots column + divider — original word-picker is clean */
+        .word-picker-divider-line,
+        .word-picker-dots { display: none !important; }
+        .word-picker-words { padding: 16px 0; }
+
+        /* ========================================================
+           PWA-style white background override (match Lisp-pwa)
+           ======================================================== */
+        body {
+            background: #ffffff !important;
+        }
+        @media (max-width: 768px) {
+            body { background: #ffffff !important; }
+        }
+        .assessment-title { color: #0B0C0E; }
+        .assessment-subtitle { color: #475569; }
+        .assessment-tagline { color: #64748b; }
+        .progress-label { color: #475569; }
+        .progress-bar { background: rgba(15,23,42,0.08); }
+        .assessment-header { display: none; }
+        .progress-container { display: none; }
+        /* Wizard + analyzing both fullscreen split panels — no outer header/progress */
+        .assessment-container:has(#step3.active),
+        .assessment-container:has(#step4.active) {
+            max-width: none; padding: 0; margin: 0; width: 100vw;
+        }
+        .assessment-page:has(#step3.active),
+        .assessment-page:has(#step4.active) {
+            padding: 0 !important; margin: 0; min-height: 100vh;
+        }
+        #step3.assessment-step,
+        #step4.assessment-step {
+            padding: 0; margin: 0; border-radius: 0; border: none;
+            box-shadow: none; height: 100vh; min-height: 600px;
+            background: #fff;
+        }
+        #step3 .ob-split,
+        #step4 .ob-split { height: 100%; }
+        #step4 .ob-panel-left { padding-top: 80px; padding-bottom: 24px; }
+        /* Wizard left panel: card centered between nav and a pinned footer (PWA layout) */
+        #step3 .ob-panel-left {
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            padding: 0;
+        }
+        #step3 .ob-wiz-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            align-items: safe center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 88px 28px 12px;
+        }
+        #step3 .ob-wiz-foot {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px 28px 22px;
+        }
+        #step3 .obw-card { max-width: 460px; }
+        #step3 .ob-wiz-foot .obw-cta { max-width: 460px; width: 100%; margin: 0 auto; }
+        #step3 .ob-wiz-foot .obw-foot-links { display: flex; justify-content: center; gap: 20px; }
+
+        /* Onboarding wizard styles (port of Lisp-pwa obw-*) */
+        .obw-card {
+            max-width: 460px; width: 100%; text-align: left;
+            position: relative; padding: 0;
+            display: flex; flex-direction: column; gap: 0;
+        }
+        .obw-back {
+            position: absolute; top: -32px; left: 0;
+            background: none; border: none;
+            color: rgba(0,0,0,.45);
+            font: 500 13px 'Inter', sans-serif;
+            cursor: pointer; padding: 4px 0;
+            display: inline-flex; align-items: center; gap: 3px;
+        }
+        .obw-back:hover { color: rgba(0,0,0,.8); }
+        .obw-back[hidden] { visibility: hidden; }
+        .obw-header { margin-bottom: 18px; }
+        .obw-header .ob-logo { margin-bottom: 14px; justify-content: center; display: flex; }
+        .obw-progress { margin-bottom: 14px; }
+        .obw-prog-pills { display: flex; gap: 4px; margin-bottom: 6px; }
+        .obw-prog-pill { flex: 1; height: 3px; border-radius: 2px; background: rgba(0,0,0,.10); transition: background .3s; }
+        .obw-prog-pill.on { background: #FF9800; }
+        .obw-prog-step-label { text-align: center; font-size: 11px; color: rgba(0,0,0,.38); }
+        .obw-prog-circles { display: none; align-items: center; height: 24px; }
+        .obw-prog-circle {
+            width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: transparent; border: 1.5px solid rgba(0,0,0,.15);
+            font: 700 9px 'Inter', sans-serif; color: rgba(0,0,0,.28);
+            transition: all .25s;
+        }
+        .obw-prog-circle.done { background: #FF9800; border-color: #FF9800; color: #fff; }
+        .obw-prog-circle.cur  {
+            background: #FF9800; border-color: #FF9800; color: #fff;
+            width: 22px; height: 22px; font-size: 11px;
+            box-shadow: 0 0 0 4px rgba(255,139,66,.13);
+        }
+        .obw-prog-sep { flex: 1; height: 2px; border-radius: 1px; background: rgba(0,0,0,.10); margin: 0 3px; transition: background .3s; }
+        .obw-prog-sep.on { background: #FF9800; }
+        .obw-title {
+            font: 700 22px 'Quicksand', 'Inter', sans-serif;
+            color: #111; line-height: 1.22; margin: 0 0 4px; text-align: left;
+        }
+        .obw-sub { font: 400 13px 'Inter', sans-serif; color: #4D4D4D; line-height: 1.5; margin: 0; }
+        .obw-rule { margin-top: 14px; border-bottom: 1px solid rgba(0,0,0,.09); }
+        .obw-content { display: flex; flex-direction: column; gap: 10px; }
+        @keyframes obw-slide-fwd { from { opacity:0; transform: translateX(28px); } to { opacity:1; transform:none; } }
+        @keyframes obw-slide-bwd { from { opacity:0; transform: translateX(-28px); } to { opacity:1; transform:none; } }
+        .obw-anim-fwd { animation: obw-slide-fwd .3s cubic-bezier(.4,0,.2,1) both; }
+        .obw-anim-bwd { animation: obw-slide-bwd .3s cubic-bezier(.4,0,.2,1) both; }
+        .obw-opt {
+            width: 100%;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 13px 14px;
+            background: #f8f8f8;
+            border: 2px solid rgba(0,0,0,.09);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background .18s, border-color .18s;
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+            min-height: 52px;
+            color: #111;
+        }
+        .obw-opt:hover { background: #FFF3E0; border-color: #FF9800; }
+        .obw-opt.on    { background: #FFF3E0; border-color: #FF9800; }
+        .obw-opt-label { font-size: 14px; font-weight: 500; color: #111; line-height: 1.3; }
+        .obw-opt-sub   { font-size: 12px; color: #4D4D4D; margin-top: 3px; line-height: 1.45; }
+        .obw-radio {
+            width: 18px; height: 18px; border-radius: 50%;
+            border: 2px solid rgba(0,0,0,.2);
+            background: transparent;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: all .18s;
+        }
+        .obw-radio.on { background: #FF9800; border-color: #FF9800; }
+        .obw-radio > div { width: 6px; height: 6px; border-radius: 50%; background: #fff; opacity: 0; }
+        .obw-radio.on > div { opacity: 1; }
+        .obw-section { display: flex; flex-direction: column; gap: 6px; }
+        .obw-sec-lbl {
+            font: 700 10px 'Inter', sans-serif;
+            letter-spacing: .08em; text-transform: uppercase;
+            color: #FF9800;
+        }
+        .obw-stack { display: flex; flex-direction: column; gap: 7px; }
+        .obw-footer {
+            display: flex; flex-direction: column; gap: 10px;
+            margin-top: 22px;
+        }
+        .obw-cta {
+            width: 100%;
+            max-width: 460px;
+            margin: 0 auto;
+            padding: 14px 20px;
+            background: #222; color: #fff;
+            border: none; border-radius: 12px;
+            font: 600 15px 'Inter', sans-serif;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            min-height: 52px;
+            transition: background .18s, box-shadow .18s, transform .15s;
+        }
+        .obw-cta:hover:not(:disabled) {
+            background: #111;
+            box-shadow: 0 6px 24px rgba(0,0,0,.18);
+            transform: translateY(-1px);
+        }
+        .obw-cta:disabled { background: rgba(0,0,0,.07); color: rgba(0,0,0,.28); cursor: not-allowed; }
+        .obw-foot-links { display: flex; justify-content: center; gap: 20px; }
+        .obw-foot-links a { font-size: 12px; color: #5b6470; text-decoration: none; }
+        .obw-foot-links a:hover { color: #111; }
+        .obw-input {
+            width: 100%; box-sizing: border-box;
+            padding: 14px 16px;
+            background: #f8f8f8;
+            border: 2px solid rgba(0,0,0,.09);
+            border-radius: 12px;
+            outline: none;
+            font: 500 15px 'Inter', sans-serif;
+            color: #111;
+            transition: border-color .18s, background .18s;
+        }
+        .obw-input::placeholder { color: rgba(0,0,0,.35); }
+        .obw-input:focus { background: #FFF8F0; border-color: #FF9800; }
+        .obw-other-input {
+            width: 100%; box-sizing: border-box;
+            padding: 11px 14px;
+            background: #f8f8f8;
+            border: 1.5px solid rgba(255,139,66,.55);
+            border-radius: 12px;
+            outline: none;
+            font: 400 13px 'Inter', sans-serif;
+            color: #111;
+            margin-top: -2px;
+            animation: obw-slide-fwd .22s ease both;
+        }
+        .obw-phone-row { display: flex; gap: 8px; }
+        .obw-phone-row .obw-cc {
+            flex: 0 0 86px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .obw-skip-note {
+            font-size: 12px; color: rgba(0,0,0,.42);
+            text-align: center; margin-top: -2px;
+        }
+
+        /* Analyzing step (step4) — PWA loader, white theme, full-width */
+        #step4 .ob-split { grid-template-columns: 1fr; }
+        #step4 .ob-panel-right { display: none; }
+        #step4 .ob-panel-left {
+            background: #fff;
+            color: #111;
+            padding-top: 0;
+            padding-bottom: 0;
+            align-items: center;
+            justify-content: center;
+        }
+        .asmt-loader {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 28px 20px;
+            gap: 10px;
+            width: 100%;
+            max-width: 460px;
+        }
+        .asmt-loader-orb {
+            position: relative;
+            width: 84px; height: 84px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .asmt-loader-ring-outer { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .asmt-loader-ring-outer circle { fill: none; stroke: rgba(0,0,0,0.18); stroke-width: 1.2; }
+        .asmt-loader-ring-inner {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            animation: asmt-orb-spin 2.4s linear infinite;
+            transform-origin: 50% 50%;
+        }
+        .asmt-loader-ring-inner circle { fill: none; stroke-width: 5; stroke-linecap: round; }
+        .asmt-loader-ring-inner .asmt-arc-bright { stroke: #FF9800; opacity: 0.95; }
+        .asmt-loader-ring-inner .asmt-arc-dim { stroke: #FF9800; opacity: 0.35; }
+        .asmt-loader-core {
+            position: relative;
+            width: 54px; height: 54px; border-radius: 50%;
+            background: transparent;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .asmt-loader-bars {
+            display: flex; align-items: center; gap: 2px; height: 22px;
+            animation: asmt-bars-pulse 1.2s ease-in-out infinite;
+        }
+        .asmt-loader-bars span { display: block; width: 2px; border-radius: 2px; background: #FF9800; }
+        .asmt-loader-bars span:nth-child(1) { height: 30%; }
+        .asmt-loader-bars span:nth-child(2) { height: 70%; }
+        .asmt-loader-bars span:nth-child(3) { height: 100%; }
+        .asmt-loader-bars span:nth-child(4) { height: 60%; }
+        .asmt-loader-bars span:nth-child(5) { height: 40%; }
+        .asmt-loader-eyebrow {
+            font-size: 12px; font-weight: 700; letter-spacing: 2.4px;
+            color: #FF9800; text-transform: uppercase; margin-top: 10px;
+        }
+        .asmt-loader-title {
+            font: 800 30px 'Quicksand', 'Inter', sans-serif;
+            line-height: 1.15; color: #111;
+            letter-spacing: -0.5px; margin: 4px 0 2px;
+            text-align: center;
+        }
+        .asmt-loader-sub {
+            font-size: 14px; color: rgba(0,0,0,0.55);
+            margin: 0; text-align: center;
+        }
+        .asmt-loader-steps {
+            margin-top: 14px; width: 100%; max-width: 360px;
+            background: #f8f8f8;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .asmt-loader-step {
+            display: flex; align-items: center; gap: 12px;
+            font: 600 14px 'Inter', sans-serif; color: #111;
+        }
+        .asmt-loader-step .asmt-step-icon {
+            width: 22px; height: 22px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .asmt-loader-step.done .asmt-step-icon {
+            background: #FF9800; border-radius: 50%; color: #1A202C;
+        }
+        .asmt-loader-step.done .asmt-step-icon svg { width: 14px; height: 14px; }
+        .asmt-loader-step.pending { color: rgba(0,0,0,0.7); }
+        .asmt-loader-step.pending .asmt-step-icon svg {
+            width: 18px; height: 18px; color: #FF9800;
+            animation: asmt-spin 1.4s linear infinite;
+        }
+        @keyframes asmt-orb-spin { to { transform: rotate(360deg); } }
+        @keyframes asmt-spin     { to { transform: rotate(360deg); } }
+        @keyframes asmt-bars-pulse { 0%,100%{opacity:0.85} 50%{opacity:1} }
+
+        /* legacy wrapper kept for any leftover refs (no longer used) */
+        .obw-analyze-wrap {
+            max-width: 460px; width: 100%;
+            display: flex; flex-direction: column; gap: 18px;
+        }
+        .obw-analyze-title {
+            font: 700 24px 'Quicksand', 'Inter', sans-serif;
+            color: #111; margin: 0; text-align: left;
+        }
+        .obw-analyze-sub {
+            font: 400 13px 'Inter', sans-serif;
+            color: #4D4D4D; line-height: 1.5; margin: 0;
+        }
+        .obw-analyze-list { display: flex; flex-direction: column; gap: 12px; }
+        .obw-analyze-row {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 16px;
+            background: #f8f8f8;
+            border: 2px solid rgba(0,0,0,.06);
+            border-radius: 12px;
+            transition: border-color .25s, background .25s;
+        }
+        .obw-analyze-row.active {
+            background: #FFF3E0;
+            border-color: #FF9800;
+        }
+        .obw-analyze-row.completed {
+            background: #ECFDF5;
+            border-color: #22C55E;
+        }
+        .obw-analyze-bullet {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,.06);
+            font: 700 13px 'Inter', sans-serif;
+            color: rgba(0,0,0,.4);
+            flex-shrink: 0;
+            transition: all .25s;
+        }
+        .obw-analyze-row.active .obw-analyze-bullet {
+            background: #FF9800; color: #fff;
+            box-shadow: 0 0 0 4px rgba(255,139,66,.18);
+        }
+        .obw-analyze-row.completed .obw-analyze-bullet {
+            background: #22C55E; color: #fff;
+        }
+        .obw-analyze-text { font: 500 14px 'Inter', sans-serif; color: #111; line-height: 1.4; }
+        .obw-analyze-row.active .obw-analyze-text { color: #B45309; }
+        .obw-analyze-row.completed .obw-analyze-text { color: #166534; }
+        .obw-analyze-foot {
+            margin-top: 6px;
+            font: 400 13px 'Inter', sans-serif;
+            color: #4D4D4D; font-style: italic; text-align: center;
+        }
+        .obw-analyze-foot strong { color: #FF9800; font-weight: 700; font-style: normal; }
+
+        /* Desktop: circles, hide pills */
+        @media (min-width: 881px) {
+            .obw-prog-circles    { display: flex; }
+            .obw-prog-pills      { display: none; }
+            .obw-prog-step-label { display: none; }
+            .obw-title { font-size: 26px; }
+            .obw-back  { top: -8px; }
+        }
+        @media (max-width: 880px) {
+            #step3 .ob-panel-right { display: none; }
+            .obw-card { padding-top: 28px; max-width: 100%; }
+            .obw-back { top: 0; font-size: 14px; }
+            .obw-title { font-size: 20px; }
+            .obw-sub { font-size: 12px; }
+            .obw-cta { padding: 13px 18px; min-height: 48px; font-size: 14px; }
+            .obw-opt { padding: 12px 14px; min-height: 48px; }
+        }
+        .assessment-step {
+            background: #ffffff;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border: 1px solid rgba(15,23,42,0.06);
+        }
+        #step1.assessment-step {
+            background: transparent;
+            box-shadow: none;
+            border: none;
+        }
+        .assessment-container:has(#step2.active) {
+            max-width: none;
+            padding: 0;
+            margin: 0;
+            width: 100vw;
+        }
+        .assessment-page:has(#step2.active) {
+            padding: 0 !important;
+            margin: 0;
+            min-height: 100vh;
+        }
+        #step2.assessment-step {
+            padding: 0;
+            margin: 0;
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+            height: 100vh;
+            min-height: 600px;
+        }
+        #step2 .ob-split { height: 100%; }
+        #step2 .ob-panel-left { padding-top: 100px; }
+        .step-title { color: #0B0C0E; }
+        .loading-title { color: #0B0C0E; }
+
+        /* Hide navbar Login button on assessment page (desktop + mobile) */
+        .user-login-nav { display: none !important; }
+
+        /* ========== Login (PWA-style, matches Lisp-pwa exactly) ========== */
+        .ob-step-wrap { padding: 0; }
+        .ob-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+        .ob-panel-left {
+            display: flex; align-items: safe center; justify-content: center;
+            padding: 40px 28px; overflow-y: auto; background: #fff;
+            min-height: 100%;
+        }
+        .ob-card {
+            background: transparent; border: none; padding: 0;
+            max-width: 380px; width: 100%;
+            display: flex; flex-direction: column; align-items: stretch;
+        }
+        .ob-logo { margin-bottom: 28px; display: flex; justify-content: center; }
+        .ob-title {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 32px; font-weight: 700; letter-spacing: -0.015em;
+            color: #0f1115; line-height: 1.15; margin: 0 0 12px; text-align: center;
+        }
+        .ob-sub { color: #5b6470; font-size: 15px; font-weight: 400; line-height: 1.5; margin: 0 0 28px; text-align: center; }
+        .ob-panel-right { position: relative; background: #111; overflow: hidden; min-height: 100%; }
+        .ob-hero-img {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            object-fit: cover; object-position: 70% center; display: block;
+        }
+        .ob-panel-right::after {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+            height: 52%; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.9));
+            z-index: 1; pointer-events: none;
+        }
+        .ob-photo-badge {
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
+            padding: 20px 28px 26px;
+            display: flex; align-items: flex-end; justify-content: space-between;
+        }
+        .ob-photo-badge-name { font-size: 14px; font-weight: 700; color: #fff; margin: 0 0 3px; line-height: 1.3; }
+        .ob-photo-badge-sub { font-size: 12px; font-weight: 500; color: #fff; margin: 0; }
+        .ob-badge-right { text-align: right; }
+        .ob-badge-day-num {
+            font-size: 38px; font-weight: 800; color: #FF9800;
+            font-family: 'Quicksand', 'Inter', sans-serif; line-height: 1;
+        }
+        .ob-badge-day-label {
+            font-size: 10px; font-weight: 700; color: #FF9800;
+            text-transform: uppercase; letter-spacing: 0.12em; margin-top: 2px;
+        }
+        @media (max-width: 900px) {
+            .ob-split { grid-template-columns: 1fr; grid-template-rows: 32dvh 1fr; }
+            .ob-panel-right { min-height: 32dvh; }
+            .ob-panel-left { padding: 28px 18px; }
+            #step2 .ob-split { grid-template-rows: 1fr; }
+            #step2 .ob-panel-right { display: none; }
+            /* Compact step2 so the whole login fits one mobile viewport */
+            #step2 .ob-panel-left { padding: 64px 18px 24px; }
+            #step2 .ob-title { font-size: 24px; margin: 0 0 6px; }
+            #step2 .ob-sub { font-size: 13px; margin: 0 0 14px; }
+            #step2 .ob-social-btn { height: 46px; }
+            #step2 .ob-google-btn { margin-bottom: 8px; }
+            #step2 .ob-divider { margin: 12px 0 10px; }
+            #step2 .ob-form { gap: 10px; }
+            #step2 .ob-input { height: 44px; }
+            #step2 .ob-primary-btn { height: 46px; }
+            #step2 .ob-social-error { margin-top: 2px; min-height: 0; }
+            #step2 .ob-privacy-row { margin-top: 8px; }
+            #step2 .ob-slp-badge { margin: 8px 0 0; padding: 6px 12px; }
+            #step2 .ob-social-proof { margin-top: 8px; }
+            #step3 .ob-split { grid-template-rows: 1fr; }
+            #step3 .ob-panel-right { display: none; }
+            #step4 .ob-split { grid-template-rows: 1fr; }
+            #step4 .ob-panel-right { display: none; }
+            #step4 .ob-panel-left { flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 88px; }
+            /* Compact step3 so all options + Next fit one viewport */
+            #step3 .ob-wiz-body { padding: 72px 18px 6px; }
+            #step3 .ob-wiz-foot { padding: 8px 18px 14px; }
+            #step3 .obw-header { margin-bottom: 10px; }
+            #step3 .obw-header .ob-logo { display: none; }
+            #step3 .obw-back { position: static; top: auto; margin-bottom: 10px; }
+            #step3 .obw-rule { margin-top: 8px; }
+            #step3 .obw-content { gap: 7px; }
+            #step3 .obw-opt { padding: 9px 12px; min-height: 0; }
+            #step3 .obw-opt-sub { margin-top: 1px; }
+        }
+        .ob-logo { display: flex; justify-content: center; margin-bottom: 18px; }
+        .ob-title { font-family: 'Inter', sans-serif; font-size: 28px; font-weight: 700; color: #0B0C0E; text-align: center; margin: 0 0 8px; }
+        .ob-sub { font-size: 14px; color: #475569; text-align: center; margin: 0 0 22px; line-height: 1.5; }
+        .ob-social-btn {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            width: 100%; height: 52px; padding: 0 16px;
+            background: #fff; border: 1px solid #e6e8ec; border-radius: 10px;
+            color: #0f1115; font-size: 15px; font-weight: 600; font-family: inherit;
+            cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.05s ease;
+        }
+        .ob-social-btn svg { width: 20px; height: 20px; flex: none; }
+        .ob-social-btn:hover:not(:disabled) { background: #fafbfc; border-color: #d6d9de; }
+        .ob-social-btn:active:not(:disabled) { transform: scale(0.98); }
+        .ob-google-btn { margin-bottom: 10px; }
+        .ob-apple-btn { margin-bottom: 4px; background: #000; color: #fff; border-color: #000; }
+        .ob-apple-btn:hover:not(:disabled) { background: #1a1a1a; border-color: #1a1a1a; }
+        .ob-divider {
+            display: flex; align-items: center; gap: 10px;
+            margin: 18px 0 16px; color: rgba(0,0,0,0.35); font-size: 12px;
+        }
+        .ob-divider::before, .ob-divider::after { content: ''; flex: 1; height: 1px; background: rgba(0,0,0,0.1); }
+        .ob-form { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
+        .ob-field { display: flex; flex-direction: column; gap: 6px; }
+        .ob-field-lbl {
+            font-size: 12px; font-weight: 600; color: #4b5563;
+            letter-spacing: 0.02em; text-align: left;
+        }
+        .ob-input {
+            width: 100%; height: 48px; padding: 0 14px;
+            background: #fff; border: 1px solid #e6e8ec; border-radius: 10px;
+            color: #0f1115; font-size: 15px; font-family: inherit;
+            transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box;
+        }
+        .ob-input:focus { outline: none; border-color: #FF8B42; box-shadow: 0 0 0 3px rgba(255,139,66,0.15); }
+        .ob-pw-wrap { position: relative; display: block; }
+        .ob-input-pw { padding-right: 48px; }
+        .ob-pw-toggle {
+            position: absolute; top: 0; right: 0; height: 48px; width: 44px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0; border: none; background: transparent; color: #9aa1ac;
+            cursor: pointer; border-radius: 0 10px 10px 0;
+            transition: color 0.15s, transform 0.1s ease;
+        }
+        .ob-pw-toggle:hover { color: #4b5563; }
+        .ob-primary-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 100%; height: 52px; padding: 0 16px;
+            background: #FF8B42; border: 1px solid #FF8B42; border-radius: 10px;
+            color: #fff; font-size: 15px; font-weight: 600; font-family: inherit;
+            cursor: pointer; margin-top: 4px;
+            transition: background 0.2s, border-color 0.2s, transform 0.05s ease;
+        }
+        .ob-primary-btn:hover:not(:disabled) { background: #e67a35; border-color: #e67a35; }
+        .ob-primary-btn:active:not(:disabled) { transform: scale(0.98); }
+        .ob-primary-btn:disabled { opacity: 1; cursor: default; }
+        .ob-link-btn {
+            background: none; border: none; color: #FF8B42; font-size: 13px; font-weight: 600;
+            font-family: inherit; cursor: pointer; padding: 4px; align-self: center;
+            text-decoration: underline; text-underline-offset: 3px;
+        }
+        .ob-link-btn:hover:not(:disabled) { color: #e67a35; }
+        .ob-social-error { display: block; font-size: 12px; color: #dc2626; margin-top: 6px; min-height: 16px; text-align: center; }
+        .ob-privacy-row {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin-top: 12px; flex-wrap: wrap;
+        }
+        .ob-privacy-item {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 12px; font-weight: 700; color: #166534;
+            letter-spacing: 0.01em; white-space: nowrap;
+        }
+        .ob-privacy-dot { width: 3px; height: 3px; border-radius: 50%; background: #c8d8cd; display: inline-block; flex: none; }
+        .ob-slp-badge {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            margin: 12px 0 4px; padding: 7px 14px;
+            background: #f0faf4; border: 1px solid #bbf0d0; border-radius: 20px;
+            font-size: 11.5px; font-weight: 600; color: #166534;
+            letter-spacing: 0.01em; text-align: center; line-height: 1.3;
+        }
+        .ob-social-proof {
+            text-align: center; margin-top: 14px; margin-bottom: 0;
+            font-size: 12px; font-weight: 600; color: #FF8B42; letter-spacing: 0.01em;
+        }
+        /* Hide Free Assessment buttons in nav on this page (keep Login) */
+        .login-nav > .login-nav-button:not(.user-login-button),
+        .mobile-get-started:not(.user-login-nav) {
+            display: none !important;
+        }
+        /* Mobile reorder: HOW IT WORKS → Recording Session → NOTE */
+        @media (max-width: 1099px) {
+            .rec-layout {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+            .rec-aside {
+                display: contents;
+            }
+            .rec-aside .aside-box:nth-child(1) { order: 1; }
+            .recording-section-wrap { order: 2; }
+            .rec-aside .aside-box:nth-child(2) { order: 3; }
+        }
+        /* Tablet / large mobile: vertically center content */
+        @media (min-width: 601px) and (max-width: 1099px) {
+            .assessment-page {
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding-top: 100px;
+                padding-bottom: 40px;
+            }
+            .assessment-container {
+                width: 100%;
+            }
+        }
+        /* Mobile: compact so HOW IT WORKS + card + NOTE fit one viewport */
+        @media (max-width: 768px) {
+            .assessment-page { padding-top: 84px; padding-bottom: 16px; }
+            .assessment-page:has(#step1.active) {
+                padding-top: 72px; padding-bottom: 72px;
+                justify-content: center;
+            }
+            /* Spacing between stacked components */
+            .rec-layout { gap: 12px; }
+            /* HOW IT WORKS → single inline line inside compact box */
+            .rec-aside .aside-box:nth-child(1) {
+                padding: 12px 16px; display: flex; flex-wrap: nowrap;
+                justify-content: center; align-items: center; gap: 20px;
+                margin-bottom: 4px;
+            }
+            /* Protocol box not needed on mobile */
+            .rec-aside .aside-box.proto-box { display: none; }
+            .rec-aside .aside-box:nth-child(1) .aside-legend { display: none; }
+            .rec-aside .aside-box:nth-child(1) .aside-row {
+                margin-top: 0; font-size: 13px; line-height: 1.3;
+                gap: 6px; align-items: center; white-space: nowrap;
+            }
+            .rec-aside .aside-box:nth-child(1) .aside-num {
+                width: 20px; height: 20px;
+            }
+            /* NOTE → plain centered text (no box, no icon, no legend) */
+            .rec-aside .aside-box:nth-child(2) {
+                background: transparent; border: none; box-shadow: none; padding: 4px 8px 0;
+            }
+            .rec-aside .aside-box:nth-child(2) .aside-legend { display: none; }
+            .rec-aside .aside-box:nth-child(2) .aside-row {
+                margin-top: 0; justify-content: center; text-align: center;
+                color: #94a3b8; font-size: 13px; line-height: 1.4;
+            }
+            /* Recording card compaction */
+            .clinical-header { padding: 12px 18px 0; }
+            .clinical-label { font-size: 10px; }
+            .clinical-title { margin-top: 6px; font-size: 17px; padding-left: 0; }
+            .recording-panel { gap: 8px; padding: 6px 0 2px; }
+            .word-picker { margin: 0 28px 6px; }
+            .tier-progress { margin: 0 28px 10px; }
+            .pill-word.is-long { font-size: 14px; }
+            .word-picker-words { padding: 8px 0; }
+            .active-pill { height: 44px; margin: 4px 10px; width: calc(100% - 20px); }
+            .pill-word { font-size: 19px; }
+            .context-word { height: 22px; font-size: 14px; }
+            .context-word:empty { display: none; }
+            .vu-meter { height: 28px; margin-bottom: 4px; }
+            .record-btn-area { padding: 4px 0 10px; }
+            .record-circle-btn { width: 54px; height: 54px; }
+            .record-circle-inner { width: 42px; height: 42px; }
+            .record-label { font-size: 10px; }
+            .seg-block { margin: 0 28px; padding: 6px 16px 7px; }
+            .seg-header { margin-bottom: 6px; }
+            .tier-badge { font-size: 8px; padding: 2px 6px; }
+            .seg-phoneme { font-size: 11px; }
+            .seg-sep { font-size: 10px; }
+            .seg-position { font-size: 9px; }
+            .seg-counter { font-size: 10px; }
+            .seg-pip { height: 3px; }
+            .word-progress { margin: 0 28px; }
+        }
+
+        /* Tall mobiles (14 Pro/Max, Pixel 7, etc.): SE stays compact,
+           larger screens breathe — scale spacing + elements up to fill height. */
+        @media (max-width: 768px) and (min-height: 760px) {
+            .rec-layout { gap: 18px; }
+            .rec-aside .aside-box:nth-child(1) { margin-bottom: 14px; }
+            .clinical-header { padding: 18px 18px 0; }
+            .clinical-title { margin-top: 8px; font-size: 19px; }
+            .recording-panel { gap: 14px; padding: 10px 0 6px; }
+            .seg-block { padding: 12px 22px 14px; }
+            .seg-header { margin-bottom: 10px; }
+            .tier-badge { font-size: 9px; padding: 3px 8px; }
+            .seg-phoneme { font-size: 13px; }
+            .seg-sep { font-size: 12px; }
+            .seg-position { font-size: 10px; }
+            .seg-counter { font-size: 11px; }
+            .seg-pip { height: 4px; }
+            .word-picker { margin: 0 28px 12px; }
+            .word-picker-words { padding: 12px 0; }
+            .active-pill { height: 54px; }
+            .pill-word { font-size: 24px; }
+            .pill-word.is-long { font-size: 16px; }
+            .context-word { height: 30px; font-size: 16px; }
+            .vu-meter { height: 40px; margin-bottom: 8px; }
+            .record-btn-area { padding: 10px 0 16px; }
+            .record-circle-btn { width: 68px; height: 68px; }
+            .record-circle-inner { width: 54px; height: 54px; }
+        }
+        /* Extra-tall mobiles (Pixel 7 915h, 14 Pro Max 932h): a touch more room. */
+        @media (max-width: 768px) and (min-height: 880px) {
+            .rec-layout { gap: 24px; }
+            .rec-aside .aside-box:nth-child(1) { margin-bottom: 18px; }
+            .recording-panel { gap: 18px; }
+            .seg-block { padding: 14px 22px 16px; }
+            .active-pill { height: 58px; }
+            .vu-meter { height: 48px; }
+            .record-btn-area { padding: 14px 0 20px; }
+        }
+
+        /* ===================================================
+           Segment identity + protocol (ported from standalone)
+           =================================================== */
+        .seg-block {
+            margin: 16px 20px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 8px 24px 10px;
+            text-align: left;
+        }
+        .seg-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+        .seg-left {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-wrap: wrap;
+        }
+        .tier-badge {
+            font-family: monospace;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid currentColor;
+            color: var(--asmt-cyan);
+            white-space: nowrap;
+            transition: color 0.3s, border-color 0.3s;
+        }
+        .seg-phoneme {
+            font-family: monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.03em;
+        }
+        .seg-sep { color: rgba(255,255,255,0.2); font-size: 12px; }
+        .seg-position {
+            font-family: monospace;
+            font-size: 10px;
+            font-weight: 500;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+        }
+        .seg-counter {
+            font-family: monospace;
+            font-size: 11px;
+            color: #fff;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+        }
+        .seg-counter b { font-weight: 600; color: var(--asmt-cyan); }
+        .seg-strip {
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: 1fr;
+            gap: 6px;
+        }
+        .seg-pip {
+            height: 4px;
+            border-radius: 1px;
+            background: rgba(255,255,255,0.07);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .seg-pip.done-t1 { background: rgba(34,211,238,0.35); }
+        .seg-pip.cur-t1  { background: var(--asmt-cyan); box-shadow: 0 0 10px rgba(34,211,238,0.8); }
+        .seg-pip.done-t2 { background: rgba(34,211,238,0.35); }
+        .seg-pip.cur-t2  { background: var(--asmt-cyan); box-shadow: 0 0 10px rgba(34,211,238,0.8); }
+        .seg-pip.done-t3 { background: rgba(34,211,238,0.35); }
+        .seg-pip.cur-t3  { background: var(--asmt-cyan); box-shadow: 0 0 10px rgba(34,211,238,0.8); }
+
+        /* Word-level progress (within current segment) */
+        .word-progress {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 0 80px;
+            padding: 0 2px;
+            gap: 12px;
+        }
+        .word-count-label {
+            font-family: monospace;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .word-count-label b { font-weight: 600; }
+        .word-dots {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .word-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            transition: background 0.2s, transform 0.2s;
+        }
+        .word-dot.done    { background: rgba(34,211,238,0.35); }
+        .word-dot.current { background: var(--asmt-cyan); transform: scale(1.25); }
+
+        /* Protocol aside card (light — matches .aside-box) */
+        .proto-list { display: flex; flex-direction: column; gap: 0; margin-top: 4px; }
+        .proto-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 11px 0;
+            border-bottom: 1px solid #F0F4F8;
+            transition: opacity 0.25s ease;
+        }
+        .proto-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .proto-row.inactive { opacity: 0.38; }
+        .proto-indicator {
+            flex: none;
+            margin-top: 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #CBD5E0;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .proto-indicator.t1 { background: var(--asmt-cyan); box-shadow: 0 0 8px rgba(34,211,238,0.5); }
+        .proto-indicator.t2 { background: var(--asmt-cyan); box-shadow: 0 0 8px rgba(34,211,238,0.5); }
+        .proto-indicator.t3 { background: var(--asmt-cyan); box-shadow: 0 0 8px rgba(34,211,238,0.5); }
+        .proto-tier-label {
+            font-family: monospace;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .proto-tier-label.t1 { color: var(--asmt-cyan); }
+        .proto-tier-label.t2 { color: var(--asmt-cyan); }
+        .proto-tier-label.t3 { color: var(--asmt-cyan); }
+        .proto-name { font-size: 13.5px; font-weight: 600; color: #1A202C; line-height: 1.3; }
+        .proto-segs { font-family: monospace; font-size: 11px; color: #A0AEC0; margin-top: 2px; }
+
+        /* Protocol box ordering on mobile (after HOW IT WORKS / card / NOTE) */
+        @media (max-width: 1099px) {
+            .rec-aside .aside-box.proto-box { order: 4; }
+        }
+    </style>
+    <link rel="stylesheet" href="css/nav.css">
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/bundle.min.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <!-- NAV_PLACEHOLDER -->
+
+
+
+
+
+
+
+
+    <!-- Stuttering speech-sample condition card (page-specific) -->
+    <style>
+        .cond-card {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0 12px;
+            margin: 14px 0 4px;
+            text-align: left;
+            box-sizing: border-box;
+        }
+        .cond-card-title {
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            color: #fff;
+            margin: 0 0 6px;
+            letter-spacing: .2px;
+        }
+        .cond-card-instruction {
+            font-size: 13.5px;
+            line-height: 1.5;
+            color: rgba(255,255,255,0.62);
+            margin: 0 0 12px;
+        }
+        .cond-prompt {
+            font-size: 15px;
+            line-height: 1.55;
+            color: rgba(255,255,255,0.92);
+            background: rgba(255,255,255,0.03);
+            border-left: 3px solid #22D3EE;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin: 0 32px 10px;
+            box-sizing: border-box;
+            min-height: 88px;
+            overflow-y: auto;
+            display: flex;
+            align-items: center;
+        }
+        .cond-prompt.passage {
+            font-style: normal;
+            border-left-color: #22D3EE;
+            min-height: 168px;
+            max-height: 168px;
+            overflow-y: auto;
+            align-items: flex-start;
+        }
+        .cond-hint {
+            display: flex;
+            gap: 7px;
+            align-items: flex-start;
+            font-size: 12px;
+            line-height: 1.45;
+            color: rgba(255,255,255,0.45);
+        }
+        .cond-hint svg { flex: 0 0 auto; margin-top: 1px; opacity: .7; }
+        .cond-timer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'Inter', monospace;
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: 1px;
+            color: #fff;
+            margin: 10px 0 2px;
+        }
+        .cond-timer-dot {
+            width: 9px; height: 9px; border-radius: 50%;
+            background: #ef4444;
+            animation: condPulse 1s ease-in-out infinite;
+        }
+        @keyframes condPulse { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+        .seg-pip.done-t1 { background: #22D3EE; }
+        .seg-pip.cur-t1  { box-shadow: 0 0 0 2px rgba(34,211,238,.5); background: rgba(34,211,238,.35); }
+        .seg-pip.done-t2 { background: #22D3EE; }
+        .seg-pip.cur-t2  { box-shadow: 0 0 0 2px rgba(34,211,238,.5); background: rgba(34,211,238,.35); }
+        .seg-pip.done-t3 { background: #22D3EE; }
+        .seg-pip.cur-t3  { box-shadow: 0 0 0 2px rgba(34,211,238,.5); background: rgba(34,211,238,.35); }
+    </style>
+
+    <!-- Assessment Page -->
+    <div class="assessment-page">
+        <div class="assessment-container">
+            <div class="assessment-header">
+                <h1 class="assessment-title">Your Free Stuttering Assessment</h1>
+                <p class="assessment-subtitle">Record real speech samples — see exactly where your fluency needs work</p>
+                
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-label">Step <span id="currentStep">1</span> of 4</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 25%"></div>
+                </div>
+            </div>
+
+            <!-- Step 3: Survey wizard (comfort + age) — PWA-style -->
+            <div class="assessment-step ob-step-wrap" id="step3">
+              <div class="ob-split">
+                <div class="ob-panel-left">
+                  <div class="ob-wiz-body">
+                    <div class="ob-card obw-card">
+                      <button class="obw-back" id="obwBack" type="button">← Back</button>
+                      <div class="obw-header">
+                        <div class="ob-logo">
+                          <img src="/stutterfluencycentre/stutter-logo.png" alt="Stutter Fluency Centre" style="width:140px;height:auto;display:block;">
+                        </div>
+                        <div class="obw-progress" id="obwProgress"></div>
+                        <h2 class="obw-title" id="obwTitle"></h2>
+                        <p class="obw-sub" id="obwSub"></p>
+                        <div class="obw-rule"></div>
+                      </div>
+                      <div class="obw-content" id="obwContent"></div>
+                    </div>
+                  </div>
+                  <div class="ob-wiz-foot">
+                    <button class="obw-cta" id="obwCta" type="button" disabled>Next</button>
+                    <div class="obw-foot-links">
+                      <a href="https://topspeech.health/therollracademy/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>
+                      <a href="https://topspeech.health/therollracademy/terms.html" target="_blank" rel="noopener">Terms of Service</a>
+                    </div>
+                  </div>
+                </div>
+                <aside class="ob-panel-right" aria-hidden="true">
+                  <img src="/stutterfluencycentre/sign-in-page-image.jpg" alt="" class="ob-hero-img">
+                  <div class="ob-photo-badge">
+                    <div class="ob-badge-left">
+                      <p class="ob-photo-badge-name">Anonymous · Teen on family iPhone · Florida</p>
+                      <p class="ob-photo-badge-sub">Improving daily</p>
+                    </div>
+                    <div class="ob-badge-right">
+                      <div class="ob-badge-day-num">98</div>
+                      <div class="ob-badge-day-label">Day streak</div>
+                    </div>
+                  </div>
+                </aside>
+              </div>
+            </div>
+            <!-- Hidden mirror inputs — wizard writes here; submit logic reads -->
+            <div style="display:none" aria-hidden="true">
+              <!-- Q1: onset & course -->
+              <input type="radio" name="onset" value="childhood" id="onset1">
+              <input type="radio" name="onset" value="teen" id="onset2">
+              <input type="radio" name="onset" value="adult_sudden" id="onset3">
+              <input type="radio" name="onset" value="not_sure" id="onset4">
+              <!-- Q2: family history -->
+              <input type="radio" name="familyHistory" value="yes" id="family1">
+              <input type="radio" name="familyHistory" value="no" id="family2">
+              <input type="radio" name="familyHistory" value="not_sure" id="family3">
+              <!-- Q3: fluency pattern -->
+              <input type="radio" name="fluencyPattern" value="yes" id="pattern1">
+              <input type="radio" name="fluencyPattern" value="sometimes" id="pattern2">
+              <input type="radio" name="fluencyPattern" value="no" id="pattern3">
+              <input type="radio" name="fluencyPattern" value="not_sure" id="pattern4">
+              <!-- Q4: awareness / avoidance / fear -->
+              <input type="radio" name="avoidance" value="often" id="avoid1">
+              <input type="radio" name="avoidance" value="sometimes" id="avoid2">
+              <input type="radio" name="avoidance" value="rarely" id="avoid3">
+              <input type="radio" name="avoidance" value="never" id="avoid4">
+              <input type="email" id="email">
+              <!-- Retained so the country-selector init code below stays harmless -->
+              <input type="text" id="countrySelect" value="🇺🇸 United States">
+              <input type="hidden" id="countryCode" value="+1">
+              <div id="countryOptions"></div>
+              <input type="tel" id="phoneNumber">
+            </div>
+
+            <!-- Step 1: Instant Recording (The Hook) -->
+            <div class="assessment-step" id="step1" style="background:transparent;box-shadow:none;padding:0;">
+                <div id="recordingHost">
+                <div class="rec-layout">
+                    <aside class="rec-aside">
+                        <div class="aside-box">
+                            <div class="aside-legend">HOW IT WORKS</div>
+                            <div class="aside-row"><span class="aside-num">1</span><span>Tap to record</span></div>
+                            <div class="aside-row"><span class="aside-num">2</span><span>Speak clearly</span></div>
+                        </div>
+                        <div class="aside-box">
+                            <div class="aside-legend">NOTE</div>
+                            <div class="aside-row"><span>To get the best results, find a quiet spot with zero background noise. Make sure your recording of the test words is loud &amp; clear.</span></div>
+                        </div>
+                    </aside>
+                    <div class="recording-section-wrap">
+                <div class="recording-section">
+                    <!-- Header -->
+                    <div class="clinical-header">
+                        <div class="clinical-header-left">
+                            <div class="clinical-title" id="clinicalTitle">Spontaneous Conversation</div>
+                        </div>
+                        <div class="rec-badge" id="recBadge">
+                            <div class="rec-dot"></div>
+                            <span class="rec-text">REC</span>
+                        </div>
+                    </div>
+
+                    <!-- Unified recording panel: word picker + waveform + record button -->
+                    <div class="recording-panel">
+                    <!-- Sample identity + 5-sample progress strip -->
+                    <div class="seg-block">
+                        <div class="seg-header">
+                            <div class="seg-left">
+                                <span class="tier-badge" id="segTierBadge">STAGE 1</span>
+                                <span class="seg-phoneme" id="segPhoneme">CONVERSATION</span>
+                            </div>
+                            <div class="seg-counter">SAMPLE <b id="segNum">01</b>/<span id="segOf">5</span></div>
+                        </div>
+                        <div class="seg-strip" id="segStrip"><!-- pips filled by JS --></div>
+                    </div>
+                    <!-- Current speaking condition (prompt / reading passage) -->
+                    <div class="cond-card" id="condCard"><!-- filled by JS --></div>
+                    <!-- LIVE TRANSCRIPT (spontaneous conversation only) -->
+                    <style>@keyframes ltpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.8)}}#ltDot.is-live{animation:ltpulse 1.2s infinite}</style>
+                    <div id="liveTranscriptPanel" style="display:none;margin:6px 0;background:#0b0f17;border:none;border-radius:14px;padding:10px 18px 4px;">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                            <span id="ltDot" style="width:9px;height:9px;border-radius:50%;background:#6CCDFF;display:inline-block;"></span>
+                            <span style="color:#6CCDFF;font-weight:700;font-size:12px;letter-spacing:1px;">LIVE TRANSCRIPT</span>
+                            <span id="ltStatus" style="margin-left:auto;color:rgba(255,255,255,0.45);font-size:11px;"></span>
+                        </div>
+                        <div id="ltBox" style="min-height:64px;max-height:200px;overflow-y:auto;background:rgba(108,205,255,0.05);border:1px solid rgba(108,205,255,0.18);border-radius:10px;padding:16px;color:#00E5FF;font-size:15px;line-height:1.6;">
+                            <span style="color:rgba(255,255,255,0.4);">Waiting for speech…</span>
+                        </div>
+                    </div>
+                    <!-- Live instruction (state-driven) -->
+                    <div class="live-instruction" id="liveInstruction">Tap the microphone to start.</div>
+
+                    <!-- Record button (circular) -->
+                    <div class="record-btn-area">
+                        <button class="record-circle-btn" id="recordBtn" onclick="handleRecordTap()">
+                            <div class="record-circle-inner" id="recordInner">
+                                <!-- Mic icon (default) -->
+                                <svg id="micIcon" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                                <div class="stop-icon" id="stopIcon" style="display:none;"></div>
+                                <div class="forward-icon" id="forwardIcon" style="display:none;"><svg viewBox="0 0 24 24"><path d="M4 5v14l8-7-8-7zm9 0v14l8-7-8-7z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg></div>
+                                <svg id="checkIcon" style="display:none;" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                            </div>
+                        </button>
+                        <div class="record-label" id="recordLabel"></div>
+                        <div class="timeout-hint" id="timeoutHint" style="display:none;">No speech detected — try again</div>
+                    </div>
+                    </div>
+
+                </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Login (PWA-style) -->
+            <div class="assessment-step ob-step-wrap active" id="step2">
+              <div class="ob-split">
+                <div class="ob-panel-left">
+                <div class="ob-card">
+                    <h2 class="ob-title">Assessment</h2>
+                    <p class="ob-sub">Register to unlock your free Speech Assessment &amp; understand your stuttering pattern today.</p>
+
+                    <button class="ob-social-btn ob-google-btn" id="obGoogleBtn" type="button">
+                        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"/><path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+                        <span>Continue with Google</span>
+                    </button>
+
+                    <button class="ob-social-btn ob-apple-btn" id="obAppleBtn" type="button">
+                        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.05 20.28c-.98.95-2.05.86-3.08.43-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.43C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+                        <span>Continue with Apple</span>
+                    </button>
+
+                    <div class="ob-divider"><span>or</span></div>
+
+                    <form class="ob-form" id="obEmailForm" autocomplete="on" novalidate>
+                        <label class="ob-field">
+                            <span class="ob-field-lbl">Email</span>
+                            <input class="ob-input" id="obEmail" type="email" autocomplete="email" placeholder="you@example.com" required>
+                        </label>
+                        <div class="ob-social-error" id="obError" hidden></div>
+                        <button class="ob-primary-btn" id="obEmailSubmit" type="submit">Continue</button>
+                    </form>
+
+                    <div class="ob-privacy-row">
+                        <span class="ob-privacy-item">
+                            <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path fill="#22C55E" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 14l-3-3 1.41-1.41L11 12.17l4.59-4.58L17 9l-6 6z"/></svg>
+                            HIPAA Compliant
+                        </span>
+                        <span class="ob-privacy-dot"></span>
+                        <span class="ob-privacy-item">
+                            <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path fill="#22C55E" d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                            End-to-end encrypted
+                        </span>
+                    </div>
+                    <div class="ob-slp-badge">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.5 14.5l-4-4 1.41-1.41L10.5 13.67l5.59-5.59L17.5 9.5l-7 7z" fill="#22C55E"/></svg>
+                        Developed by Speech-Language Pathologists
+                    </div>
+                    <p class="ob-social-proof">Join a community of people from 94+ countries.</p>
+                </div>
+                </div>
+                <aside class="ob-panel-right" aria-hidden="true">
+                    <img src="/stutterfluencycentre/sign-in-page-image.jpg" alt="" class="ob-hero-img">
+                    <div class="ob-photo-badge">
+                        <div class="ob-badge-left">
+                            <p class="ob-photo-badge-name">Anonymous · Teen on family iPhone · Florida</p>
+                            <p class="ob-photo-badge-sub">Improving daily</p>
+                        </div>
+                        <div class="ob-badge-right">
+                            <div class="ob-badge-day-num">98</div>
+                            <div class="ob-badge-day-label">Day streak</div>
+                        </div>
+                    </div>
+                </aside>
+              </div>
+            </div>
+
+            <!-- Step 4 (old email page) REMOVED — fields are now wizard sub-steps 3/4/5 -->
+            <div style="display:none !important" aria-hidden="true">
+                <div class="country-options" id="countryOptionsDeprecated">
+                                    <div class="country-option" data-code="+1" data-country="United States">🇺🇸 United States</div>
+                                    <div class="country-option" data-code="+44" data-country="United Kingdom">🇬🇧 United Kingdom</div>
+                                    <div class="country-option" data-code="+91" data-country="India">🇮🇳 India</div>
+                                    <div class="country-option" data-code="+61" data-country="Australia">🇦🇺 Australia</div>
+                                    <div class="country-option" data-code="+1" data-country="Canada">🇨🇦 Canada</div>
+                                    <div class="country-option" data-code="+49" data-country="Germany">🇩🇪 Germany</div>
+                                    <div class="country-option" data-code="+33" data-country="France">🇫🇷 France</div>
+                                    <div class="country-option" data-code="+39" data-country="Italy">🇮🇹 Italy</div>
+                                    <div class="country-option" data-code="+34" data-country="Spain">🇪🇸 Spain</div>
+                                    <div class="country-option" data-code="+31" data-country="Netherlands">🇳🇱 Netherlands</div>
+                                    <div class="country-option" data-code="+46" data-country="Sweden">🇸🇪 Sweden</div>
+                                    <div class="country-option" data-code="+47" data-country="Norway">🇳🇴 Norway</div>
+                                    <div class="country-option" data-code="+45" data-country="Denmark">🇩🇰 Denmark</div>
+                                    <div class="country-option" data-code="+41" data-country="Switzerland">🇨🇭 Switzerland</div>
+                                    <div class="country-option" data-code="+43" data-country="Austria">🇦🇹 Austria</div>
+                                    <div class="country-option" data-code="+32" data-country="Belgium">🇧🇪 Belgium</div>
+                                    <div class="country-option" data-code="+353" data-country="Ireland">🇮🇪 Ireland</div>
+                                    <div class="country-option" data-code="+351" data-country="Portugal">🇵🇹 Portugal</div>
+                                    <div class="country-option" data-code="+30" data-country="Greece">🇬🇷 Greece</div>
+                                    <div class="country-option" data-code="+358" data-country="Finland">🇫🇮 Finland</div>
+                                    <div class="country-option" data-code="+48" data-country="Poland">🇵🇱 Poland</div>
+                                    <div class="country-option" data-code="+420" data-country="Czech Republic">🇨🇿 Czech Republic</div>
+                                    <div class="country-option" data-code="+36" data-country="Hungary">🇭🇺 Hungary</div>
+                                    <div class="country-option" data-code="+81" data-country="Japan">🇯🇵 Japan</div>
+                                    <div class="country-option" data-code="+82" data-country="South Korea">🇰🇷 South Korea</div>
+                                    <div class="country-option" data-code="+86" data-country="China">🇨🇳 China</div>
+                                    <div class="country-option" data-code="+62" data-country="Indonesia">🇮🇩 Indonesia</div>
+                                    <div class="country-option" data-code="+60" data-country="Malaysia">🇲🇾 Malaysia</div>
+                                    <div class="country-option" data-code="+65" data-country="Singapore">🇸🇬 Singapore</div>
+                                    <div class="country-option" data-code="+66" data-country="Thailand">🇹🇭 Thailand</div>
+                                    <div class="country-option" data-code="+84" data-country="Vietnam">🇻🇳 Vietnam</div>
+                                    <div class="country-option" data-code="+63" data-country="Philippines">🇵🇭 Philippines</div>
+                                    <div class="country-option" data-code="+55" data-country="Brazil">🇧🇷 Brazil</div>
+                                    <div class="country-option" data-code="+54" data-country="Argentina">🇦🇷 Argentina</div>
+                                    <div class="country-option" data-code="+56" data-country="Chile">🇨🇱 Chile</div>
+                                    <div class="country-option" data-code="+57" data-country="Colombia">🇨🇴 Colombia</div>
+                                    <div class="country-option" data-code="+51" data-country="Peru">🇵🇪 Peru</div>
+                                    <div class="country-option" data-code="+27" data-country="South Africa">🇿🇦 South Africa</div>
+                                    <div class="country-option" data-code="+20" data-country="Egypt">🇪🇬 Egypt</div>
+                                    <div class="country-option" data-code="+234" data-country="Nigeria">🇳🇬 Nigeria</div>
+                                    <div class="country-option" data-code="+254" data-country="Kenya">🇰🇪 Kenya</div>
+                                    <div class="country-option" data-code="+7" data-country="Russia">🇷🇺 Russia</div>
+                                    <div class="country-option" data-code="+380" data-country="Ukraine">🇺🇦 Ukraine</div>
+                                </div>
+            </div>
+
+            <!-- Step 4: Analyzing (PWA dark loader) -->
+            <div class="assessment-step ob-step-wrap" id="step4">
+              <div class="ob-split">
+                <div class="ob-panel-left">
+                  <div class="asmt-loader">
+                    <div class="asmt-loader-orb">
+                      <svg class="asmt-loader-ring-outer" viewBox="0 0 120 120" aria-hidden="true">
+                        <circle cx="60" cy="60" r="54"/>
+                      </svg>
+                      <svg class="asmt-loader-ring-inner" viewBox="0 0 120 120" aria-hidden="true">
+                        <circle class="asmt-arc-dim" cx="60" cy="60" r="44" stroke-dasharray="60 216" stroke-dashoffset="0"/>
+                        <circle class="asmt-arc-bright" cx="60" cy="60" r="44" stroke-dasharray="60 216" stroke-dashoffset="-70"/>
+                        <circle class="asmt-arc-bright" cx="60" cy="60" r="44" stroke-dasharray="60 216" stroke-dashoffset="-173"/>
+                      </svg>
+                      <div class="asmt-loader-core">
+                        <div class="asmt-loader-bars" aria-hidden="true">
+                          <span></span><span></span><span></span><span></span><span></span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="asmt-loader-eyebrow">Processing Data</div>
+                    <h3 class="asmt-loader-title">Analyzing Speech Fluency</h3>
+                    <p class="asmt-loader-sub">Running fluency analysis engine…</p>
+                    <div class="asmt-loader-steps">
+                      <div class="asmt-loader-step done" id="loading1">
+                        <span class="asmt-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                        <span>Audio segmentation</span>
+                      </div>
+                      <div class="asmt-loader-step done" id="loading2">
+                        <span class="asmt-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                        <span>Disfluency detection</span>
+                      </div>
+                      <div class="asmt-loader-step pending" id="loading3">
+                        <span class="asmt-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg></span>
+                        <span>Fluency analysis</span>
+                      </div>
+                      <div class="asmt-loader-step pending" id="loading4">
+                        <span class="asmt-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg></span>
+                        <span>Generating report</span>
+                      </div>
+                    </div>
+                    <span id="countdown" style="display:none;">10</span>
+                  </div>
+                </div>
+                <aside class="ob-panel-right" aria-hidden="true">
+                  <img src="/stutterfluencycentre/sign-in-page-image.jpg" alt="" class="ob-hero-img">
+                  <div class="ob-photo-badge">
+                    <div class="ob-badge-left">
+                      <p class="ob-photo-badge-name">Anonymous · Teen on family iPhone · Florida</p>
+                      <p class="ob-photo-badge-sub">Improving daily</p>
+                    </div>
+                    <div class="ob-badge-right">
+                      <div class="ob-badge-day-num">98</div>
+                      <div class="ob-badge-day-label">Day streak</div>
+                    </div>
+                  </div>
+                </aside>
+              </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        // STATE
+        // =============================================
+        // Flow order (DOM step ids): login → recording → survey → analyzing
+        const STEP_ORDER = [2, 1, 3, 4];
+        let orderIdx = 0;
+        let currentStepNum = STEP_ORDER[orderIdx]; // 2 = login shows first
+        let step4SubmitPromise = null;
+        const TOTAL_STEPS = 4;
+        const FINAL_SCREEN_STEP = 4;
+        const VU_BAR_COUNT = 14;
+        // =============================================
+        // TIERED SIBILANT ASSESSMENT WORD BANK
+        // UI shows tier + word progress only; backend scoring updated later.
+        // Each tier groups probes by sound + word position.
+        // =============================================
+        // =============================================
+        // STUTTERING SPEECH-SAMPLE PROTOCOL
+        // Five speaking conditions (per clinical speech-sample guidance):
+        // multiple conditions, 300-500+ syllables total, ranging from automatic
+        // speech (usually fluent) through to a stress condition (reveals the
+        // true ceiling). The recording loop is index-driven over this list.
+        // =============================================
+        const STUTTER_CONDITIONS = [
+            {
+                id: 'conversation',
+                tier: 1, tierLabel: 'SAMPLE 1', kind: 'CONVERSATION',
+                title: 'Spontaneous Conversation',
+                instruction: 'Talk freely for a few minutes — the most natural sample.',
+                prompt: '“Tell me about your typical day, and describe your work or studies.”',
+                hint: 'Aim for 2-3 minutes of natural, unscripted speech.',
+                minSeconds: 60, maxSeconds: 300
+            },
+            {
+                id: 'monologue',
+                tier: 1, tierLabel: 'SAMPLE 2', kind: 'MONOLOGUE',
+                title: 'Monologue / Picture Description',
+                instruction: 'Tell one uninterrupted story — no listener to take turns with.',
+                prompt: '“Describe a recent trip, a favourite place, or what you can see around you right now — keep going without stopping.”',
+                hint: 'A single narrative removes turn-taking support and often reveals more stuttering.',
+                minSeconds: 45, maxSeconds: 180
+            },
+            {
+                id: 'reading',
+                tier: 2, tierLabel: 'SAMPLE 3', kind: 'ORAL READING',
+                title: 'Oral Reading',
+                instruction: 'Read this standard passage aloud at a comfortable pace.',
+                prompt: 'When the sunlight strikes raindrops in the air, they act as a prism and form a rainbow. The rainbow is a division of white light into many beautiful colors. These take the shape of a long round arch, with its path high above, and its two ends apparently beyond the horizon.',
+                isPassage: true,
+                hint: 'Reading a phonetically balanced passage isolates motor execution from language formulation.',
+                minSeconds: 15, maxSeconds: 120
+            },
+            {
+                id: 'automatic',
+                tier: 2, tierLabel: 'SAMPLE 4', kind: 'AUTOMATIC SPEECH',
+                title: 'Automatic Speech',
+                instruction: 'Count and recite — usually fluent, gives a contrast baseline.',
+                prompt: 'Count out loud from 1 to 20, then say the days of the week.',
+                hint: 'Often fluent even in severe stuttering — this is your contrast baseline.',
+                minSeconds: 10, maxSeconds: 90
+            },
+            {
+                id: 'stress',
+                tier: 3, tierLabel: 'SAMPLE 5', kind: 'STRESS CONDITION',
+                title: 'Stress Condition',
+                instruction: 'Speak as if leaving a real voicemail to an audience.',
+                prompt: '“Leave a short phone message: say your name, your phone number, and why you are calling.”',
+                hint: 'Stuttering often spikes here and reveals true ceiling severity.',
+                minSeconds: 10, maxSeconds: 90
+            }
+        ];
+        const TOTAL_CONDITIONS = STUTTER_CONDITIONS.length;
+
+        // Tier styling reused for the protocol sidebar + segment badge.
+        const COND_TIER_META = {
+            1: { label: 'STAGE 1', name: 'Natural speech',    cls: 't1', color: '#22D3EE', border: 'rgba(34,211,238,0.4)' },
+            2: { label: 'STAGE 2', name: 'Controlled speech', cls: 't2', color: '#22D3EE', border: 'rgba(34,211,238,0.4)' },
+            3: { label: 'STAGE 3', name: 'Stress condition',  cls: 't3', color: '#22D3EE', border: 'rgba(34,211,238,0.4)' },
+        };
+
+        // Build the protocol sidebar (one row per stage) + segment pips once.
+        let _segMetaBuilt = false;
+        function buildSegMetaOnce() {
+            if (_segMetaBuilt) return;
+            const strip = document.getElementById('segStrip');
+            if (!strip) return;
+            strip.innerHTML = '';
+            STUTTER_CONDITIONS.forEach(() => { const p = document.createElement('div'); p.className = 'seg-pip'; strip.appendChild(p); });
+            const segOf = document.getElementById('segOf');
+            if (segOf) segOf.textContent = STUTTER_CONDITIONS.length;
+            _segMetaBuilt = true;
+        }
+
+        // Sync segment header, pips + protocol sidebar to the current condition.
+        function renderSegmentMeta() {
+            buildSegMetaOnce();
+            const idx = allWordsRecorded ? TOTAL_CONDITIONS - 1 : Math.min(currentWordIndex, TOTAL_CONDITIONS - 1);
+            const cond = STUTTER_CONDITIONS[idx];
+            const meta = COND_TIER_META[cond.tier];
+
+            const badge = document.getElementById('segTierBadge');
+            if (badge) { badge.textContent = meta.label; badge.style.color = meta.color; badge.style.borderColor = meta.border; }
+            const ph = document.getElementById('segPhoneme'); if (ph) ph.textContent = cond.kind;
+            const pos = document.getElementById('segPosition'); if (pos) pos.textContent = cond.tierLabel;
+            const num = document.getElementById('segNum'); if (num) num.textContent = String(idx + 1).padStart(2, '0');
+
+            document.querySelectorAll('#segStrip .seg-pip').forEach((p, i) => {
+                p.className = 'seg-pip';
+                const m = COND_TIER_META[STUTTER_CONDITIONS[i].tier];
+                if (allWordsRecorded || i < idx) p.classList.add('done-' + m.cls);
+                else if (i === idx) p.classList.add('cur-' + m.cls);
+            });
+
+            document.querySelectorAll('.proto-row').forEach(row => {
+                row.classList.toggle('inactive', parseInt(row.dataset.tier) !== cond.tier);
+            });
+            document.querySelectorAll('[data-ind]').forEach(ind => {
+                const t = parseInt(ind.dataset.ind);
+                ind.className = 'proto-indicator';
+                if (t === cond.tier) ind.classList.add(COND_TIER_META[t].cls);
+            });
+        }
+        const FORMEASY_URL = 'https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec';
+        // Backend stuttering analysis endpoint — TBD (decided later).
+        // Recordings are uploaded to Firebase now; scoring is added in a later phase.
+        // const GCP_ANALYZE_URL = '';
+        // const GCP_ANALYZE_URL = 'http://localhost:8080';
+        const GCP_ANALYZE_URL = 'https://us-central1-detache-platform.cloudfunctions.net/analyzeStutterSpeech';
+        // Recording state
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+        let recordingTimer = null;
+        let silenceTimer = null;
+        let currentWordIndex = 0;
+        let wordRecordings = [];       // Blob per word
+        let wordRecordingsB64 = {};    // base64 per word (for playback on results page)
+        let allWordsRecorded = false;
+
+        // =============================================
+        // SESSION RESUME — survive page refresh mid-recording.
+        // Persist progress (word index + captured audio) after every word so a
+        // refresh drops the user back into the recording step, not the login.
+        // =============================================
+        const SESSION_PROGRESS_KEY = 'assessmentProgress';
+        function saveSessionProgress() {
+            try {
+                // Audio lives under the existing 'wordRecordings' key (also read by
+                // the results page) — keep it in sync here so we don't duplicate
+                // multi-MB of base64 and blow the localStorage quota.
+                localStorage.setItem('wordRecordings', JSON.stringify(wordRecordingsB64));
+                localStorage.setItem(SESSION_PROGRESS_KEY, JSON.stringify({
+                    idx: currentWordIndex,
+                    done: allWordsRecorded,
+                    updatedAt: Date.now()
+                }));
+            } catch (e) { /* quota / serialization — non-fatal */ }
+        }
+        function clearSessionProgress() {
+            try { localStorage.removeItem(SESSION_PROGRESS_KEY); } catch (e) {}
+        }
+        function base64ToBlob(b64, type) {
+            const bin = atob(b64);
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            return new Blob([bytes], { type: type || 'audio/webm' });
+        }
+        let analysisPromise = null;    // Reserved for future backend analysis
+
+        // =============================================
+        // MIC FEEDBACK CHIMES (wav samples)
+        // =============================================
+        const _startSfx = new Audio('/dictation-start.wav');
+        const _stopSfx = new Audio('/dictation-stop.wav');
+        _startSfx.preload = 'auto';
+        _stopSfx.preload = 'auto';
+
+        function playStartChime() {
+            try { _startSfx.currentTime = 0; _startSfx.play().catch(() => {}); } catch (e) {}
+        }
+
+        function playStopChime() {
+            try { _stopSfx.currentTime = 0; _stopSfx.play().catch(() => {}); } catch (e) {}
+        }
+
+        // =============================================
+        // NAVIGATION
+        // =============================================
+        function updateProgress() {
+            // Login (orderIdx 0) has no visible number; recording/survey/analyzing → 1..3 of 4
+            const visible = orderIdx === 0 ? 1 : orderIdx;
+            const denom = 4;
+            document.getElementById('progressFill').style.width = ((visible / denom) * 100) + '%';
+            document.getElementById('currentStep').textContent = visible;
+            updateFooterVisibility();
+        }
+
+        // Hide site footer on login (step2) and onboarding survey (step3)
+        function updateFooterVisibility() {
+            const footer = document.querySelector('footer');
+            if (!footer) return;
+            footer.style.display = (currentStepNum === 2 || currentStepNum === 3) ? 'none' : '';
+        }
+
+        function syncRecordingContinueButton() {
+            const cont = document.getElementById('recordingContinueBtn');
+            if (!cont) return;
+            cont.disabled = !allWordsRecorded;
+        }
+
+        async function nextStep() {
+            const btn = document.querySelector('#step' + currentStepNum + ' .btn-primary');
+            let originalText = null;
+            if (btn) {
+                if (btn.disabled) return;
+                originalText = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = 'Loading...';
+            }
+
+            if (await validateCurrentStep()) {
+                if (currentStepNum === 1) releaseMic(); // leaving capture step
+                document.getElementById('step' + currentStepNum).classList.remove('active');
+                if (orderIdx < STEP_ORDER.length - 1) {
+                    orderIdx++;
+                    currentStepNum = STEP_ORDER[orderIdx];
+                    document.getElementById('step' + currentStepNum).classList.add('active');
+                    updateProgress();
+                    if (currentStepNum === 1) { initWordRecording(); moveRecordingTo('recordingHost'); }
+                    if (currentStepNum === 3 && typeof window.initStep3Wizard === 'function') window.initStep3Wizard();
+                    if (currentStepNum === FINAL_SCREEN_STEP) startProcessing();
+                }
+            } else if (btn) {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function prevStep() {
+            if (orderIdx > 0) {
+                if (currentStepNum === 1) releaseMic(); // leaving capture step
+                document.getElementById('step' + currentStepNum).classList.remove('active');
+                orderIdx--;
+                currentStepNum = STEP_ORDER[orderIdx];
+                document.getElementById('step' + currentStepNum).classList.add('active');
+                updateProgress();
+                if (currentStepNum === 1) moveRecordingTo('recordingHost');
+                if (currentStepNum === 3 && typeof window.initStep3Wizard === 'function') window.initStep3Wizard();
+            }
+        }
+
+        // Ensure the recording section is mounted in the recording step host
+        function moveRecordingTo(hostId) {
+            const host = document.getElementById(hostId);
+            const wrap = host && host.querySelector('.recording-section-wrap');
+            const target = wrap || host;
+            const section = document.querySelector('.recording-section');
+            if (target && section && section.parentElement !== target) {
+                target.appendChild(section);
+            }
+            syncRecordingContinueButton();
+        }
+
+        // =============================================
+        // VALIDATION
+        // =============================================
+        async function validateCurrentStep() {
+            switch (currentStepNum) {
+                case 1: {
+                    if (!allWordsRecorded) { alert('Please record all ' + TOTAL_CONDITIONS + ' speech samples.'); return false; }
+                    submitToFormEasy('assessment_step1_samples', { samples: TOTAL_CONDITIONS, message: `Step 1: ${TOTAL_CONDITIONS} speech samples captured` });
+                    return true;
+                }
+                case 2: {
+                    if (!window.obLoggedInUser) {
+                        alert('Please sign in to continue.');
+                        return false;
+                    }
+                    submitToFormEasy('assessment_step2_login', { email: window.obLoggedInUser.email, provider: window.obLoggedInUser.provider || 'password', message: `Step 2: Login - ${window.obLoggedInUser.email}` });
+                    return true;
+                }
+                case 3: {
+                    // Wizard validates itself + commits to hidden inputs in wizFinish()
+                    return true;
+                }
+                default: return true;
+            }
+        }
+
+        // =============================================
+        // FIVE-SAMPLE SPEECH RECORDER (Clinical UI)
+        // One MediaRecorder session per speaking condition. Each capture is
+        // uploaded to Firebase and cached (base64) for playback on the results
+        // page. Index-driven over STUTTER_CONDITIONS.
+        // =============================================
+        let audioContext = null;
+        let analyserNode = null;
+        let audioStream = null;
+        let vuAnimFrame = null;
+        let condTimerInt = null;
+        let condStartMs = 0;
+        let condMaxTimeout = null;
+        // recState: 'idle' (ready) | 'recording' | 'recorded' (captured, tap to continue)
+        let recState = 'idle';
+
+        // =============================================
+        // LIVE TRANSCRIPT — Gemini Live streaming transcription for the
+        // spontaneous-conversation sample only ("silent audit" — transcribe what
+        // the speaker says in real time, no AI talk-back). Ported from Lisp-pwa
+        // js/live-conversation.js. Reuses the existing mic stream + AudioContext.
+        // Token comes from /api/live-token (GCP deploy comes later).
+        // =============================================
+        // Prod (Vercel): same-origin serverless fn (api/live-token.js). Local
+        // (Live Server only serves static files → POST 405): use this repo's
+        // standalone token server — `node backend/live-token-server.js` (:8787).
+        const LIVE_TOKEN_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+            ? 'http://localhost:8787/live-token'
+            : '/api/live-token';
+        const LIVE_MODEL = 'models/gemini-3.1-flash-live-preview';
+        const SPONTANEOUS_COND_ID = 'conversation';
+
+        // PCM downsample worklet (16 kHz Int16), loaded from a Blob URL so this
+        // page stays self-contained — no extra file to deploy.
+        const PCM_WORKLET_SRC =
+            "class PCMWorklet extends AudioWorkletProcessor{constructor(o){super();this.targetRate=(o&&o.processorOptions&&o.processorOptions.targetRate)||16000;this.inputRate=sampleRate;this.ratio=this.inputRate/this.targetRate;this.buffer=[];this.acc=0;}process(inputs){const input=inputs[0];if(!input||!input[0])return true;const ch=input[0];for(let i=0;i<ch.length;i++){this.acc+=1;if(this.acc>=this.ratio){this.acc-=this.ratio;let s=ch[i];if(s>1)s=1;else if(s<-1)s=-1;this.buffer.push(s<0?s*0x8000:s*0x7fff);}}if(this.buffer.length>=160){const out=new Int16Array(this.buffer.length);for(let i=0;i<this.buffer.length;i++)out[i]=this.buffer[i]|0;this.buffer=[];this.port.postMessage(out.buffer,[out.buffer]);}return true;}}registerProcessor('pcm-worklet',PCMWorklet);";
+        let _pcmWorkletUrl = null;
+        function pcmWorkletUrl() {
+            if (!_pcmWorkletUrl) _pcmWorkletUrl = URL.createObjectURL(new Blob([PCM_WORKLET_SRC], { type: 'application/javascript' }));
+            return _pcmWorkletUrl;
+        }
+
+        function int16ToBase64(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let s = '';
+            const chunk = 0x8000;
+            for (let i = 0; i < bytes.length; i += chunk) s += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+            return btoa(s);
+        }
+
+        async function fetchLiveToken(topic) {
+            const resp = await fetch(LIVE_TOKEN_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topic: topic || '' }),
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const json = await resp.json();
+            if (!json.token) throw new Error('No token in response');
+            return json.token;
+        }
+
+        class LiveTranscriber {
+            constructor({ stream, audioContext, topic, onTranscript, onStatus, onError }) {
+                this.stream = stream;
+                this.ctx = audioContext;
+                this.topic = topic || '';
+                this.onTranscript = onTranscript || (() => {});
+                this.onStatus = onStatus || (() => {});
+                this.onError = onError || (() => {});
+                this.ws = null;
+                this.workletNode = null;
+                this.source = null;
+                this.running = false;
+            }
+            async start() {
+                if (this.running) return;
+                this.running = true;
+                this.onStatus('connecting');
+                let token;
+                try { token = await fetchLiveToken(this.topic); }
+                catch (e) { this.running = false; this.onError('Token failed: ' + e.message); return; }
+
+                const wsUrl = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=' + encodeURIComponent(token);
+                this.ws = new WebSocket(wsUrl);
+
+                this.ws.onopen = () => {
+                    this.ws.send(JSON.stringify({
+                        setup: {
+                            model: LIVE_MODEL,
+                            generationConfig: { responseModalities: ['AUDIO'], temperature: 0.0, topP: 0.5 },
+                            systemInstruction: { parts: [{ text: 'Topic the speaker is discussing: "' + this.topic + '". Listen to the audio and transcribe it as is. No autocorrection.' }] },
+                            inputAudioTranscription: {},
+                            outputAudioTranscription: {},
+                            realtimeInputConfig: {
+                                automaticActivityDetection: { disabled: false, silenceDurationMs: 0, endOfSpeechSensitivity: 'END_SENSITIVITY_LOW' },
+                            },
+                        },
+                    }));
+                };
+
+                this.ws.onmessage = async (ev) => {
+                    let data = ev.data;
+                    if (data instanceof Blob) data = await data.text();
+                    let msg;
+                    try { msg = JSON.parse(data); } catch (e) { return; }
+                    if (msg.setupComplete) { this.onStatus('listening'); await this._startMic(); return; }
+                    const sc = msg.serverContent;
+                    if (!sc) return;
+                    if (sc.inputTranscription && sc.inputTranscription.text) this.onTranscript(sc.inputTranscription.text);
+                };
+
+                this.ws.onerror = () => this.onError('Connection error');
+                this.ws.onclose = () => { this.onStatus('closed'); this._teardown(); this.running = false; };
+            }
+            async _startMic() {
+                try {
+                    if (!this.ctx || this.ctx.state === 'closed') throw new Error('audio context unavailable');
+                    if (this.ctx.state === 'suspended') { try { await this.ctx.resume(); } catch (e) {} }
+                    await this.ctx.audioWorklet.addModule(pcmWorkletUrl());
+                    this.source = this.ctx.createMediaStreamSource(this.stream);
+                    this.workletNode = new AudioWorkletNode(this.ctx, 'pcm-worklet', { processorOptions: { targetRate: 16000 } });
+                    this.workletNode.port.onmessage = (e) => {
+                        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+                        const b64 = int16ToBase64(e.data);
+                        this.ws.send(JSON.stringify({ realtimeInput: { audio: { data: b64, mimeType: 'audio/pcm;rate=16000' } } }));
+                    };
+                    // Sink through a silent gain so the worklet's process() keeps running.
+                    const silent = this.ctx.createGain();
+                    silent.gain.value = 0;
+                    this.source.connect(this.workletNode);
+                    this.workletNode.connect(silent).connect(this.ctx.destination);
+                    this.onStatus('listening');
+                } catch (e) { this.onError('Mic init failed: ' + e.message); this.stop(); }
+            }
+            _teardown() {
+                try { if (this.workletNode) this.workletNode.disconnect(); } catch (e) {}
+                try { if (this.source) this.source.disconnect(); } catch (e) {}
+                this.workletNode = null;
+                this.source = null;
+            }
+            stop() {
+                this.running = false;
+                this._teardown();
+                try { if (this.ws && this.ws.readyState <= 1) this.ws.close(); } catch (e) {}
+                this.ws = null;
+                this.onStatus('stopped');
+            }
+        }
+
+        let liveTranscriber = null;
+        let liveTranscriptBuf = '';
+
+        function isSpontaneousCondition() {
+            const c = STUTTER_CONDITIONS[Math.min(currentWordIndex, TOTAL_CONDITIONS - 1)];
+            return c && c.id === SPONTANEOUS_COND_ID;
+        }
+
+        function setLtStatus(text, live) {
+            const s = document.getElementById('ltStatus');
+            const dot = document.getElementById('ltDot');
+            if (s) s.textContent = text || '';
+            if (dot) dot.classList.toggle('is-live', !!live);
+        }
+
+        function resetLiveTranscript() {
+            liveTranscriptBuf = '';
+            const box = document.getElementById('ltBox');
+            if (box) box.innerHTML = '<span style="color:rgba(255,255,255,0.4);">Waiting for speech…</span>';
+            setLtStatus('', false);
+        }
+
+        // Transcript box hidden in all conditions (transcription still runs in background).
+        function syncLiveTranscriptPanel() {
+            const panel = document.getElementById('liveTranscriptPanel');
+            if (!panel) return;
+            panel.style.display = 'none';
+        }
+
+        async function startLiveTranscript() {
+            if (liveTranscriber) return;
+            const c = STUTTER_CONDITIONS[currentWordIndex];
+            resetLiveTranscript();
+            const box = document.getElementById('ltBox');
+            liveTranscriber = new LiveTranscriber({
+                stream: audioStream,
+                audioContext: audioContext,
+                topic: (c && c.prompt) || '',
+                onTranscript: (t) => {
+                    if (liveTranscriptBuf === '' && box) box.innerHTML = '';
+                    liveTranscriptBuf += t;
+                    if (liveTranscriptBuf.length > 4000) liveTranscriptBuf = liveTranscriptBuf.slice(-4000);
+                    if (box) { box.textContent = liveTranscriptBuf; box.scrollTop = box.scrollHeight; }
+                },
+                onStatus: (s) => {
+                    if (s === 'connecting') setLtStatus('Connecting…', false);
+                    else if (s === 'listening') setLtStatus('● Listening', true);
+                    else setLtStatus('', false);
+                },
+                onError: (e) => setLtStatus('⚠ ' + e, false),
+            });
+            try { await liveTranscriber.start(); }
+            catch (e) { setLtStatus('⚠ ' + (e.message || e), false); stopLiveTranscript(); }
+        }
+
+        function stopLiveTranscript() {
+            if (liveTranscriber) { try { liveTranscriber.stop(); } catch (e) {} liveTranscriber = null; }
+            setLtStatus('', false);
+        }
+
+        function fmtTime(sec) {
+            const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+            return m + ':' + String(s).padStart(2, '0');
+        }
+
+        // ---- Lifecycle ----
+        function initWordRecording() {
+            currentWordIndex = 0;
+            wordRecordings = [];
+            wordRecordingsB64 = {};
+            allWordsRecorded = false;
+            recState = 'idle';
+            renderVuMeter();
+            renderCondition();
+        }
+
+        // Master render: header/pips + prompt card + button + instruction.
+        function renderCondition() {
+            renderSegmentMeta();
+            renderConditionCard();
+            updateRecordButton();
+            syncLiveTranscriptPanel();
+        }
+
+        function renderVuMeter() {
+            const vu = document.getElementById('vuMeter');
+            if (!vu) return;
+            vu.innerHTML = '';
+            for (let i = 0; i < VU_BAR_COUNT; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'vu-bar';
+                bar.id = 'vuBar' + i;
+                bar.style.height = '6px';
+                vu.appendChild(bar);
+            }
+        }
+
+        function renderConditionCard() {
+            const card = document.getElementById('condCard');
+            if (!card) return;
+            const c = STUTTER_CONDITIONS[Math.min(currentWordIndex, TOTAL_CONDITIONS - 1)];
+            const promptCls = c.isPassage ? 'cond-prompt passage' : 'cond-prompt';
+            const titleEl = document.getElementById('clinicalTitle');
+            if (titleEl) titleEl.textContent = c.title;
+            card.innerHTML =
+                '<div class="' + promptCls + '">' + c.prompt + '</div>';
+        }
+
+        function setIcon(id, show) {
+            const el = document.getElementById(id);
+            if (el) el.style.display = show ? '' : 'none';
+        }
+
+        // Reflect recState on the button + live instruction + timer.
+        function updateRecordButton() {
+            const c = STUTTER_CONDITIONS[Math.min(currentWordIndex, TOTAL_CONDITIONS - 1)];
+            const inner = document.getElementById('recordInner');
+            const label = document.getElementById('recordLabel');
+            const live = document.getElementById('liveInstruction');
+            const timer = document.getElementById('condTimer');
+            const badge = document.getElementById('recBadge');
+            const last = currentWordIndex >= TOTAL_CONDITIONS - 1;
+
+            setIcon('micIcon', recState === 'idle');
+            setIcon('stopIcon', recState === 'recording');
+            setIcon('forwardIcon', recState === 'recorded' && !last);
+            setIcon('checkIcon', recState === 'recorded' && last);
+
+            if (inner) inner.classList.toggle('recording', recState === 'recording');
+            if (badge) badge.classList.toggle('active', recState === 'recording');
+            if (timer) timer.style.display = recState === 'recording' ? 'flex' : 'none';
+
+            if (recState === 'idle') {
+                if (label) label.textContent = 'Tap to record';
+                if (live) live.textContent = c.instruction;
+            } else if (recState === 'recording') {
+                if (label) label.textContent = 'Tap to stop';
+                if (live) live.textContent = 'Recording “' + c.title + '” — speak naturally.';
+            } else {
+                if (label) label.textContent = last ? 'All samples captured' : 'Tap to continue';
+                if (live) live.textContent = last
+                    ? 'Great — that’s every sample. Finishing up…'
+                    : 'Sample captured. Tap to move to the next one.';
+            }
+        }
+
+        function triggerHaptic(ms) {
+            try { if (navigator.vibrate) navigator.vibrate(ms || 15); } catch (e) {}
+        }
+
+        // ---- Tap handler (state machine) ----
+        async function handleRecordTap() {
+            if (recState === 'idle') {
+                await startConditionRecording();
+            } else if (recState === 'recording') {
+                stopConditionRecording();
+            } else if (recState === 'recorded') {
+                advanceCondition();
+            }
+        }
+
+        // ---- Mic stream ----
+        async function ensureMicStream() {
+            if (audioStream) return audioStream;
+            audioStream = await navigator.mediaDevices.getUserMedia({
+                audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+            });
+            audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+            if (audioContext.state === 'suspended') { try { await audioContext.resume(); } catch (e) {} }
+            const src = audioContext.createMediaStreamSource(audioStream);
+            analyserNode = audioContext.createAnalyser();
+            analyserNode.fftSize = 512;
+            src.connect(analyserNode);
+            return audioStream;
+        }
+
+        function releaseMic() {
+            try { if (vuAnimFrame) cancelAnimationFrame(vuAnimFrame); } catch (e) {}
+            vuAnimFrame = null;
+            stopLiveTranscript();
+            try { if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop(); } catch (e) {}
+            try { if (audioStream) audioStream.getTracks().forEach(t => t.stop()); } catch (e) {}
+            audioStream = null;
+            analyserNode = null;
+            isRecording = false;
+            stopCondTimer();
+        }
+
+        function pickMime() {
+            const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'];
+            for (const t of types) { if (window.MediaRecorder && MediaRecorder.isTypeSupported(t)) return t; }
+            return '';
+        }
+
+        // ---- Recording ----
+        async function startConditionRecording() {
+            try {
+                await ensureMicStream();
+            } catch (e) {
+                const live = document.getElementById('liveInstruction');
+                if (live) live.textContent = 'Microphone blocked — allow mic access and tap again.';
+                return;
+            }
+            const c = STUTTER_CONDITIONS[currentWordIndex];
+            audioChunks = [];
+            const mime = pickMime();
+            // Cap bitrate: speech analysis needs only ~32kbps opus. Default (~128kbps)
+            // made 5 long clips ~17MB of base64 — large uploads to Gemini dropped
+            // mid-transfer ("fetch failed"). 32kbps cuts payload ~4x, keeps quality.
+            const recOpts = mime ? { mimeType: mime } : {};
+            recOpts.audioBitsPerSecond = 32000;
+            mediaRecorder = new MediaRecorder(audioStream, recOpts);
+            mediaRecorder.ondataavailable = e => { if (e.data && e.data.size) audioChunks.push(e.data); };
+            mediaRecorder.onstop = onConditionStopped;
+            mediaRecorder.start();
+            isRecording = true;
+            recState = 'recording';
+            triggerHaptic(20);
+            playStartChime();
+            startVuMeter();
+            startCondTimer();
+            updateRecordButton();
+            startLiveTranscript();
+            // Hard cap so a forgotten session can't run forever.
+            clearTimeout(condMaxTimeout);
+            condMaxTimeout = setTimeout(() => { if (recState === 'recording') stopConditionRecording(); }, (c.maxSeconds || 180) * 1000);
+        }
+
+        function stopConditionRecording() {
+            clearTimeout(condMaxTimeout);
+            stopCondTimer();
+            try { if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop(); } catch (e) {}
+            isRecording = false;
+            triggerHaptic(20);
+            playStopChime();
+            stopLiveTranscript();
+        }
+
+        function onConditionStopped() {
+            const c = STUTTER_CONDITIONS[currentWordIndex];
+            const type = (mediaRecorder && mediaRecorder.mimeType) || 'audio/webm';
+            const blob = new Blob(audioChunks, { type });
+            wordRecordings[currentWordIndex] = blob;
+
+            // Upload to Firebase (non-blocking) + cache base64 for results playback.
+            if (typeof window.uploadRecordingToFirebase === 'function') {
+                window.uploadRecordingToFirebase(blob, c.id, currentWordIndex);
+            }
+            blobToBase64(blob).then(b64 => {
+                wordRecordingsB64[c.id] = b64;
+                saveSessionProgress();
+            }).catch(() => { saveSessionProgress(); });
+
+            recState = 'recorded';
+            renderCondition();
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.onloadend = () => resolve(String(r.result).split(',')[1] || '');
+                r.onerror = reject;
+                r.readAsDataURL(blob);
+            });
+        }
+
+        // =============================================
+        // BACKEND STUTTER ANALYSIS
+        // Build the samples payload from the cached recordings and POST to the
+        // GCP function. Kicked off the moment all 5 samples are captured so it
+        // runs in the background while the user fills the survey; startProcessing
+        // awaits analysisPromise before redirecting to the results page.
+        // Result is cached in localStorage('stutterAnalysis') for results page.
+        // =============================================
+        async function runStutterAnalysis() {
+            try {
+                const samples = STUTTER_CONDITIONS.map(c => {
+                    const b64 = wordRecordingsB64[c.id];
+                    if (!b64) return null;
+                    const s = { id: c.id, label: c.title, kind: c.kind, audio_base64: b64, mimeType: 'audio/webm' };
+                    if (c.isPassage) s.targetText = c.prompt;   // reading passage target text
+                    return s;
+                }).filter(Boolean);
+                if (!samples.length) return null;
+
+                const resp = await fetch(GCP_ANALYZE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ samples })
+                });
+                if (!resp.ok) throw new Error('analyze ' + resp.status);
+                const data = await resp.json();
+                localStorage.setItem('stutterAnalysis', JSON.stringify(data));
+                console.log('✅ Stutter analysis saved:', data.overall);
+                return data;
+            } catch (e) {
+                console.error('Stutter analysis failed:', e);
+                return null;
+            }
+        }
+
+        function advanceCondition() {
+            if (currentWordIndex < TOTAL_CONDITIONS - 1) {
+                currentWordIndex++;
+                recState = 'idle';
+                saveSessionProgress();
+                renderCondition();
+            } else {
+                allWordsRecorded = true;
+                saveSessionProgress();
+                renderCondition();
+                syncRecordingContinueButton();
+                // Kick off backend analysis now so it runs during the survey.
+                analysisPromise = runStutterAnalysis();
+                // Auto-advance to the survey after a beat (mirrors the lisp flow).
+                setTimeout(() => { if (currentStepNum === 1) nextStep(); }, 700);
+            }
+        }
+
+        // ---- VU meter (visual feedback only) ----
+        function startVuMeter() {
+            if (!analyserNode) return;
+            const data = new Uint8Array(analyserNode.frequencyBinCount);
+            function animate() {
+                if (!analyserNode || recState !== 'recording') return;
+                analyserNode.getByteTimeDomainData(data);
+                let sum = 0;
+                for (let i = 0; i < data.length; i++) { const v = (data[i] - 128) / 128; sum += v * v; }
+                const rms = Math.sqrt(sum / data.length);
+                const level = Math.min(1, rms * 3.2);
+                for (let i = 0; i < VU_BAR_COUNT; i++) {
+                    const bar = document.getElementById('vuBar' + i);
+                    if (!bar) continue;
+                    const center = Math.abs(i - (VU_BAR_COUNT - 1) / 2) / ((VU_BAR_COUNT - 1) / 2);
+                    const h = 6 + level * (1 - center * 0.6) * 46 * (0.6 + Math.random() * 0.4);
+                    bar.style.height = Math.max(6, h).toFixed(0) + 'px';
+                }
+                vuAnimFrame = requestAnimationFrame(animate);
+            }
+            vuAnimFrame = requestAnimationFrame(animate);
+        }
+
+        // ---- Timer ----
+        function startCondTimer() {
+            condStartMs = Date.now();
+            const val = document.getElementById('condTimerVal');
+            if (val) val.textContent = '0:00';
+            clearInterval(condTimerInt);
+            condTimerInt = setInterval(() => {
+                const sec = (Date.now() - condStartMs) / 1000;
+                if (val) val.textContent = fmtTime(sec);
+            }, 250);
+        }
+        function stopCondTimer() {
+            clearInterval(condTimerInt);
+            condTimerInt = null;
+            const vu = document.getElementById('vuMeter');
+            if (vu) vu.querySelectorAll('.vu-bar').forEach(b => b.style.height = '6px');
+        }
+
+        // ---- Results-page playback helper (cached base64 by condition id) ----
+        function playWordRecording(condId, button) {
+            const b64 = wordRecordingsB64[condId];
+            if (!b64) return;
+            const url = URL.createObjectURL(base64ToBlob(b64, 'audio/webm'));
+            const a = new Audio(url);
+            a.play().catch(() => {});
+            a.onended = () => URL.revokeObjectURL(url);
+        }
+
+        // =============================================
+        // PROCESSING & REDIRECT (Step 5)
+        // =============================================
+        async function startProcessing() {
+            // Submit final data to Google Sheets (non-blocking)
+            submitFinalAssessment();
+
+            // PWA loader transitions pending→done with a check icon swap
+            const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+            function markDone(id) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.remove('pending');
+                el.classList.add('done');
+                const icon = el.querySelector('.asmt-step-icon');
+                if (icon) icon.innerHTML = CHECK_SVG;
+            }
+
+            // Stagger pending step transitions
+            const step3Timeout = setTimeout(() => markDone('loading3'), 3000);
+            const step4Timeout = setTimeout(() => markDone('loading4'), 6000);
+
+            // Wait for backend analysis + step 4 submit to finish before redirecting
+            if (step4SubmitPromise) {
+                try { await step4SubmitPromise; } catch (e) {}
+            }
+            if (analysisPromise) {
+                await analysisPromise;
+            }
+
+            // Ensure all done
+            clearTimeout(step3Timeout);
+            clearTimeout(step4Timeout);
+            for (let i = 1; i <= 4; i++) markDone('loading' + i);
+
+            // Assessment complete — drop the resume checkpoint.
+            clearSessionProgress();
+            // Redirect to results
+            setTimeout(() => { window.location.href = 'assessment-results.html'; }, 10);
+        }
+
+        // =============================================
+        // FORM SUBMISSIONS (Google Sheets via FormEasy)
+        // =============================================
+        async function registerEmail(email) {
+            localStorage.setItem('assessmentUserEmail', email);
+            const name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
+            localStorage.setItem('assessmentUserName', name);
+            submitToFormEasy('assessment_step1', { email: email, message: 'User started stuttering assessment' });
+            gtag('event', 'email_capture', { event_category: 'conversion', event_label: 'assessment_step1' });
+        }
+
+        async function submitToFormEasy(source, extraData) {
+            try {
+                await fetch(FORMEASY_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        email: localStorage.getItem('assessmentUserEmail') || '',
+                        source: source,
+                        timestamp: new Date().toISOString(),
+                        page: 'assessment.html',
+                        ...extraData
+                    }),
+                    keepalive: true
+                });
+            } catch (e) { console.error('FormEasy error:', e); }
+        }
+
+        async function submitFinalAssessment() {
+            const onset = document.querySelector('input[name="onset"]:checked')?.value || '';
+            const family = document.querySelector('input[name="familyHistory"]:checked')?.value || '';
+            const pattern = document.querySelector('input[name="fluencyPattern"]:checked')?.value || '';
+            const avoidance = document.querySelector('input[name="avoidance"]:checked')?.value || '';
+            const parts = [
+                `✅ User completed stuttering assessment`,
+                `onset=${onset || '—'}`,
+                `family_history=${family || '—'}`,
+                `fluency_pattern=${pattern || '—'}`,
+                `avoidance=${avoidance || '—'}`
+            ];
+            // Persist survey answers for the results page (read locally, no backend).
+            try {
+                localStorage.setItem('stutterSurvey', JSON.stringify({
+                    onset, family, pattern, avoidance, completedAt: new Date().toISOString()
+                }));
+            } catch (e) {}
+            // Custom source name so Apps Script writes our `message` field verbatim.
+            step4SubmitPromise = submitToFormEasy('assessment_survey_complete', {
+                onset: onset,
+                family_history: family,
+                fluency_pattern: pattern,
+                avoidance: avoidance,
+                assessment_completed: true,
+                message: parts.join(' | ')
+            });
+            gtag('event', 'assessment_completed', { event_category: 'conversion', event_label: 'full_assessment_flow' });
+        }
+
+        // =============================================
+        // UI EVENT LISTENERS
+        // =============================================
+        // Survey inputs (email/source/phone/etc) are now mirrored by the step3 wizard.
+
+        // =============================================
+        // COUNTRY SELECTOR
+        // =============================================
+        let highlightedIndex = -1;
+        let allCountries = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateFooterVisibility();
+            const countrySelect = document.getElementById('countrySelect');
+            const countryOptions = document.getElementById('countryOptions');
+            allCountries = Array.from(document.querySelectorAll('.country-option'));
+
+            countrySelect.addEventListener('click', function() {
+                this.readOnly = false; this.value = ''; this.placeholder = 'Type to search...';
+                countryOptions.style.display = 'block';
+                allCountries.forEach(o => o.style.display = 'block');
+            });
+
+            countrySelect.addEventListener('input', function() {
+                const q = this.value.toLowerCase();
+                allCountries.forEach(o => { o.style.display = o.dataset.country.toLowerCase().includes(q) ? 'block' : 'none'; });
+            });
+
+            countrySelect.addEventListener('blur', function() {
+                setTimeout(() => {
+                    if (!this.value) { this.value = '🇺🇸 United States'; document.getElementById('countryCode').value = '+1'; }
+                    this.readOnly = true; countryOptions.style.display = 'none';
+                }, 200);
+            });
+
+            countrySelect.addEventListener('keydown', function(e) {
+                const vis = countryOptions.querySelectorAll('.country-option:not([style*="display: none"])');
+                if (e.key === 'ArrowDown') { e.preventDefault(); highlightedIndex = Math.min(highlightedIndex + 1, vis.length - 1); }
+                if (e.key === 'ArrowUp') { e.preventDefault(); highlightedIndex = Math.max(highlightedIndex - 1, 0); }
+                if (e.key === 'Enter' && vis[highlightedIndex]) { e.preventDefault(); selectCountry(vis[highlightedIndex]); }
+                if (e.key === 'Escape') { this.blur(); }
+                allCountries.forEach(o => o.classList.remove('highlighted'));
+                if (vis[highlightedIndex]) { vis[highlightedIndex].classList.add('highlighted'); vis[highlightedIndex].scrollIntoView({ block: 'nearest' }); }
+            });
+
+            allCountries.forEach(o => o.addEventListener('click', () => selectCountry(o)));
+
+            // Step 1 is recording — initialize recording UI on load
+            initWordRecording();
+            moveRecordingTo('recordingHost');
+
+            // Hash route: #login jumps straight to login step
+            function maybeJumpToLogin() {
+                if (location.hash === '#login' || location.hash === '#/login') {
+                    document.getElementById('step' + currentStepNum).classList.remove('active');
+                    orderIdx = 0;
+                    currentStepNum = STEP_ORDER[orderIdx];
+                    document.getElementById('step2').classList.add('active');
+                    updateProgress();
+                }
+            }
+            // TEMP TEST ROUTE: #test skips login → jumps straight to the
+            // recording session so we can iterate on the capture phase without
+            // signing in every time. Remove before production.
+            function maybeSkipLogin() {
+                const h = location.hash;
+                // #test / #skip-login → skip login, jump straight to the recording step.
+                // #test1, #test2, … #testN → skip login AND land directly on sample N
+                // (1 = Spontaneous Conversation, 2 = Monologue, …). Lets us iterate on
+                // any speaking condition without signing in. Remove before production.
+                const generic = (h === '#test' || h === '#test-record' || h === '#skip-login');
+                const numMatch = /^#test(\d+)$/.exec(h);
+                if (!generic && !numMatch) return false;
+                // Which sample to open (0-based, clamped).
+                const sampleIdx = numMatch
+                    ? Math.max(0, Math.min(parseInt(numMatch[1], 10) - 1, TOTAL_CONDITIONS - 1))
+                    : 0;
+                // Drop the login step from the flow.
+                const li = STEP_ORDER.indexOf(2);
+                if (li !== -1) STEP_ORDER.splice(li, 1);
+                // Seed throwaway auth so downstream reads don't choke.
+                try {
+                    if (!localStorage.getItem('userAuth')) {
+                        localStorage.setItem('userAuth', JSON.stringify({ email: 'tester@local', id: 'test-skip', provider: 'test' }));
+                    }
+                } catch (e) {}
+                window.obLoggedInUser = window.obLoggedInUser || { email: 'tester@local', uid: 'test-skip', provider: 'test' };
+                // Activate the recording step directly.
+                document.querySelectorAll('.assessment-step.active').forEach(el => el.classList.remove('active'));
+                orderIdx = 0;
+                currentStepNum = STEP_ORDER[orderIdx]; // 1 = recording
+                document.getElementById('step' + currentStepNum).classList.add('active');
+                updateProgress();
+                initWordRecording();
+                currentWordIndex = sampleIdx;   // jump to requested sample
+                renderCondition();
+                moveRecordingTo('recordingHost');
+                return true;
+            }
+
+            // Resume an in-progress recording session after a page refresh.
+            // Logged-in user mid-capture should land back on the recording step
+            // with their words restored — not bounced to the login screen.
+            function maybeResumeSession() {
+                // Special routes own the flow; don't fight them.
+                const h = location.hash;
+                if (h === '#login' || h === '#/login') return false;
+                if (window.obFirebaseIsEmailLink && window.obFirebaseIsEmailLink(window.location.href)) return false;
+
+                let auth = null, prog = null;
+                try { auth = JSON.parse(localStorage.getItem('userAuth') || 'null'); } catch (e) {}
+                try { prog = JSON.parse(localStorage.getItem(SESSION_PROGRESS_KEY) || 'null'); } catch (e) {}
+                if (!auth) return false;                       // not signed in → normal login flow
+                if (!prog || prog.done) return false;          // nothing in-progress to resume
+                if (typeof prog.idx !== 'number' || prog.idx <= 0) return false;
+                // Don't resurrect a stale half-session (>24h old).
+                if (prog.updatedAt && Date.now() - prog.updatedAt > 24 * 60 * 60 * 1000) {
+                    clearSessionProgress();
+                    return false;
+                }
+
+                // Resume at the saved sample index. Audio for completed samples is
+                // already uploaded to Firebase — we only need to resume capture here.
+                initWordRecording();
+                currentWordIndex = Math.max(0, Math.min(prog.idx, TOTAL_CONDITIONS - 1));
+                allWordsRecorded = false;
+
+                // Seed downstream auth reads + drop the login step from the flow.
+                window.obLoggedInUser = window.obLoggedInUser || { email: auth.email, uid: auth.id, provider: auth.provider };
+                const li = STEP_ORDER.indexOf(2);
+                if (li !== -1) STEP_ORDER.splice(li, 1);
+
+                // Activate the recording step directly.
+                document.querySelectorAll('.assessment-step.active').forEach(el => el.classList.remove('active'));
+                orderIdx = 0;
+                currentStepNum = STEP_ORDER[orderIdx]; // 1 = recording
+                document.getElementById('step' + currentStepNum).classList.add('active');
+                updateProgress();
+                moveRecordingTo('recordingHost');
+                renderCondition();
+                return true;
+            }
+
+            if (!maybeSkipLogin() && !maybeResumeSession()) maybeJumpToLogin();
+            window.addEventListener('hashchange', maybeJumpToLogin);
+
+            // ===== Step3 Wizard (comfort + age + source + phone) =====
+            const WIZ_TOTAL = 4;
+            // Onboarding questions per stuttering clinical history (img #16):
+            // onset & course, family history, fluency pattern, awareness/avoidance/fear.
+            const ONSET_OPTS = [
+                { v: 'childhood',    label: 'In early childhood', sub: 'Began as a young child (developmental — the common case)' },
+                { v: 'teen',         label: 'Around my teens',    sub: 'Started during adolescence' },
+                { v: 'adult_sudden', label: 'Suddenly as an adult', sub: 'Came on later in life — we may suggest a referral' },
+                { v: 'not_sure',     label: "I'm not sure",       sub: "Hard to pinpoint when it began" },
+            ];
+            const FAMILY_OPTS = [
+                { v: 'yes',      label: 'Yes',          sub: 'A parent, sibling or relative stutters (or did)' },
+                { v: 'no',       label: 'No',           sub: 'No one in my family that I know of' },
+                { v: 'not_sure', label: "I'm not sure", sub: '' },
+            ];
+            const PATTERN_OPTS = [
+                { v: 'yes',       label: 'Yes, noticeably', sub: 'Singing, whispering, choral reading or talking to a pet/baby helps' },
+                { v: 'sometimes', label: 'Sometimes',       sub: 'It helps a little' },
+                { v: 'no',        label: 'No difference',   sub: "These don't change my fluency" },
+                { v: 'not_sure',  label: "I haven't noticed", sub: '' },
+            ];
+            const AVOID_OPTS = [
+                { v: 'often',     label: 'Often',     sub: 'I swap words, avoid the phone, or avoid saying my own name' },
+                { v: 'sometimes', label: 'Sometimes', sub: 'Now and then I substitute or avoid' },
+                { v: 'rarely',    label: 'Rarely',    sub: 'I mostly push through' },
+                { v: 'never',     label: 'Never',     sub: "Avoidance isn't an issue for me" },
+            ];
+            const WIZ_META = [
+                { title: 'When did your stuttering begin?', sub: 'Onset & course helps us understand your stuttering type' },
+                { title: 'Does anyone in your family stutter?', sub: 'Stuttering has a strong genetic component' },
+                { title: 'Does your fluency improve when you sing, whisper, or read in chorus?', sub: 'Classic developmental stuttering nearly always does' },
+                { title: 'Do you avoid words, phone calls, or saying your own name?', sub: 'The fear & avoidance layer matters as much as the audible behavior' },
+            ];
+            const wizState = {
+                step: 1, dir: 'fwd', _lastStep: null,
+                onset: null, family: null, pattern: null, avoid: null
+            };
+
+            function wizCanAdvance() {
+                switch (wizState.step) {
+                    case 1: return !!wizState.onset;
+                    case 2: return !!wizState.family;
+                    case 3: return !!wizState.pattern;
+                    case 4: return !!wizState.avoid;
+                    default: return false;
+                }
+            }
+
+            function wizProgressHTML() {
+                const pills = Array.from({length: WIZ_TOTAL}, (_, i) =>
+                    `<div class="obw-prog-pill${i + 1 <= wizState.step ? ' on' : ''}"></div>`).join('');
+                const circles = Array.from({length: WIZ_TOTAL}, (_, i) => {
+                    const done = i + 1 < wizState.step;
+                    const cur = i + 1 === wizState.step;
+                    const inner = done
+                        ? `<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+                        : `<span>${i + 1}</span>`;
+                    const sep = i < WIZ_TOTAL - 1
+                        ? `<div class="obw-prog-sep${i + 1 < wizState.step ? ' on' : ''}"></div>` : '';
+                    return `<div class="obw-prog-circle${done ? ' done' : ''}${cur ? ' cur' : ''}">${inner}</div>${sep}`;
+                }).join('');
+                return `
+                    <div class="obw-prog-pills">${pills}</div>
+                    <div class="obw-prog-step-label">Step ${wizState.step} of ${WIZ_TOTAL}</div>
+                    <div class="obw-prog-circles">${circles}</div>
+                `;
+            }
+
+            function wizEsc(s) {
+                return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+            }
+
+            // All four onboarding steps are single-select radio lists.
+            // Maps step → [option list, wizState key, data-attribute name].
+            const WIZ_STEP_CFG = {
+                1: { opts: () => ONSET_OPTS,   key: 'onset',   attr: 'onset'   },
+                2: { opts: () => FAMILY_OPTS,  key: 'family',  attr: 'family'  },
+                3: { opts: () => PATTERN_OPTS, key: 'pattern', attr: 'pattern' },
+                4: { opts: () => AVOID_OPTS,   key: 'avoid',   attr: 'avoid'   },
+            };
+
+            function wizBodyHTML() {
+                const cfg = WIZ_STEP_CFG[wizState.step];
+                if (!cfg) return '';
+                const selected = wizState[cfg.key];
+                return cfg.opts().map(o => `
+                    <button class="obw-opt${selected === o.v ? ' on' : ''}" data-${cfg.attr}="${o.v}" type="button">
+                        <div>
+                            <div class="obw-opt-label">${o.label}</div>
+                            ${o.sub ? `<div class="obw-opt-sub">${o.sub}</div>` : ''}
+                        </div>
+                        <div class="obw-radio${selected === o.v ? ' on' : ''}"><div></div></div>
+                    </button>
+                `).join('');
+            }
+
+            function wizUpdate() {
+                const meta = WIZ_META[wizState.step - 1];
+                const back = document.getElementById('obwBack');
+                const prog = document.getElementById('obwProgress');
+                const title = document.getElementById('obwTitle');
+                const sub = document.getElementById('obwSub');
+                const content = document.getElementById('obwContent');
+                const cta = document.getElementById('obwCta');
+                if (!back || !prog || !title || !sub || !content || !cta) return;
+
+                back.hidden = false; // always allow back (outer prevStep on inner step 1)
+                prog.innerHTML = wizProgressHTML();
+                title.textContent = meta.title;
+                sub.textContent = meta.sub;
+                cta.textContent = wizState.step === WIZ_TOTAL ? 'Continue →' : 'Next';
+                cta.disabled = !wizCanAdvance();
+
+                const stepChanged = wizState._lastStep !== wizState.step;
+                content.innerHTML = wizBodyHTML();
+                content.classList.remove('obw-anim-fwd', 'obw-anim-bwd');
+                if (stepChanged) {
+                    void content.offsetWidth;
+                    content.classList.add(wizState.dir === 'fwd' ? 'obw-anim-fwd' : 'obw-anim-bwd');
+                }
+                wizState._lastStep = wizState.step;
+
+                const cfg = WIZ_STEP_CFG[wizState.step];
+                if (cfg) {
+                    content.querySelectorAll('[data-' + cfg.attr + ']').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            wizState[cfg.key] = btn.dataset[cfg.attr];
+                            wizUpdate();
+                        });
+                    });
+                }
+            }
+
+            function wizCommitToHiddenInputs() {
+                const set = (name, val) => {
+                    if (!val) return;
+                    const el = document.querySelector(`input[name="${name}"][value="${val}"]`);
+                    if (el) el.checked = true;
+                };
+                set('onset', wizState.onset);
+                set('familyHistory', wizState.family);
+                set('fluencyPattern', wizState.pattern);
+                set('avoidance', wizState.avoid);
+                const emailEl = document.getElementById('email');
+                const loginEmail = (window.obLoggedInUser && window.obLoggedInUser.email) || '';
+                if (emailEl) emailEl.value = loginEmail;
+            }
+
+            function wizFinish() {
+                wizCommitToHiddenInputs();
+                const email = ((window.obLoggedInUser && window.obLoggedInUser.email) || '').trim();
+                registerEmail(email);
+                // Survey payload is sent exactly once by submitFinalAssessment() during
+                // startProcessing as 'assessment_survey_complete'. wizCommitToHiddenInputs()
+                // already mirrored these answers into the hidden inputs it reads.
+            }
+
+            const obwBack = document.getElementById('obwBack');
+            const obwCta = document.getElementById('obwCta');
+            if (obwBack) {
+                obwBack.addEventListener('click', () => {
+                    if (wizState.step === 1) { prevStep(); return; }
+                    wizState.dir = 'bwd'; wizState.step--; wizUpdate();
+                });
+            }
+            if (obwCta) {
+                obwCta.addEventListener('click', () => {
+                    if (!wizCanAdvance()) return;
+                    if (wizState.step === WIZ_TOTAL) {
+                        wizFinish();
+                        nextStep();
+                        return;
+                    }
+                    wizState.dir = 'fwd'; wizState.step++; wizUpdate();
+                });
+            }
+
+            // Re-initialize wizard each time step3 becomes active.
+            // Preserve filled answers so going Back from analyzing doesn't wipe them.
+            window.initStep3Wizard = function() {
+                if (!wizState._lastStep) wizState.step = 1;
+                wizState.dir = 'fwd';
+                wizState._lastStep = null;
+                wizUpdate();
+            };
+
+            // ===== Login (step2) wiring =====
+            const obError = document.getElementById('obError');
+            const obEmail = document.getElementById('obEmail');
+            const obEmailSubmit = document.getElementById('obEmailSubmit');
+            const obEmailForm = document.getElementById('obEmailForm');
+            const obGoogleBtn = document.getElementById('obGoogleBtn');
+
+            function obShowError(msg) {
+                if (!obError) return;
+                obError.textContent = msg;
+                obError.style.color = '#dc2626';
+                obError.hidden = false;
+            }
+            function obShowSuccess(msg) {
+                if (!obError) return;
+                obError.textContent = msg;
+                obError.style.color = '#22C55E';
+                obError.hidden = false;
+            }
+            function obClearError() { if (obError) { obError.hidden = true; obError.style.color = ''; } }
+
+            function obFriendlyError(err) {
+                const code = err && err.code;
+                const map = {
+                    'auth/wrong-password': 'Incorrect password.',
+                    'auth/user-not-found': 'No account for this email.',
+                    'auth/invalid-email': 'Please enter a valid email.',
+                    'auth/invalid-credential': 'Invalid email or password.',
+                    'auth/too-many-requests': 'Too many attempts. Try again later.',
+                    'auth/popup-closed-by-user': 'Sign-in cancelled.',
+                    'auth/network-request-failed': 'Network error. Check your connection.'
+                };
+                return map[code] || (err && err.message) || 'Sign in failed.';
+            }
+
+            function obAfterSignIn(user, provider) {
+                window.obLoggedInUser = { email: user.email, uid: user.uid, provider };
+                try { localStorage.setItem('userAuth', JSON.stringify({ email: user.email, id: user.uid, provider })); } catch (e) {}
+                nextStep();
+            }
+
+            if (obEmailForm) {
+                obEmailForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    obClearError();
+                    const email = obEmail.value.trim();
+                    if (!email || !/^\S+@\S+\.\S+$/.test(email)) return obShowError('Enter a valid email.');
+                    obEmailSubmit.disabled = true;
+                    obEmailSubmit.textContent = 'Sending link…';
+                    try {
+                        await window.obFirebaseSendEmailLink(email);
+                        obEmailSubmit.textContent = 'Check your inbox ✓';
+                        obShowSuccess('Verification link sent.');
+                    } catch (err) {
+                        obShowError(obFriendlyError(err));
+                        obEmailSubmit.disabled = false;
+                        obEmailSubmit.textContent = 'Continue';
+                    }
+                });
+            }
+
+            // Handle return from email link
+            (async () => {
+                if (!window.obFirebaseIsEmailLink || !window.obFirebaseIsEmailLink(window.location.href)) return;
+
+                const advanceToStep2 = () => {
+                    if (currentStepNum !== 2) {
+                        document.getElementById('step' + currentStepNum).classList.remove('active');
+                        orderIdx = 0;
+                        currentStepNum = 2;
+                        document.getElementById('step2').classList.add('active');
+                        updateProgress();
+                    }
+                };
+
+                let email = window.localStorage.getItem('emailForSignIn');
+                // No stored email: if we're already signed in (e.g. a second click
+                // on an already-used link), just continue instead of prompting.
+                if (!email) {
+                    if (window.obFirebaseAuthReady) await window.obFirebaseAuthReady;
+                    const existing = window.obFirebaseSignedInUser && window.obFirebaseSignedInUser();
+                    if (existing) {
+                        advanceToStep2();
+                        obAfterSignIn(existing, 'email-link');
+                        return;
+                    }
+                    email = window.prompt('Confirm your email to complete sign-in');
+                }
+                if (!email) return;
+
+                try {
+                    const user = await window.obFirebaseCompleteEmailLink(email, window.location.href);
+                    // Keep emailForSignIn so re-clicking the (now spent) link still
+                    // has the email and continues without prompting.
+                    advanceToStep2();
+                    obAfterSignIn(user, 'email-link');
+                } catch (err) {
+                    // Link already consumed but the user is still signed in from the
+                    // first click — treat as success rather than showing an error.
+                    const existing = window.obFirebaseSignedInUser && window.obFirebaseSignedInUser();
+                    if (existing && err && err.code === 'auth/invalid-action-code') {
+                        advanceToStep2();
+                        obAfterSignIn(existing, 'email-link');
+                        return;
+                    }
+                    obShowError(obFriendlyError(err));
+                }
+            })();
+
+            if (obGoogleBtn) {
+                obGoogleBtn.addEventListener('click', async () => {
+                    obClearError();
+                    obGoogleBtn.disabled = true;
+                    try {
+                        const user = await window.obFirebaseGoogleSignIn();
+                        obAfterSignIn(user, 'google');
+                    } catch (err) {
+                        obShowError(obFriendlyError(err));
+                        obGoogleBtn.disabled = false;
+                    }
+                });
+            }
+
+            const obAppleBtn = document.getElementById('obAppleBtn');
+            if (obAppleBtn) {
+                obAppleBtn.addEventListener('click', async () => {
+                    obClearError();
+                    obAppleBtn.disabled = true;
+                    try {
+                        const user = await window.obFirebaseAppleSignIn();
+                        obAfterSignIn(user, 'apple');
+                    } catch (err) {
+                        obShowError(obFriendlyError(err));
+                        obAppleBtn.disabled = false;
+                    }
+                });
+            }
+
+        });
+
+        function selectCountry(option) {
+            document.getElementById('countrySelect').value = option.textContent;
+            document.getElementById('countryCode').value = option.dataset.code;
+            document.getElementById('countrySelect').readOnly = true;
+            document.getElementById('countryOptions').style.display = 'none';
+        }
+
+        // Track assessment start
+        gtag('event', 'assessment_started', { event_category: 'engagement', event_label: 'multi_step_assessment' });
+    </script>
+    <!-- Enhanced Analytics -->
+    <script src="/stutterfluencycentre/js/enhanced-analytics.js"></script>
+    <script src="/stutterfluencycentre/js/login-modal.js"></script>
+    <script src="/stutterfluencycentre/js/nav.js"></script>
+
+    <!-- Footer Placeholder -->
+    <!-- FOOTER_PLACEHOLDER -->
+
+
+
+
+
+
+
+
+</body>
+</html>
