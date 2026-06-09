@@ -3953,6 +3953,13 @@
             localStorage.setItem('assessmentUserName', name);
             submitToFormEasy('assessment_step1', { email: email, message: 'User started /s/ sound assessment' });
             gtag('event', 'email_capture', { event_category: 'conversion', event_label: 'assessment_step1' });
+            // Identify the PostHog person with email + first name so Messaging
+            // workflows can resolve a recipient address and personalize emails.
+            try {
+                if (window.posthog && typeof window.posthog.identify === 'function') {
+                    window.posthog.identify(email, { email: email, first_name: name });
+                }
+            } catch (e) { /* posthog not ready */ }
         }
 
         async function submitToFormEasy(source, extraData) {
@@ -4000,6 +4007,24 @@
                 message: parts.join(' | ')
             });
             gtag('event', 'assessment_completed', { event_category: 'conversion', event_label: 'full_assessment_flow' });
+            // Fire the PostHog event that triggers the "Lisp Nurturing Sequence"
+            // Messaging workflow. Re-identify in case the person wasn't set yet.
+            try {
+                if (window.posthog) {
+                    const phEmail = localStorage.getItem('assessmentUserEmail') || '';
+                    const phName = localStorage.getItem('assessmentUserName') || '';
+                    if (phEmail && typeof window.posthog.identify === 'function') {
+                        window.posthog.identify(phEmail, { email: phEmail, first_name: phName });
+                    }
+                    if (typeof window.posthog.capture === 'function') {
+                        window.posthog.capture('assessment_completed', {
+                            trouble_words_response: trouble,
+                            age_group: age,
+                            found_on: foundOn
+                        });
+                    }
+                }
+            } catch (e) { /* posthog not ready */ }
         }
 
         // =============================================
