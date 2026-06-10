@@ -2747,12 +2747,23 @@
         // refresh drops the user back into the recording step, not the login.
         // =============================================
         const SESSION_PROGRESS_KEY = 'assessmentProgress';
+        // Recordings to persist for results-page playback — EXCLUDES the free-speech
+        // (passage) clip. That clip is 30–60s, the single biggest base64 blob, and the
+        // main cause of localStorage QuotaExceededError. It is qualitative-only and
+        // never replayed, so we keep it in memory for the Gemini send but never write
+        // it to disk.
+        function playbackRecordings() {
+            const skip = new Set(TEST_WORD_META.filter(m => m.type === 'passage').map(m => m.word));
+            const out = {};
+            for (const k in wordRecordingsB64) if (!skip.has(k)) out[k] = wordRecordingsB64[k];
+            return out;
+        }
         function saveSessionProgress() {
             try {
                 // Audio lives under the existing 'wordRecordings' key (also read by
                 // the results page) — keep it in sync here so we don't duplicate
                 // multi-MB of base64 and blow the localStorage quota.
-                localStorage.setItem('wordRecordings', JSON.stringify(wordRecordingsB64));
+                localStorage.setItem('wordRecordings', JSON.stringify(playbackRecordings()));
                 localStorage.setItem(SESSION_PROGRESS_KEY, JSON.stringify({
                     idx: currentWordIndex,
                     done: allWordsRecorded,
@@ -3497,8 +3508,15 @@
                 // Auto-advance to next step after brief delay
                 setTimeout(() => { if (currentStepNum === 1) nextStep(); }, 900);
 
-                // Store word recordings for playback on results page
-                localStorage.setItem('wordRecordings', JSON.stringify(wordRecordingsB64));
+                // Store word recordings for playback on results page. Excludes the
+                // free-speech clip (see playbackRecordings) and is guarded: a quota
+                // throw here must NOT abort the Gemini send below, which reads the
+                // full in-memory wordRecordingsB64 and does not need this write.
+                try {
+                    localStorage.setItem('wordRecordings', JSON.stringify(playbackRecordings()));
+                } catch (e) {
+                    console.warn('Could not persist recordings for playback (quota):', e);
+                }
 
                 // Run local FFT analysis + send to Gemini via cloud function.
                 analysisPromise = (async () => {
