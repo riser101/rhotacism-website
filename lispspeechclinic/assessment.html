@@ -3099,11 +3099,12 @@
                 stop.style.display = 'block';
                 btn.classList.add('recording');
                 badge.classList.add('visible');
-                
+                // Free speech has no auto-stop — surface the tap-to-finish affordance.
+                if (isPassageProbe) label.textContent = 'TAP TO FINISH';
                 if (live) {
                     live.classList.add('recording');
                     live.innerHTML = isPassageProbe
-                        ? `Keep talking naturally — about <span class="live-word">30–60 seconds</span>.`
+                        ? `Keep talking naturally for <span class="live-word">30–60 seconds</span>, then tap to finish.`
                         : `Now, say <span class="live-word">'${TEST_WORDS[currentWordIndex]}'</span> clearly.`;
                 }
             } else if (isWaitingForNext) {
@@ -3169,8 +3170,11 @@
             triggerHaptic(20); // tap tick — fires inside user gesture
             userGender = 'male';
             if (isRecording) {
-                // Manual stop = discard; only VAD onSpeechEnd commits + advances
-                stopWordRecording(true);
+                // Free-speech (passage): no VAD auto-stop — manual tap COMMITS the
+                // clip and advances. All other probes: manual tap discards (VAD
+                // onSpeechEnd is what commits + advances).
+                const isPassage = (TEST_WORD_META[currentWordIndex] || {}).type === 'passage';
+                stopWordRecording(!isPassage);
             } else if (isWaitingForNext) {
                 // Advance to next word and start recording
                 isWaitingForNext = false;
@@ -3330,14 +3334,16 @@
                         lastSpeechTime = Date.now();
                     }
                     const fbType = (TEST_WORD_META[currentWordIndex] || {}).type;
-                    // Free-speech passage: speakers pause to think — tolerate ~3s.
-                    // Read sentences: ~1.4s. Single words: default.
-                    const fbSilence = fbType === 'passage' ? 3000 : fbType === 'sentence' ? 1400 : SILENCE_DURATION;
-                    if (speechDetected && lastSpeechTime > 0 && (Date.now() - lastSpeechTime) > fbSilence) {
-                        const speechDuration = lastSpeechTime - speechStartTime;
-                        if (speechDuration >= MIN_SPEECH_DURATION) {
-                            stopWordRecording();
-                            return;
+                    // Free-speech passage is manual-stop only — never auto-stop on
+                    // silence. Read sentences: ~1.4s. Single words: default.
+                    if (fbType !== 'passage') {
+                        const fbSilence = fbType === 'sentence' ? 1400 : SILENCE_DURATION;
+                        if (speechDetected && lastSpeechTime > 0 && (Date.now() - lastSpeechTime) > fbSilence) {
+                            const speechDuration = lastSpeechTime - speechStartTime;
+                            if (speechDuration >= MIN_SPEECH_DURATION) {
+                                stopWordRecording();
+                                return;
+                            }
                         }
                     }
                 }
@@ -3429,7 +3435,10 @@
                         console.log('[VAD] 🛑 human voice ended — duration ' + dur + 'ms, samples=' + (audio ? audio.length : 0));
                         if (!isRecording) return;
                         lastSpeechTime = Date.now();
-                        if (dur >= MIN_SPEECH_DURATION) {
+                        // Free-speech (passage) is manual-stop only — VAD must NOT end it
+                        // on a think-pause. The user taps to commit + advance.
+                        const isPassage = (TEST_WORD_META[currentWordIndex] || {}).type === 'passage';
+                        if (!isPassage && dur >= MIN_SPEECH_DURATION) {
                             stopWordRecording();
                         }
                     },
