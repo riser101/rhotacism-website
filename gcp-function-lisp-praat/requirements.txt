@@ -1,0 +1,3 @@
+functions-framework
+numpy
+praat-parselmouth
