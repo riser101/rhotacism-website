@@ -1495,6 +1495,16 @@
             }).join('\n');
         }
 
+        // Spontaneous sample — qualitative prose + bullet flags, no score table.
+        function spontaneousCatMarkdown(sp) {
+            sp = sp || {};
+            var md = '';
+            if (sp.summary) md += sp.summary + '\n\n';
+            if (Array.isArray(sp.notes) && sp.notes.length) md += sp.notes.map(function(n){ return '- ' + n; }).join('\n');
+            else if (sp.notes) md += sp.notes;
+            return md || '_No spontaneous sample analysed._';
+        }
+
         // Build one collapsible card per tier category. Collapsed by default so
         // the page stays short; tap a header to expand its table.
         function renderCategoryAccordions(categories) {
@@ -1503,11 +1513,20 @@
             categories.forEach(function(cat, idx) {
                 var bodyId = 'catBody-' + idx;
                 var count = (cat.rows || []).length;
-                var countLabel = cat.type === 'sentences' ? (count + ' sentences') : (count + ' words');
-                var bodyClass = cat.type === 'sentences' ? 'cat-sentences' : 'cat-words';
-                var inner = cat.type === 'sentences'
-                    ? convertMarkdownToHTML(sentenceCatMarkdown(cat.rows))
-                    : convertMarkdownToHTML(wordCatMarkdown(cat.rows));
+                var countLabel, bodyClass, inner;
+                if (cat.type === 'spontaneous') {
+                    countLabel = 'qualitative';
+                    bodyClass = 'cat-spontaneous';
+                    inner = convertMarkdownToHTML(spontaneousCatMarkdown(cat.spontaneous));
+                } else if (cat.type === 'sentences') {
+                    countLabel = count + ' sentences';
+                    bodyClass = 'cat-sentences';
+                    inner = convertMarkdownToHTML(sentenceCatMarkdown(cat.rows));
+                } else {
+                    countLabel = count + ' words';
+                    bodyClass = 'cat-words';
+                    inner = convertMarkdownToHTML(wordCatMarkdown(cat.rows));
+                }
 
                 html += '<div class="cat-card" style="border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #fff;">';
                 html += '<button type="button" class="cat-header" aria-expanded="false" onclick="toggleCategory(\'' + bodyId + '\', this)" '
