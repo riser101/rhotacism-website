@@ -4177,7 +4177,14 @@
             // workflows can resolve a recipient address and personalize emails.
             try {
                 if (window.posthog && typeof window.posthog.identify === 'function') {
-                    window.posthog.identify(email, { email: email, first_name: name });
+                    // Identify with the CURRENT distinct_id (PostHog uuid) — NOT the
+                    // email. This attaches email as a person property (Messaging can
+                    // still resolve a recipient) while keeping the stable uuid as the
+                    // distinct_id, so recording bucket paths stay ph_<uuid> and don't
+                    // flip to the raw email mid-session.
+                    const did = (typeof window.posthog.get_distinct_id === 'function' && window.posthog.get_distinct_id()) || null;
+                    if (did) window.posthog.identify(did, { email: email, first_name: name });
+                    else if (typeof window.posthog.setPersonProperties === 'function') window.posthog.setPersonProperties({ email: email, first_name: name });
                 }
             } catch (e) { /* posthog not ready */ }
         }
@@ -4234,7 +4241,11 @@
                     const phEmail = localStorage.getItem('assessmentUserEmail') || '';
                     const phName = localStorage.getItem('assessmentUserName') || '';
                     if (phEmail && typeof window.posthog.identify === 'function') {
-                        window.posthog.identify(phEmail, { email: phEmail, first_name: phName });
+                        // Keep the uuid as distinct_id; attach email as a property only
+                        // (see step1 identify above for rationale).
+                        const did = (typeof window.posthog.get_distinct_id === 'function' && window.posthog.get_distinct_id()) || null;
+                        if (did) window.posthog.identify(did, { email: phEmail, first_name: phName });
+                        else if (typeof window.posthog.setPersonProperties === 'function') window.posthog.setPersonProperties({ email: phEmail, first_name: phName });
                     }
                     // Derive lisp-detection summary from the same stored analysis the
                     // results table reads, so the "Lisp Nurturing Sequence" workflow can
