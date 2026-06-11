@@ -252,7 +252,7 @@ IMPORTANT: Use everyday language for a layperson. No technical terms (no Hz, FFT
 // One Gemini round-trip. Caller supplies the prompt + audio parts.
 // Retries on 5xx (transient Google-side INTERNAL errors) with backoff.
 async function callGemini(parts, attempt = 1) {
-  const MAX_ATTEMPTS = 3;
+  const MAX_ATTEMPTS = 1; // fail fast — client drives retries with fresh connections (avoids one long-held socket dying on mobile)
   const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
   const body = {
