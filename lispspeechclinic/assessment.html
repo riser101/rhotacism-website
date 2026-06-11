@@ -4236,11 +4236,45 @@
                     if (phEmail && typeof window.posthog.identify === 'function') {
                         window.posthog.identify(phEmail, { email: phEmail, first_name: phName });
                     }
+                    // Derive lisp-detection summary from the same stored analysis the
+                    // results table reads, so the "Lisp Nurturing Sequence" workflow can
+                    // branch on it. A word counts as a lisp hit when its judgment is one
+                    // of the distortion types (matches assessment-results.html Judgment
+                    // column); Accurate/Unclear are NOT hits.
+                    const LISP_JUDGMENTS = ['Interdental', 'Dentalized', 'Lateral', 'Distorted'];
+                    let lispDetected = false, lispWordCount = 0, lispGri = null, lispWords = [];
+                    try {
+                        const analysis = JSON.parse(localStorage.getItem('analysisResult') || '{}');
+                        if (analysis && Array.isArray(analysis.categories)) {
+                            lispGri = typeof analysis.gri === 'number' ? analysis.gri : null;
+                            analysis.categories.forEach(cat => {
+                                (cat.rows || []).forEach(row => {
+                                    if (LISP_JUDGMENTS.includes(row.judgment)) {
+                                        lispDetected = true;
+                                        lispWordCount++;
+                                        const label = row.word || row.sentence;
+                                        if (label) lispWords.push(label);
+                                    }
+                                });
+                            });
+                        }
+                    } catch (_) { /* no analysis stored */ }
+                    if (typeof window.posthog.setPersonProperties === 'function') {
+                        window.posthog.setPersonProperties({
+                            lisp_detected: lispDetected,
+                            lisp_word_count: lispWordCount,
+                            lisp_gri: lispGri
+                        });
+                    }
                     if (typeof window.posthog.capture === 'function') {
                         window.posthog.capture('assessment_completed', {
                             trouble_words_response: trouble,
                             age_group: age,
-                            found_on: foundOn
+                            found_on: foundOn,
+                            lisp_detected: lispDetected,
+                            lisp_word_count: lispWordCount,
+                            lisp_words: lispWords,
+                            lisp_gri: lispGri
                         });
                     }
                 }
@@ -4313,8 +4347,8 @@
             // signing in every time. Remove before production.
             function maybeSkipLogin() {
                 const h = location.hash;
-                // #test1/#test2/#test3 → skip login AND jump to that tier's first probe.
-                const tierMatch = h.match(/^#test([123])$/);
+                // #test1/#test2/#test3/#test4 → skip login AND jump to that tier's first probe.
+                const tierMatch = h.match(/^#test([1234])$/);
                 if (h !== '#test' && h !== '#test-record' && h !== '#skip-login' && !tierMatch) return false;
                 // Drop the login step from the flow.
                 const li = STEP_ORDER.indexOf(2);
