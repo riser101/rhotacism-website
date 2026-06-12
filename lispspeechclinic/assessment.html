@@ -2781,8 +2781,10 @@
             return new Blob([bytes], { type: type || 'audio/webm' });
         }
         let userGender = 'male';
-        // Use the male-calibrated /s/ frequency band for every assessment.
+        // /s/ sibilant energy band, calibrated by voice type. Female voices push
+        // the sibilant peak higher than male voices, so the target band shifts up.
         function getSibilantBand() {
+            if (userGender === 'female') return { low: 5000, high: 9000, target: 7000 };
             return { low: 4000, high: 8000, target: 6000 };
         }
         let analysisPromise = null;    // Tracks the backend API call
@@ -4371,6 +4373,32 @@
                 return true;
             }
 
+            // TEMP TEST ROUTE: #onboarding skips login + recording and lands
+            // straight on the step3 survey wizard (comfort → age → source →
+            // voice type + phone) so we can iterate on the wizard without
+            // recording every time. Remove before production.
+            function maybeJumpToOnboarding() {
+                if (location.hash !== '#onboarding') return false;
+                // Seed throwaway auth so downstream reads don't choke.
+                try {
+                    if (!localStorage.getItem('userAuth')) {
+                        localStorage.setItem('userAuth', JSON.stringify({ email: 'tester@local', id: 'test-skip', provider: 'test' }));
+                    }
+                } catch (e) {}
+                window.obLoggedInUser = window.obLoggedInUser || { email: 'tester@local', uid: 'test-skip', provider: 'test' };
+                // Drop login (2) and recording (1) from the flow → [3, 4].
+                [2, 1].forEach(n => { const i = STEP_ORDER.indexOf(n); if (i !== -1) STEP_ORDER.splice(i, 1); });
+                // Activate the survey step directly.
+                document.querySelectorAll('.assessment-step.active').forEach(el => el.classList.remove('active'));
+                orderIdx = 0;
+                currentStepNum = STEP_ORDER[orderIdx]; // 3 = survey wizard
+                document.getElementById('step' + currentStepNum).classList.add('active');
+                updateProgress();
+                // initStep3Wizard is assigned later in this same handler, so defer.
+                setTimeout(() => { if (typeof window.initStep3Wizard === 'function') window.initStep3Wizard(); }, 0);
+                return true;
+            }
+
             // Resume an in-progress recording session after a page refresh.
             // Logged-in user mid-capture should land back on the recording step
             // with their words restored — not bounced to the login screen.
@@ -4438,7 +4466,7 @@
                 return true;
             }
 
-            if (!maybeSkipLogin() && !maybeResumeSession()) maybeJumpToLogin();
+            if (!maybeJumpToOnboarding() && !maybeSkipLogin() && !maybeResumeSession()) maybeJumpToLogin();
             window.addEventListener('hashchange', maybeJumpToLogin);
 
             // ===== Step3 Wizard (comfort + age + source + phone) =====
@@ -4467,13 +4495,13 @@
                 { title: 'How would you describe your comfort with /s/?', sub: 'Be honest — this shapes your starting point' },
                 { title: "What's your age group?", sub: 'Helps us calibrate the target frequency for your practice sessions' },
                 { title: 'How did you learn about Lisp Speech Clinic?', sub: 'Helps us reach more people who need this' },
-                { title: 'Phone number (optional)', sub: 'We may send text reminders about your practice sessions' },
+                { title: 'Your voice type', sub: 'Calibrates your /s/ frequency target' },
             ];
             const wizState = {
                 step: 1, dir: 'fwd', _lastStep: null,
                 trouble: null, age: null,
                 source: null, sourceOther: '',
-                cc: '+1', phone: ''
+                gender: null, cc: '+1', phone: ''
             };
 
             function wizCanAdvance() {
@@ -4481,7 +4509,7 @@
                     case 1: return !!wizState.trouble;
                     case 2: return !!wizState.age;
                     case 3: return !!wizState.source && (wizState.source !== 'other' || (wizState.sourceOther || '').trim().length > 0);
-                    case 4: return true; // phone optional
+                    case 4: return !!wizState.gender; // gender required; phone optional
                     default: return false;
                 }
             }
@@ -4545,7 +4573,18 @@
                     return opts + other;
                 }
                 if (wizState.step === 4) {
+                    const genderBtns = [
+                        { v: 'male',   label: 'Male' },
+                        { v: 'female', label: 'Female' }
+                    ].map(o => `
+                        <button class="obw-opt${wizState.gender === o.v ? ' on' : ''}" data-gender="${o.v}" type="button">
+                            <div class="obw-opt-label">${o.label}</div>
+                            <div class="obw-radio${wizState.gender === o.v ? ' on' : ''}"><div></div></div>
+                        </button>
+                    `).join('');
                     return `
+                        ${genderBtns}
+                        <div style="font-size:13px;font-weight:600;color:#374151;margin:18px 0 8px;">Phone number (optional)</div>
                         <div class="obw-phone-row">
                             <input class="obw-input obw-cc" id="wizCc" type="text" inputmode="tel"
                                 maxlength="5" value="${wizEsc(wizState.cc || '+1')}">
@@ -4553,7 +4592,7 @@
                                 autocomplete="tel" placeholder="(000) 000-0000"
                                 value="${wizEsc(wizState.phone)}">
                         </div>
-                        <div class="obw-skip-note">Optional — leave blank to skip</div>
+                        <div class="obw-skip-note"></div>
                     `;
                 }
                 return '';
@@ -4597,6 +4636,9 @@
                         if (wizState.source !== 'other') wizState.sourceOther = '';
                         wizUpdate();
                     });
+                });
+                content.querySelectorAll('[data-gender]').forEach(btn => {
+                    btn.addEventListener('click', () => { wizState.gender = btn.dataset.gender; wizUpdate(); });
                 });
                 // Live updates for input fields (refresh CTA without re-rendering content)
                 const sourceOtherInp = content.querySelector('#wizSourceOther');
@@ -4643,6 +4685,9 @@
             }
 
             function wizFinish() {
+                // Voice type drives the /s/ frequency band + is sent to the backend
+                // (voiceType) so Gemini interprets the expected sibilant range correctly.
+                userGender = wizState.gender || 'male';
                 wizCommitToHiddenInputs();
                 const email = ((window.obLoggedInUser && window.obLoggedInUser.email) || '').trim();
                 const foundOn = wizState.source === 'other' ? (wizState.sourceOther || '').trim() : wizState.source;
