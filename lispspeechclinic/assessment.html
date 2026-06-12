@@ -3527,18 +3527,15 @@
                     console.warn('Could not persist recordings for playback (quota):', e);
                 }
 
-                // Run local FFT analysis + send to Gemini via cloud function.
+                // Send audio to Gemini via cloud function.
+                // Local FFT path removed: the server ignores all FFT fields and
+                // decodeAudioData threw EncodingError on recordings this browser
+                // can't decode (e.g. webm/opus on Safari). Gemini analyses the
+                // raw audio directly, so the local pass contributed nothing.
                 analysisPromise = (async () => {
-                    const local = await analyzeLocalAudio();
-                    if (local) {
-                        renderLocalResults(local);
-                        localStorage.setItem('localAnalysisResult', JSON.stringify(local));
-                        // Seed with local fallback so the results page always has something to show.
-                        localStorage.setItem('analysisResult', JSON.stringify(buildFinalAnalysis(local)));
-                    }
                     // Fire-and-wait Gemini analysis — resolves before step 5 redirects.
                     try {
-                        const gemini = await sendAudioToBackend(local);
+                        const gemini = await sendAudioToBackend();
                         if (gemini && gemini.categories?.length) {
                             localStorage.setItem('analysisResult', JSON.stringify(gemini));
                             if (typeof window.saveAnalysisToFirestore === 'function') {
@@ -3546,9 +3543,9 @@
                             }
                         }
                     } catch (err) {
-                        console.warn('Gemini analysis failed, keeping local fallback:', err);
+                        console.warn('Gemini analysis failed:', err);
                     }
-                    return local;
+                    return null;
                 })();
             }
         }
@@ -3574,7 +3571,7 @@
         // AbortController bails fast on a dead connection instead of hanging, then retries.
         async function postToBackend(payload) {
             const MAX_TRIES = 3;
-            const PER_TRY_TIMEOUT_MS = 120000; // abort a stalled attempt, then retry fresh
+            const PER_TRY_TIMEOUT_MS = 180000; // abort a stalled attempt, then retry fresh
             const body = JSON.stringify(payload);
             let lastErr;
             for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
@@ -3602,9 +3599,7 @@
             throw lastErr;
         }
 
-        async function sendAudioToBackend(local) {
-            const band = getSibilantBand();
-
+        async function sendAudioToBackend() {
             // All recorded probes, tagged word vs. sentence, in test order.
             const probes = [];
             TEST_WORD_META.forEach(meta => {
@@ -3620,30 +3615,14 @@
             });
             if (!probes.length) return null;
 
-            const fftByWord = {};
-            if (local && Array.isArray(local.words)) local.words.forEach(w => { fftByWord[w.word] = w; });
-
-            const fftData = probes.filter(p => p.type === 'word').map(p => {
-                const f = fftByWord[p.word] || {};
-                return { word: p.word, position: p.position, peakHz: f.peakHz || 0, targetHz: f.targetHz || band.target };
-            });
-
+            // Audio + text labels only. FFT removed: the server never read it,
+            // and the local FFT pass was dropped (decodeAudioData failures).
             const payload = {
                 mode: 'combined',
-                words: probes.map(p => {
-                    const part = { word: p.word, position: p.position, type: p.type, audio_base64: p.audio_base64 };
-                    // Attach Praat-style spectral moments for sentence clips only.
-                    if (p.type === 'sentence') {
-                        const f = fftByWord[p.word];
-                        if (f && f.cog) {
-                            part.sFft = [{ word: 'overall', peakHz: Math.round(f.peakHz || 0), cog: Math.round(f.cog), spread: Math.round(f.spread || 0) }];
-                        }
-                    }
-                    return part;
-                }),
-                fftData,
-                voiceType: userGender,
-                sibilantBand: band
+                words: probes.map(p => ({
+                    word: p.word, position: p.position, type: p.type, audio_base64: p.audio_base64
+                })),
+                voiceType: userGender
             };
 
             let wordRows = [], sentenceRows = [], spontaneous = null;
