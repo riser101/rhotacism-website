@@ -3529,26 +3529,9 @@
                     console.warn('Could not persist recordings for playback (quota):', e);
                 }
 
-                // Send audio to Gemini via cloud function.
-                // Local FFT path removed: the server ignores all FFT fields and
-                // decodeAudioData threw EncodingError on recordings this browser
-                // can't decode (e.g. webm/opus on Safari). Gemini analyses the
-                // raw audio directly, so the local pass contributed nothing.
-                analysisPromise = (async () => {
-                    // Fire-and-wait Gemini analysis — resolves before step 5 redirects.
-                    try {
-                        const gemini = await sendAudioToBackend();
-                        if (gemini && gemini.categories?.length) {
-                            localStorage.setItem('analysisResult', JSON.stringify(gemini));
-                            if (typeof window.saveAnalysisToFirestore === 'function') {
-                                await window.saveAnalysisToFirestore(gemini);
-                            }
-                        }
-                    } catch (err) {
-                        console.warn('Gemini analysis failed:', err);
-                    }
-                    return null;
-                })();
+                // Gemini send moved to wizFinish() — it must run AFTER the survey
+                // wizard where the user picks voice type, so userGender (sent as
+                // voiceType) reflects the real choice instead of the default.
             }
         }
 
@@ -4688,6 +4671,22 @@
                 // Voice type drives the /s/ frequency band + is sent to the backend
                 // (voiceType) so Gemini interprets the expected sibilant range correctly.
                 userGender = wizState.gender || 'male';
+                // Fire Gemini analysis now that voice type is known. startProcessing
+                // (analyzing screen) awaits analysisPromise before redirecting.
+                analysisPromise = (async () => {
+                    try {
+                        const gemini = await sendAudioToBackend();
+                        if (gemini && gemini.categories?.length) {
+                            localStorage.setItem('analysisResult', JSON.stringify(gemini));
+                            if (typeof window.saveAnalysisToFirestore === 'function') {
+                                await window.saveAnalysisToFirestore(gemini);
+                            }
+                        }
+                    } catch (err) {
+                        console.warn('Gemini analysis failed:', err);
+                    }
+                    return null;
+                })();
                 wizCommitToHiddenInputs();
                 const email = ((window.obLoggedInUser && window.obLoggedInUser.email) || '').trim();
                 const foundOn = wizState.source === 'other' ? (wizState.sourceOther || '').trim() : wizState.source;
