@@ -23,125 +23,28 @@ const corsOptions = {
 };
 const corsMiddleware = cors(corsOptions);
 
-// Gender-calibrated /s/ band defaults. Frontend usually sends sibilantBand;
-// these are fallbacks if the request omits it.
-const SIBILANT_BANDS = {
-  male:   { low: 4000, high: 8000,  target: 6000 },
-  female: { low: 5500, high: 10000, target: 7500 },
-  other:  { low: 4000, high: 8000,  target: 6000 }
-};
-
-function resolveBand(voiceType, sibilantBand) {
-  if (sibilantBand && Number.isFinite(sibilantBand.low) && Number.isFinite(sibilantBand.high)) {
-    return {
-      low: sibilantBand.low,
-      high: sibilantBand.high,
-      target: sibilantBand.target || Math.round((sibilantBand.low + sibilantBand.high) / 2)
-    };
-  }
-  const key = (voiceType || '').toLowerCase();
-  return SIBILANT_BANDS[key] || SIBILANT_BANDS.other;
-}
-
 function stripDataUrlPrefix(b64) {
   if (!b64) return '';
   const i = b64.indexOf(',');
   return i >= 0 ? b64.slice(i + 1) : b64;
 }
 
-// Build a per-word summary from client-side FFT, using gender-calibrated band.
-function formatFftSummary(fftData, band) {
-  if (!Array.isArray(fftData) || !fftData.length) return 'No FFT data provided.';
-
-  const lines = fftData.map(w => {
-    const peak = Math.round(w.peakHz || 0);
-
-    // Signed distance from the gender-calibrated target band (0 = inside band).
-    let bandDelta = 0;
-    if (peak) {
-      if (peak < band.low) bandDelta = peak - band.low;
-      else if (peak > band.high) bandDelta = peak - band.high;
-    }
-
-    return `- "${w.word}" (${w.position || '?'}): peak ${peak} Hz, band Δ ${bandDelta >= 0 ? '+' : ''}${bandDelta} Hz.`;
-  });
-
-  return lines.join('\n');
-}
-
-// Plain-language tag derived from spectral moments, to help Gemini read the
-// numbers. CoG is the primary discriminator; spread catches lateral slush.
-function spectralTag(cog, spread, band) {
-  const tags = [];
-  if (cog >= band.low) tags.push('crisp /s/ placement');
-  else if (cog < band.low - 1500) tags.push('low CoG → θ-like / dentalized');
-  else tags.push('slightly low CoG → softer /s/');
-  if (spread >= 2500) tags.push('broad/diffuse → possible lateral');
-  return tags.join(', ');
-}
-
-// Per-sentence sibilant spectral summary. Frontend aggregates the /s/-/z/
-// frication frames across each sentence clip and attaches one moment set as
-// probe.sFft = [{ peakHz, cog, spread }] (CoG = power-2 centre of gravity).
-function formatSentenceFftSummary(words, band) {
-  const blocks = words.map((w, i) => {
-    const fft = Array.isArray(w.sFft) ? w.sFft : [];
-    if (!fft.length) return `- Sentence ${i + 1}: no /s/ frequency data.`;
-
-    const items = fft.map(f => {
-      const peak = Math.round(f.peakHz || 0);
-      const cog = Math.round(f.cog || 0);
-      const spread = Math.round(f.spread || 0);
-      return `    • CoG ${cog} Hz, spread ${spread} Hz, peak ${peak} Hz — ${spectralTag(cog, spread, band)}`;
-    });
-    return `- Sentence ${i + 1}:\n${items.join('\n')}`;
-  });
-  return blocks.join('\n');
-}
-
-function buildLispPrompt(words, fftData, speakerContext) {
+function buildLispPrompt(words, speakerContext) {
   const wordList = words.map((w, i) => `${i + 1}. ${w.word}${w.position ? ' (' + w.position + ')' : ''}`).join(', ');
   const country = speakerContext.country || 'Unspecified';
   const region = speakerContext.region || 'Unspecified';
   const voiceType = speakerContext.voiceType || 'unspecified';
-  const band = speakerContext.band;
-
-  const hasFft = Array.isArray(fftData) && fftData.some(w => w && w.peakHz);
-
-  // With FFT: give the acoustic block + cross-check guide. Without: pure
-  // by-ear SLP judgment — no instrument data, just the audio.
-  const evidenceBlock = hasFft ? `
-You are provided with:
-1. Per-word audio clips in order
-2. Frequency analysis data for each word's /s/ region:
-
-${formatFftSummary(fftData, band)}
-
-Audio is the PRIMARY evidence. Judge from what you hear. Cross-check with FFT data to confirm or refine the call — never override clean audio because of FFT.
-
-- peak Hz = strongest frequency in the sibilant band
-- band Δ = signed distance from the ${band.low}–${band.high} Hz target band calibrated for this ${voiceType} voice (0 = inside)
-
-Cross-check guide:
-    * Audio clean/crisp + Δ ≈ 0 → Accurate /s/ (confirmed)
-    * Audio clean/crisp + Δ off → still Accurate (audio wins)
-    * Audio dull/th-like + Δ < −2000 → Interdental /θ/ (confirmed)
-    * Audio soft/muffled + mildly negative Δ → Dentalized` : `
-You are provided with per-word audio clips in order. Judge entirely BY EAR, as an experienced clinician listening in the room — there is no instrument data, only the audio. For each /s/ and /z/, listen for: crisp and well-placed vs. slipping toward "th" (interdental), slushy/sideways airflow (lateral), muffled/dentalized, or whistling. Trust your trained ear.`;
-
-  const closingAudioNote = hasFft
-    ? 'Only mark a distortion when you can clearly hear it in the audio. The FFT alone is not enough — confirm with the audio. When the audio sounds clean, mark Accurate even if the FFT looks suspicious.'
-    : 'Only mark a distortion when you can clearly hear it. When the audio sounds clean and the /s/ is crisp, mark Accurate.';
 
   return `You are a speech-language pathologist conducting a sigmatism (lisp) assessment. The patient said ${words.length} words in sequence: ${wordList}.
 
 Speaker context (use this to interpret accent and acoustic norms):
 - Country: ${country}
 - Region: ${region}
-- Voice type: ${voiceType} (male voices peak lower, female/child voices peak higher in the /s/ band — calibrate expectations accordingly)
+- Voice type: ${voiceType}
 
-Account for regional accent and voice type. Some dialects produce a softer /s/ — do NOT penalise that if it matches the dialect's expected production. Do NOT penalise a male voice for peaking near 4–6 kHz or a female voice for peaking near 6–9 kHz; both are normal for their respective vocal tracts.
-${evidenceBlock}
+Account for regional accent and voice type. Some dialects produce a softer /s/ — do NOT penalise that if it matches the dialect's expected production.
+
+You are provided with per-word audio clips in order. Judge entirely BY EAR, as an experienced clinician listening in the room. For each /s/ and /z/, listen for: crisp and well-placed vs. slipping toward "th" (interdental), slushy/sideways airflow (lateral), muffled/dentalized, or whistling. Trust your trained ear.
 
 ## Output format
 Return a single markdown table with exactly ${words.length} rows (one per word, in the listed order) and these columns:
@@ -154,9 +57,9 @@ Return a single markdown table with exactly ${words.length} rows (one per word, 
    - Quality: /s/ sound quality score 0-100 (100 = perfect crisp /s/, 0 = no /s/ at all). Clean productions should score 85+.
    - Observation: Brief clinical note (10-15 words)
 
-${closingAudioNote}
+Only mark a distortion when you can clearly hear it. When the audio sounds clean and the /s/ is crisp, mark Accurate.
 
-If a word is unclear or missing, put "—" in Heard, "Omitted" in Judgment, and 0 for Quality.
+If a clip is silent or you do not actually hear the word, mark "—" Heard, "Omitted" Judgment, 0 Quality — never Accurate.
 
 - Do NOT output a clarity score or summary — only the table.
 - Respond with ONLY the markdown table. No preamble, no commentary.
@@ -170,28 +73,6 @@ function buildSentencePrompt(words, speakerContext) {
   const country = speakerContext.country || 'Unspecified';
   const region = speakerContext.region || 'Unspecified';
   const voiceType = speakerContext.voiceType || 'unspecified';
-  const band = speakerContext.band || SIBILANT_BANDS.other;
-
-  // Per-sentence /s/-word frequency data (if the frontend split + FFT'd the clip).
-  const hasFft = words.some(w => Array.isArray(w.sFft) && w.sFft.length);
-  const frequencyBlock = formatSentenceFftSummary(words, band);
-
-  const fftSection = hasFft ? `
-
-You are also given a sibilant spectral summary for each sentence's /s/ and /z/ frication, calibrated for this ${voiceType} voice (target band ${band.low}–${band.high} Hz):
-
-${frequencyBlock}
-
-- CoG (centre of gravity) = where the sibilant's energy is centred. High CoG (≥ ${band.low} Hz) = crisp, well-placed /s/. Low CoG (well below ${band.low} Hz) = energy slipped down, typical of interdental /θ/ or dentalized /s/.
-- spread = how wide the energy is smeared. A broad/diffuse spread suggests sideways (lateral) airflow — "slushy" /s/.
-- peak Hz = strongest single frequency in the sibilant band.
-
-Audio is the PRIMARY evidence — judge from what you hear. Use these moments only to confirm or refine:
-    * Audio clean/crisp + high CoG → those sibilants are accurate (confirmed)
-    * Audio clean/crisp + low CoG → still accurate (audio wins)
-    * Audio dull/th-like + low CoG → interdental /θ/ or dentalized (confirmed)
-    * Audio slushy + broad spread → lateral (confirmed)
-Never override clean audio because of the numbers.` : '';
 
   return `You are a speech-language pathologist assessing connected speech for a sigmatism (lisp). The patient read these sentences aloud — one audio clip each, in this order:
 ${sentenceList}
@@ -201,7 +82,7 @@ Speaker context (use to interpret accent and acoustic norms):
 - Region: ${region}
 - Voice type: ${voiceType}
 
-Listen to each clip as a whole. Focus on the sibilant sounds: /s/, /z/, "sh", "ch", "j". Do NOT transcribe the sentence. Judge how clear and natural the sibilants are in running speech, allowing for the speaker's regional accent. Do NOT penalise a softer /s/ if it matches the dialect.${fftSection}
+Listen to each clip as a whole. Focus on the sibilant sounds: /s/, /z/, "sh", "ch", "j". Do NOT transcribe the sentence. Judge how clear and natural the sibilants are in running speech, allowing for the speaker's regional accent. Do NOT penalise a softer /s/ if it matches the dialect.
 
 ## Output format
 Return a single markdown table with exactly ${words.length} rows (one per sentence, in the listed order) and these columns:
@@ -212,6 +93,8 @@ Return a single markdown table with exactly ${words.length} rows (one per senten
    - Quality: overall sibilant clarity for the whole sentence, 0-100 (100 = every sibilant crisp, clean speech should score 85+)
    - Mistakes: plain-language note of WHERE the lisp showed up — name the specific words or sounds the patient struggled with (e.g. "the 's' in 'sells' and 'seashells' sounded slushy"). If the sentence is clean, write "None — all sounds clear".
 
+If a clip is silent or you do not actually hear the sentence, mark "Omitted" Judgment, 0 Quality — never Accurate.
+
 Respond with ONLY the markdown table. No preamble, no commentary.
 IMPORTANT: Use everyday language. No technical terms (no Hz, FFT, formant, spectrogram, phoneme, sibilant band).`;
 }
@@ -220,7 +103,6 @@ IMPORTANT: Use everyday language. No technical terms (no Hz, FFT, formant, spect
 // the patient speaks unscripted, so sibilant control reflects everyday speech.
 // This is FLAGGED QUALITATIVELY — no per-word scoring, no numeric quality.
 function buildSpontaneousPrompt(speakerContext) {
-  const band = speakerContext.band;
   const country = speakerContext.country || 'Unspecified';
   const region = speakerContext.region || 'Unspecified';
   const voiceType = speakerContext.voiceType || 'unspecified';
@@ -343,8 +225,8 @@ function buildAudioParts(prompt, words) {
   return parts;
 }
 
-async function analyzeWithGemini(words, fftData, speakerContext) {
-  const prompt = buildLispPrompt(words, fftData, speakerContext);
+async function analyzeWithGemini(words, speakerContext) {
+  const prompt = buildLispPrompt(words, speakerContext);
   return callGemini(buildAudioParts(prompt, words));
 }
 
@@ -355,8 +237,8 @@ async function analyzeSentencesWithGemini(words, speakerContext) {
 
 // Single call covering all clips. Reuses the EXISTING word prompt (unchanged,
 // just fed all the words) and the sentence prompt, asking for two headed tables.
-function buildCombinedPrompt(wordProbes, sentenceProbes, passageProbes, fftData, speakerContext) {
-  const wordPrompt = buildLispPrompt(wordProbes, fftData, speakerContext);
+function buildCombinedPrompt(wordProbes, sentenceProbes, passageProbes, speakerContext) {
+  const wordPrompt = buildLispPrompt(wordProbes, speakerContext);
   const sentencePrompt = buildSentencePrompt(sentenceProbes, speakerContext);
   const nW = wordProbes.length, nS = sentenceProbes.length, nP = passageProbes.length;
 
@@ -383,8 +265,8 @@ Do NOT number the table rows. Put ONLY the bare word/sentence in the first colum
   return prompt;
 }
 
-async function analyzeCombinedWithGemini(wordProbes, sentenceProbes, passageProbes, fftData, speakerContext) {
-  const prompt = buildCombinedPrompt(wordProbes, sentenceProbes, passageProbes, fftData, speakerContext);
+async function analyzeCombinedWithGemini(wordProbes, sentenceProbes, passageProbes, speakerContext) {
+  const prompt = buildCombinedPrompt(wordProbes, sentenceProbes, passageProbes, speakerContext);
   // Clip order must match the prompt: words, then sentences, then spontaneous.
   const ordered = [...wordProbes, ...sentenceProbes, ...passageProbes];
   return callGemini(buildAudioParts(prompt, ordered));
@@ -532,22 +414,21 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         return res.status(400).json({ error: 'Expected application/json' });
       }
 
-      const { words, fftData, voiceType, sibilantBand, mode } = req.body || {};
+      const { words, voiceType, mode } = req.body || {};
       if (!Array.isArray(words) || !words.length) {
         return res.status(400).json({ error: 'words array required' });
       }
 
       const country = req.headers['x-appengine-country'] || req.headers['x-country'] || 'Unspecified';
       const region = req.headers['x-appengine-region'] || req.headers['x-region'] || 'Unspecified';
-      const band = resolveBand(voiceType, sibilantBand);
-      const speakerContext = { country, region, voiceType: voiceType || 'unspecified', band };
-      console.log(`🎚️  Mode: ${mode || 'words'} | ${words.length} probes | voice: ${speakerContext.voiceType} | band: ${band.low}–${band.high} Hz`);
+      const speakerContext = { country, region, voiceType: voiceType || 'unspecified' };
+      console.log(`🎚️  Mode: ${mode || 'words'} | ${words.length} probes | voice: ${speakerContext.voiceType}`);
 
       if (mode === 'combined') {
         const wordProbes = words.filter(w => w.type !== 'sentence' && w.type !== 'passage');
         const sentenceProbes = words.filter(w => w.type === 'sentence');
         const passageProbes = words.filter(w => w.type === 'passage');
-        const { rawText, usage } = await analyzeCombinedWithGemini(wordProbes, sentenceProbes, passageProbes, fftData || [], speakerContext);
+        const { rawText, usage } = await analyzeCombinedWithGemini(wordProbes, sentenceProbes, passageProbes, speakerContext);
         const { wordPart, sentencePart, spontaneousPart } = splitCombinedResponse(rawText);
         const wordParsed = parseGeminiTable(wordPart, wordProbes.length);
         const sentenceParsed = parseSentenceTable(sentencePart, sentenceProbes.length);
@@ -564,7 +445,7 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         return res.status(200).json({ ...parsed, mode: 'sentences', usage });
       }
 
-      const { rawText, usage } = await analyzeWithGemini(words, fftData || [], speakerContext);
+      const { rawText, usage } = await analyzeWithGemini(words, speakerContext);
       const parsed = parseGeminiTable(rawText, words.length);
       res.status(200).json({ ...parsed, mode: 'words', usage });
     } catch (err) {
