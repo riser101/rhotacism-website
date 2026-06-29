@@ -3556,7 +3556,7 @@
         // AbortController bails fast on a dead connection instead of hanging, then retries.
         async function postToBackend(payload) {
             const MAX_TRIES = 3;
-            const PER_TRY_TIMEOUT_MS = 180000; // abort a stalled attempt, then retry fresh
+            const PER_TRY_TIMEOUT_MS = 600000; // 10 min — abort a stalled attempt, then retry fresh
             const body = JSON.stringify(payload);
             let lastErr;
             for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
