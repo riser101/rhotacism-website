@@ -2,6 +2,14 @@ require('dotenv').config();
 const functions = require('@google-cloud/functions-framework');
 const cors = require('cors');
 
+// Gemini Pro 3.1 (non-streaming) holds the socket open with no response headers
+// while it "thinks" — up to several minutes on combined 40-clip runs. undici's
+// default headersTimeout (~300s) aborts the fetch mid-think (UND_ERR_HEADERS_TIMEOUT).
+// AbortSignal does NOT override that internal timeout — only a global dispatcher does.
+// Raise headers/body timeouts to 10 min so the call survives long thinking budgets.
+const { setGlobalDispatcher, Agent } = require('undici');
+setGlobalDispatcher(new Agent({ headersTimeout: 600000, bodyTimeout: 600000 }));
+
 const corsOptions = {
   origin: [
     'https://www.topspeech.health',
