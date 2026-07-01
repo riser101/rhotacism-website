@@ -1528,17 +1528,19 @@
                     inner = convertMarkdownToHTML(wordCatMarkdown(cat.rows));
                 }
 
+                var openByDefault = idx === 0;
+
                 html += '<div class="cat-card" style="border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #fff;">';
-                html += '<button type="button" class="cat-header" aria-expanded="false" onclick="toggleCategory(\'' + bodyId + '\', this)" '
+                html += '<button type="button" class="cat-header" aria-expanded="' + (openByDefault ? 'true' : 'false') + '" onclick="toggleCategory(\'' + bodyId + '\', this)" '
                     + 'style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px 18px; background: #F8FAFC; border: none; cursor: pointer; text-align: left;">';
                 // Keep heading simple — drop any leading "Tier N — " prefix that
                 // older stored results may carry (e.g. "Tier 1 — Core /s/ & /z/").
                 var catTitle = (cat.title || '').replace(/^\s*Tier\s*\d+\s*[—–-]\s*/i, '');
                 html += '<span style="flex: 1; font-weight: 600; font-size: 15px; color: #1A202C;">' + catTitle + '</span>';
                 html += '<span style="font-size: 12px; color: #64748B; white-space: nowrap;">' + countLabel + '</span>';
-                html += '<span class="cat-chevron" style="transition: transform 0.2s; color: #94A3B8; font-size: 14px;">▾</span>';
+                html += '<span class="cat-chevron" style="transition: transform 0.2s; color: #94A3B8; font-size: 14px;' + (openByDefault ? ' transform: rotate(180deg);' : '') + '">▾</span>';
                 html += '</button>';
-                html += '<div id="' + bodyId + '" class="cat-body ' + bodyClass + '" style="display: none; padding: 0 14px 8px;">' + inner + '</div>';
+                html += '<div id="' + bodyId + '" class="cat-body ' + bodyClass + '" style="display: ' + (openByDefault ? 'block' : 'none') + '; padding: 0 14px 8px;">' + inner + '</div>';
                 html += '</div>';
             });
 
