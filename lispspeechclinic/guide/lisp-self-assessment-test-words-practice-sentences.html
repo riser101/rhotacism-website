@@ -725,7 +725,7 @@
                     section.querySelectorAll('.word-chip.playable').forEach(function(chip) {
                         chip.setAttribute('role', 'button');
                         chip.setAttribute('tabindex', '0');
-                        chip.setAttribute('aria-label', 'Play pronunciation: ' + chip.textContent.trim());
+                        chip.setAttribute('aria-label', 'Record yourself saying ' + chip.textContent.trim() + ' (tap speaker icon to hear it)');
                         function play() {
                             var src = chip.getAttribute('data-audio');
                             if (!src) return;
@@ -745,9 +745,19 @@
                             });
                             audio.play().catch(function() { chip.classList.remove('is-playing'); });
                         }
-                        chip.addEventListener('click', play);
+                        chip.addEventListener('click', function(e) {
+                            if (e.target.closest('.hover-rec')) return;
+                            var rect = chip.getBoundingClientRect();
+                            if ((e.clientX - rect.left) <= 30) { play(); return; }
+                            var recBtn = chip.querySelector('.hover-rec');
+                            if (recBtn) recBtn.click(); else play();
+                        });
                         chip.addEventListener('keydown', function(e) {
-                            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); play(); }
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                var recBtn = chip.querySelector('.hover-rec');
+                                if (recBtn) recBtn.click(); else play();
+                            }
                         });
                     });
                 })();
