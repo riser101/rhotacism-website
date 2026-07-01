@@ -1858,11 +1858,30 @@
                 if (stored) userRecordings = JSON.parse(stored);
             } catch (e) {}
 
+            // Columns: Sentence | Recording | Judgment | Severity | Where you slipped
+            var matchedCount = 0;
+            var accurateCount = 0;
+            var lispTypeCounts = {};
+
             rows.forEach(function(tr) {
                 var tds = tr.querySelectorAll('td');
                 if (tds.length < 2) return;
                 var sentenceCell = tds[0];
                 var recordingCell = tds[1];
+                var judgmentCell = tds[2];
+                var slippedCell = tds[4];
+
+                // Track accuracy to drive the therapy/CTA sections (same as word flow)
+                if (judgmentCell && normalizeSentence(sentenceCell.textContent)) {
+                    matchedCount++;
+                    if (judgmentCell.textContent.trim().toLowerCase() === 'accurate') {
+                        accurateCount++;
+                    } else if (slippedCell) {
+                        // Infer lisp type from Gemini's "Where you slipped" note
+                        var lt = classifyLispType(slippedCell.textContent.trim().toLowerCase());
+                        lispTypeCounts[lt] = (lispTypeCounts[lt] || 0) + 1;
+                    }
+                }
 
                 var cellNorm = normalizeSentence(sentenceCell.textContent);
                 if (!cellNorm) return;
@@ -1878,6 +1897,17 @@
                 var src = b64.startsWith('data:') ? b64 : 'data:audio/webm;base64,' + b64;
                 recordingCell.appendChild(createPlayButton(src, 'Yours'));
             });
+
+            // Sentence-only assessment → word flow never ran the section logic.
+            // Drive it here so inaccurate results still show the therapy/CTA
+            // sections, and all-accurate results still hide them.
+            if (!container.querySelector('.cat-words') && matchedCount > 0) {
+                if (accurateCount === matchedCount) {
+                    hideGenericSections();
+                } else {
+                    updateCtaCopy([], lispTypeCounts);
+                }
+            }
         }
 
         // =============================================
