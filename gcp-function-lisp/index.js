@@ -37,6 +37,38 @@ function stripDataUrlPrefix(b64) {
   return i >= 0 ? b64.slice(i + 1) : b64;
 }
 
+// Compact one-line acoustic summary from the Praat function (main.py), attached
+// to each clip so Gemini can reason over the >8 kHz band it cannot hear.
+function formatAcoustics(a) {
+  if (!a || typeof a !== 'object') return '';
+  if (a.error) return `[acoustics unavailable: ${a.error}]`;
+  const kHz = (hz) => (Number(hz) / 1000).toFixed(1) + 'kHz';
+  const num = (x, d = 2) => (x == null ? '?' : Number(x).toFixed(d));
+  const cog = a.center_of_gravity ?? a.centroid_hz;
+  return [
+    `CoG=${kHz(cog)}`,
+    a.spectral_std_dev != null ? `spread=${kHz(a.spectral_std_dev)}` : null,
+    a.spectral_skewness != null ? `skew=${num(a.spectral_skewness)}` : null,
+    a.spectral_kurtosis != null ? `kurtosis=${num(a.spectral_kurtosis)}` : null,
+    a.sibilant_peak_hz != null ? `peak(3-14k)=${kHz(a.sibilant_peak_hz)}` : null,
+    a.energy_ratio_hi != null ? `E(8-14/3-8)=${num(a.energy_ratio_hi)}` : null,
+    a.energy_ratio_low != null ? `E(0.5-4/total)=${num(a.energy_ratio_low)}` : null,
+    a.duration_ms != null ? `dur=${Math.round(a.duration_ms)}ms` : null,
+    a.rms != null ? `rms=${num(a.rms, 4)}` : null,
+  ].filter(Boolean).join(', ');
+}
+
+// Interpretation guide injected once into the word prompt so Gemini knows how to
+// weigh the Praat numbers — especially the high-frequency band beyond its hearing.
+const ACOUSTIC_GUIDE = `## Acoustic measurements (Praat, computed on the 48 kHz recording)
+Each clip below is preceded by a [Praat acoustics] line. The recording captures the full spectrum up to 24 kHz, but your audio hearing rolls off around 8 kHz. These numbers cover the sibilant energy above that limit (peak frequency is searched in the 3–14 kHz range where /s/ energy lives). Treat them as ground-truth for the high-frequency evidence and weigh them against what you hear.
+- CoG (centre of gravity): normal /s/ ≈ 6.5–8.5 kHz (male), ≈ 7.5–10 kHz (female). An interdental (th-like) /s/ drops to ≈ 3.5–5.5 kHz.
+- kurtosis: a low/flat value means a diffuse, smeared spectrum → lateral (slushy) lisp. A sharp peak (higher kurtosis) is normal. Best single discriminator for lateral.
+- E(8-14/3-8): high-frequency energy balance you cannot hear. A low value with an otherwise normal CoG points to a frontal production.
+- E(0.5-4/total): elevated low-frequency energy = turbulence leaking low, a lateral marker.
+- dur/rms: quality gate — if duration is very short or rms very low, the sibilant was weak; trust your ear over the numbers.
+When ear and numbers disagree, favour the acoustic evidence for the high-frequency band and say what you heard in plain language.`;
+
 function buildLispPrompt(words, speakerContext) {
   const wordList = words.map((w, i) => `${i + 1}. ${w.word}${w.position ? ' (' + w.position + ')' : ''}`).join(', ');
   const country = speakerContext.country || 'Unspecified';
@@ -52,7 +84,9 @@ Speaker context (use this to interpret accent and acoustic norms):
 
 Account for regional accent and voice type. Some dialects produce a softer /s/ — do NOT penalise that if it matches the dialect's expected production.
 
-You are provided with per-word audio clips in order. Judge entirely BY EAR, as an experienced clinician listening in the room. For each /s/ and /z/, listen for: crisp and well-placed vs. slipping toward "th" (interdental), slushy/sideways airflow (lateral), muffled/dentalized, or whistling. Trust your trained ear.
+You are provided with per-word audio clips in order. Judge as an experienced clinician: listen BY EAR and cross-check the acoustic measurements below. For each /s/ and /z/, listen for: crisp and well-placed vs. slipping toward "th" (interdental), slushy/sideways airflow (lateral), muffled/dentalized, or whistling. Trust your trained ear, corrected by the numbers for the high-frequency band you cannot hear.
+
+${ACOUSTIC_GUIDE}
 
 ## Output format
 Return a single markdown table with exactly ${words.length} rows (one per word, in the listed order) and these columns:
@@ -227,7 +261,10 @@ function buildAudioParts(prompt, words) {
   words.forEach((w, i) => {
     const b64 = stripDataUrlPrefix(w.audio_base64);
     if (!b64) return;
-    parts.push({ text: `\n--- Clip ${i + 1}: "${w.word}" (${w.position || '?'}) ---` });
+    const acoustics = formatAcoustics(w.acoustics);
+    let header = `\n--- Clip ${i + 1}: "${w.word}" (${w.position || '?'}) ---`;
+    if (acoustics) header += `\n[Praat acoustics] ${acoustics}`;
+    parts.push({ text: header });
     parts.push({ inline_data: { mime_type: 'audio/webm', data: b64 } });
   });
   return parts;
