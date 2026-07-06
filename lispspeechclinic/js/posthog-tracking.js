@@ -23,6 +23,20 @@
             viewport_height: window.innerHeight
         });
 
+        // Track App Store link clicks. Uses sendBeacon so the event survives the
+        // navigation without delaying it — the browser guarantees delivery even as
+        // the page unloads. Replaces the (unreliable) inline onclick captures.
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a[href*="apps.apple.com"]');
+            if (!link) return;
+            posthog.capture('app_store_click', {
+                href: link.href,
+                section: link.closest('section')?.id || link.closest('section')?.className || 'unknown',
+                link_text: link.innerText.trim(),
+                page_url: window.location.href
+            }, { transport: 'sendBeacon' });
+        });
+
         // Track all button clicks
         document.addEventListener('click', function(e) {
             const target = e.target.closest('button, a, .btn, [role="button"]');
