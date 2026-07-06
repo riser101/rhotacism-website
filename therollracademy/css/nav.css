@@ -687,3 +687,77 @@ body.user-logged-in .login-nav {
         display: inline;
     }
 }
+
+/* App Store QR modal (web only) */
+.qr-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999; /* below .navbar (1000) so the top nav stays visible */
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    overflow-y: auto;
+    background: linear-gradient(160deg, #1a1a1a 0%, #252500 40%, #454500 70%, #1a1a1a 100%);
+    animation: qrOverlayIn .25s ease;
+}
+.qr-modal-overlay.open { display: flex; }
+@keyframes qrOverlayIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes qrCardIn { from { opacity: 0; transform: translateY(24px) scale(.96); } to { opacity: 1; transform: none; } }
+.qr-modal-back {
+    position: absolute;
+    top: 92px;
+    left: 36px;
+    background: none;
+    border: none;
+    color: #FF8B42;
+    font-size: 40px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 8px;
+}
+.qr-modal-content {
+    max-width: 900px;
+    width: 100%;
+    padding: 150px 24px 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    animation: qrCardIn .3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.qr-modal-title {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.01em;
+    margin: 0 0 16px;
+}
+.qr-modal-sub {
+    font-size: 17px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 48px;
+}
+.qr-modal-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 20px;
+}
+.qr-modal-img {
+    display: block;
+    width: 220px;
+    height: 220px;
+}
+.qr-modal-foot {
+    font-size: 17px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 28px;
+}
+@media (max-width: 600px) {
+    .qr-modal-title { font-size: 24px; }
+    .qr-modal-content { padding: 130px 20px 60px; }
+    .qr-modal-back { top: 78px; left: 20px; }
+}

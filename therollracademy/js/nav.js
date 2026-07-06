@@ -75,8 +75,50 @@ document.addEventListener('DOMContentLoaded', function() {
     document.head.appendChild(googleSignInScript);
 });
 
+// Detect iOS / iPadOS (iPadOS 13+ reports as "Macintosh" but is touch-capable)
+function isIOSDevice() {
+    const ua = navigator.userAgent || '';
+    const iOS = /iPad|iPhone|iPod/.test(ua);
+    const iPadOS = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+    return iOS || iPadOS;
+}
+
+// App Store QR modal controls
+window.openQrModal = function() {
+    const overlay = document.getElementById('qrModalOverlay');
+    if (!overlay) return;
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+};
+window.closeQrModal = function() {
+    const overlay = document.getElementById('qrModalOverlay');
+    if (!overlay) return;
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+};
+
 // Navigation functionality
 function initializeNavigation() {
+    // App Store download: show QR on web, launch App Store on iOS/iPadOS
+    document.querySelectorAll('.desktop-download-btn, .mobile-download-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            if (isIOSDevice()) return; // let the link open the App Store
+            e.preventDefault();
+            window.openQrModal();
+        });
+    });
+    const qrOverlay = document.getElementById('qrModalOverlay');
+    if (qrOverlay) {
+        qrOverlay.addEventListener('click', function(e) {
+            if (e.target === qrOverlay) window.closeQrModal();
+        });
+    }
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') window.closeQrModal();
+    });
+
     // Check if floating top bar exists and add class to navbar
     const floatingTopBar = document.getElementById('floatingTopBar');
     const navbar = document.getElementById('mainNavbar');
