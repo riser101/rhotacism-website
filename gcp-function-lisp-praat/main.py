@@ -5,17 +5,30 @@ import tempfile
 import traceback
 
 import functions_framework
+import imageio_ffmpeg
 import numpy as np
 import parselmouth
 from parselmouth.praat import call
 
-# Target /s/ sibilant band (Hz)
+# Bundled static ffmpeg binary (opus/webm decoders included). Lets this deploy as
+# a plain source function — the Python buildpack has no system ffmpeg. Resolved
+# once at import so per-request cost is just the subprocess.
+FFMPEG_BIN = imageio_ffmpeg.get_ffmpeg_exe()
+
+# Target /s/ sibilant band (Hz). Capture is 48 kHz → Nyquist 24 kHz, so the full
+# 3–14 kHz sibilant band survives (was capped at 10 kHz under the old 16 kHz WAV).
 SIBILANT_MIN_HZ = 3000
-SIBILANT_MAX_HZ = 10000
+SIBILANT_MAX_HZ = 14000
 TARGET_CENTER_HZ = 7000
 TARGET_BAND_MIN = 5000
 TARGET_BAND_MAX = 9000
 HF_CUTOFF_HZ = 4000
+
+# Energy-ratio bands (Hz). The 8–14 kHz band is the fullband-only feature Gemini
+# cannot hear (its audio ears roll off ~8 kHz) — decisive for frontal-vs-normal.
+ER_MID_LO, ER_MID_HI = 3000, 8000     # 3–8 kHz
+ER_HI_LO, ER_HI_HI = 8000, 14000      # 8–14 kHz
+ER_LOW_LO, ER_LOW_HI = 500, 4000      # 0.5–4 kHz (lateral turbulence leaks low)
 
 
 def analyze_word(audio_bytes, word, position=''):
@@ -28,9 +41,11 @@ def analyze_word(audio_bytes, word, position=''):
             in_path = f_in.name
 
         wav_path = in_path.replace('.audio', '.wav')
+        # 48 kHz WAV (Nyquist 24 kHz) preserves the full 3–14 kHz sibilant band.
+        # 16 kHz here silently clipped everything above 8 kHz — half the /s/ energy.
         subprocess.run([
-            'ffmpeg', '-y', '-i', in_path,
-            '-ac', '1', '-ar', '16000', '-acodec', 'pcm_s16le',
+            FFMPEG_BIN, '-y', '-i', in_path,
+            '-ac', '1', '-ar', '48000', '-acodec', 'pcm_s16le',
             wav_path
         ], capture_output=True, check=True, timeout=30)
         os.unlink(in_path)
@@ -123,6 +138,22 @@ def analyze_word(audio_bytes, word, position=''):
         hf_energy = np.sum(fft_mag[freqs >= HF_CUTOFF_HZ] ** 2)
         hf_ratio = float(hf_energy / total_energy) if total_energy > 0 else 0.0
 
+        # ── Band energy ratios (need 48 kHz capture to be meaningful) ──
+        def band_energy(lo, hi):
+            m = (freqs >= lo) & (freqs < hi)
+            return float(np.sum(fft_mag[m] ** 2))
+
+        e_mid = band_energy(ER_MID_LO, ER_MID_HI)   # 3–8 kHz
+        e_hi = band_energy(ER_HI_LO, ER_HI_HI)      # 8–14 kHz (Gemini can't hear this)
+        e_low = band_energy(ER_LOW_LO, ER_LOW_HI)   # 0.5–4 kHz
+        # 8–14 / 3–8: fullband HF balance — decisive for frontal-vs-normal.
+        energy_ratio_hi = float(e_hi / e_mid) if e_mid > 0 else 0.0
+        # 0.5–4 / total: elevated low-frequency leak flags lateral turbulence.
+        energy_ratio_low = float(e_low / total_energy) if total_energy > 0 else 0.0
+
+        # RMS of the sibilant segment — quality gate for when to trust the numbers.
+        rms = float(np.sqrt(np.mean(seg_samples ** 2)))
+
         # Centroid
         centroid_hz = float(np.sum(freqs * fft_mag) / np.sum(fft_mag)) if np.sum(fft_mag) > 0 else 0.0
 
@@ -147,6 +178,9 @@ def analyze_word(audio_bytes, word, position=''):
             'overall_peak_hz': round(overall_peak_hz, 1),
             'centroid_hz': round(centroid_hz, 1),
             'hf_ratio': round(hf_ratio, 3),
+            'energy_ratio_hi': round(energy_ratio_hi, 3),
+            'energy_ratio_low': round(energy_ratio_low, 3),
+            'rms': round(rms, 4),
             'band_delta': round(band_delta, 1),
             'target_hz': TARGET_CENTER_HZ,
             'duration_ms': round(duration_ms, 1),
@@ -184,12 +218,15 @@ def extract_sibilant_metrics(request):
         if not words:
             return ({'error': 'words array required'}, 400, headers)
 
+        print(f"[praat] request: {len(words)} clip(s)", flush=True)
+
         results = []
         for entry in words:
             word_name = entry.get('word', 'unknown')
             position = entry.get('position', '')
             b64 = entry.get('audio_base64', '')
             if not b64:
+                print(f"[praat]   '{word_name}': SKIP (no audio)", flush=True)
                 results.append({'word': word_name, 'position': position, 'error': 'No audio'})
                 continue
 
@@ -199,7 +236,22 @@ def extract_sibilant_metrics(request):
 
             audio_bytes = base64.b64decode(b64)
             result = analyze_word(audio_bytes, word_name, position)
+            # Per-clip line so Cloud logs show whether analysis actually produced
+            # numbers (and the key values) or fell over on a specific clip.
+            if result.get('error'):
+                print(f"[praat]   '{word_name}': ERROR {result['error']}", flush=True)
+            else:
+                print(
+                    f"[praat]   '{word_name}': CoG={result.get('center_of_gravity')}Hz "
+                    f"kurt={result.get('spectral_kurtosis')} "
+                    f"E_hi={result.get('energy_ratio_hi')} "
+                    f"dur={result.get('duration_ms')}ms",
+                    flush=True,
+                )
             results.append(result)
+
+        ok = sum(1 for r in results if not r.get('error'))
+        print(f"[praat] done: {ok}/{len(results)} clip(s) analysed OK", flush=True)
 
         return (results, 200, headers)
 
