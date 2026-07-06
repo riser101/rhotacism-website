@@ -2752,6 +2752,10 @@
         // For local dev run `npx functions-framework --target=analyzeLispSpeech` in gcp-function-lisp/.
         const GCP_ANALYZE_URL = 'https://analyze-lisp-speech-653307587559.us-central1.run.app';
         // const GCP_ANALYZE_URL = 'http://localhost:8081';
+        // Praat sibilant-metrics function (gcp-function-lisp-praat/main.py). Computes
+        // CoG/kurtosis/energy-ratios per clip; results are merged into the Gemini
+        // payload so Gemini can reason over the >8kHz band it cannot hear.
+        const PRAAT_URL = 'https://extract-sibilant-metrics-653307587559.us-central1.run.app';
         // Recording state
         let mediaRecorder = null;
         let audioChunks = [];
@@ -3641,6 +3645,33 @@
             throw lastErr;
         }
 
+        // Send every clip to the Praat function and return a map of word -> acoustic
+        // metrics. Best-effort: on any failure we return {} and Gemini falls back to
+        // ear-only judgment (the payload simply carries no acoustics for that clip).
+        async function fetchPraatMetrics(probes) {
+            try {
+                const resp = await fetch(PRAAT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        words: probes.map(p => ({
+                            word: p.word, position: p.position, audio_base64: p.audio_base64
+                        }))
+                    })
+                });
+                if (!resp.ok) throw new Error('Praat error: ' + resp.status);
+                const rows = await resp.json();
+                const byWord = {};
+                (Array.isArray(rows) ? rows : []).forEach(r => {
+                    if (r && r.word) byWord[r.word] = r;
+                });
+                return byWord;
+            } catch (err) {
+                console.warn('Praat metrics failed (falling back to ear-only):', err?.message || err);
+                return {};
+            }
+        }
+
         async function sendAudioToBackend() {
             // All recorded probes, tagged word vs. sentence, in test order.
             const probes = [];
@@ -3657,12 +3688,20 @@
             });
             if (!probes.length) return null;
 
-            // Audio + text labels only. FFT removed: the server never read it,
-            // and the local FFT pass was dropped (decodeAudioData failures).
+            // Praat acoustics computed backend-side, then merged per word into the
+            // Gemini payload so Gemini reasons over the full sibilant band (incl. the
+            // >8kHz energy it cannot hear). Best-effort — {} on failure.
+            // Words only: Praat isolates ONE sibilant segment per clip, which is
+            // meaningless for multi-sibilant sentences and the long passage — those
+            // stay ear-only for Gemini.
+            const wordProbes = probes.filter(p => p.type === 'word');
+            const acousticsByWord = await fetchPraatMetrics(wordProbes);
+
             const payload = {
                 mode: 'combined',
                 words: probes.map(p => ({
-                    word: p.word, position: p.position, type: p.type, audio_base64: p.audio_base64
+                    word: p.word, position: p.position, type: p.type, audio_base64: p.audio_base64,
+                    acoustics: acousticsByWord[p.word] || null
                 })),
                 voiceType: userGender
             };
