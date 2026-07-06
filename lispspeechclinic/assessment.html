@@ -74,7 +74,11 @@
                 const userId = posthogId ? `ph_${posthogId}` : `anon_${sessionId}`;
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
                 const isLocal = window.location.host.includes('localhost') || window.location.host.includes('127.0.0.1');
-                const pathPrefix = isLocal ? 'recordings/lisp/local-testing' : 'recordings/lispv2';
+                // lispv3 = fullband capture era (echoCancellation OFF + Opus 256k),
+                // preserving the 5-14kHz sibilant band. lispv2 and earlier are
+                // AEC band-limited (~8kHz) and must NOT be mixed into training. Pull
+                // the training set from the lispv3 prefix only.
+                const pathPrefix = isLocal ? 'recordings/lisp/local-testing-v3' : 'recordings/lispv3';
                 const filePath = `${pathPrefix}/${userId}/${timestamp}_${wordIndex}_lisp_${word}.webm`;
 
                 const storageRef = ref(storage, filePath);
@@ -82,6 +86,9 @@
                     contentType: 'audio/webm',
                     customMetadata: {
                         product: 'lisp',
+                        // Capture format tag — filter training data by this even if
+                        // prefixes ever get merged. 'v3' = AEC off + Opus 256k fullband.
+                        captureFormat: 'aec-off_opus256k_fullband_v3',
                         word: word,
                         wordIndex: String(wordIndex),
                         userId: userId,
@@ -89,7 +96,12 @@
                         sessionId: sessionId,
                         authUserId: userAuth?.id ? String(userAuth.id) : '',
                         userEmail: userAuth?.email || 'unknown',
-                        assessmentDate: new Date().toISOString()
+                        assessmentDate: new Date().toISOString(),
+                        // Actual capture sample rates (set in ensureMicStream). Want
+                        // 48000 on both — a 16000 flags a hardware/OS mic cap where the
+                        // 5-14kHz sibilant band is lost no matter the codec settings.
+                        trackSampleRate: String(window.captureSampleInfo?.trackSampleRate ?? ''),
+                        contextSampleRate: String(window.captureSampleInfo?.contextSampleRate ?? '')
                     }
                 };
 
@@ -3219,7 +3231,10 @@
             }
             audioStream = await navigator.mediaDevices.getUserMedia({
                 audio: {
-                    echoCancellation: true,   // cancel chime bleed via system AEC
+                    // AEC OFF: WebRTC AEC band-limits capture to ~8kHz, destroying the
+                    // 5-14kHz sibilant band the lisp classifier depends on. Chimes are
+                    // disabled (see playStartChime/playStopChime) so no bleed to cancel.
+                    echoCancellation: false,
                     noiseSuppression: false,
                     autoGainControl: false,
                     sampleRate: 48000,
@@ -3234,6 +3249,19 @@
             analyserNode.minDecibels = -90;
             analyserNode.maxDecibels = -20;
             source.connect(analyserNode);
+
+            // Record the ACTUAL capture sample rate for diagnostics. AEC-off should
+            // yield 48000 on both; a 16000 here means the hardware/OS capped the mic,
+            // and the sibilant band is still lost regardless of codec. Bridged to the
+            // upload module via window so it lands in GCP Storage file metadata.
+            try {
+                const trackRate = audioStream.getAudioTracks()[0]?.getSettings?.().sampleRate ?? null;
+                window.captureSampleInfo = {
+                    trackSampleRate: trackRate,               // want 48000
+                    contextSampleRate: audioContext.sampleRate // want 48000
+                };
+                console.log('[capture] track sampleRate=' + trackRate + ' context sampleRate=' + audioContext.sampleRate);
+            } catch (_) {}
         }
 
         // Fully release mic + audio graph (session end / leaving capture step).
@@ -3248,11 +3276,26 @@
             }
         }
 
+        // Guard: not every browser accepts the opus mimeType option (older Safari).
+        // Falls back to default MediaRecorder when unsupported.
+        function supportsFullbandOpus() {
+            try {
+                return typeof MediaRecorder !== 'undefined'
+                    && MediaRecorder.isTypeSupported
+                    && MediaRecorder.isTypeSupported('audio/webm;codecs=opus');
+            } catch (_) { return false; }
+        }
+
         // Start recording one word with audio analysis
         async function startWordRecording() {
             try {
                 await ensureMicStream();
-                mediaRecorder = new MediaRecorder(audioStream);
+                // Fullband Opus @ 256k mono: preserves the 5-14kHz sibilant band
+                // intact (transparent for single voice). Default MediaRecorder used a
+                // low bitrate that, combined with AEC, gutted high-frequency content.
+                mediaRecorder = supportsFullbandOpus()
+                    ? new MediaRecorder(audioStream, { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: 256000 })
+                    : new MediaRecorder(audioStream);
                 audioChunks = [];
                 speechDetected = false;
                 lastSpeechTime = 0;
@@ -3263,7 +3306,10 @@
                 mediaRecorder.start();
                 isRecording = true;
                 wordStartTime = Date.now();
-                playStartChime();
+                // Chime disabled: AEC is now off (needed for the sibilant band), so a
+                // speaker chime would bleed into the recording. Re-enable only with a
+                // non-audible cue (haptic/visual).
+                // playStartChime();
 
                 updateRecordButton();
                 startVuMeter();
@@ -3387,7 +3433,8 @@
 
             if (mediaRecorder && isRecording) {
                 isRecording = false;
-                if (!discard) playStopChime();
+                // Chime disabled — see startWordRecording note (AEC off, avoid bleed).
+                // if (!discard) playStopChime();
                 if (discard) {
                     mediaRecorder.ondataavailable = null;
                     mediaRecorder.onstop = () => {
