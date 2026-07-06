@@ -469,6 +469,20 @@ functions.http('analyzeLispSpeech', async (req, res) => {
       const speakerContext = { country, region, voiceType: voiceType || 'unspecified' };
       console.log(`🎚️  Mode: ${mode || 'words'} | ${words.length} probes | voice: ${speakerContext.voiceType}`);
 
+      // Praat coverage: shows in Cloud logs whether acoustic metrics reached Gemini,
+      // how many clips carried them, and a sample line. If Praat was down the client
+      // falls back to ear-only silently — this makes that visible here.
+      const acWith = words.filter(w => w.acoustics && !w.acoustics.error).length;
+      const acErr = words.filter(w => w.acoustics && w.acoustics.error).length;
+      const acSample = words.find(w => w.acoustics && !w.acoustics.error);
+      console.log(
+        acWith
+          ? `🔬 Praat acoustics RECEIVED: ${acWith}/${words.length} clips` +
+            (acErr ? `, ${acErr} errored` : '') +
+            ` | sample: ${formatAcoustics(acSample.acoustics)}`
+          : `🔬 Praat acoustics MISSING on all ${words.length} clips — Gemini running EAR-ONLY`
+      );
+
       if (mode === 'combined') {
         const wordProbes = words.filter(w => w.type !== 'sentence' && w.type !== 'passage');
         const sentenceProbes = words.filter(w => w.type === 'sentence');
