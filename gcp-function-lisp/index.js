@@ -131,7 +131,7 @@ Return a single markdown table with exactly ${words.length} rows (one per senten
 | Sentence | Judgment | Quality | Mistakes |
 
    - Sentence: the target sentence (you may shorten with … if long)
-   - Judgment: Accurate / Interdental / Lateral / Dentalized / Palatal / Distorted / Mixed
+   - Judgment: Accurate / Interdental / Lateral / Dentalized / Palatal / Distorted
    - Quality: overall sibilant clarity for the whole sentence, 0-100 (100 = every sibilant crisp, clean speech should score 85+)
    - Mistakes: plain-language note of WHERE the lisp showed up — name the specific words or sounds the patient struggled with (e.g. "the 's' in 'sells' and 'seashells' sounded slushy"). If the sentence is clean, write "None — all sounds clear".
 
