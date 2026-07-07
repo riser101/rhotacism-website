@@ -124,11 +124,19 @@
             background: #ffffff;
             color: #000000;
             border-radius: 3px !important;
+            box-shadow: 0 6px 0 0 #c9c9c9;
+            transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease, color 0.2s ease;
         }
 
         .assessment-hero-btn.hero-main-cta:hover {
             background: #E85600;
             color: #ffffff;
+            box-shadow: 0 6px 0 0 #a13c00;
+        }
+
+        .assessment-hero-btn.hero-main-cta:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 0 #c9c9c9;
         }
 
         @media (max-width: 480px) {
