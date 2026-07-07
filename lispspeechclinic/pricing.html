@@ -198,6 +198,50 @@
             margin-left: 4px;
         }
 
+        .price-split {
+            display: flex;
+            align-items: stretch;
+            gap: 18px;
+            margin-bottom: 6px;
+        }
+        .price-split .price-row { margin-bottom: 0; }
+        .price-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .price-vline {
+            width: 1px;
+            background: rgba(255,255,255,0.14);
+            align-self: stretch;
+        }
+        .pricing-card.highlight .price-vline { background: rgba(2,145,247,0.3); }
+        .duration-row {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+        }
+        .duration-amount {
+            font-size: 44px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.4);
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+        .pricing-card.highlight .duration-amount { color: rgba(91,155,255,0.6); }
+        .duration-unit {
+            font-size: 16px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.55);
+        }
+        .price-note {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.5);
+            margin-top: 6px;
+            letter-spacing: 0.03em;
+        }
+
         .divider {
             height: 1px;
             background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
@@ -363,16 +407,28 @@
                 <article class="pricing-card">
                     <div class="plan-eyebrow">The Core Correction Window</div>
                     <div class="plan-title">Momentum Program</div>
-                    <p class="plan-desc">Unlocks 12 Weeks Of Progressive Training—Giving Your Brain &amp; Tongue The Time Needed To Break Old Habits &amp; Automate Lisp-free Speech.</p>
-                    <div class="price-row">
-                        <span class="price-currency">$</span>
-                        <span class="price-amount">249</span>
-                        <span class="price-suffix">one-time</span>
+                    <p class="plan-desc">Unlock 3 Months Of Progressive Training. Giving Your Brain &amp; Tongue The Time Needed To Break Old Habits &amp; Automate Lisp-free Speech.</p>
+                    <div class="price-split">
+                        <div class="price-col">
+                            <div class="price-row">
+                                <span class="price-currency">$</span>
+                                <span class="price-amount">249</span>
+                            </div>
+                            <span class="price-note">one-time payment</span>
+                        </div>
+                        <div class="price-vline"></div>
+                        <div class="price-col">
+                            <div class="duration-row">
+                                <span class="duration-amount">3</span>
+                                <span class="duration-unit">months</span>
+                            </div>
+                            <span class="price-note">just $83 / month</span>
+                        </div>
                     </div>
                     <div class="divider"></div>
                     <ul class="features">
                         <li class="bold"><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Everything In Foundation Program.</span></li>
-                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>The 12-Week Habit Rewire: The Critical Timeframe Needed To Lock-in Your New, Lisp-free Speech.</span></li>
+                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>The 3 Month Habit Rewire: The Critical Timeframe Needed To Lock-in Your New, Lisp-free Speech.</span></li>
                         <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Achieve Perfect, Lisp-free Speech At The Syllable Level (Sa, See, Is).</span></li>
                         <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Achieve Perfect, Lisp-free Speech At Word Level (yes, so, and because).</span></li>
                         <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Speak in full, Connected Sentences Without Losing Your Lisp-free Accuracy.</span></li>
@@ -386,11 +442,23 @@
                 <article class="pricing-card highlight">
                     <div class="plan-eyebrow">The Complete Protocol</div>
                     <div class="plan-title">Mastery Program</div>
-                    <p class="plan-desc">Recommended Track. Covers Full 12 Week Sequential Curriculum, And Unlocks a Dedicated Maintenance Track To Ensure Your Lisp Never Returns.</p>
-                    <div class="price-row">
-                        <span class="price-currency">$</span>
-                        <span class="price-amount">448</span>
-                        <span class="price-suffix">one-time</span>
+                    <p class="plan-desc">Recommended Track. Covers Full 3 Month Sequential Curriculum, And Unlocks An Extra 1 Month Of Dedicated Maintenance Track To Ensure Your Lisp Never Returns.</p>
+                    <div class="price-split">
+                        <div class="price-col">
+                            <div class="price-row">
+                                <span class="price-currency">$</span>
+                                <span class="price-amount">448</span>
+                            </div>
+                            <span class="price-note">one-time payment</span>
+                        </div>
+                        <div class="price-vline"></div>
+                        <div class="price-col">
+                            <div class="duration-row">
+                                <span class="duration-amount">6</span>
+                                <span class="duration-unit">months</span>
+                            </div>
+                            <span class="price-note">just $75 / month</span>
+                        </div>
                     </div>
                     <div class="divider"></div>
                     <ul class="features">
@@ -409,11 +477,23 @@
                 <article class="pricing-card">
                     <div class="plan-eyebrow">Phase 1: Weeks 1–4</div>
                     <div class="plan-title">Foundation Program</div>
-                    <p class="plan-desc">Every Transformation Starts At Week One. Unlocks Four Weeks of Foundational Speech Exercises.</p>
-                    <div class="price-row">
-                        <span class="price-currency">$</span>
-                        <span class="price-amount">99</span>
-                        <span class="price-suffix">one-time</span>
+                    <p class="plan-desc">Every Transformation Starts At Day One. Unlock 1 Month Of Foundational Speech Exercises.</p>
+                    <div class="price-split">
+                        <div class="price-col">
+                            <div class="price-row">
+                                <span class="price-currency">$</span>
+                                <span class="price-amount">99</span>
+                            </div>
+                            <span class="price-note">one-time payment</span>
+                        </div>
+                        <div class="price-vline"></div>
+                        <div class="price-col">
+                            <div class="duration-row">
+                                <span class="duration-amount">1</span>
+                                <span class="duration-unit">month</span>
+                            </div>
+                            <span class="price-note">of full access</span>
+                        </div>
                     </div>
                     <div class="divider"></div>
                     <ul class="features">
