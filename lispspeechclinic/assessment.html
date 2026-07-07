@@ -129,6 +129,8 @@
                     authUserId: userAuth?.id ? String(userAuth.id) : '',
                     email: userAuth?.email || auth.currentUser?.email || '',
                     isAnonymous: !!auth.currentUser?.isAnonymous,
+                    phone: (document.getElementById('phoneNumber')?.value || '').trim(),
+                    countryCode: (document.getElementById('countryCode')?.value || '').trim(),
                     latestAssessment: {
                         gri: analysis?.gri ?? null,
                         categories: analysis?.categories ?? [],
