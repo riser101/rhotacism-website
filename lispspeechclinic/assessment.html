@@ -4588,7 +4588,7 @@
                     case 1: return !!wizState.trouble;
                     case 2: return !!wizState.age;
                     case 3: return !!wizState.source && (wizState.source !== 'other' || (wizState.sourceOther || '').trim().length > 0);
-                    case 4: return !!wizState.gender; // gender required; phone optional
+                    case 4: return !!wizState.gender && (wizState.phone || '').trim().length > 0; // gender + phone required
                     default: return false;
                 }
             }
@@ -4663,7 +4663,7 @@
                     `).join('');
                     return `
                         ${genderBtns}
-                        <div style="font-size:13px;font-weight:600;color:#374151;margin:18px 0 8px;">Phone number (optional)</div>
+                        <div style="font-size:13px;font-weight:600;color:#374151;margin:18px 0 8px;">Phone number</div>
                         <div class="obw-phone-row">
                             <input class="obw-input obw-cc" id="wizCc" type="text" inputmode="tel"
                                 maxlength="5" value="${wizEsc(wizState.cc || '+1')}">
