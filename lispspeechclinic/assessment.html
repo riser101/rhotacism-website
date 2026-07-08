@@ -13,9 +13,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/lispspeechclinic/css/common-gradient.css?v=20260707">
     <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css?v=20260707">
-    <!-- intl-tel-input: searchable country phone picker for the assessment step-4 phone field -->
+    <!-- intl-tel-input: searchable country phone picker for the assessment step-4 phone
+         field. WithUtils bundle includes libphonenumber for format validation
+         (isValidNumber). Deferred — only used once the user reaches step 4. -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24/build/css/intlTelInput.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@24/build/js/intlTelInput.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/intl-tel-input@24/build/js/intlTelInputWithUtils.min.js"></script>
 
     <!-- Firebase SDK (modular, from CDN) -->
     <script type="module">
@@ -1378,10 +1380,20 @@
             margin-top: -2px;
             animation: obw-slide-fwd .22s ease both;
         }
-        /* intl-tel-input: make the plugin wrapper fill the field width and keep the
-           dropdown above other step-4 content. */
+        /* intl-tel-input: make the plugin wrapper fill the field width; the dropdown is
+           attached to <body> (dropdownContainer) so it floats above everything. */
         .iti { width: 100%; }
-        .iti__dropdown-content { z-index: 5; }
+        .iti__dropdown-content { z-index: 10000; font-family: 'Inter', sans-serif; }
+        /* Default search box is nearly padding-less and reads as tiny — size it up. */
+        .iti__search-input {
+            padding: 12px 14px;
+            font: 400 15px 'Inter', sans-serif;
+            border-bottom: 1px solid rgba(0,0,0,.08) !important;
+        }
+        /* Default list caps at 185px (only ~3 rows visible) — show more, and let it
+           grow toward whatever space the body-attached dropdown has. */
+        .iti__country-list { max-height: 40vh; }
+        .iti__country { padding: 10px 12px; }
         .obw-skip-note {
             font-size: 12px; color: rgba(0,0,0,.42);
             text-align: center; margin-top: -2px;
@@ -4615,12 +4627,25 @@
                 if (inp) wizState.phone = inp.value.trim();
             }
 
+            // Phone is required AND must be a valid number for the selected country
+            // (libphonenumber via intl-tel-input's utils). Falls back to a non-empty
+            // check if utils haven't loaded yet, so the field is never permanently stuck.
+            function wizPhoneValid() {
+                if (wizIti && typeof wizIti.isValidNumber === 'function') {
+                    try {
+                        const v = wizIti.isValidNumber();
+                        if (v !== null) return v; // null = utils not loaded yet
+                    } catch (e) { /* fall through */ }
+                }
+                return (wizState.phone || '').trim().length > 0;
+            }
+
             function wizCanAdvance() {
                 switch (wizState.step) {
                     case 1: return !!wizState.trouble;
                     case 2: return !!wizState.age;
                     case 3: return !!wizState.source && (wizState.source !== 'other' || (wizState.sourceOther || '').trim().length > 0);
-                    case 4: return !!wizState.gender && (wizState.phone || '').trim().length > 0; // gender + phone required
+                    case 4: return !!wizState.gender && wizPhoneValid(); // gender + valid phone required
                     default: return false;
                 }
             }
@@ -4757,6 +4782,7 @@
                     if (!sourceOtherInp.value) setTimeout(() => sourceOtherInp.focus(), 0);
                 }
                 const phoneInp = content.querySelector('#wizPhone');
+                const refreshCta = () => { const c = document.getElementById('obwCta'); if (c) c.disabled = !wizCanAdvance(); };
                 if (phoneInp && typeof window.intlTelInput === 'function') {
                     if (wizIti) { try { wizIti.destroy(); } catch (e) {} wizIti = null; }
                     wizIti = window.intlTelInput(phoneInp, {
@@ -4766,18 +4792,25 @@
                         geoIpLookup: cb => fetch('/api/geo')
                             .then(r => r.json()).then(d => cb((d.country || 'us')))
                             .catch(() => cb('us')),
-                        separateDialCode: true,   // shows the flag + dial code beside the input, no truncation
+                        separateDialCode: true,   // flag + dial code beside the input, no truncation
                         countrySearch: true,      // type a country name to filter the list
+                        // Attach the dropdown to <body> so it isn't clipped by the card and
+                        // opens upward when there's more room above (the field sits low).
+                        dropdownContainer: document.body,
                         formatOnDisplay: false
                     });
                     if (wizState.phone) phoneInp.value = wizState.phone; // restore on re-render
-                    const onPhoneChange = () => {
-                        wizSyncPhone();
-                        document.getElementById('obwCta').disabled = !wizCanAdvance();
-                    };
+                    const onPhoneChange = () => { wizSyncPhone(); refreshCta(); };
                     phoneInp.addEventListener('input', onPhoneChange);
                     phoneInp.addEventListener('countrychange', onPhoneChange);
+                    // isValidNumber needs libphonenumber (utils) — re-check the CTA once it loads.
+                    if (wizIti.promise) wizIti.promise.then(refreshCta).catch(() => {});
                     wizSyncPhone();
+                    setTimeout(() => phoneInp.focus(), 0);
+                } else if (phoneInp) {
+                    // Fallback if the (deferred) plugin isn't loaded yet: plain input so the
+                    // field still works and the CTA still updates as the user types.
+                    phoneInp.addEventListener('input', e => { wizState.phone = e.target.value.trim(); refreshCta(); });
                     setTimeout(() => phoneInp.focus(), 0);
                 }
             }
