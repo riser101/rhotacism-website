@@ -54,26 +54,40 @@ function stripDataUrlPrefix(b64) {
   return i >= 0 ? b64.slice(i + 1) : b64;
 }
 
-// Compact one-line acoustic summary from the Praat function (main.py), attached
-// to each clip so Gemini can reason over the >8 kHz band it cannot hear.
+// Compact one-line acoustic summary for ONE measured sibilant window.
+function formatSegment(s) {
+  const kHz = (hz) => (Number(hz) / 1000).toFixed(1) + 'kHz';
+  const num = (x, d = 2) => (x == null ? '?' : Number(x).toFixed(d));
+  const cog = s.center_of_gravity ?? s.centroid_hz;
+  return [
+    `CoG=${kHz(cog)}`,
+    s.spectral_std_dev != null ? `spread=${kHz(s.spectral_std_dev)}` : null,
+    s.spectral_skewness != null ? `skew=${num(s.spectral_skewness)}` : null,
+    s.spectral_kurtosis != null ? `kurtosis=${num(s.spectral_kurtosis)}` : null,
+    s.sibilant_peak_hz != null ? `peak(3-14k)=${kHz(s.sibilant_peak_hz)}` : null,
+    s.energy_ratio_hi != null ? `E(8-14/3-8)=${num(s.energy_ratio_hi)}` : null,
+    s.energy_ratio_low != null ? `E(0.5-4/total)=${num(s.energy_ratio_low)}` : null,
+    s.duration_ms != null ? `dur=${Math.round(s.duration_ms)}ms` : null,
+    s.rms != null ? `rms=${num(s.rms, 4)}` : null,
+  ].filter(Boolean).join(', ');
+}
+
+// Acoustic summary from the Praat function (main.py), attached to each clip so
+// Gemini can reason over the >8 kHz band it cannot hear. MFA locates each /s/;
+// a word has one window, a sentence has one line per /s/ (its 'segments' list).
 function formatAcoustics(a) {
   if (!a || typeof a !== 'object') return '';
   if (a.error) return `[acoustics unavailable: ${a.error}]`;
-  const kHz = (hz) => (Number(hz) / 1000).toFixed(1) + 'kHz';
-  const num = (x, d = 2) => (x == null ? '?' : Number(x).toFixed(d));
-  const cog = a.center_of_gravity ?? a.centroid_hz;
-  return [
-    `CoG=${kHz(cog)}`,
-    a.spectral_std_dev != null ? `spread=${kHz(a.spectral_std_dev)}` : null,
-    a.spectral_skewness != null ? `skew=${num(a.spectral_skewness)}` : null,
-    a.spectral_kurtosis != null ? `kurtosis=${num(a.spectral_kurtosis)}` : null,
-    a.sibilant_peak_hz != null ? `peak(3-14k)=${kHz(a.sibilant_peak_hz)}` : null,
-    a.energy_ratio_hi != null ? `E(8-14/3-8)=${num(a.energy_ratio_hi)}` : null,
-    a.energy_ratio_low != null ? `E(0.5-4/total)=${num(a.energy_ratio_low)}` : null,
-    a.duration_ms != null ? `dur=${Math.round(a.duration_ms)}ms` : null,
-    a.rms != null ? `rms=${num(a.rms, 4)}` : null,
-  ].filter(Boolean).join(', ');
+  const segs = Array.isArray(a.segments) ? a.segments : [];
+  if (segs.length > 1) {
+    // Sentence: one line per sibilant, tagged with its phone + time.
+    return '\n' + segs.map((s) =>
+      `  · ${s.label || 's'}@${num0(s.start)}s: ${formatSegment(s)}`
+    ).join('\n');
+  }
+  return formatSegment(segs[0] || a);
 }
+function num0(x) { return x == null ? '?' : Number(x).toFixed(2); }
 
 // Interpretation guide injected once into the word prompt so Gemini knows how to
 // weigh the Praat numbers — especially the high-frequency band beyond its hearing.
@@ -314,9 +328,17 @@ ${sentencePrompt}
 `;
 
   if (nP) {
+    let part3 = buildSpontaneousPrompt(speakerContext);
+    // The spontaneous clip is now MFA-aligned (via Cloud STT) + Praat-measured,
+    // so it carries the same high-frequency sibilant evidence the words do. Feed
+    // it in as ground-truth for the >8 kHz band Gemini cannot hear.
+    const acLines = passageProbes.map(p => formatAcoustics(p.acoustics)).filter(Boolean);
+    if (acLines.length) {
+      part3 += `\n\n[Praat acoustics] Aggregate high-frequency sibilant measurements for the spontaneous clip(s): ${acLines.join(' | ')}. Treat these as ground-truth for the >8 kHz sibilant energy you cannot hear and weigh them against what you hear. Do NOT mention any numbers in your output.`;
+    }
     prompt += `
 ================ PART 3 — SPONTANEOUS SAMPLE (clip${nP > 1 ? 's' : ''} ${nW + nS + 1}–${nW + nS + nP}) ================
-${buildSpontaneousPrompt(speakerContext)}
+${part3}
 `;
   }
 

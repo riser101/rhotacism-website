@@ -2743,11 +2743,18 @@
         // Point this at the deployed lisp cloud function (analyzeLispSpeech).
         // For local dev run `npx functions-framework --target=analyzeLispSpeech` in gcp-function-lisp/.
         const GCP_ANALYZE_URL = 'https://analyze-lisp-speech-653307587559.us-central1.run.app';
-        // const GCP_ANALYZE_URL = 'http://localhost:8081';
+        // const GCP_ANALYZE_URL = 'http://localhost:8082';  // LOCAL TEST — revert before commit
         // Praat sibilant-metrics function (gcp-function-lisp-praat/main.py). Computes
         // CoG/kurtosis/energy-ratios per clip; results are merged into the Gemini
         // payload so Gemini can reason over the >8kHz band it cannot hear.
         const PRAAT_URL = 'https://extract-sibilant-metrics-653307587559.us-central1.run.app';
+        // const PRAAT_URL = 'http://localhost:8081';  // LOCAL TEST — revert before commit
+        // MFA forced-alignment service (mfa-align-service/server.py). Given the clip +
+        // known transcript it returns WHERE each sibilant sits (start/end seconds), so
+        // Praat measures those exact windows instead of guessing. Unlocks per-/s/
+        // scoring for sentences too.
+        const MFA_URL = 'https://mfa-align-653307587559.us-central1.run.app';
+        // const MFA_URL = 'http://localhost:8080';
         // Recording state
         let mediaRecorder = null;
         let audioChunks = [];
@@ -3637,17 +3644,55 @@
             throw lastErr;
         }
 
-        // Send every clip to the Praat function and return a map of word -> acoustic
-        // metrics. Best-effort: on any failure we return {} and Gemini falls back to
-        // ear-only judgment (the payload simply carries no acoustics for that clip).
-        async function fetchPraatMetrics(probes) {
+        // Ask MFA where each sibilant sits. One /align_batch run aligns every clip
+        // (model loads once) using the known transcript, returning start/end seconds
+        // per /s/. Best-effort: {} on failure and Praat is skipped for that run.
+        async function fetchSibilantWindows(probes) {
+            try {
+                const resp = await fetch(MFA_URL + '/align_batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        items: probes.map(p => {
+                            // Spontaneous passage has no script (p.word is the PROMPT,
+                            // not what was said), so ask MFA to STT it first.
+                            const spont = p.type === 'passage';
+                            return {
+                                id: p.word, word: p.word,
+                                transcript: spont ? '' : p.word,
+                                stt: spont,
+                                audioBase64: p.audio_base64
+                            };
+                        })
+                    })
+                });
+                if (!resp.ok) throw new Error('MFA error: ' + resp.status);
+                const data = await resp.json();
+                const byWord = {};
+                (data.results || []).forEach(r => {
+                    if (r && r.id) byWord[r.id] = r.sibilants || [];
+                });
+                return byWord;
+            } catch (err) {
+                console.warn('MFA align failed (Praat skipped):', err?.message || err);
+                return {};
+            }
+        }
+
+        // Send each clip + its MFA sibilant windows to Praat; return a map of
+        // word -> acoustic metrics. Best-effort: {} on failure and Gemini falls back
+        // to ear-only judgment. Clips with no windows are skipped (nothing to measure).
+        async function fetchPraatMetrics(probes, windowsByWord) {
+            const measurable = probes.filter(p => (windowsByWord[p.word] || []).length);
+            if (!measurable.length) return {};
             try {
                 const resp = await fetch(PRAAT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        words: probes.map(p => ({
-                            word: p.word, position: p.position, audio_base64: p.audio_base64
+                        words: measurable.map(p => ({
+                            word: p.word, position: p.position, audio_base64: p.audio_base64,
+                            sibilants: windowsByWord[p.word]
                         }))
                     })
                 });
@@ -3680,14 +3725,14 @@
             });
             if (!probes.length) return null;
 
-            // Praat acoustics computed backend-side, then merged per word into the
-            // Gemini payload so Gemini reasons over the full sibilant band (incl. the
-            // >8kHz energy it cannot hear). Best-effort — {} on failure.
-            // Words only: Praat isolates ONE sibilant segment per clip, which is
-            // meaningless for multi-sibilant sentences and the long passage — those
-            // stay ear-only for Gemini.
-            const wordProbes = probes.filter(p => p.type === 'word');
-            const acousticsByWord = await fetchPraatMetrics(wordProbes);
+            // MFA locates every sibilant, then Praat measures those exact windows.
+            // Merged per word into the Gemini payload so Gemini reasons over the full
+            // sibilant band (incl. the >8kHz energy it cannot hear). Best-effort — {}
+            // on failure. Words/sentences align from their known transcript; the
+            // free-form passage is transcribed by MFA (Cloud STT) first, then aligns.
+            const alignProbes = probes.filter(p => p.type === 'word' || p.type === 'sentence' || p.type === 'passage');
+            const windowsByWord = await fetchSibilantWindows(alignProbes);
+            const acousticsByWord = await fetchPraatMetrics(alignProbes, windowsByWord);
 
             const payload = {
                 mode: 'combined',
