@@ -13,6 +13,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/lispspeechclinic/css/common-gradient.css?v=20260707">
     <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css?v=20260707">
+    <!-- intl-tel-input: searchable country phone picker for the assessment step-4 phone field -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24/build/css/intlTelInput.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@24/build/js/intlTelInput.min.js"></script>
 
     <!-- Firebase SDK (modular, from CDN) -->
     <script type="module">
@@ -1375,18 +1378,10 @@
             margin-top: -2px;
             animation: obw-slide-fwd .22s ease both;
         }
-        .obw-phone-row { display: flex; gap: 8px; }
-        .obw-phone-row .obw-cc {
-            flex: 0 0 118px;
-            text-align: left;
-            font-weight: 600;
-            padding-left: 10px;
-            padding-right: 6px;
-            /* Native select: keep the OS dropdown caret, just size the box so the
-               flag + dial code stay visible when collapsed (country name truncates). */
-            text-overflow: ellipsis;
-            cursor: pointer;
-        }
+        /* intl-tel-input: make the plugin wrapper fill the field width and keep the
+           dropdown above other step-4 content. */
+        .iti { width: 100%; }
+        .iti__dropdown-content { z-index: 5; }
         .obw-skip-note {
             font-size: 12px; color: rgba(0,0,0,.42);
             text-align: center; margin-top: -2px;
@@ -4595,146 +4590,30 @@
                 { title: 'How did you learn about Lisp Speech Clinic?', sub: 'Helps us reach more people who need this' },
                 { title: 'Your voice type', sub: 'Calibrates your /s/ frequency target' },
             ];
-            // Country dial codes for the phone field. `iso` drives geo auto-detect;
-            // `dial` is what gets stored/sent. Common markets first so the dropdown is
-            // quick to scan. Order otherwise doesn't matter.
-            const WIZ_COUNTRIES = [
-                { iso: 'US', dial: '+1',   flag: '🇺🇸', name: 'United States' },
-                { iso: 'GB', dial: '+44',  flag: '🇬🇧', name: 'United Kingdom' },
-                { iso: 'CA', dial: '+1',   flag: '🇨🇦', name: 'Canada' },
-                { iso: 'AU', dial: '+61',  flag: '🇦🇺', name: 'Australia' },
-                { iso: 'IN', dial: '+91',  flag: '🇮🇳', name: 'India' },
-                { iso: 'NZ', dial: '+64',  flag: '🇳🇿', name: 'New Zealand' },
-                { iso: 'IE', dial: '+353', flag: '🇮🇪', name: 'Ireland' },
-                { iso: 'DE', dial: '+49',  flag: '🇩🇪', name: 'Germany' },
-                { iso: 'FR', dial: '+33',  flag: '🇫🇷', name: 'France' },
-                { iso: 'IT', dial: '+39',  flag: '🇮🇹', name: 'Italy' },
-                { iso: 'ES', dial: '+34',  flag: '🇪🇸', name: 'Spain' },
-                { iso: 'NL', dial: '+31',  flag: '🇳🇱', name: 'Netherlands' },
-                { iso: 'BE', dial: '+32',  flag: '🇧🇪', name: 'Belgium' },
-                { iso: 'CH', dial: '+41',  flag: '🇨🇭', name: 'Switzerland' },
-                { iso: 'AT', dial: '+43',  flag: '🇦🇹', name: 'Austria' },
-                { iso: 'SE', dial: '+46',  flag: '🇸🇪', name: 'Sweden' },
-                { iso: 'NO', dial: '+47',  flag: '🇳🇴', name: 'Norway' },
-                { iso: 'DK', dial: '+45',  flag: '🇩🇰', name: 'Denmark' },
-                { iso: 'FI', dial: '+358', flag: '🇫🇮', name: 'Finland' },
-                { iso: 'PT', dial: '+351', flag: '🇵🇹', name: 'Portugal' },
-                { iso: 'GR', dial: '+30',  flag: '🇬🇷', name: 'Greece' },
-                { iso: 'PL', dial: '+48',  flag: '🇵🇱', name: 'Poland' },
-                { iso: 'CZ', dial: '+420', flag: '🇨🇿', name: 'Czech Republic' },
-                { iso: 'HU', dial: '+36',  flag: '🇭🇺', name: 'Hungary' },
-                { iso: 'TR', dial: '+90',  flag: '🇹🇷', name: 'Turkey' },
-                { iso: 'RU', dial: '+7',   flag: '🇷🇺', name: 'Russia' },
-                { iso: 'UA', dial: '+380', flag: '🇺🇦', name: 'Ukraine' },
-                { iso: 'AE', dial: '+971', flag: '🇦🇪', name: 'United Arab Emirates' },
-                { iso: 'SA', dial: '+966', flag: '🇸🇦', name: 'Saudi Arabia' },
-                { iso: 'IL', dial: '+972', flag: '🇮🇱', name: 'Israel' },
-                { iso: 'EG', dial: '+20',  flag: '🇪🇬', name: 'Egypt' },
-                { iso: 'ZA', dial: '+27',  flag: '🇿🇦', name: 'South Africa' },
-                { iso: 'NG', dial: '+234', flag: '🇳🇬', name: 'Nigeria' },
-                { iso: 'KE', dial: '+254', flag: '🇰🇪', name: 'Kenya' },
-                { iso: 'PK', dial: '+92',  flag: '🇵🇰', name: 'Pakistan' },
-                { iso: 'BD', dial: '+880', flag: '🇧🇩', name: 'Bangladesh' },
-                { iso: 'JP', dial: '+81',  flag: '🇯🇵', name: 'Japan' },
-                { iso: 'KR', dial: '+82',  flag: '🇰🇷', name: 'South Korea' },
-                { iso: 'CN', dial: '+86',  flag: '🇨🇳', name: 'China' },
-                { iso: 'SG', dial: '+65',  flag: '🇸🇬', name: 'Singapore' },
-                { iso: 'MY', dial: '+60',  flag: '🇲🇾', name: 'Malaysia' },
-                { iso: 'ID', dial: '+62',  flag: '🇮🇩', name: 'Indonesia' },
-                { iso: 'TH', dial: '+66',  flag: '🇹🇭', name: 'Thailand' },
-                { iso: 'VN', dial: '+84',  flag: '🇻🇳', name: 'Vietnam' },
-                { iso: 'PH', dial: '+63',  flag: '🇵🇭', name: 'Philippines' },
-                { iso: 'MX', dial: '+52',  flag: '🇲🇽', name: 'Mexico' },
-                { iso: 'BR', dial: '+55',  flag: '🇧🇷', name: 'Brazil' },
-                { iso: 'AR', dial: '+54',  flag: '🇦🇷', name: 'Argentina' },
-                { iso: 'CL', dial: '+56',  flag: '🇨🇱', name: 'Chile' },
-                { iso: 'CO', dial: '+57',  flag: '🇨🇴', name: 'Colombia' },
-                { iso: 'PE', dial: '+51',  flag: '🇵🇪', name: 'Peru' }
-            ];
-            const WIZ_COUNTRY_BY_ISO = {};
-            WIZ_COUNTRIES.forEach(c => { WIZ_COUNTRY_BY_ISO[c.iso] = c; });
-
-            // Primary IANA timezone → ISO country, for offline geo auto-detect (no
-            // network, privacy-friendly). Covers the countries listed above.
-            const WIZ_TZ_TO_ISO = {
-                'America/New_York': 'US', 'America/Detroit': 'US', 'America/Chicago': 'US', 'America/Denver': 'US',
-                'America/Phoenix': 'US', 'America/Los_Angeles': 'US', 'America/Anchorage': 'US', 'Pacific/Honolulu': 'US',
-                'America/Toronto': 'CA', 'America/Vancouver': 'CA', 'America/Edmonton': 'CA', 'America/Winnipeg': 'CA',
-                'America/Halifax': 'CA', 'America/St_Johns': 'CA',
-                'Europe/London': 'GB', 'Europe/Dublin': 'IE',
-                'Australia/Sydney': 'AU', 'Australia/Melbourne': 'AU', 'Australia/Brisbane': 'AU', 'Australia/Perth': 'AU',
-                'Australia/Adelaide': 'AU', 'Pacific/Auckland': 'NZ',
-                'Asia/Kolkata': 'IN', 'Asia/Calcutta': 'IN',
-                'Europe/Berlin': 'DE', 'Europe/Paris': 'FR', 'Europe/Rome': 'IT', 'Europe/Madrid': 'ES',
-                'Europe/Amsterdam': 'NL', 'Europe/Brussels': 'BE', 'Europe/Zurich': 'CH', 'Europe/Vienna': 'AT',
-                'Europe/Stockholm': 'SE', 'Europe/Oslo': 'NO', 'Europe/Copenhagen': 'DK', 'Europe/Helsinki': 'FI',
-                'Europe/Lisbon': 'PT', 'Europe/Athens': 'GR', 'Europe/Warsaw': 'PL', 'Europe/Prague': 'CZ',
-                'Europe/Budapest': 'HU', 'Europe/Istanbul': 'TR', 'Europe/Moscow': 'RU', 'Europe/Kiev': 'UA',
-                'Europe/Kyiv': 'UA',
-                'Asia/Dubai': 'AE', 'Asia/Riyadh': 'SA', 'Asia/Jerusalem': 'IL', 'Africa/Cairo': 'EG',
-                'Africa/Johannesburg': 'ZA', 'Africa/Lagos': 'NG', 'Africa/Nairobi': 'KE',
-                'Asia/Karachi': 'PK', 'Asia/Dhaka': 'BD', 'Asia/Tokyo': 'JP', 'Asia/Seoul': 'KR',
-                'Asia/Shanghai': 'CN', 'Asia/Singapore': 'SG', 'Asia/Kuala_Lumpur': 'MY',
-                'Asia/Jakarta': 'ID', 'Asia/Makassar': 'ID', 'Asia/Jayapura': 'ID', 'Asia/Pontianak': 'ID',
-                'Asia/Bangkok': 'TH', 'Asia/Ho_Chi_Minh': 'VN', 'Asia/Manila': 'PH',
-                'America/Mexico_City': 'MX', 'America/Monterrey': 'MX', 'America/Tijuana': 'MX',
-                'America/Sao_Paulo': 'BR', 'America/Fortaleza': 'BR', 'America/Argentina/Buenos_Aires': 'AR',
-                'America/Santiago': 'CL', 'America/Bogota': 'CO', 'America/Lima': 'PE'
-            };
-
-            // Best-effort country auto-detect for the phone code default:
-            // 1) IANA timezone → country (accurate, offline); 2) browser locale region
-            // (e.g. en-US → US); 3) fall back to US. Never leaves the field blank.
-            function wizDetectCountryIso() {
-                try {
-                    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                    if (tz && WIZ_TZ_TO_ISO[tz]) return WIZ_TZ_TO_ISO[tz];
-                } catch (e) { /* Intl unavailable */ }
-                try {
-                    const locales = navigator.languages || [navigator.language];
-                    for (const loc of locales) {
-                        const m = /[-_]([A-Za-z]{2})(?:$|[-_])/.exec(loc || '');
-                        if (m) { const iso = m[1].toUpperCase(); if (WIZ_COUNTRY_BY_ISO[iso]) return iso; }
-                    }
-                } catch (e) { /* navigator unavailable */ }
-                return 'US';
-            }
-
-            const wizDetectedCountry = WIZ_COUNTRY_BY_ISO[wizDetectCountryIso()] || WIZ_COUNTRY_BY_ISO.US;
+            // Phone country picker is handled by intl-tel-input (loaded in <head>):
+            // full searchable country list (type a name to filter), separate dial-code
+            // display, and geo auto-detect fed by our own /api/geo (Vercel edge GeoIP).
+            // wizState.cc/ccIso are kept in sync from the plugin; wizIti holds the
+            // instance so we can read the dial code + national number on submit.
+            let wizIti = null;
             const wizState = {
                 step: 1, dir: 'fwd', _lastStep: null,
                 trouble: null, age: null,
                 source: null, sourceOther: '',
-                gender: null, cc: wizDetectedCountry.dial, ccIso: wizDetectedCountry.iso, phone: ''
+                gender: null, cc: '+1', ccIso: 'us', phone: ''
             };
 
-            // Timezone (above) is an instant, never-blank default, but it disagrees with
-            // network location for travelers/VPNs (e.g. Lima timezone but US IP). So we
-            // also do an IP-based lookup — the same signal PostHog's GeoIP uses — and
-            // upgrade the default when it returns, unless the user already picked a
-            // country. Source is our own /api/geo, which echoes Vercel's edge GeoIP
-            // header (x-vercel-ip-country): same-origin, no third party, no rate limit.
-            let wizCcTouched = false;
-            function wizApplyIpCountry(iso) {
-                if (!iso || wizCcTouched) return;
-                const c = WIZ_COUNTRY_BY_ISO[iso];
-                if (!c) return;
-                wizState.ccIso = c.iso; wizState.cc = c.dial;
-                const sel = document.getElementById('wizCc'); // update live if step 4 is already on screen
-                if (sel && sel.value !== c.iso) sel.value = c.iso;
-            }
-            (async () => {
+            // Pull the current dial code + national number out of the plugin into
+            // wizState (called on input/countrychange and before submit).
+            function wizSyncPhone() {
+                if (!wizIti) return;
                 try {
-                    const ctrl = new AbortController();
-                    const to = setTimeout(() => ctrl.abort(), 3000);
-                    const resp = await fetch('/api/geo', { signal: ctrl.signal });
-                    clearTimeout(to);
-                    if (resp.ok) {
-                        const code = ((await resp.json()).country || '').trim().toUpperCase();
-                        if (/^[A-Z]{2}$/.test(code)) wizApplyIpCountry(code);
-                    }
-                } catch (e) { /* blocked/offline/timeout — timezone default stands */ }
-            })();
+                    const d = wizIti.getSelectedCountryData();
+                    if (d && d.iso2) { wizState.ccIso = d.iso2; wizState.cc = d.dialCode ? '+' + d.dialCode : wizState.cc; }
+                } catch (e) { /* plugin not ready */ }
+                const inp = document.getElementById('wizPhone');
+                if (inp) wizState.phone = inp.value.trim();
+            }
 
             function wizCanAdvance() {
                 switch (wizState.step) {
@@ -4817,14 +4696,9 @@
                     return `
                         ${genderBtns}
                         <div style="font-size:13px;font-weight:600;color:#374151;margin:18px 0 8px;">Phone number</div>
-                        <div class="obw-phone-row">
-                            <select class="obw-input obw-cc" id="wizCc" aria-label="Country code">
-                                ${WIZ_COUNTRIES.map(c => `<option value="${c.iso}"${c.iso === wizState.ccIso ? ' selected' : ''}>${c.flag} ${c.dial} · ${c.name}</option>`).join('')}
-                            </select>
-                            <input class="obw-input" id="wizPhone" type="tel" inputmode="tel"
-                                autocomplete="tel" placeholder="(000) 000-0000"
-                                value="${wizEsc(wizState.phone)}">
-                        </div>
+                        <input class="obw-input" id="wizPhone" type="tel" inputmode="tel"
+                            autocomplete="tel" placeholder="(000) 000-0000"
+                            value="${wizEsc(wizState.phone)}">
                         <div class="obw-skip-note"></div>
                     `;
                 }
@@ -4882,20 +4756,28 @@
                     });
                     if (!sourceOtherInp.value) setTimeout(() => sourceOtherInp.focus(), 0);
                 }
-                const ccInp = content.querySelector('#wizCc');
-                if (ccInp) {
-                    ccInp.addEventListener('change', e => {
-                        const c = WIZ_COUNTRY_BY_ISO[e.target.value];
-                        if (c) { wizState.ccIso = c.iso; wizState.cc = c.dial; wizCcTouched = true; }
-                    });
-                }
                 const phoneInp = content.querySelector('#wizPhone');
-                if (phoneInp) {
-                    phoneInp.addEventListener('input', e => {
-                        wizState.phone = e.target.value;
-                        // Phone is required on step 4 — re-evaluate the CTA as they type.
-                        document.getElementById('obwCta').disabled = !wizCanAdvance();
+                if (phoneInp && typeof window.intlTelInput === 'function') {
+                    if (wizIti) { try { wizIti.destroy(); } catch (e) {} wizIti = null; }
+                    wizIti = window.intlTelInput(phoneInp, {
+                        // Prefer the last-picked country; otherwise geo-detect via our
+                        // /api/geo (Vercel edge GeoIP), same signal PostHog uses.
+                        initialCountry: (wizState.ccIso && wizState.ccIso !== 'us') ? wizState.ccIso : 'auto',
+                        geoIpLookup: cb => fetch('/api/geo')
+                            .then(r => r.json()).then(d => cb((d.country || 'us')))
+                            .catch(() => cb('us')),
+                        separateDialCode: true,   // shows the flag + dial code beside the input, no truncation
+                        countrySearch: true,      // type a country name to filter the list
+                        formatOnDisplay: false
                     });
+                    if (wizState.phone) phoneInp.value = wizState.phone; // restore on re-render
+                    const onPhoneChange = () => {
+                        wizSyncPhone();
+                        document.getElementById('obwCta').disabled = !wizCanAdvance();
+                    };
+                    phoneInp.addEventListener('input', onPhoneChange);
+                    phoneInp.addEventListener('countrychange', onPhoneChange);
+                    wizSyncPhone();
                     setTimeout(() => phoneInp.focus(), 0);
                 }
             }
@@ -4918,6 +4800,7 @@
                 }
                 const otherEl = document.getElementById('otherReason');
                 if (otherEl) otherEl.value = wizState.sourceOther || '';
+                wizSyncPhone(); // pull latest dial code + number from intl-tel-input
                 const ccEl = document.getElementById('countryCode');
                 if (ccEl) ccEl.value = (wizState.cc || '+1').trim();
                 const phoneEl = document.getElementById('phoneNumber');
