@@ -4663,6 +4663,33 @@
                 gender: null, cc: wizDetectedCountry.dial, ccIso: wizDetectedCountry.iso, phone: ''
             };
 
+            // Timezone (above) is an instant, never-blank default, but it disagrees with
+            // network location for travelers/VPNs (e.g. Lima timezone but US IP). So we
+            // also do an IP-based lookup — the same signal PostHog's GeoIP uses — and
+            // upgrade the default when it returns, unless the user already picked a
+            // country. GeoJS is free with no rate limit (unlike ipapi.co's ~1k/day).
+            let wizCcTouched = false;
+            function wizApplyIpCountry(iso) {
+                if (!iso || wizCcTouched) return;
+                const c = WIZ_COUNTRY_BY_ISO[iso];
+                if (!c) return;
+                wizState.ccIso = c.iso; wizState.cc = c.dial;
+                const sel = document.getElementById('wizCc'); // update live if step 4 is already on screen
+                if (sel && sel.value !== c.iso) sel.value = c.iso;
+            }
+            (async () => {
+                try {
+                    const ctrl = new AbortController();
+                    const to = setTimeout(() => ctrl.abort(), 3000);
+                    const resp = await fetch('https://get.geojs.io/v1/ip/country.json', { signal: ctrl.signal });
+                    clearTimeout(to);
+                    if (resp.ok) {
+                        const code = ((await resp.json()).country || '').trim().toUpperCase();
+                        if (/^[A-Z]{2}$/.test(code)) wizApplyIpCountry(code);
+                    }
+                } catch (e) { /* blocked/offline/timeout — timezone default stands */ }
+            })();
+
             function wizCanAdvance() {
                 switch (wizState.step) {
                     case 1: return !!wizState.trouble;
@@ -4813,7 +4840,7 @@
                 if (ccInp) {
                     ccInp.addEventListener('change', e => {
                         const c = WIZ_COUNTRY_BY_ISO[e.target.value];
-                        if (c) { wizState.ccIso = c.iso; wizState.cc = c.dial; }
+                        if (c) { wizState.ccIso = c.iso; wizState.cc = c.dial; wizCcTouched = true; }
                     });
                 }
                 const phoneInp = content.querySelector('#wizPhone');
