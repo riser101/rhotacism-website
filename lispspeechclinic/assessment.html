@@ -3753,14 +3753,17 @@
                 // committed by now (wizCommitToHiddenInputs runs before this await resolves).
                 user: (typeof window.getLispIdentityPayload === 'function') ? window.getLispIdentityPayload() : null,
                 // Survey answers so the backend can fire the 'assessment_completed'
-                // PostHog event itself (guaranteed even if the user exits). wizState is
-                // fully populated by the time this payload is built.
-                survey: {
-                    trouble_words_response: wizState.trouble || '',
-                    age_group: wizState.age || '',
-                    found_on: (wizState.source === 'other' ? (wizState.sourceOther || '') : (wizState.source || '')).toString().trim(),
-                    first_name: localStorage.getItem('assessmentUserName') || ''
-                }
+                // PostHog event itself (guaranteed even if the user exits). Read via
+                // window.wizState — the wizard's const lives inside the DOMContentLoaded
+                // closure and is NOT in scope here; a bare wizState reference throws.
+                survey: (function (wiz) {
+                    return {
+                        trouble_words_response: wiz.trouble || '',
+                        age_group: wiz.age || '',
+                        found_on: (wiz.source === 'other' ? (wiz.sourceOther || '') : (wiz.source || '')).toString().trim(),
+                        first_name: localStorage.getItem('assessmentUserName') || ''
+                    };
+                })(window.wizState || {})
             };
 
             let wordRows = [], sentenceRows = [], spontaneous = null;
@@ -4614,6 +4617,12 @@
                 source: null, sourceOther: '',
                 gender: null, cc: '+1', ccIso: 'us', phone: ''
             };
+            // Exposed for sendAudioToBackend(), which is defined OUTSIDE this
+            // DOMContentLoaded closure and cannot see the const above. Without
+            // this, building the Gemini payload throws ReferenceError AFTER the
+            // MFA + Praat calls succeed — the analysis silently never reaches
+            // Gemini and the results page comes up empty.
+            window.wizState = wizState;
 
             // Pull the current dial code + national number out of the plugin into
             // wizState (called on input/countrychange and before submit).
