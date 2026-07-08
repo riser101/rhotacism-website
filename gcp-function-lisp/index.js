@@ -10,6 +10,20 @@ const cors = require('cors');
 const { setGlobalDispatcher, Agent } = require('undici');
 setGlobalDispatcher(new Agent({ headersTimeout: 600000, bodyTimeout: 600000 }));
 
+// Firestore (Admin SDK). This backend writes the lisp-users/{uid} record itself so
+// it's guaranteed even when the user leaves before the 1–2 min Gemini call returns
+// (the browser used to write it and lost it on early exit). Uses the Cloud Run
+// runtime service account's ADC → the rollr-academy project's Firestore. Guarded so
+// local dev without credentials degrades gracefully instead of crashing the request.
+const admin = require('firebase-admin');
+let firestore = null;
+try {
+  if (!admin.apps.length) admin.initializeApp();
+  firestore = admin.firestore();
+} catch (e) {
+  console.error('firebase-admin init failed (records will be skipped):', e.message);
+}
+
 const corsOptions = {
   origin: [
     'https://www.topspeech.health',
@@ -405,6 +419,171 @@ function parseSentenceTable(rawText, expectedCount) {
   return { result: rawText, gri, rows };
 }
 
+// Tier titles — must match the client's ASSESSMENT_TIERS labels so the persisted
+// categories are identical to what the results page renders.
+const LISP_TIER_LABELS = { 1: 'Core /s/ & /z/', 2: 'Extended sibilants', 3: 'Connected speech', 4: 'Spontaneous sample' };
+
+// Group word/sentence/spontaneous rows into the tier categories the results page
+// renders. Mirrors buildStructuredResult() in assessment.html.
+function buildLispCategories(wordRows, sentenceRows, spontaneous) {
+  const categories = [];
+  [1, 2].forEach(tid => {
+    const rows = (wordRows || []).filter(r => r.tier === tid);
+    if (!rows.length) return;
+    const avg = Math.round(rows.reduce((s, r) => s + (r.quality || 0), 0) / rows.length);
+    categories.push({ id: tid, title: LISP_TIER_LABELS[tid] || ('Tier ' + tid), type: 'words', rows, avg });
+  });
+  if (sentenceRows && sentenceRows.length) {
+    const avg = Math.round(sentenceRows.reduce((s, r) => s + (r.quality || 0), 0) / sentenceRows.length);
+    categories.push({ id: 3, title: LISP_TIER_LABELS[3], type: 'sentences', rows: sentenceRows, avg });
+  }
+  if (spontaneous && (spontaneous.summary || spontaneous.notes)) {
+    categories.push({ id: 4, title: LISP_TIER_LABELS[4], type: 'spontaneous', spontaneous });
+  }
+  return categories;
+}
+
+// Markdown fallback rendering of the categories. Mirrors structuredToMarkdown() in
+// assessment.html so the stored `result` string matches the browser's.
+function lispStructuredToMarkdown(categories) {
+  return categories.map(cat => {
+    if (cat.type === 'spontaneous') {
+      const sp = cat.spontaneous || {};
+      let md = '## ' + cat.title + '\n\n';
+      if (sp.summary) md += sp.summary + '\n\n';
+      if (Array.isArray(sp.notes) && sp.notes.length) md += sp.notes.map(n => '- ' + n).join('\n');
+      else if (sp.notes) md += sp.notes;
+      return md;
+    }
+    if (cat.type === 'sentences') {
+      const head = '## ' + cat.title + '\n\n| Sentence | Judgment | Quality | Mistakes |\n| --- | --- | --- | --- |\n';
+      return head + cat.rows.map(r => `| ${r.sentence} | ${r.judgment} | ${r.quality} | ${r.mistakes} |`).join('\n');
+    }
+    const head = '## ' + cat.title + '\n\n| Word | Position | Heard | Judgment | Quality | Observation |\n| --- | --- | --- | --- | --- | --- |\n';
+    return head + cat.rows.map(r => `| ${r.word} | ${r.position || ''} | ${r.heard || ''} | ${r.judgment} | ${r.quality} | ${r.observation || ''} |`).join('\n');
+  }).join('\n\n');
+}
+
+// Identity fields common to every lisp-users write. Matches the schema the browser
+// used to write (product/uid/sessionId/posthogId/authUserId/email/isAnonymous/phone
+// /countryCode) so server-written records are indistinguishable from client ones.
+function lispIdentityFields(user) {
+  return {
+    product: 'lisp',
+    uid: user.uid,
+    sessionId: user.sessionId || '',
+    posthogId: user.posthogId || '',
+    authUserId: user.authUserId || '',
+    email: user.email || '',
+    isAnonymous: !!user.isAnonymous,
+    phone: user.phone || '',
+    countryCode: user.countryCode || ''
+  };
+}
+
+// Persist the completed analysis to lisp-users/{uid}. Merge-write so app-owned
+// fields are preserved (same as the old browser write).
+async function writeLispUserRecord(user, analysis) {
+  try {
+    if (!firestore) { console.warn('Firestore unavailable — skipping record write'); return; }
+    if (!user || !user.uid) { console.warn('No uid in payload — skipping Firestore record write'); return; }
+    await firestore.collection('lisp-users').doc(String(user.uid)).set({
+      ...lispIdentityFields(user),
+      latestAssessment: {
+        gri: analysis.gri ?? null,
+        categories: analysis.categories ?? [],
+        result: analysis.result ?? '',
+        completedAt: new Date().toISOString()
+      },
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    console.log('✅ Wrote Firestore lisp-users/' + user.uid);
+  } catch (err) {
+    console.error('❌ Firestore record write failed:', err);
+  }
+}
+
+// Record a failed analysis attempt so the user's record still exists (with the
+// same identity schema) and the failure is traceable. Does not touch any prior
+// latestAssessment (merge-write), only adds lastAnalysisError.
+async function writeLispUserErrorRecord(user, errInfo) {
+  try {
+    if (!firestore) return;
+    if (!user || !user.uid) return;
+    await firestore.collection('lisp-users').doc(String(user.uid)).set({
+      ...lispIdentityFields(user),
+      lastAnalysisError: {
+        message: errInfo.message || 'analysis failed',
+        mode: errInfo.mode || 'combined',
+        at: new Date().toISOString()
+      },
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    console.log('⚠️ Wrote Firestore error record lisp-users/' + user.uid);
+  } catch (err) {
+    console.error('❌ Firestore error-record write failed:', err);
+  }
+}
+
+// A word counts as a lisp hit when its judgment is a distortion type (matches the
+// results page Judgment column); Accurate/Unclear/Omitted are NOT hits.
+const LISP_HIT_JUDGMENTS = ['Interdental', 'Dentalized', 'Lateral', 'Distorted'];
+function deriveLispSummary(categories, gri) {
+  let lispDetected = false, lispWordCount = 0;
+  const lispWords = [];
+  (categories || []).forEach(cat => {
+    (cat.rows || []).forEach(row => {
+      if (LISP_HIT_JUDGMENTS.includes(row.judgment)) {
+        lispDetected = true;
+        lispWordCount++;
+        const label = row.word || row.sentence;
+        if (label) lispWords.push(label);
+      }
+    });
+  });
+  return { lispDetected, lispWordCount, lispWords, lispGri: (typeof gri === 'number' ? gri : null) };
+}
+
+// Fire the 'assessment_completed' PostHog event server-side. The browser used to do
+// this, but the Gemini call takes 1–2 min and users often leave first, so the client
+// capture raced the outcome or never sent. Here we have the outcome + posthogId and
+// run to completion regardless of the tab. Also triggers the "Lisp Nurturing Sequence"
+// Messaging workflow. Person props are attached via $set.
+const POSTHOG_HOST = process.env.POSTHOG_HOST || 'https://us.i.posthog.com';
+const POSTHOG_KEY = process.env.POSTHOG_API_KEY || 'phc_WFJFjSjFujXoTr85nd8fyZ6BdKtdo27RTADMbvnJn2O';
+async function sendPosthogAssessmentCompleted(user, survey, summary) {
+  try {
+    const distinctId = user && user.posthogId;
+    if (!distinctId) { console.warn('No posthogId — skipping PostHog assessment_completed'); return; }
+    const s = survey || {};
+    const properties = {
+      trouble_words_response: s.trouble_words_response || '',
+      age_group: s.age_group || '',
+      found_on: s.found_on || '',
+      lisp_detected: summary.lispDetected,
+      lisp_word_count: summary.lispWordCount,
+      lisp_words: summary.lispWords,
+      lisp_gri: summary.lispGri,
+      $set: {
+        lisp_detected: summary.lispDetected,
+        lisp_word_count: summary.lispWordCount,
+        lisp_gri: summary.lispGri,
+        ...(user.email ? { email: user.email } : {}),
+        ...(s.first_name ? { first_name: s.first_name } : {})
+      }
+    };
+    const resp = await fetch(`${POSTHOG_HOST}/capture/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: POSTHOG_KEY, event: 'assessment_completed', distinct_id: distinctId, properties })
+    });
+    if (!resp.ok) console.error('❌ PostHog capture failed:', resp.status, await resp.text());
+    else console.log('✅ PostHog assessment_completed sent for', distinctId);
+  } catch (err) {
+    console.error('❌ PostHog capture error:', err);
+  }
+}
+
 async function transcribeWithWhisper(audioB64, mimeType, prompt) {
   const buf = Buffer.from(stripDataUrlPrefix(audioB64), 'base64');
   const type = mimeType || 'audio/webm';
@@ -495,7 +674,24 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         // GRI from scored probes only (words + sentences); spontaneous excluded.
         const allQ = wordParsed.words.concat(sentenceParsed.rows).map(r => r.quality || 0);
         const gri = allQ.length ? Math.max(0, Math.min(100, Math.round(allQ.reduce((a, b) => a + b, 0) / allQ.length))) : 0;
-        return res.status(200).json({ words: wordParsed.words, rows: sentenceParsed.rows, spontaneous, gri, mode: 'combined', usage });
+
+        // Attach each word's tier (from the probe metadata) so rows group into the
+        // same category structure the results page renders and persists.
+        const tierByWord = {};
+        wordProbes.forEach(p => { if (p.word != null) tierByWord[p.word] = p.tier || 1; });
+        const wordRows = wordParsed.words.map(r => ({ ...r, tier: tierByWord[r.word] || 1 }));
+        const categories = buildLispCategories(wordRows, sentenceParsed.rows, spontaneous);
+        const result = lispStructuredToMarkdown(categories);
+
+        // Write the Firestore record + fire the PostHog event HERE (server-side) so
+        // both land even if the user already closed the tab — the browser no longer
+        // does either. Awaited before the response so they complete regardless of the
+        // client still listening.
+        const lispSummary = deriveLispSummary(categories, gri);
+        await writeLispUserRecord(req.body && req.body.user, { gri, categories, result });
+        await sendPosthogAssessmentCompleted(req.body && req.body.user, req.body && req.body.survey, lispSummary);
+
+        return res.status(200).json({ words: wordRows, rows: sentenceParsed.rows, spontaneous, gri, mode: 'combined', usage });
       }
 
       if (mode === 'sentences') {
@@ -517,6 +713,9 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         country: req.headers['x-appengine-country'] || req.headers['x-country'] || 'Unspecified'
       };
       console.error('❌ analyzeLispSpeech error:', err, '| context:', JSON.stringify(ctx));
+      // Still create/annotate the user's record so a failed attempt is tracked and
+      // the record exists even though Gemini produced no analysis to store.
+      await writeLispUserErrorRecord(req.body && req.body.user, { message: err.message, mode: failMode || 'combined' });
       res.status(500).json({ error: err.message });
     }
   });

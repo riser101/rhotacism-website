@@ -18,7 +18,6 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
         import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js';
-        import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
         import { getAuth, onAuthStateChanged, signInAnonymously, GoogleAuthProvider, OAuthProvider, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
 
         const firebaseConfig = {
@@ -34,7 +33,6 @@
         const firebaseApp = initializeApp(firebaseConfig);
         const storage = getStorage(firebaseApp);
         const auth = getAuth(firebaseApp);
-        const db = getFirestore(firebaseApp);
 
         // Sign in anonymously as fallback so uploads always work
         signInAnonymously(auth).catch(err => console.warn('Firebase anonymous auth failed:', err));
@@ -112,37 +110,23 @@
             }
         };
 
-        // Persist the Gemini analysis result to Firestore (lisp-users collection),
-        // keyed by Firebase auth uid (anonymous or signed-in). Merge-write so other
-        // app-owned fields on the doc are preserved.
-        window.saveAnalysisToFirestore = async function(analysis) {
-            try {
-                const uid = auth.currentUser?.uid;
-                if (!uid) { console.warn('No Firebase uid — skipping Firestore save'); return; }
-                const userAuth = JSON.parse(localStorage.getItem('userAuth') || 'null');
-                const docRef = doc(db, 'lisp-users', uid);
-                await setDoc(docRef, {
-                    product: 'lisp',
-                    uid,
-                    sessionId: getAssessmentSessionId(),
-                    posthogId: getPosthogId() || '',
-                    authUserId: userAuth?.id ? String(userAuth.id) : '',
-                    email: userAuth?.email || auth.currentUser?.email || '',
-                    isAnonymous: !!auth.currentUser?.isAnonymous,
-                    phone: (document.getElementById('phoneNumber')?.value || '').trim(),
-                    countryCode: (document.getElementById('countryCode')?.value || '').trim(),
-                    latestAssessment: {
-                        gri: analysis?.gri ?? null,
-                        categories: analysis?.categories ?? [],
-                        result: analysis?.result ?? '',
-                        completedAt: new Date().toISOString()
-                    },
-                    updatedAt: serverTimestamp()
-                }, { merge: true });
-                console.log('Saved analysis to Firestore: lisp-users/' + uid);
-            } catch (err) {
-                console.error('Failed to save analysis to Firestore:', err);
-            }
+        // Identity block sent to the analysis backend so the SERVER writes the
+        // Firestore lisp-users/{uid} record itself (see gcp-function-lisp/index.js).
+        // The record is written server-side the moment Gemini returns, so it lands
+        // even when the user leaves before the 1–2 min analysis finishes. The browser
+        // used to write this doc, but that was lost on early exit — hence the move.
+        window.getLispIdentityPayload = function() {
+            const userAuth = JSON.parse(localStorage.getItem('userAuth') || 'null');
+            return {
+                uid: auth.currentUser?.uid || '',
+                sessionId: getAssessmentSessionId(),
+                posthogId: getPosthogId() || '',
+                authUserId: userAuth?.id ? String(userAuth.id) : '',
+                email: userAuth?.email || auth.currentUser?.email || '',
+                isAnonymous: !!auth.currentUser?.isAnonymous,
+                phone: (document.getElementById('phoneNumber')?.value || '').trim(),
+                countryCode: (document.getElementById('countryCode')?.value || '').trim()
+            };
         };
 
         // Expose Firebase auth handlers for login step
@@ -1393,9 +1377,15 @@
         }
         .obw-phone-row { display: flex; gap: 8px; }
         .obw-phone-row .obw-cc {
-            flex: 0 0 86px;
-            text-align: center;
+            flex: 0 0 118px;
+            text-align: left;
             font-weight: 600;
+            padding-left: 10px;
+            padding-right: 6px;
+            /* Native select: keep the OS dropdown caret, just size the box so the
+               flag + dial code stay visible when collapsed (country name truncates). */
+            text-overflow: ellipsis;
+            cursor: pointer;
         }
         .obw-skip-note {
             font-size: 12px; color: rgba(0,0,0,.42);
@@ -3702,10 +3692,23 @@
             const payload = {
                 mode: 'combined',
                 words: probes.map(p => ({
-                    word: p.word, position: p.position, type: p.type, audio_base64: p.audio_base64,
+                    word: p.word, position: p.position, type: p.type, tier: p.tier, audio_base64: p.audio_base64,
                     acoustics: acousticsByWord[p.word] || null
                 })),
-                voiceType: userGender
+                voiceType: userGender,
+                // Identity so the backend writes the Firestore record itself — see
+                // getLispIdentityPayload(). Hidden phone/countryCode inputs are already
+                // committed by now (wizCommitToHiddenInputs runs before this await resolves).
+                user: (typeof window.getLispIdentityPayload === 'function') ? window.getLispIdentityPayload() : null,
+                // Survey answers so the backend can fire the 'assessment_completed'
+                // PostHog event itself (guaranteed even if the user exits). wizState is
+                // fully populated by the time this payload is built.
+                survey: {
+                    trouble_words_response: wizState.trouble || '',
+                    age_group: wizState.age || '',
+                    found_on: (wizState.source === 'other' ? (wizState.sourceOther || '') : (wizState.source || '')).toString().trim(),
+                    first_name: localStorage.getItem('assessmentUserName') || ''
+                }
             };
 
             let wordRows = [], sentenceRows = [], spontaneous = null;
@@ -4309,47 +4312,16 @@
                         if (did) window.posthog.identify(did, { email: phEmail, first_name: phName });
                         else if (typeof window.posthog.setPersonProperties === 'function') window.posthog.setPersonProperties({ email: phEmail, first_name: phName });
                     }
-                    // Derive lisp-detection summary from the same stored analysis the
-                    // results table reads, so the "Lisp Nurturing Sequence" workflow can
-                    // branch on it. A word counts as a lisp hit when its judgment is one
-                    // of the distortion types (matches assessment-results.html Judgment
-                    // column); Accurate/Unclear are NOT hits.
-                    const LISP_JUDGMENTS = ['Interdental', 'Dentalized', 'Lateral', 'Distorted'];
-                    let lispDetected = false, lispWordCount = 0, lispGri = null, lispWords = [];
-                    try {
-                        const analysis = JSON.parse(localStorage.getItem('analysisResult') || '{}');
-                        if (analysis && Array.isArray(analysis.categories)) {
-                            lispGri = typeof analysis.gri === 'number' ? analysis.gri : null;
-                            analysis.categories.forEach(cat => {
-                                (cat.rows || []).forEach(row => {
-                                    if (LISP_JUDGMENTS.includes(row.judgment)) {
-                                        lispDetected = true;
-                                        lispWordCount++;
-                                        const label = row.word || row.sentence;
-                                        if (label) lispWords.push(label);
-                                    }
-                                });
-                            });
-                        }
-                    } catch (_) { /* no analysis stored */ }
-                    if (typeof window.posthog.setPersonProperties === 'function') {
-                        window.posthog.setPersonProperties({
-                            lisp_detected: lispDetected,
-                            lisp_word_count: lispWordCount,
-                            lisp_gri: lispGri
-                        });
-                    }
-                    if (typeof window.posthog.capture === 'function') {
-                        window.posthog.capture('assessment_completed', {
-                            trouble_words_response: trouble,
-                            age_group: age,
-                            found_on: foundOn,
-                            lisp_detected: lispDetected,
-                            lisp_word_count: lispWordCount,
-                            lisp_words: lispWords,
-                            lisp_gri: lispGri
-                        });
-                    }
+                    // NOTE: the outcome-bearing 'assessment_completed' PostHog event
+                    // (lisp_detected/count/words/gri + survey answers, plus $set person
+                    // props) is fired by the ANALYSIS BACKEND, not here. The Gemini call
+                    // takes 1–2 min and the user often leaves before it returns, so a
+                    // client capture would race the result (always "no lisp") or never
+                    // send. The backend has the outcome + posthogId and runs to completion
+                    // regardless of the tab. It also triggers the "Lisp Nurturing Sequence"
+                    // workflow. See sendPosthogAssessmentCompleted() in
+                    // gcp-function-lisp/index.js. The identify above stays so the browser
+                    // session is tied to the person.
                 }
             } catch (e) { /* posthog not ready */ }
         }
@@ -4578,11 +4550,115 @@
                 { title: 'How did you learn about Lisp Speech Clinic?', sub: 'Helps us reach more people who need this' },
                 { title: 'Your voice type', sub: 'Calibrates your /s/ frequency target' },
             ];
+            // Country dial codes for the phone field. `iso` drives geo auto-detect;
+            // `dial` is what gets stored/sent. Common markets first so the dropdown is
+            // quick to scan. Order otherwise doesn't matter.
+            const WIZ_COUNTRIES = [
+                { iso: 'US', dial: '+1',   flag: '🇺🇸', name: 'United States' },
+                { iso: 'GB', dial: '+44',  flag: '🇬🇧', name: 'United Kingdom' },
+                { iso: 'CA', dial: '+1',   flag: '🇨🇦', name: 'Canada' },
+                { iso: 'AU', dial: '+61',  flag: '🇦🇺', name: 'Australia' },
+                { iso: 'IN', dial: '+91',  flag: '🇮🇳', name: 'India' },
+                { iso: 'NZ', dial: '+64',  flag: '🇳🇿', name: 'New Zealand' },
+                { iso: 'IE', dial: '+353', flag: '🇮🇪', name: 'Ireland' },
+                { iso: 'DE', dial: '+49',  flag: '🇩🇪', name: 'Germany' },
+                { iso: 'FR', dial: '+33',  flag: '🇫🇷', name: 'France' },
+                { iso: 'IT', dial: '+39',  flag: '🇮🇹', name: 'Italy' },
+                { iso: 'ES', dial: '+34',  flag: '🇪🇸', name: 'Spain' },
+                { iso: 'NL', dial: '+31',  flag: '🇳🇱', name: 'Netherlands' },
+                { iso: 'BE', dial: '+32',  flag: '🇧🇪', name: 'Belgium' },
+                { iso: 'CH', dial: '+41',  flag: '🇨🇭', name: 'Switzerland' },
+                { iso: 'AT', dial: '+43',  flag: '🇦🇹', name: 'Austria' },
+                { iso: 'SE', dial: '+46',  flag: '🇸🇪', name: 'Sweden' },
+                { iso: 'NO', dial: '+47',  flag: '🇳🇴', name: 'Norway' },
+                { iso: 'DK', dial: '+45',  flag: '🇩🇰', name: 'Denmark' },
+                { iso: 'FI', dial: '+358', flag: '🇫🇮', name: 'Finland' },
+                { iso: 'PT', dial: '+351', flag: '🇵🇹', name: 'Portugal' },
+                { iso: 'GR', dial: '+30',  flag: '🇬🇷', name: 'Greece' },
+                { iso: 'PL', dial: '+48',  flag: '🇵🇱', name: 'Poland' },
+                { iso: 'CZ', dial: '+420', flag: '🇨🇿', name: 'Czech Republic' },
+                { iso: 'HU', dial: '+36',  flag: '🇭🇺', name: 'Hungary' },
+                { iso: 'TR', dial: '+90',  flag: '🇹🇷', name: 'Turkey' },
+                { iso: 'RU', dial: '+7',   flag: '🇷🇺', name: 'Russia' },
+                { iso: 'UA', dial: '+380', flag: '🇺🇦', name: 'Ukraine' },
+                { iso: 'AE', dial: '+971', flag: '🇦🇪', name: 'United Arab Emirates' },
+                { iso: 'SA', dial: '+966', flag: '🇸🇦', name: 'Saudi Arabia' },
+                { iso: 'IL', dial: '+972', flag: '🇮🇱', name: 'Israel' },
+                { iso: 'EG', dial: '+20',  flag: '🇪🇬', name: 'Egypt' },
+                { iso: 'ZA', dial: '+27',  flag: '🇿🇦', name: 'South Africa' },
+                { iso: 'NG', dial: '+234', flag: '🇳🇬', name: 'Nigeria' },
+                { iso: 'KE', dial: '+254', flag: '🇰🇪', name: 'Kenya' },
+                { iso: 'PK', dial: '+92',  flag: '🇵🇰', name: 'Pakistan' },
+                { iso: 'BD', dial: '+880', flag: '🇧🇩', name: 'Bangladesh' },
+                { iso: 'JP', dial: '+81',  flag: '🇯🇵', name: 'Japan' },
+                { iso: 'KR', dial: '+82',  flag: '🇰🇷', name: 'South Korea' },
+                { iso: 'CN', dial: '+86',  flag: '🇨🇳', name: 'China' },
+                { iso: 'SG', dial: '+65',  flag: '🇸🇬', name: 'Singapore' },
+                { iso: 'MY', dial: '+60',  flag: '🇲🇾', name: 'Malaysia' },
+                { iso: 'ID', dial: '+62',  flag: '🇮🇩', name: 'Indonesia' },
+                { iso: 'TH', dial: '+66',  flag: '🇹🇭', name: 'Thailand' },
+                { iso: 'VN', dial: '+84',  flag: '🇻🇳', name: 'Vietnam' },
+                { iso: 'PH', dial: '+63',  flag: '🇵🇭', name: 'Philippines' },
+                { iso: 'MX', dial: '+52',  flag: '🇲🇽', name: 'Mexico' },
+                { iso: 'BR', dial: '+55',  flag: '🇧🇷', name: 'Brazil' },
+                { iso: 'AR', dial: '+54',  flag: '🇦🇷', name: 'Argentina' },
+                { iso: 'CL', dial: '+56',  flag: '🇨🇱', name: 'Chile' },
+                { iso: 'CO', dial: '+57',  flag: '🇨🇴', name: 'Colombia' },
+                { iso: 'PE', dial: '+51',  flag: '🇵🇪', name: 'Peru' }
+            ];
+            const WIZ_COUNTRY_BY_ISO = {};
+            WIZ_COUNTRIES.forEach(c => { WIZ_COUNTRY_BY_ISO[c.iso] = c; });
+
+            // Primary IANA timezone → ISO country, for offline geo auto-detect (no
+            // network, privacy-friendly). Covers the countries listed above.
+            const WIZ_TZ_TO_ISO = {
+                'America/New_York': 'US', 'America/Detroit': 'US', 'America/Chicago': 'US', 'America/Denver': 'US',
+                'America/Phoenix': 'US', 'America/Los_Angeles': 'US', 'America/Anchorage': 'US', 'Pacific/Honolulu': 'US',
+                'America/Toronto': 'CA', 'America/Vancouver': 'CA', 'America/Edmonton': 'CA', 'America/Winnipeg': 'CA',
+                'America/Halifax': 'CA', 'America/St_Johns': 'CA',
+                'Europe/London': 'GB', 'Europe/Dublin': 'IE',
+                'Australia/Sydney': 'AU', 'Australia/Melbourne': 'AU', 'Australia/Brisbane': 'AU', 'Australia/Perth': 'AU',
+                'Australia/Adelaide': 'AU', 'Pacific/Auckland': 'NZ',
+                'Asia/Kolkata': 'IN', 'Asia/Calcutta': 'IN',
+                'Europe/Berlin': 'DE', 'Europe/Paris': 'FR', 'Europe/Rome': 'IT', 'Europe/Madrid': 'ES',
+                'Europe/Amsterdam': 'NL', 'Europe/Brussels': 'BE', 'Europe/Zurich': 'CH', 'Europe/Vienna': 'AT',
+                'Europe/Stockholm': 'SE', 'Europe/Oslo': 'NO', 'Europe/Copenhagen': 'DK', 'Europe/Helsinki': 'FI',
+                'Europe/Lisbon': 'PT', 'Europe/Athens': 'GR', 'Europe/Warsaw': 'PL', 'Europe/Prague': 'CZ',
+                'Europe/Budapest': 'HU', 'Europe/Istanbul': 'TR', 'Europe/Moscow': 'RU', 'Europe/Kiev': 'UA',
+                'Europe/Kyiv': 'UA',
+                'Asia/Dubai': 'AE', 'Asia/Riyadh': 'SA', 'Asia/Jerusalem': 'IL', 'Africa/Cairo': 'EG',
+                'Africa/Johannesburg': 'ZA', 'Africa/Lagos': 'NG', 'Africa/Nairobi': 'KE',
+                'Asia/Karachi': 'PK', 'Asia/Dhaka': 'BD', 'Asia/Tokyo': 'JP', 'Asia/Seoul': 'KR',
+                'Asia/Shanghai': 'CN', 'Asia/Singapore': 'SG', 'Asia/Kuala_Lumpur': 'MY', 'Asia/Jakarta': 'ID',
+                'Asia/Bangkok': 'TH', 'Asia/Ho_Chi_Minh': 'VN', 'Asia/Manila': 'PH',
+                'America/Mexico_City': 'MX', 'America/Sao_Paulo': 'BR', 'America/Argentina/Buenos_Aires': 'AR',
+                'America/Santiago': 'CL', 'America/Bogota': 'CO', 'America/Lima': 'PE'
+            };
+
+            // Best-effort country auto-detect for the phone code default:
+            // 1) IANA timezone → country (accurate, offline); 2) browser locale region
+            // (e.g. en-US → US); 3) fall back to US. Never leaves the field blank.
+            function wizDetectCountryIso() {
+                try {
+                    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    if (tz && WIZ_TZ_TO_ISO[tz]) return WIZ_TZ_TO_ISO[tz];
+                } catch (e) { /* Intl unavailable */ }
+                try {
+                    const locales = navigator.languages || [navigator.language];
+                    for (const loc of locales) {
+                        const m = /[-_]([A-Za-z]{2})(?:$|[-_])/.exec(loc || '');
+                        if (m) { const iso = m[1].toUpperCase(); if (WIZ_COUNTRY_BY_ISO[iso]) return iso; }
+                    }
+                } catch (e) { /* navigator unavailable */ }
+                return 'US';
+            }
+
+            const wizDetectedCountry = WIZ_COUNTRY_BY_ISO[wizDetectCountryIso()] || WIZ_COUNTRY_BY_ISO.US;
             const wizState = {
                 step: 1, dir: 'fwd', _lastStep: null,
                 trouble: null, age: null,
                 source: null, sourceOther: '',
-                gender: null, cc: '+1', phone: ''
+                gender: null, cc: wizDetectedCountry.dial, ccIso: wizDetectedCountry.iso, phone: ''
             };
 
             function wizCanAdvance() {
@@ -4667,8 +4743,9 @@
                         ${genderBtns}
                         <div style="font-size:13px;font-weight:600;color:#374151;margin:18px 0 8px;">Phone number</div>
                         <div class="obw-phone-row">
-                            <input class="obw-input obw-cc" id="wizCc" type="text" inputmode="tel"
-                                maxlength="5" value="${wizEsc(wizState.cc || '+1')}">
+                            <select class="obw-input obw-cc" id="wizCc" aria-label="Country code">
+                                ${WIZ_COUNTRIES.map(c => `<option value="${c.iso}"${c.iso === wizState.ccIso ? ' selected' : ''}>${c.flag} ${c.dial} · ${c.name}</option>`).join('')}
+                            </select>
                             <input class="obw-input" id="wizPhone" type="tel" inputmode="tel"
                                 autocomplete="tel" placeholder="(000) 000-0000"
                                 value="${wizEsc(wizState.phone)}">
@@ -4732,11 +4809,18 @@
                 }
                 const ccInp = content.querySelector('#wizCc');
                 if (ccInp) {
-                    ccInp.addEventListener('input', e => { wizState.cc = e.target.value; });
+                    ccInp.addEventListener('change', e => {
+                        const c = WIZ_COUNTRY_BY_ISO[e.target.value];
+                        if (c) { wizState.ccIso = c.iso; wizState.cc = c.dial; }
+                    });
                 }
                 const phoneInp = content.querySelector('#wizPhone');
                 if (phoneInp) {
-                    phoneInp.addEventListener('input', e => { wizState.phone = e.target.value; });
+                    phoneInp.addEventListener('input', e => {
+                        wizState.phone = e.target.value;
+                        // Phone is required on step 4 — re-evaluate the CTA as they type.
+                        document.getElementById('obwCta').disabled = !wizCanAdvance();
+                    });
                     setTimeout(() => phoneInp.focus(), 0);
                 }
             }
@@ -4775,10 +4859,9 @@
                     try {
                         const gemini = await sendAudioToBackend();
                         if (gemini && gemini.categories?.length) {
+                            // Results-page render source. The Firestore record is written
+                            // server-side by the analysis backend (guaranteed even on exit).
                             localStorage.setItem('analysisResult', JSON.stringify(gemini));
-                            if (typeof window.saveAnalysisToFirestore === 'function') {
-                                await window.saveAnalysisToFirestore(gemini);
-                            }
                         }
                     } catch (err) {
                         console.warn('Gemini analysis failed:', err);
