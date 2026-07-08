@@ -4667,7 +4667,8 @@
             // network location for travelers/VPNs (e.g. Lima timezone but US IP). So we
             // also do an IP-based lookup — the same signal PostHog's GeoIP uses — and
             // upgrade the default when it returns, unless the user already picked a
-            // country. GeoJS is free with no rate limit (unlike ipapi.co's ~1k/day).
+            // country. Source is our own /api/geo, which echoes Vercel's edge GeoIP
+            // header (x-vercel-ip-country): same-origin, no third party, no rate limit.
             let wizCcTouched = false;
             function wizApplyIpCountry(iso) {
                 if (!iso || wizCcTouched) return;
@@ -4681,7 +4682,7 @@
                 try {
                     const ctrl = new AbortController();
                     const to = setTimeout(() => ctrl.abort(), 3000);
-                    const resp = await fetch('https://get.geojs.io/v1/ip/country.json', { signal: ctrl.signal });
+                    const resp = await fetch('/api/geo', { signal: ctrl.signal });
                     clearTimeout(to);
                     if (resp.ok) {
                         const code = ((await resp.json()).country || '').trim().toUpperCase();
