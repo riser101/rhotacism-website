@@ -12,13 +12,16 @@ setGlobalDispatcher(new Agent({ headersTimeout: 600000, bodyTimeout: 600000 }));
 
 // Firestore (Admin SDK). This backend writes the lisp-users/{uid} record itself so
 // it's guaranteed even when the user leaves before the 1–2 min Gemini call returns
-// (the browser used to write it and lost it on early exit). Uses the Cloud Run
-// runtime service account's ADC → the rollr-academy project's Firestore. Guarded so
-// local dev without credentials degrades gracefully instead of crashing the request.
+// (the browser used to write it and lost it on early exit). NOTE: this function runs
+// in the detache-platform GCP project, but Firestore/Firebase lives in rollr-academy
+// — so we MUST pin projectId to rollr-academy (firebase-admin otherwise targets the
+// project it runs in). The runtime service account needs roles/datastore.user on
+// rollr-academy. Overridable via FIRESTORE_PROJECT_ID. Guarded so local dev without
+// credentials degrades gracefully instead of crashing the request.
 const admin = require('firebase-admin');
 let firestore = null;
 try {
-  if (!admin.apps.length) admin.initializeApp();
+  if (!admin.apps.length) admin.initializeApp({ projectId: process.env.FIRESTORE_PROJECT_ID || 'rollr-academy' });
   firestore = admin.firestore();
 } catch (e) {
   console.error('firebase-admin init failed (records will be skipped):', e.message);
