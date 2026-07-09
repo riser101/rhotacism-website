@@ -1472,6 +1472,19 @@
         .asmt-loader-sub {
             font-size: 14px; color: rgba(0,0,0,0.55);
             margin: 0; text-align: center;
+            transition: opacity 0.4s ease;
+            min-height: 20px;
+        }
+        .asmt-loader-progress {
+            width: 100%; max-width: 360px; height: 6px;
+            background: rgba(0,0,0,0.08); border-radius: 999px;
+            overflow: hidden; margin: 14px auto 0;
+        }
+        .asmt-loader-progress-bar {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, #FFB74D, #FF9800);
+            border-radius: 999px;
+            transition: width 0.8s ease;
         }
         .asmt-loader-note {
             font-size: 13px; line-height: 1.5; color: rgba(0,0,0,0.5);
@@ -2698,7 +2711,10 @@
                     </div>
                     <div class="asmt-loader-eyebrow">Processing Data</div>
                     <h3 class="asmt-loader-title">Analyzing Phonetic Patterns</h3>
-                    <p class="asmt-loader-sub">Running DSP-Lisp analysis engine…</p>
+                    <p class="asmt-loader-sub" id="loaderSub">Running DSP-Lisp analysis engine…</p>
+                    <div class="asmt-loader-progress" aria-hidden="true">
+                      <div class="asmt-loader-progress-bar" id="loaderProgressBar"></div>
+                    </div>
                     <div class="asmt-loader-steps">
                       <div class="asmt-loader-step done" id="loading1">
                         <span class="asmt-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
@@ -2717,7 +2733,7 @@
                         <span>Generating report</span>
                       </div>
                     </div>
-                    <p class="asmt-loader-note" id="loaderNote">A full analysis can take a minute or two. Please keep this tab open — your results will appear here automatically.</p>
+                    <p class="asmt-loader-note" id="loaderNote">This is a deep analysis of every sound you recorded — worth the short wait. Keep this tab open and your results will appear here automatically.</p>
                     <span id="countdown" style="display:none;">10</span>
                   </div>
                   <!-- Inline results (replaces separate assessment-results.html) -->
@@ -4681,9 +4697,54 @@
                 if (icon) icon.innerHTML = CHECK_SVG;
             }
 
-            // Stagger pending step transitions
-            const step3Timeout = setTimeout(() => markDone('loading3'), 3000);
-            const step4Timeout = setTimeout(() => markDone('loading4'), 6000);
+            // Real analysis runs ~4 min. Never let the loader look "finished" and
+            // frozen — keep the last step spinning + status rotating + bar creeping
+            // so the wait feels active, not stalled. No fixed time promise (it lied).
+
+            // "Phonetic classification" completes partway; "Generating report"
+            // stays spinning until the backend actually returns.
+            const step3Timeout = setTimeout(() => markDone('loading3'), 14000);
+
+            // Rotating status line — always something new happening.
+            const rotateMsgs = [
+                'Running DSP-Lisp analysis engine…',
+                'Measuring spectral energy across your /s/ sounds…',
+                'Comparing formant peaks to target bands…',
+                'Scoring each word for sibilant precision…',
+                'Checking frontal vs. lateral airflow patterns…',
+                'Building your personalized sound map…',
+                'Assembling your results…'
+            ];
+            const subEl = document.getElementById('loaderSub');
+            let rotIdx = 0;
+            startProcessing._rotTimer = setInterval(() => {
+                rotIdx = (rotIdx + 1) % rotateMsgs.length;
+                if (!subEl) return;
+                subEl.style.opacity = '0';
+                setTimeout(() => { subEl.textContent = rotateMsgs[rotIdx]; subEl.style.opacity = '1'; }, 400);
+            }, 9000);
+
+            // Progress bar creeps toward ~95% and never quite arrives until done —
+            // motion signals liveness without promising a finish time.
+            const barEl = document.getElementById('loaderProgressBar');
+            let pct = 4;
+            startProcessing._barTimer = setInterval(() => {
+                if (pct < 95) { pct += (95 - pct) * 0.06; if (barEl) barEl.style.width = pct.toFixed(1) + '%'; }
+            }, 1200);
+
+            // Warmer reassurance the longer it runs — no wrong numbers.
+            const noteEl = document.getElementById('loaderNote');
+            const noteAt90 = setTimeout(() => { if (noteEl) noteEl.textContent = 'Still working — a thorough analysis is worth the wait. No need to refresh.'; }, 90000);
+            const noteAt180 = setTimeout(() => { if (noteEl) noteEl.textContent = 'Nearly there — finalizing your personalized results now.'; }, 180000);
+
+            function stopLoaderAnim() {
+                clearTimeout(step3Timeout);
+                clearInterval(startProcessing._rotTimer);
+                clearInterval(startProcessing._barTimer);
+                clearTimeout(noteAt90);
+                clearTimeout(noteAt180);
+                if (barEl) barEl.style.width = '100%';
+            }
 
             // Wait for backend analysis + step 4 submit to finish before redirecting
             if (step4SubmitPromise) {
@@ -4694,8 +4755,7 @@
             }
 
             // Ensure all done
-            clearTimeout(step3Timeout);
-            clearTimeout(step4Timeout);
+            stopLoaderAnim();
             for (let i = 1; i <= 4; i++) markDone('loading' + i);
 
             // Assessment complete — drop the resume checkpoint.
@@ -5030,6 +5090,8 @@
         }
 
         function renderInlineResults() {
+            // Stop any running loader animation timers (safety across resume paths).
+            try { clearInterval(startProcessing._rotTimer); clearInterval(startProcessing._barTimer); } catch (e) {}
             var panel = document.querySelector('#step4 .ob-panel-left');
             var loader = document.querySelector('#step4 .asmt-loader');
             var results = document.getElementById('asmtResults');
