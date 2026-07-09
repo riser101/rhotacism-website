@@ -1215,6 +1215,9 @@
         }
         #step3 .ob-split,
         #step4 .ob-split { height: 100%; }
+        /* Single-row grid: pin the row to the container so a tall results list
+           clips + scrolls inside the panel instead of growing past the viewport. */
+        #step4 .ob-split { grid-template-rows: minmax(0, 100%); }
         #step4 .ob-panel-left { padding-top: 80px; padding-bottom: 24px; }
         /* Wizard left panel: card centered between nav and a pinned footer (PWA layout) */
         #step3 .ob-panel-left {
@@ -1399,9 +1402,7 @@
             text-align: center; margin-top: -2px;
         }
 
-        /* Analyzing step (step4) — PWA loader, white theme, full-width */
-        #step4 .ob-split { grid-template-columns: 1fr; }
-        #step4 .ob-panel-right { display: none; }
+        /* Analyzing step (step4) — PWA loader, white theme; keeps split (girl right) */
         #step4 .ob-panel-left {
             background: #fff;
             color: #111;
@@ -1409,6 +1410,15 @@
             padding-bottom: 0;
             align-items: center;
             justify-content: center;
+        }
+        /* When results render in the left panel, scroll from the top instead of centering */
+        #step4 .ob-panel-left.showing-results {
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            padding: 104px 32px 32px;
+            overflow: hidden;
+            min-height: 0;
         }
         .asmt-loader {
             display: flex; flex-direction: column;
@@ -1496,6 +1506,221 @@
         @keyframes asmt-orb-spin { to { transform: rotate(360deg); } }
         @keyframes asmt-spin     { to { transform: rotate(360deg); } }
         @keyframes asmt-bars-pulse { 0%,100%{opacity:0.85} 50%{opacity:1} }
+
+        /* ===== Inline results (ported from assessment-results.html) ===== */
+        .asmt-results {
+            width: 100%; max-width: 560px; margin: 0 auto;
+            display: flex; flex-direction: column;
+            flex: 1 1 auto; min-height: 0;
+        }
+        .asmt-results-title {
+            font: 800 22px 'Quicksand', 'Inter', sans-serif;
+            color: #1A202C; margin: 0 0 4px; letter-spacing: -0.4px;
+            flex-shrink: 0;
+        }
+        .asmt-results-sub {
+            font-size: 14px; color: rgba(0,0,0,0.55); margin: 0 0 16px; line-height: 1.5;
+            flex-shrink: 0;
+        }
+        /* Accordion list scrolls in the free space; header + CTA stay put */
+        .asmt-results #voiceAnalysisContent {
+            flex: 1 1 auto; min-height: 0; overflow-y: auto;
+            margin: 0 -8px; padding: 0 8px;
+        }
+        .asmt-results-cta {
+            flex-shrink: 0;
+            margin-top: 20px; width: 100%;
+            background: #222;
+            color: #fff; border: none; border-radius: 12px;
+            padding: 16px 20px; font: 700 16px 'Inter', sans-serif;
+            cursor: pointer; transition: background 0.2s ease; letter-spacing: 0.2px;
+        }
+        .asmt-results-cta:hover { background: #111; }
+        .cell-play-btn {
+            display: inline-flex; align-items: center; gap: 3px; margin-top: 2px;
+            padding: 3px 7px; border: none; border-radius: 4px; font-size: 11px;
+            font-weight: 600; letter-spacing: 0.5px; text-transform: none;
+            cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
+        }
+        .cell-play-btn.btn-target { background: #E0E7E2; color: #3A5A40; }
+        .cell-play-btn.btn-target:hover { background: #d0ddd3; }
+        .cell-play-btn.btn-target.playing { background: #c4d4c8; }
+        .cell-play-btn.btn-yours { background: #F4F7F5; color: #5E807F; }
+        .cell-play-btn.btn-yours:hover { background: #e6edea; }
+        .cell-play-btn.btn-yours.playing { background: #dce5e1; }
+        .cell-play-btn svg { width: 9px; height: 9px; flex-shrink: 0; }
+        .asmt-results .analysis-table-wrapper thead {
+            position: -webkit-sticky; position: sticky; top: 0; z-index: 10;
+        }
+        .asmt-results .analysis-table-wrapper thead th { background: #E07830; }
+
+        /* ===== Inline pricing (light theme — matches the white assessment panel) =====
+           Same senior pricing markup, recoloured for a white background: dark text,
+           white cards, and the three plans laid out side by side to fit the left panel. */
+        /* Dodo inline frame: block-level, full width, no inline-descender gap */
+        #dodo-inline-checkout iframe { display: block; width: 100%; border: 0; margin: 0; }
+        #step4 .ob-panel-left.showing-pricing {
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            padding: 0;
+            overflow: hidden;
+            min-height: 0;
+            background: #fff;
+        }
+        .asmt-pricing-view {
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background: #fff;
+            color: #1A202C;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .asmt-pricing-view .pricing-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 92px 16px 28px;
+            min-height: 100%;
+            justify-content: flex-start;
+        }
+        .asmt-pricing-view .pricing-header { text-align: center; max-width: 1120px; width: 100%; }
+        .asmt-pricing-view .pricing-header h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(19px, 1.9vw, 28px);
+            font-weight: 800; color: #1A202C; line-height: 1.05;
+            letter-spacing: -0.025em; margin: 0 0 10px; text-wrap: balance;
+        }
+        .asmt-pricing-view .pricing-header p {
+            font-size: 13px; line-height: 1.45; color: #4A5568; margin: 0; font-weight: 700; text-wrap: pretty;
+        }
+        .asmt-pricing-view .shield-icon {
+            display: inline; vertical-align: middle; margin-right: 4px;
+            position: relative; top: -1px; width: 17px; height: 17px; object-fit: contain;
+        }
+        .asmt-pricing-view .pricing-grid {
+            width: 100%; max-width: 1120px; margin-top: 18px;
+            display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: stretch;
+        }
+        .asmt-pricing-view .card-wrap { position: relative; padding-top: 0; display: flex; flex-direction: column; }
+        .asmt-pricing-view .card-wrap.has-badge { padding-top: 40px; }
+        .asmt-pricing-view .badge {
+            position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, #0291F7 0%, #026db9 100%);
+            color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 0.14em;
+            text-transform: uppercase; padding: 5px 10px; border-radius: 999px;
+            box-shadow: 0 6px 18px rgba(2,145,247,0.4); white-space: nowrap; z-index: 2;
+        }
+        .asmt-pricing-view .pricing-card {
+            position: relative; background: #FDFDFD;
+            border: 1px solid #E2E8F0; border-radius: 14px;
+            padding: 15px 13px 13px; box-shadow: 0 10px 26px rgba(0,0,0,0.07);
+            cursor: pointer; transition: transform .25s cubic-bezier(0.4,0,0.2,1), box-shadow .25s;
+            display: flex; flex-direction: column; flex: 1; min-height: 0;
+        }
+        .asmt-pricing-view .pricing-card.highlight {
+            border-color: #0291F7;
+            box-shadow: 0 16px 40px -10px rgba(2,145,247,0.25), 0 10px 32px rgba(0,0,0,0.09);
+            transform: translateY(-5px);
+        }
+        .asmt-pricing-view .pricing-card:hover { transform: translateY(-5px); }
+        .asmt-pricing-view .plan-eyebrow {
+            font-size: 9.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+            color: rgba(0,0,0,0.5); margin-bottom: 5px;
+        }
+        .asmt-pricing-view .pricing-card.highlight .plan-eyebrow { color: #0291F7; }
+        .asmt-pricing-view .plan-title {
+            font-size: 15.5px; font-weight: 700; color: #1A202C; letter-spacing: -0.01em; margin-bottom: 5px;
+        }
+        .asmt-pricing-view .plan-desc {
+            font-size: 10.5px; line-height: 1.4; color: #4A5568; font-weight: 600; margin: 0 0 11px;
+        }
+        .asmt-pricing-view .price-row { display: flex; align-items: baseline; gap: 5px; margin-bottom: 5px; }
+        .asmt-pricing-view .price-currency {
+            font-size: 14px; font-weight: 600; color: rgba(0,0,0,0.6); transform: translateY(-9px);
+        }
+        .asmt-pricing-view .price-amount {
+            font-size: 33px; font-weight: 700; color: #1A202C; line-height: 1; letter-spacing: -0.02em;
+        }
+        .asmt-pricing-view .price-suffix { font-size: 11px; color: rgba(0,0,0,0.5); margin-left: 4px; }
+        .asmt-pricing-view .price-split { display: flex; align-items: stretch; gap: 12px; margin-bottom: 5px; }
+        .asmt-pricing-view .price-split .price-row { margin-bottom: 0; }
+        .asmt-pricing-view .price-col { display: flex; flex-direction: column; justify-content: center; }
+        .asmt-pricing-view .price-vline { width: 1px; background: rgba(0,0,0,0.12); align-self: stretch; }
+        .asmt-pricing-view .pricing-card.highlight .price-vline { background: rgba(2,145,247,0.3); }
+        .asmt-pricing-view .duration-row { display: flex; align-items: baseline; gap: 4px; }
+        .asmt-pricing-view .duration-amount {
+            font-size: 33px; font-weight: 700; color: rgba(0,0,0,0.3); line-height: 1; letter-spacing: -0.02em;
+        }
+        .asmt-pricing-view .pricing-card.highlight .duration-amount { color: rgba(2,145,247,0.5); }
+        .asmt-pricing-view .duration-unit { font-size: 13px; font-weight: 600; color: rgba(0,0,0,0.5); }
+        .asmt-pricing-view .price-note {
+            font-size: 10px; font-weight: 500; color: rgba(0,0,0,0.5); margin-top: 5px; letter-spacing: 0.02em;
+        }
+        .asmt-pricing-view .divider {
+            height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.10) 50%, transparent 100%);
+            margin: 11px 0 9px;
+        }
+        .asmt-pricing-view .features {
+            list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; flex-grow: 1;
+        }
+        .asmt-pricing-view .features li {
+            display: flex; align-items: flex-start; gap: 6px; font-size: 10.5px; line-height: 1.3;
+            color: #2D3748; font-weight: 700; font-family: 'DM Sans', 'Inter', sans-serif;
+        }
+        .asmt-pricing-view .check {
+            flex: 0 0 13px; width: 13px; height: 13px; margin-top: 2px;
+            display: flex; align-items: center; justify-content: center; background: transparent;
+        }
+        .asmt-pricing-view .cta {
+            margin-top: 12px; width: 100%; padding: 10px 12px; border-radius: 9px;
+            border: 1px solid #CBD5E0; cursor: pointer; font-family: inherit;
+            font-size: 11.5px; font-weight: 700; letter-spacing: -0.005em; color: #1A202C;
+            background: #fff; box-shadow: 0 5px 0 0 #CBD5E0;
+            transition: transform .12s ease, box-shadow .12s ease, background .25s;
+        }
+        .asmt-pricing-view .cta:hover { background: #F7FAFC; }
+        .asmt-pricing-view .cta:active { transform: translateY(5px); box-shadow: 0 0 0 0 #CBD5E0; }
+        .asmt-pricing-view .pricing-card.highlight .cta {
+            border: none; color: #fff; background: linear-gradient(135deg, #0291F7 0%, #026db9 100%);
+            box-shadow: 0 7px 0 0 #013a5f, 0 14px 28px rgba(2,145,247,0.3);
+        }
+        .asmt-pricing-view .pricing-card.highlight .cta:hover { background: linear-gradient(135deg, #0291F7 0%, #026db9 100%); }
+        .asmt-pricing-view .pricing-card.highlight .cta:active {
+            transform: translateY(7px); box-shadow: 0 0 0 0 #013a5f, 0 14px 28px rgba(2,145,247,0.3);
+        }
+        .asmt-pricing-view .trust-strip {
+            margin-top: 18px; width: 100%; max-width: 1120px;
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+        }
+        .asmt-pricing-view .trust-pill {
+            display: flex; align-items: center; justify-content: center; gap: 7px; padding: 7px 14px;
+            background: #F7FAFC; border: 1px solid #E2E8F0; border-radius: 999px;
+            font-size: 12px; color: #111; font-weight: 700; white-space: nowrap;
+        }
+        .asmt-pricing-view .footer-separator-wrap {
+            margin-top: 24px; border-top: 1px solid rgba(0,0,0,0.07); width: 100%;
+        }
+        .asmt-pricing-view .footer-accent-bar {
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, #454500 25%, #9a901a 50%, #454500 75%, transparent 100%);
+            opacity: 0.8;
+        }
+        /* Narrow / real-mobile (right panel hidden, left is full width): stack the plans */
+        @media (max-width: 640px) {
+            .asmt-pricing-view .shield-icon { width: 18px; height: 18px; }
+            .asmt-pricing-view .pricing-page { padding: 88px 16px 60px; }
+            .asmt-pricing-view .pricing-header p { font-size: 15px; }
+            .asmt-pricing-view .pricing-grid { grid-template-columns: 1fr; margin-top: 24px; gap: 16px; max-width: 560px; }
+            .asmt-pricing-view .pricing-card { min-height: auto; padding: 24px 20px 20px; }
+            .asmt-pricing-view .price-amount { font-size: 50px; }
+            .asmt-pricing-view .features li { font-size: 14px; }
+            .asmt-pricing-view .trust-strip { display: grid; grid-template-columns: 1fr 1fr; max-width: 320px; padding: 0 4px; }
+            .asmt-pricing-view .trust-pill { padding: 9px 12px; font-size: 12px; }
+        }
 
         /* legacy wrapper kept for any leftover refs (no longer used) */
         .obw-analyze-wrap {
@@ -1679,6 +1904,7 @@
             #step4 .ob-split { grid-template-rows: 1fr; }
             #step4 .ob-panel-right { display: none; }
             #step4 .ob-panel-left { flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 88px; }
+            #step4 .ob-panel-left.showing-results { padding: 88px 18px 40px; }
             /* Compact step3 so all options + Next fit one viewport */
             #step3 .ob-wiz-body { padding: 72px 18px 6px; }
             #step3 .ob-wiz-foot { padding: 8px 18px 14px; }
@@ -2493,6 +2719,194 @@
                     </div>
                     <p class="asmt-loader-note" id="loaderNote">A full analysis can take a minute or two. Please keep this tab open — your results will appear here automatically.</p>
                     <span id="countdown" style="display:none;">10</span>
+                  </div>
+                  <!-- Inline results (replaces separate assessment-results.html) -->
+                  <div class="asmt-results" id="asmtResults" style="display:none;">
+                    <h2 class="asmt-results-title">Your /s/ Sound Analysis</h2>
+                    <p class="asmt-results-sub">Tap a category to see the words and hear your recordings.</p>
+                    <div id="voiceAnalysisContent"></div>
+                    <button type="button" class="asmt-results-cta" onclick="goToPricing()">Continue to your therapy plan</button>
+                  </div>
+                  <!-- Inline pricing (mirrors pricing.html exactly — shown in the left panel on Continue) -->
+                  <div class="asmt-pricing-view" id="asmtPricing" style="display:none;">
+                    <main class="pricing-page">
+                        <section class="pricing-header">
+                            <h1>Fix Your Lisp In 20 Weeks. Guaranteed.</h1>
+                            <p>
+                                <img src="/lispspeechclinic/images/shield-blue.png" alt="" class="shield-icon" aria-hidden="true">
+                                No Risk. Cancel within 7 days for a full refund for any reason.
+                            </p>
+                        </section>
+
+                        <section class="pricing-grid">
+
+                            <!-- Card 1: 3-month / Momentum -->
+                            <div class="card-wrap">
+                                <article class="pricing-card">
+                                    <div class="plan-eyebrow">The Core Correction Window</div>
+                                    <div class="plan-title">Momentum Program</div>
+                                    <p class="plan-desc">Unlock 3 Months Of Progressive Training. Giving Your Brain &amp; Tongue The Time Needed To Break Old Habits &amp; Automate Lisp-free Speech.</p>
+                                    <div class="price-split">
+                                        <div class="price-col">
+                                            <div class="price-row">
+                                                <span class="price-currency">$</span>
+                                                <span class="price-amount">249</span>
+                                            </div>
+                                            <span class="price-note">one-time payment</span>
+                                        </div>
+                                        <div class="price-vline"></div>
+                                        <div class="price-col">
+                                            <div class="duration-row">
+                                                <span class="duration-amount">3</span>
+                                                <span class="duration-unit">months</span>
+                                            </div>
+                                            <span class="price-note">just $83 / month</span>
+                                        </div>
+                                    </div>
+                                    <div class="divider"></div>
+                                    <ul class="features">
+                                        <li class="bold"><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Everything In Foundation Program.</span></li>
+                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>The 3 Month Habit Rewire: The Critical Timeframe Needed To Lock-in Your New, Lisp-free Speech.</span></li>
+                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Achieve Perfect, Lisp-free Speech At The Syllable Level (Sa, See, Is).</span></li>
+                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Achieve Perfect, Lisp-free Speech At Word Level (yes, so, and because).</span></li>
+                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Speak in full, Connected Sentences Without Losing Your Lisp-free Accuracy.</span></li>
+                                    </ul>
+                                    <button class="cta" type="button" onclick="openInlineCheckout('pdt_0NfsBcql0S0RwfIVqQMgh', this)">Start 3-month program</button>
+                                </article>
+                            </div>
+
+                            <!-- Card 2: 6-month / Mastery (highlighted) -->
+                            <div class="card-wrap">
+                                <article class="pricing-card highlight">
+                                    <div class="plan-eyebrow">The Complete Protocol</div>
+                                    <div class="plan-title">Mastery Program</div>
+                                    <p class="plan-desc">Recommended Track. Covers Full 3 Month Sequential Curriculum, And Unlocks An Extra 1 Month Of Dedicated Maintenance Track To Ensure Your Lisp Never Returns.</p>
+                                    <div class="price-split">
+                                        <div class="price-col">
+                                            <div class="price-row">
+                                                <span class="price-currency">$</span>
+                                                <span class="price-amount">448</span>
+                                            </div>
+                                            <span class="price-note">one-time payment</span>
+                                        </div>
+                                        <div class="price-vline"></div>
+                                        <div class="price-col">
+                                            <div class="duration-row">
+                                                <span class="duration-amount">6</span>
+                                                <span class="duration-unit">months</span>
+                                            </div>
+                                            <span class="price-note">just $75 / month</span>
+                                        </div>
+                                    </div>
+                                    <div class="divider"></div>
+                                    <ul class="features">
+                                        <li class="bold"><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Everything In Foundation + Momentum Programs.</span></li>
+                                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Tools To Perfect Crystal-Clear Articulation During Longer Conversations &amp; Stories While Learning To Seamlessly Self-Correct On The Fly.</span></li>
+                                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Perfect Your New Speech Skills Out In The Wild: Structured Role-Play, Simulate Real-World Scenarios. You'll Drop The Mental Gymnastics And Start Speaking Naturally.</span></li>
+                                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Tools To Make Your Lisp-Free Speech 100% Automatic—Even Under Pressure.</span></li>
+                                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Maintenance &amp; Relapse-Prevention Track.</span></li>
+                                    </ul>
+                                    <button class="cta" type="button" onclick="openInlineCheckout('pdt_0NfsBcHAFwBTjsHXCrZhn', this)">Start 6-month program</button>
+                                </article>
+                            </div>
+
+                            <!-- Card 3: 1-month / Foundation -->
+                            <div class="card-wrap">
+                                <article class="pricing-card">
+                                    <div class="plan-eyebrow">Phase 1: Weeks 1–4</div>
+                                    <div class="plan-title">Foundation Program</div>
+                                    <p class="plan-desc">Every Transformation Starts At Day One. Unlock 1 Month Of Foundational Speech Exercises.</p>
+                                    <div class="price-split">
+                                        <div class="price-col">
+                                            <div class="price-row">
+                                                <span class="price-currency">$</span>
+                                                <span class="price-amount">99</span>
+                                            </div>
+                                            <span class="price-note">one-time payment</span>
+                                        </div>
+                                        <div class="price-vline"></div>
+                                        <div class="price-col">
+                                            <div class="duration-row">
+                                                <span class="duration-amount">1</span>
+                                                <span class="duration-unit">month</span>
+                                            </div>
+                                            <span class="price-note">of full access</span>
+                                        </div>
+                                    </div>
+                                    <div class="divider"></div>
+                                    <ul class="features">
+                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Build Correct Foundation For Sibilant Sounds (S, Z, Sh, Zh, Ch, J).</span></li>
+                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Master Tongue Placement with Real-Time Visual Feedback.</span></li>
+                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Your Progress, Quantified: Side-by-Side Audio &amp; Clinical Insights.</span></li>
+                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Catch and Correct Speech Mistakes Instantly with Quick Feedback Check Tool.</span></li>
+                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Build a Bulletproof Daily Practice Habit with Intelligent Reminders.</span></li>
+                                    </ul>
+                                    <button class="cta" type="button" onclick="openInlineCheckout('pdt_0NfsBdExMhutyEZI9jb69', this)">Start 1-month program</button>
+                                </article>
+                            </div>
+
+                        </section>
+
+                        <section class="trust-strip">
+                            <div class="trust-pill">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3L4 6V12C4 16.5 7.5 20.7 12 22C16.5 20.7 20 16.5 20 12V6L12 3Z" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                HIPAA-compliant
+                            </div>
+                            <div class="trust-pill">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#111" stroke-width="1.8"/><path d="M8 12L11 15L16 9" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                Clinical Oversight
+                            </div>
+                            <div class="trust-pill">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 12C7 9.2 9.2 7 12 7C14.8 7 17 9.2 17 12" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M3 12H5M19 12H21M12 3V5" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="14" r="3" stroke="#111" stroke-width="1.8"/></svg>
+                                Evidence based
+                            </div>
+                            <div class="trust-pill">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="9" r="3" stroke="#111" stroke-width="1.8"/><circle cx="17" cy="10" r="2.5" stroke="#111" stroke-width="1.8"/><path d="M3 19C3 16 5.7 14 9 14C12.3 14 15 16 15 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M15 19C15 17 16.5 15.5 19 15.5C21 15.5 22 17 22 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/></svg>
+                                Trusted in 94+ Countries
+                            </div>
+                        </section>
+                    </main>
+                    <div class="footer-separator-wrap">
+                        <div class="footer-accent-bar"></div>
+                    </div>
+                    <!-- Inline Dodo checkout mounts here; shown in place of the plan cards -->
+                    <div id="dodoCheckoutWrap" style="display:none; padding: 88px 16px 32px; max-width: 640px; margin: 0 auto;">
+                        <button type="button" id="dodoCheckoutBack" onclick="closeInlineCheckout()"
+                            style="display:inline-flex; align-items:center; gap:6px; margin-bottom:16px; padding:8px 14px; border:1px solid #E2E8F0; background:#fff; border-radius:8px; font:600 13px 'Inter',sans-serif; color:#4A5568; cursor:pointer;">← Back to plans</button>
+
+                        <!-- Order summary + discount (inline frame shows neither, so we render them) -->
+                        <div id="dodoSummary" style="margin-bottom:14px;">
+                            <div style="display:flex; justify-content:space-between; align-items:baseline; gap:12px;">
+                                <span id="dodoPlanName" style="font:700 15px 'Quicksand','Inter',sans-serif; color:#1A202C;">Your plan</span>
+                                <span id="dodoPlanPrice" style="font:700 15px 'Inter',sans-serif; color:#1A202C;"></span>
+                            </div>
+                            <div style="height:1px; background:#E2E8F0; margin:12px 0;"></div>
+                            <!-- Collapsed: subtle prompt + text button (Dodo style) -->
+                            <div id="dodoDiscountPrompt" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                                <span style="font:500 13px 'Inter',sans-serif; color:#4A5568;">Have a discount code?</span>
+                                <button type="button" onclick="toggleDiscountInput(true)"
+                                    style="background:none; border:none; padding:0; font:600 13px 'Inter',sans-serif; color:#1A202C; text-decoration:underline; cursor:pointer;">Apply discount code</button>
+                            </div>
+                            <!-- Expanded: input + apply -->
+                            <div id="dodoDiscountEntry" style="display:none; gap:8px; margin-top:2px;">
+                                <input id="dodoDiscountInput" type="text" placeholder="Enter code" autocomplete="off"
+                                    style="flex:1; min-width:0; padding:9px 12px; border:1px solid #CBD5E0; border-radius:8px; font:500 13px 'Inter',sans-serif; text-transform:uppercase;">
+                                <button type="button" id="dodoDiscountApply" onclick="applyInlineDiscount()"
+                                    style="flex:0 0 auto; padding:9px 16px; border:1px solid #1A202C; background:#1A202C; color:#fff; border-radius:8px; font:700 13px 'Inter',sans-serif; cursor:pointer;">Apply</button>
+                            </div>
+                            <!-- Applied: compact confirmation (replaces the input to save space) -->
+                            <div id="dodoDiscountApplied" style="display:none; justify-content:space-between; align-items:center; gap:12px;">
+                                <span style="font:600 13px 'Inter',sans-serif; color:#2F855A;">✓ Code <span id="dodoAppliedCode"></span> applied</span>
+                                <button type="button" onclick="removeInlineDiscount()"
+                                    style="background:none; border:none; padding:0; font:600 13px 'Inter',sans-serif; color:#C53030; text-decoration:underline; cursor:pointer;">Remove</button>
+                            </div>
+                            <div id="dodoDiscountMsg" style="font:600 12px 'Inter',sans-serif; margin-top:8px; display:none;"></div>
+                            <div id="dodoTotals" style="margin-top:12px; display:none; border-top:1px solid #E2E8F0; padding-top:12px; font:500 13px 'Inter',sans-serif; color:#4A5568;"></div>
+                        </div>
+
+                        <div id="dodoCheckoutStatus" style="font:600 13px 'Inter',sans-serif; color:#4A5568; padding:4px 0; display:none;">Loading secure checkout…</div>
+                        <div id="dodo-inline-checkout"></div>
+                    </div>
                   </div>
                 </div>
                 <aside class="ob-panel-right" aria-hidden="true">
@@ -3559,6 +3973,12 @@
             const b64 = await blobToBase64(blob);
             wordRecordingsB64[TEST_WORDS[currentWordIndex]] = b64;
 
+            // A freshly captured word 0 = brand-new assessment. Drop any prior
+            // completed-results state so a refresh mid-run doesn't show stale results.
+            if (currentWordIndex === 0) {
+                try { localStorage.removeItem('assessmentCompleted'); localStorage.removeItem('analysisResult'); } catch (e) {}
+            }
+
             // Reset VU bars
             for (let i = 0; i < VU_BAR_COUNT; i++) {
                 const bar = document.getElementById('vuBar' + i);
@@ -4280,8 +4700,644 @@
 
             // Assessment complete — drop the resume checkpoint.
             clearSessionProgress();
-            // Redirect to results
-            setTimeout(() => { window.location.href = 'assessment-results.html'; }, 10);
+            // Render results inline in the left panel (girl image stays on the right)
+            setTimeout(renderInlineResults, 10);
+        }
+
+        // =============================================
+        // INLINE RESULTS (ported from assessment-results.html)
+        // Renders the 4 tier accordions (all collapsed) into the step4 left panel.
+        // =============================================
+        const TEST_SENTENCES = [
+            'Sam saw seven small sailboats on the sea.',
+            'The silly snake slid past the sunny sandbox.',
+            "Susan's sister keeps six pairs of scissors.",
+            'The zebra at the zoo has stripes and a buzzing nose.',
+            'She washed the shiny dishes and brushed the fish.',
+            'Jack chose a giant orange sandwich for lunch.'
+        ];
+        function normalizeSentence(s) {
+            return (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
+        const LISP_POSITION_MAP = {
+            sun: 'initial', soap: 'initial', seven: 'initial',
+            pencil: 'medial', glasses: 'medial', bicycle: 'medial',
+            bus: 'final', mouse: 'final', glass: 'final'
+        };
+        function classifyLispType(heard) {
+            if (/th|θ/.test(heard)) return 'interdental';
+            if (/sh|ʃ|sl|lateral|slushy/.test(heard)) return 'lateral';
+            return 'dentalized';
+        }
+        function formatList(arr) {
+            if (arr.length === 0) return '';
+            if (arr.length === 1) return arr[0];
+            if (arr.length === 2) return arr[0] + ' and ' + arr[1];
+            return arr.slice(0, -1).join(', ') + ', and ' + arr[arr.length - 1];
+        }
+        // CTA banner is dropped in the inline flow — these no-op safely (null-checked).
+        function updateCtaCopy(positions, typeCounts) {
+            var headlineEl = document.getElementById('ctaHeadline');
+            var subEl = document.getElementById('ctaSubtext');
+            if (!headlineEl && !subEl) return;
+        }
+        function hideGenericSections() {
+            ['timelineSection', 'protocolSection', 'nextStepsSection', 'ctaBanner'].forEach(function(id) {
+                var s = document.getElementById(id);
+                if (s) s.style.display = 'none';
+            });
+        }
+        function sevLabel(q) {
+            q = parseInt(q) || 0;
+            return q < 35 ? 'Severe' : q < 70 ? 'Moderate' : 'WNL';
+        }
+
+        function convertMarkdownToHTML(text) {
+            text = text.replace(/^.*(SCI|GRI):\s*\d+.*$/gim, '').trim();
+            const tableRegex = /\|(.+)\|\n\|[-:\s|]+\|\n((?:\|.+\|\n?)+)/g;
+            let html = text.replace(tableRegex, function(match, headerRow, bodyRows) {
+                const splitRow = function(line) {
+                    return line.replace(/^\s*\|/, '').replace(/\|\s*$/, '').split('|').map(c => c.trim());
+                };
+                const headers = splitRow(headerRow).filter(h => h);
+                const rows = bodyRows.trim().split('\n').map(function(row) {
+                    var cells = splitRow(row);
+                    while (cells.length < headers.length) cells.push('');
+                    return cells.slice(0, headers.length);
+                });
+                let tableHTML = '<div class="analysis-table-wrapper" style="overflow-x: auto; margin: 24px 0; -webkit-overflow-scrolling: touch; max-width: 100%;"><table style="min-width: 600px; border-collapse: collapse; font-size: 14px; background: white; border: 1px solid #E2E8F0;">';
+                tableHTML += '<thead><tr style="background: linear-gradient(135deg, #E8842A 0%, #D96B20 100%); color: white;">';
+                headers.forEach((header, j) => {
+                    const stickyStyle = j === 0 ? 'position: sticky; left: 0; z-index: 2; background: #E07830;' : '';
+                    tableHTML += '<th class="analysis-th' + (j === 0 ? ' sticky-col' : '') + '" style="padding: 12px 16px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; ' + stickyStyle + '">' + header + '</th>';
+                });
+                tableHTML += '</tr></thead>';
+                tableHTML += '<tbody>';
+                rows.forEach((row, i) => {
+                    const bgColor = i % 2 === 0 ? '#fff' : '#F7FAFC';
+                    tableHTML += '<tr style="background: ' + bgColor + '; border-bottom: 1px solid #E2E8F0;">';
+                    row.forEach((cell, j) => {
+                        const baseStyle = j === 0 ? 'font-weight: 600; color: #1A202C;' : 'color: #4A5568;';
+                        const stickyStyle = j === 0 ? 'position: sticky; left: 0; z-index: 1; background: ' + bgColor + ';' : '';
+                        tableHTML += '<td class="analysis-td' + (j === 0 ? ' sticky-col' : '') + '" style="padding: 12px 16px; ' + baseStyle + ' ' + stickyStyle + '">' + cell + '</td>';
+                    });
+                    tableHTML += '</tr>';
+                });
+                tableHTML += '</tbody></table></div>';
+                return tableHTML;
+            });
+            html = html
+                .replace(/## (.+)/g, function(_, t) { return '<h3 style="color: #1A202C; margin: 24px 0 12px 0; font-size: 17px; font-weight: 600;">' + t.replace(/^\s*Tier\s*\d+\s*[—–-]\s*/i, '') + '</h3>'; })
+                .replace(/\*\*(.+?)\*\*/g, '<strong style="color: #1A202C;">$1</strong>')
+                .replace(/^- (.+)/gm, '<div style="margin: 8px 0; padding-left: 16px; color: #2D3748;">&bull; $1</div>')
+                .replace(/\n\n/g, '</p><p style="margin: 16px 0; color: #2D3748;">')
+                .replace(/\n/g, '<br>');
+            return '<div style="line-height: 1.75; font-size: 15px; color: #2D3748;">' + html + '</div>';
+        }
+
+        function wordCatMarkdown(rows) {
+            var h = '| Word | Position | Heard | Judgment | Quality | Observation |\n| --- | --- | --- | --- | --- | --- |\n';
+            return h + (rows || []).map(function(r) {
+                return '| ' + (r.word || '') + ' | ' + (r.position || '') + ' | ' + (r.heard || '')
+                    + ' | ' + (r.judgment || '') + ' | ' + (r.quality || 0) + ' | ' + (r.observation || '') + ' |';
+            }).join('\n');
+        }
+        function sentenceCatMarkdown(rows) {
+            var h = '| Sentence | Recording | Judgment | Severity | Where you slipped |\n| --- | --- | --- | --- | --- |\n';
+            return h + (rows || []).map(function(r) {
+                return '| ' + (r.sentence || '') + ' |  | ' + (r.judgment || '') + ' | ' + sevLabel(r.quality) + ' | ' + (r.mistakes || '') + ' |';
+            }).join('\n');
+        }
+        function spontaneousCatMarkdown(sp) {
+            sp = sp || {};
+            var md = '';
+            if (sp.summary) md += sp.summary + '\n\n';
+            if (Array.isArray(sp.notes) && sp.notes.length) md += sp.notes.map(function(n){ return '- ' + n; }).join('\n');
+            else if (sp.notes) md += sp.notes;
+            return md || '_No spontaneous sample analysed._';
+        }
+
+        // All categories collapsed by default (per product: 4 accordions, all closed).
+        function renderCategoryAccordions(categories) {
+            var html = '<div class="cat-accordions" style="margin: 8px 0; display: flex; flex-direction: column; gap: 12px;">';
+            categories.forEach(function(cat, idx) {
+                var bodyId = 'catBody-' + idx;
+                var count = (cat.rows || []).length;
+                var countLabel, bodyClass, inner;
+                if (cat.type === 'spontaneous') {
+                    countLabel = 'qualitative';
+                    bodyClass = 'cat-spontaneous';
+                    inner = convertMarkdownToHTML(spontaneousCatMarkdown(cat.spontaneous));
+                } else if (cat.type === 'sentences') {
+                    countLabel = count + ' sentences';
+                    bodyClass = 'cat-sentences';
+                    inner = convertMarkdownToHTML(sentenceCatMarkdown(cat.rows));
+                } else {
+                    countLabel = count + ' words';
+                    bodyClass = 'cat-words';
+                    inner = convertMarkdownToHTML(wordCatMarkdown(cat.rows));
+                }
+                var openByDefault = false;
+                html += '<div class="cat-card" style="border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #fff;">';
+                html += '<button type="button" class="cat-header" aria-expanded="' + (openByDefault ? 'true' : 'false') + '" onclick="toggleCategory(\'' + bodyId + '\', this)" '
+                    + 'style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px 18px; background: #F8FAFC; border: none; cursor: pointer; text-align: left;">';
+                var catTitle = (cat.title || '').replace(/^\s*Tier\s*\d+\s*[—–-]\s*/i, '');
+                html += '<span style="flex: 1; font-weight: 600; font-size: 15px; color: #1A202C;">' + catTitle + '</span>';
+                html += '<span style="font-size: 12px; color: #64748B; white-space: nowrap;">' + countLabel + '</span>';
+                html += '<span class="cat-chevron" style="transition: transform 0.2s; color: #94A3B8; font-size: 14px;' + (openByDefault ? ' transform: rotate(180deg);' : '') + '">▾</span>';
+                html += '</button>';
+                html += '<div id="' + bodyId + '" class="cat-body ' + bodyClass + '" style="display: ' + (openByDefault ? 'block' : 'none') + '; padding: 0 14px 8px;">' + inner + '</div>';
+                html += '</div>';
+            });
+            html += '</div>';
+            return html;
+        }
+        function toggleCategory(bodyId, btn) {
+            var body = document.getElementById(bodyId);
+            if (!body) return;
+            var open = body.style.display !== 'none';
+            body.style.display = open ? 'none' : 'block';
+            btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+            var chev = btn.querySelector('.cat-chevron');
+            if (chev) chev.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+        function displayAnalysisResults(data) {
+            var el = document.getElementById('voiceAnalysisContent');
+            if (typeof data === 'string') { el.innerHTML = convertMarkdownToHTML(data); return; }
+            if (typeof data === 'object' && data !== null) {
+                if (Array.isArray(data.categories) && data.categories.length) {
+                    el.innerHTML = renderCategoryAccordions(data.categories);
+                } else {
+                    var text = data.analysis || data.result || data.response || JSON.stringify(data, null, 2);
+                    el.innerHTML = convertMarkdownToHTML(text);
+                }
+            } else {
+                el.innerHTML = '<p>Voice analysis data not available.</p>';
+            }
+        }
+        function displayErrorMessage() {
+            document.getElementById('voiceAnalysisContent').innerHTML =
+                '<div style="text-align: center; padding: 24px; border: 1px solid #E2E8F0; border-radius: 12px;">' +
+                '<h4 style="margin:0 0 8px;">Analysis Unavailable</h4>' +
+                '<p style="margin-bottom: 16px; color:#4A5568;">Unable to load analysis results.</p>' +
+                '<button onclick="location.reload()" style="background: #1A202C; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px;">Reload</button>' +
+                '</div>';
+        }
+
+        // ----- Playback (namespaced to avoid clashing with the recording UI) -----
+        var rsltActiveAudio = null;
+        var rsltActiveBtn = null;
+        var rsltPlayIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="7,3 21,12 7,21"/></svg>';
+        var rsltStopIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="14" height="16"/></svg>';
+        function stopActiveAudio() {
+            if (rsltActiveAudio) { rsltActiveAudio.pause(); rsltActiveAudio.currentTime = 0; rsltActiveAudio = null; }
+            if (rsltActiveBtn) { rsltActiveBtn.classList.remove('playing'); rsltActiveBtn.innerHTML = rsltPlayIcon + rsltActiveBtn.dataset.label; rsltActiveBtn = null; }
+        }
+        function createPlayButton(src, label) {
+            var btn = document.createElement('button');
+            btn.className = 'cell-play-btn ' + (label === 'Target' ? 'btn-target' : 'btn-yours');
+            btn.dataset.label = label;
+            btn.innerHTML = rsltPlayIcon + label;
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (rsltActiveBtn === btn) { stopActiveAudio(); return; }
+                stopActiveAudio();
+                var audio = new Audio(src);
+                rsltActiveAudio = audio; rsltActiveBtn = btn;
+                btn.classList.add('playing');
+                btn.innerHTML = rsltStopIcon + label;
+                audio.play().catch(function() {});
+                audio.addEventListener('ended', function() {
+                    btn.classList.remove('playing');
+                    btn.innerHTML = rsltPlayIcon + label;
+                    rsltActiveAudio = null; rsltActiveBtn = null;
+                });
+            });
+            return btn;
+        }
+        var MODEL_AUDIO_MAP = (function () {
+            var words = [
+                'beach', 'bees', 'bicycle', 'boats', 'box', 'bridge', 'brush', 'bus', 'buzz',
+                'chair', 'cherry', 'daisy', 'dinosaur', 'dizzy', 'dress', 'engine', 'eyes',
+                'fish', 'glass', 'glasses', 'house', 'ice', 'jar', 'jump', 'keys', 'kitchen',
+                'lazy', 'magic', 'mask', 'messy', 'mouse', 'music', 'nest', 'nose', 'ocean',
+                'orange', 'pencil', 'puzzle', 'racecar', 'raisin', 'rose', 'school', 'seat',
+                'seven', 'ship', 'shoe', 'sing', 'six', 'slide', 'smile', 'snake', 'soap',
+                'sock', 'soup', 'spoon', 'star', 'sun', 'swing', 'teacher', 'washing', 'watch',
+                'whisper', 'zebra', 'zero', 'zipper', 'zoo'
+            ];
+            var map = {};
+            words.forEach(function (w) { map[w] = '/lispspeechclinic/target-audio/' + w + '.mp3'; });
+            return map;
+        })();
+
+        function enhanceTableRows() {
+            var container = document.getElementById('voiceAnalysisContent');
+            if (!container) return;
+            var scope = container.querySelector('.cat-words') ? '.cat-words ' : '';
+            var rows = container.querySelectorAll(scope + 'tbody tr');
+            var userRecordings = {};
+            try { var stored = localStorage.getItem('wordRecordings'); if (stored) userRecordings = JSON.parse(stored); } catch (e) {}
+            var matchedCount = 0, accurateCount = 0, affectedPositions = [], lispTypeCounts = {};
+            rows.forEach(function(tr) {
+                var tds = tr.querySelectorAll('td');
+                if (tds.length < 6) return;
+                var wordCell = tds[0], heardCell = tds[2], accuracyCell = tds[3], qualityCell = tds[4];
+                var cellText = wordCell.textContent.trim().toLowerCase().replace(/^\d+[\.\)]\s*/, '');
+                var matchedWord = TEST_WORDS.find(function(w) { return w === cellText; });
+                if (!matchedWord) return;
+                matchedCount++;
+                if (accuracyCell.textContent.trim().toLowerCase() === 'accurate') {
+                    accurateCount++;
+                } else {
+                    var pos = LISP_POSITION_MAP[matchedWord];
+                    if (pos && affectedPositions.indexOf(pos) === -1) affectedPositions.push(pos);
+                    var lt = classifyLispType(heardCell.textContent.trim().toLowerCase());
+                    lispTypeCounts[lt] = (lispTypeCounts[lt] || 0) + 1;
+                }
+                // Word cell stacks the Target then Yours play button (Heard column removed below).
+                wordCell.innerHTML = '<div><strong>' + wordCell.textContent.trim() + '</strong></div>';
+                if (MODEL_AUDIO_MAP[matchedWord]) {
+                    var targetWrap = document.createElement('div');
+                    targetWrap.style.marginTop = '4px';
+                    targetWrap.appendChild(createPlayButton(MODEL_AUDIO_MAP[matchedWord], 'Target'));
+                    wordCell.appendChild(targetWrap);
+                }
+                if (userRecordings[matchedWord]) {
+                    var b64 = userRecordings[matchedWord];
+                    var src = b64.startsWith('data:') ? b64 : 'data:audio/webm;base64,' + b64;
+                    var yoursWrap = document.createElement('div');
+                    yoursWrap.style.marginTop = '4px';
+                    yoursWrap.appendChild(createPlayButton(src, 'Yours'));
+                    wordCell.appendChild(yoursWrap);
+                }
+                var qRaw = qualityCell.textContent.trim();
+                if (qRaw) {
+                    var score = parseInt(qRaw);
+                    if (!isNaN(score)) qualityCell.textContent = score < 35 ? 'Severe' : score < 70 ? 'Moderate' : 'WNL';
+                }
+            });
+            if (matchedCount > 0 && accurateCount === matchedCount) hideGenericSections();
+            else if (matchedCount > 0) updateCtaCopy(affectedPositions, lispTypeCounts);
+            var ths = container.querySelectorAll(scope + 'thead th');
+            ths.forEach(function(th) { if (th.textContent.trim().toLowerCase() === 'quality') th.textContent = 'Severity'; });
+            // Drop the Heard column (index 2); the "Yours" playback now lives in the Word cell.
+            var allRows = container.querySelectorAll(scope + 'tr');
+            allRows.forEach(function(tr) { var cells = tr.children; if (cells.length >= 3) cells[2].remove(); });
+            if (matchedCount > 0 && !container.querySelector('.severity-legend')) {
+                var legend = document.createElement('div');
+                legend.className = 'severity-legend';
+                legend.style.cssText = 'margin-top:16px; font-size:13px; color:#718096; line-height:1.6;';
+                legend.innerHTML = '<strong style="color:#4A5568;">Severity key:</strong> <strong>WNL</strong> = Within Normal Limits · <strong>Moderate</strong> = noticeable distortion · <strong>Severe</strong> = strong lisp pattern.';
+                container.appendChild(legend);
+            }
+        }
+        function enhanceSentenceRows() {
+            var container = document.getElementById('voiceAnalysisContent');
+            if (!container) return;
+            var rows = container.querySelectorAll('.cat-sentences tbody tr');
+            if (!rows.length) return;
+            var userRecordings = {};
+            try { var stored = localStorage.getItem('wordRecordings'); if (stored) userRecordings = JSON.parse(stored); } catch (e) {}
+            var matchedCount = 0, accurateCount = 0, lispTypeCounts = {};
+            rows.forEach(function(tr) {
+                var tds = tr.querySelectorAll('td');
+                if (tds.length < 2) return;
+                var sentenceCell = tds[0], recordingCell = tds[1], judgmentCell = tds[2], slippedCell = tds[4];
+                if (judgmentCell && normalizeSentence(sentenceCell.textContent)) {
+                    matchedCount++;
+                    if (judgmentCell.textContent.trim().toLowerCase() === 'accurate') accurateCount++;
+                    else if (slippedCell) {
+                        var lt = classifyLispType(slippedCell.textContent.trim().toLowerCase());
+                        lispTypeCounts[lt] = (lispTypeCounts[lt] || 0) + 1;
+                    }
+                }
+                var cellNorm = normalizeSentence(sentenceCell.textContent);
+                if (!cellNorm) return;
+                var matched = TEST_SENTENCES.find(function(s) {
+                    var n = normalizeSentence(s);
+                    return n.indexOf(cellNorm) === 0 || cellNorm.indexOf(n) === 0;
+                });
+                if (!matched || !userRecordings[matched]) return;
+                var b64 = userRecordings[matched];
+                var src = b64.startsWith('data:') ? b64 : 'data:audio/webm;base64,' + b64;
+                recordingCell.appendChild(createPlayButton(src, 'Yours'));
+            });
+            if (!container.querySelector('.cat-words') && matchedCount > 0) {
+                if (accurateCount === matchedCount) hideGenericSections();
+                else updateCtaCopy([], lispTypeCounts);
+            }
+        }
+
+        function renderInlineResults() {
+            var panel = document.querySelector('#step4 .ob-panel-left');
+            var loader = document.querySelector('#step4 .asmt-loader');
+            var results = document.getElementById('asmtResults');
+            try {
+                var stored = localStorage.getItem('analysisResult');
+                if (stored) {
+                    displayAnalysisResults(JSON.parse(stored));
+                    // Persist a completed marker so a refresh lands back on results
+                    // instead of restarting the recording flow.
+                    try { localStorage.setItem('assessmentCompleted', '1'); } catch (e) {}
+                } else {
+                    displayErrorMessage();
+                }
+            } catch (err) {
+                console.error('Inline results load failed:', err);
+                displayErrorMessage();
+            }
+            enhanceTableRows();
+            enhanceSentenceRows();
+            if (loader) loader.style.display = 'none';
+            if (results) results.style.display = 'flex';
+            if (panel) panel.classList.add('showing-results');
+            try { gtag('event', 'results_inline_view', { event_category: 'engagement', event_label: 'assessment_completion' }); } catch (e) {}
+        }
+
+        function goToPricing() {
+            try { gtag('event', 'results_cta_click', { event_category: 'conversion', event_label: 'inline_results_to_pricing' }); } catch (e) {}
+            // Swap the results view for the pricing view inside the same left panel
+            // (keeps the split layout / girl image instead of navigating away).
+            var panel = document.querySelector('#step4 .ob-panel-left');
+            var results = document.getElementById('asmtResults');
+            var pricing = document.getElementById('asmtPricing');
+            if (results) results.style.display = 'none';
+            if (pricing) { pricing.style.display = 'block'; pricing.scrollTop = 0; }
+            if (panel) { panel.classList.remove('showing-results'); panel.classList.add('showing-pricing'); }
+        }
+
+        // =============================================
+        // INLINE DODO CHECKOUT — renders the payment on-site (in the left panel)
+        // instead of redirecting to checkout.dodopayments.com. The session is
+        // created by our own function (gcp-function-dodo -> /checkout); the
+        // webhook still grants access on payment.succeeded.
+        // =============================================
+        // Deployed dodoWebhook Cloud Run URL; the /checkout route is appended below.
+        const DODO_FN_BASE = 'https://dodowebhook-9267895976.us-central1.run.app';
+        let dodoSdkPromise = null;
+        // The UMD/CDN bundle exposes window.DodoPaymentsCheckout.DodoPayments
+        // (not window.DodoPayments). Resolve whichever is present.
+        function getDodoSdk() {
+            if (window.DodoPaymentsCheckout && window.DodoPaymentsCheckout.DodoPayments) return window.DodoPaymentsCheckout.DodoPayments;
+            if (window.DodoPayments) return window.DodoPayments;
+            return null;
+        }
+        function loadDodoSdk() {
+            if (getDodoSdk()) return Promise.resolve();
+            if (dodoSdkPromise) return dodoSdkPromise;
+            dodoSdkPromise = new Promise(function (resolve, reject) {
+                var s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/dodopayments-checkout@latest/dist/index.js';
+                s.onload = resolve; s.onerror = reject;
+                document.head.appendChild(s);
+            });
+            return dodoSdkPromise;
+        }
+        // Plan display names (list price is shown from Dodo's live breakdown event,
+        // so we don't hardcode amounts that could drift from tax/currency).
+        const DODO_PLAN_NAMES = {
+            'pdt_0NfsBcql0S0RwfIVqQMgh': 'Momentum Program · 3 months',
+            'pdt_0NfsBcHAFwBTjsHXCrZhn': 'Mastery Program · 6 months',
+            'pdt_0NfsBdExMhutyEZI9jb69': 'Foundation Program · 1 month'
+        };
+        let dodoInitDone = false;
+        let dodoCurrentProduct = null;   // active plan, so Apply can rebuild the session
+        let dodoCurrentDiscount = '';    // applied code (uppercased) or ''
+        let dodoSessionId = null;        // current checkout session id (for auto-login handoff)
+
+        function fmtMoney(cents, currency) {
+            if (typeof cents !== 'number') return '';
+            var amt = (cents / 100);
+            try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'USD' }).format(amt); }
+            catch (e) { return (currency || '') + ' ' + amt.toFixed(2); }
+        }
+        function ensureDodoInit() {
+            if (dodoInitDone) return;
+            var sdk = getDodoSdk();
+            var statusEl = document.getElementById('dodoCheckoutStatus');
+            var totalsEl = document.getElementById('dodoTotals');
+            sdk.Initialize({
+                mode: 'live',
+                displayType: 'inline',
+                onEvent: function (ev) {
+                    var t = ev && (ev.event_type || ev.type);
+                    try { console.log('[dodo event]', t, ev); } catch (e) {}
+                    if (t === 'checkout.form_ready' || t === 'checkout.opened') {
+                        if (statusEl) statusEl.style.display = 'none';
+                    }
+                    // Payment done (incl. 0-total comp codes that complete instantly):
+                    // move the user forward instead of leaving them on the frame.
+                    if (t === 'checkout.payment_succeeded' || t === 'checkout.completed'
+                        || t === 'checkout.redirect' || t === 'payment.succeeded') {
+                        onInlineCheckoutSuccess();
+                    }
+                    // Live totals (already reflect any applied discount + tax).
+                    if (t === 'checkout.breakdown' && ev && ev.data) {
+                        var d = ev.data, cur = d.currency;
+                        var rows = '';
+                        if (typeof d.subTotal === 'number') rows += '<div style="display:flex;justify-content:space-between;"><span>Subtotal</span><span>' + fmtMoney(d.subTotal, cur) + '</span></div>';
+                        if (typeof d.discount === 'number' && d.discount > 0) rows += '<div style="display:flex;justify-content:space-between;color:#2F855A;"><span>Discount</span><span>−' + fmtMoney(d.discount, cur) + '</span></div>';
+                        if (typeof d.tax === 'number' && d.tax > 0) rows += '<div style="display:flex;justify-content:space-between;"><span>Tax</span><span>' + fmtMoney(d.tax, cur) + '</span></div>';
+                        var total = (typeof d.finalTotal === 'number') ? d.finalTotal : d.total;
+                        var totalCur = d.finalTotalCurrency || cur;
+                        if (typeof total === 'number') rows += '<div style="display:flex;justify-content:space-between;font-weight:700;color:#1A202C;margin-top:6px;"><span>Total</span><span>' + fmtMoney(total, totalCur) + '</span></div>';
+                        if (totalsEl && rows) { totalsEl.innerHTML = rows; totalsEl.style.display = 'block'; }
+                    }
+                }
+            });
+            dodoInitDone = true;
+        }
+
+        // Create a session for the current plan/discount and mount the inline frame.
+        async function dodoMountSession() {
+            var statusEl = document.getElementById('dodoCheckoutStatus');
+            var email = '', name = '', phone = '';
+            try {
+                email = localStorage.getItem('assessmentUserEmail') || '';
+                phone = localStorage.getItem('assessmentUserPhone') || '';
+                // Real name from Google/Apple sign-in if available; else survey-derived.
+                var ua = JSON.parse(localStorage.getItem('userAuth') || 'null');
+                name = (ua && ua.name) || localStorage.getItem('assessmentUserName') || '';
+            } catch (e) {}
+            var resp = await fetch(DODO_FN_BASE + '/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: dodoCurrentProduct, email: email, name: name, phone: phone, discount_code: dodoCurrentDiscount })
+            });
+            if (resp.status === 422) { var e = new Error('invalid_discount'); e.code = 'invalid_discount'; throw e; }
+            if (!resp.ok) throw new Error('session http ' + resp.status);
+            var data = await resp.json();
+            if (!data.checkout_url) throw new Error('no checkout_url');
+            dodoSessionId = data.session_id || null; // needed to claim the auto-login token
+
+            await loadDodoSdk();
+            ensureDodoInit();
+            var sdk = getDodoSdk();
+            if (!sdk) throw new Error('Dodo SDK not loaded');
+            // Tear down any previous frame before mounting the new session.
+            try { sdk.Checkout.close(); } catch (e) {}
+            var host = document.getElementById('dodo-inline-checkout');
+            if (host) host.innerHTML = '';
+            if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = 'Loading secure checkout…'; }
+            sdk.Checkout.open({ checkoutUrl: data.checkout_url, elementId: 'dodo-inline-checkout' });
+            setTimeout(function () { if (statusEl) statusEl.style.display = 'none'; }, 2500);
+        }
+
+        async function openInlineCheckout(productId, btn) {
+            var pageEl = document.querySelector('#asmtPricing .pricing-page');
+            var footEl = document.querySelector('#asmtPricing .footer-separator-wrap');
+            var wrap = document.getElementById('dodoCheckoutWrap');
+            var origLabel = btn ? btn.textContent : '';
+            if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+            try {
+                dodoCurrentProduct = productId;
+                dodoCurrentDiscount = '';
+                dodoSuccessHandled = false;
+                // Reset the summary UI for a fresh open.
+                var nameEl = document.getElementById('dodoPlanName');
+                if (nameEl) nameEl.textContent = DODO_PLAN_NAMES[productId] || 'Your plan';
+                var inp = document.getElementById('dodoDiscountInput'); if (inp) inp.value = '';
+                var msg = document.getElementById('dodoDiscountMsg'); if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
+                var tot = document.getElementById('dodoTotals'); if (tot) { tot.style.display = 'none'; tot.innerHTML = ''; }
+                toggleDiscountInput(false); // start collapsed
+
+                // Swap the plan cards for the checkout host, keep the girl panel.
+                if (pageEl) pageEl.style.display = 'none';
+                if (footEl) footEl.style.display = 'none';
+                if (wrap) wrap.style.display = 'block';
+                document.getElementById('asmtPricing').scrollTop = 0;
+
+                await dodoMountSession();
+                try { gtag('event', 'inline_checkout_open', { event_category: 'conversion', event_label: productId }); } catch (e) {}
+            } catch (err) {
+                console.error('[inline-checkout] failed:', err);
+                if (pageEl) pageEl.style.display = '';
+                if (footEl) footEl.style.display = '';
+                if (wrap) wrap.style.display = 'none';
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = origLabel; }
+            }
+        }
+
+        // Discount UI has three states: collapsed prompt, entry (input+apply),
+        // and applied (compact confirmation). Only one shows at a time.
+        function setDiscountState(state, code) {
+            var prompt = document.getElementById('dodoDiscountPrompt');
+            var entry = document.getElementById('dodoDiscountEntry');
+            var applied = document.getElementById('dodoDiscountApplied');
+            if (prompt) prompt.style.display = state === 'prompt' ? 'flex' : 'none';
+            if (entry) entry.style.display = state === 'entry' ? 'flex' : 'none';
+            if (applied) applied.style.display = state === 'applied' ? 'flex' : 'none';
+            if (state === 'applied') { var c = document.getElementById('dodoAppliedCode'); if (c) c.textContent = code || ''; }
+            if (state === 'entry') { var inp = document.getElementById('dodoDiscountInput'); if (inp) inp.focus(); }
+        }
+        // Back-compat shim used by the reset + the collapsed prompt's button.
+        function toggleDiscountInput(show) { setDiscountState(show ? 'entry' : 'prompt'); }
+
+        async function removeInlineDiscount() {
+            dodoCurrentDiscount = '';
+            var inp = document.getElementById('dodoDiscountInput'); if (inp) inp.value = '';
+            var msg = document.getElementById('dodoDiscountMsg'); if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
+            setDiscountState('prompt');
+            try { await dodoMountSession(); } catch (e) { console.error('[inline-checkout] remove discount failed:', e); }
+        }
+
+        // Apply / re-apply a discount code: rebuild the session with the code and
+        // remount. Invalid codes are reported without tearing down the checkout.
+        async function applyInlineDiscount() {
+            var inp = document.getElementById('dodoDiscountInput');
+            var msg = document.getElementById('dodoDiscountMsg');
+            var applyBtn = document.getElementById('dodoDiscountApply');
+            var code = inp ? inp.value.trim().toUpperCase() : '';
+            if (!code) { if (inp) inp.focus(); return; }
+            var prevDiscount = dodoCurrentDiscount;
+            dodoCurrentDiscount = code;
+            if (applyBtn) { applyBtn.disabled = true; applyBtn.textContent = 'Applying…'; }
+            if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
+            try {
+                await dodoMountSession();
+                if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
+                setDiscountState('applied', code); // collapse input to a one-line confirmation
+                try { gtag('event', 'inline_discount_applied', { event_category: 'conversion', event_label: code }); } catch (e) {}
+            } catch (err) {
+                dodoCurrentDiscount = prevDiscount; // roll back so a later pay uses the last-good session
+                if (msg) {
+                    msg.style.color = '#C53030';
+                    msg.textContent = (err && err.code === 'invalid_discount')
+                        ? 'That code isn’t valid for this plan.'
+                        : 'Couldn’t apply that code. Try again.';
+                    msg.style.display = 'block';
+                }
+                // Restore the last-good session so the buyer can still pay.
+                try { await dodoMountSession(); } catch (e2) {}
+            } finally {
+                if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = 'Apply'; }
+            }
+        }
+
+        // Fires once when Dodo reports the payment is done (including 0-total comp
+        // codes). Access itself is granted server-side by the webhook; this just
+        // moves the buyer off the checkout frame.
+        var dodoSuccessHandled = false;
+        var APP_ORIGIN = 'https://lsc.topspeech.health';
+        // Poll the backend for the one-time login token the webhook mints on
+        // payment.succeeded. The webhook may land a moment after the client event,
+        // so retry a few times before falling back to a manual "go to app" link.
+        async function claimLoginToken(sessionId) {
+            if (!sessionId) return null;
+            for (var i = 0; i < 12; i++) { // ~ up to 24s
+                try {
+                    var r = await fetch(DODO_FN_BASE + '/login-token', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ session_id: sessionId })
+                    });
+                    if (r.ok) { var j = await r.json(); if (j && j.token) return j.token; }
+                } catch (e) { /* transient — keep polling */ }
+                await new Promise(function (res) { setTimeout(res, 2000); });
+            }
+            return null;
+        }
+        function renderCheckoutSuccess(extraHtml) {
+            var host = document.getElementById('dodo-inline-checkout');
+            var statusEl = document.getElementById('dodoCheckoutStatus');
+            if (statusEl) statusEl.style.display = 'none';
+            if (host) host.innerHTML =
+                '<div style="text-align:center; padding:40px 16px;">' +
+                '<div style="font:800 22px \'Quicksand\',\'Inter\',sans-serif; color:#1A202C; margin-bottom:10px;">Payment complete 🎉</div>' +
+                extraHtml +
+                '</div>';
+        }
+        async function onInlineCheckoutSuccess() {
+            if (dodoSuccessHandled) return;
+            dodoSuccessHandled = true;
+            try { gtag('event', 'inline_checkout_success', { event_category: 'conversion', event_label: dodoCurrentProduct }); } catch (e) {}
+            renderCheckoutSuccess('<p style="font:500 14px \'Inter\',sans-serif; color:#4A5568; margin:0; line-height:1.5;">Setting up your program… taking you to your app.</p>');
+            var token = await claimLoginToken(dodoSessionId);
+            if (token) {
+                // Hand the one-time custom token to the app, which signs the user in
+                // and drops them straight onto Day 1 (onboarding + baseline pre-done).
+                window.location.href = APP_ORIGIN + '/#/handoff/' + encodeURIComponent(token);
+                return;
+            }
+            // Fallback: no token (e.g. brand-new account) — point them at the app /
+            // their email to set a password.
+            renderCheckoutSuccess(
+                '<p style="font:500 14px \'Inter\',sans-serif; color:#4A5568; margin:0 0 20px; line-height:1.5;">Check your email for a link to set your password and open your program.</p>' +
+                '<a href="' + APP_ORIGIN + '" style="display:inline-block; background:#1A202C; color:#fff; text-decoration:none; padding:12px 22px; border-radius:10px; font:700 14px \'Inter\',sans-serif;">Go to your app</a>'
+            );
+        }
+
+        function closeInlineCheckout() {
+            try { var sdk = getDodoSdk(); if (sdk && sdk.Checkout) sdk.Checkout.close(); } catch (e) {}
+            var host = document.getElementById('dodo-inline-checkout');
+            if (host) host.innerHTML = '';
+            var wrap = document.getElementById('dodoCheckoutWrap');
+            if (wrap) wrap.style.display = 'none';
+            var pageEl = document.querySelector('#asmtPricing .pricing-page');
+            var footEl = document.querySelector('#asmtPricing .footer-separator-wrap');
+            if (pageEl) pageEl.style.display = '';
+            if (footEl) footEl.style.display = '';
         }
 
         // =============================================
@@ -4335,6 +5391,9 @@
             const age = document.querySelector('input[name="ageGroup"]:checked')?.value || '';
             const foundOn = reason?.value === 'other' ? document.getElementById('otherReason').value : (reason?.value || '');
             const fullPhone = phone ? code + ' ' + phone : '';
+            // E.164-ish for Dodo prefill (e.g. "+919876543210").
+            const e164Phone = phone ? (code + phone).replace(/[^\d+]/g, '') : '';
+            try { if (e164Phone) localStorage.setItem('assessmentUserPhone', e164Phone); } catch (e) {}
             const parts = [
                 `✅ User completed assessment`,
                 `comfort=${trouble || '—'}`,
@@ -4574,7 +5633,26 @@
                 return true;
             }
 
-            if (!maybeJumpToOnboarding() && !maybeSkipLogin() && !maybeResumeSession()) maybeJumpToLogin();
+            // After completing the assessment, a refresh should land back on the
+            // inline results (step4), not restart recording. Test/login routes own
+            // the flow, so let them win.
+            function maybeShowCompletedResults() {
+                const h = location.hash;
+                if (/^#(test|onboarding|login|\/login)/.test(h)) return false;
+                let completed = false, stored = null;
+                try { completed = localStorage.getItem('assessmentCompleted') === '1'; } catch (e) {}
+                try { stored = localStorage.getItem('analysisResult'); } catch (e) {}
+                if (!completed || !stored) return false;
+                document.querySelectorAll('.assessment-step.active').forEach(el => el.classList.remove('active'));
+                orderIdx = Math.max(0, STEP_ORDER.indexOf(4));
+                currentStepNum = 4;
+                document.getElementById('step4').classList.add('active');
+                updateProgress();
+                renderInlineResults();
+                return true;
+            }
+
+            if (!maybeShowCompletedResults() && !maybeJumpToOnboarding() && !maybeSkipLogin() && !maybeResumeSession()) maybeJumpToLogin();
             window.addEventListener('hashchange', maybeJumpToLogin);
 
             // ===== Step3 Wizard (comfort + age + source + phone) =====
