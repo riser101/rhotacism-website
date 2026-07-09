@@ -8,7 +8,12 @@ const cors = require('cors');
 // AbortSignal does NOT override that internal timeout — only a global dispatcher does.
 // Raise headers/body timeouts to 10 min so the call survives long thinking budgets.
 const { setGlobalDispatcher, Agent } = require('undici');
-setGlobalDispatcher(new Agent({ headersTimeout: 600000, bodyTimeout: 600000 }));
+// setGlobalDispatcher alone did NOT reach Cloud Run's built-in fetch (symbol-interop
+// mismatch between npm undici and the runtime's bundled undici) — timeouts still fired
+// at the 300s default. Keep the global set as a belt, but pass this same dispatcher
+// EXPLICITLY on the Gemini fetch (see callGemini) so the 600s limit is guaranteed.
+const geminiDispatcher = new Agent({ headersTimeout: 600000, bodyTimeout: 600000 });
+setGlobalDispatcher(geminiDispatcher);
 
 // Firestore (Admin SDK). This backend writes the lisp-users/{uid} record itself so
 // it's guaranteed even when the user leaves before the 1–2 min Gemini call returns
@@ -162,7 +167,7 @@ Return a single markdown table with exactly ${words.length} rows (one per senten
 | Sentence | Judgment | Quality | Mistakes |
 
    - Sentence: the target sentence (you may shorten with … if long)
-   - Judgment: Accurate / Interdental / Lateral / Dentalized / Palatal / Distorted
+   - Judgment: Accurate / Interdental / Lateral / Dentalized / Palatal / Distorted. If you hear more than one distortion type, judge by the most dominant one — never write "Mixed".
    - Quality: overall sibilant clarity for the whole sentence, 0-100 (100 = every sibilant crisp, clean speech should score 85+)
    - Mistakes: plain-language note of WHERE the lisp showed up — name the specific words or sounds the patient struggled with (e.g. "the 's' in 'sells' and 'seashells' sounded slushy"). If the sentence is clean, write "None — all sounds clear".
 
@@ -228,7 +233,8 @@ async function callGemini(parts, attempt = 1) {
     resp = await fetch(geminiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      dispatcher: geminiDispatcher // explicit — overrides built-in 300s headersTimeout
     });
   } catch (netErr) {
     // Network/transport failure — retry as transient.
