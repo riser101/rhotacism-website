@@ -1550,9 +1550,24 @@
             background: #222;
             color: #fff; border: none; border-radius: 12px;
             padding: 16px 20px; font: 700 16px 'Inter', sans-serif;
-            cursor: pointer; transition: background 0.2s ease; letter-spacing: 0.2px;
+            cursor: pointer; letter-spacing: 0.2px;
+            /* Solid bottom edge — same 3D "pressable" treatment as the home hero CTA */
+            box-shadow: 0 6px 0 0 #000;
+            transition: background 0.2s ease, transform 0.12s ease, box-shadow 0.12s ease;
         }
         .asmt-results-cta:hover { background: #111; }
+        .asmt-results-cta:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 0 #000;
+        }
+        .asmt-results-subnote {
+            flex-shrink: 0;
+            margin-top: 12px;
+            text-align: center;
+            font: 400 13px 'Inter', sans-serif;
+            color: #888;
+            letter-spacing: 0.2px;
+        }
         .cell-play-btn {
             display: inline-flex; align-items: center; gap: 3px; margin-top: 2px;
             padding: 3px 7px; border: none; border-radius: 4px; font-size: 11px;
@@ -2745,7 +2760,8 @@
                     <h2 class="asmt-results-title">Your /s/ Sound Analysis</h2>
                     <p class="asmt-results-sub">Tap a category to see the words and hear your recordings.</p>
                     <div id="voiceAnalysisContent"></div>
-                    <button type="button" class="asmt-results-cta" onclick="goToPricing()">Continue to your therapy plan</button>
+                    <button type="button" class="asmt-results-cta" onclick="goToPricing()">Unlock Your Therapy Plan</button>
+                    <p class="asmt-results-subnote" id="asmtPlansSubnote">Plans start from $75/month. Cancel anytime.</p>
                   </div>
                   <!-- Inline pricing (mirrors pricing.html exactly — shown in the left panel on Continue) -->
                   <div class="asmt-pricing-view" id="asmtPricing" style="display:none;">
@@ -5174,7 +5190,11 @@
         const DODO_PLAN_NAMES = {
             'pdt_0NfsBcql0S0RwfIVqQMgh': 'Momentum Program · 3 months',
             'pdt_0NfsBcHAFwBTjsHXCrZhn': 'Mastery Program · 6 months',
-            'pdt_0NfsBdExMhutyEZI9jb69': 'Foundation Program · 1 month'
+            'pdt_0NfsBdExMhutyEZI9jb69': 'Foundation Program · 1 month',
+            // Pricing A/B test-variant products (see pricing experiment script below)
+            'pdt_0NirPYjMyH0ig1B3ZBLj8': 'Momentum Program · 3 months',
+            'pdt_0NirPh9lXK9f5frHLunhe': 'Mastery Program · 6 months',
+            'pdt_0NirP81xjUDwOIJzVguz7': 'Foundation Program · 1 month'
         };
         let dodoInitDone = false;
         let dodoCurrentProduct = null;   // active plan, so Apply can rebuild the session
@@ -6229,5 +6249,50 @@
 
 
 
+    <!-- Pricing A/B experiment (PostHog flag: pricing-tier-test) ----------------
+         Default HTML above renders the CONTROL prices. When PostHog buckets the
+         buyer into `test`, this swaps the three plan prices, per-month sub-notes,
+         the results sub-note, and the Dodo product id each button checks out with.
+         Flag not loaded / control => no-op, so the page is always safe to render
+         before PostHog resolves (and on localhost where PostHog is disabled). -->
+    <script>
+        (function () {
+            // Keyed by the CONTROL product id in each button's onclick.
+            var TEST = {
+                'pdt_0NfsBdExMhutyEZI9jb69': { id: 'pdt_0NirP81xjUDwOIJzVguz7', price: '19', sub: 'of full access' },      // Foundation 1mo  $99 -> $19
+                'pdt_0NfsBcql0S0RwfIVqQMgh': { id: 'pdt_0NirPYjMyH0ig1B3ZBLj8', price: '49', sub: 'just $16 / month' },    // Momentum 3mo   $249 -> $49
+                'pdt_0NfsBcHAFwBTjsHXCrZhn': { id: 'pdt_0NirPh9lXK9f5frHLunhe', price: '79', sub: 'just $13 / month' }     // Mastery 6mo    $448 -> $79
+            };
+            var TEST_SUBNOTE = 'Plans start from $13/month. Cancel anytime.';
+
+            function applyTest() {
+                var btns = document.querySelectorAll('.asmt-pricing-view .cta[onclick*="openInlineCheckout"]');
+                btns.forEach(function (btn) {
+                    var m = btn.getAttribute('onclick').match(/openInlineCheckout\('([^']+)'/);
+                    if (!m) return;
+                    var cfg = TEST[m[1]];
+                    if (!cfg) return;
+                    btn.setAttribute('onclick', "openInlineCheckout('" + cfg.id + "', this)");
+                    var card = btn.closest('.pricing-card');
+                    if (!card) return;
+                    var amt = card.querySelector('.price-amount');
+                    if (amt) amt.textContent = cfg.price;
+                    var notes = card.querySelectorAll('.price-note');
+                    if (notes[1]) notes[1].textContent = cfg.sub; // per-month note (2nd)
+                });
+                var sub = document.getElementById('asmtPlansSubnote');
+                if (sub) sub.textContent = TEST_SUBNOTE;
+            }
+
+            function resolve() {
+                try {
+                    var v = (window.posthog && posthog.getFeatureFlag)
+                        ? posthog.getFeatureFlag('pricing-tier-test') : null;
+                    if (v === 'test') applyTest(); // control / null / anything else => leave control HTML
+                } catch (e) {}
+            }
+            if (window.posthog && posthog.onFeatureFlags) posthog.onFeatureFlags(resolve);
+        })();
+    </script>
 </body>
 </html>

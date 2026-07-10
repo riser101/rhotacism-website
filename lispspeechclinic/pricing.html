@@ -535,6 +535,49 @@
 
     <!-- FOOTER_PLACEHOLDER -->
 
+    <!-- Pricing A/B experiment (PostHog flag: pricing-tier-test) ----------------
+         Default HTML above = CONTROL prices. When PostHog buckets the visitor into
+         `test`, swap the three plan prices, per-month sub-notes, and the Dodo
+         product id in each button's checkout URL. Flag not loaded / control => no-op
+         (safe before PostHog resolves and on localhost where PostHog is disabled). -->
+    <script>
+        (function () {
+            // Keyed by the CONTROL product id in each button's checkout URL.
+            var TEST = {
+                'pdt_0NfsBdExMhutyEZI9jb69': { id: 'pdt_0NirP81xjUDwOIJzVguz7', price: '19', sub: 'of full access' },      // Foundation 1mo  $99 -> $19
+                'pdt_0NfsBcql0S0RwfIVqQMgh': { id: 'pdt_0NirPYjMyH0ig1B3ZBLj8', price: '49', sub: 'just $16 / month' },    // Momentum 3mo   $249 -> $49
+                'pdt_0NfsBcHAFwBTjsHXCrZhn': { id: 'pdt_0NirPh9lXK9f5frHLunhe', price: '79', sub: 'just $13 / month' }     // Mastery 6mo    $448 -> $79
+            };
+
+            function applyTest() {
+                document.querySelectorAll('.pricing-grid .cta[onclick*="dodopayments"]').forEach(function (btn) {
+                    var onclick = btn.getAttribute('onclick');
+                    var m = onclick.match(/buy\/(pdt_[A-Za-z0-9]+)/);
+                    if (!m) return;
+                    var cfg = TEST[m[1]];
+                    if (!cfg) return;
+                    // Preserve the rest of the URL (redirect_url etc.), just swap the id.
+                    btn.setAttribute('onclick', onclick.replace(m[1], cfg.id));
+                    var card = btn.closest('.pricing-card');
+                    if (!card) return;
+                    var amt = card.querySelector('.price-amount');
+                    if (amt) amt.textContent = cfg.price;
+                    var notes = card.querySelectorAll('.price-note');
+                    if (notes[1]) notes[1].textContent = cfg.sub; // per-month note (2nd)
+                });
+            }
+
+            function resolve() {
+                try {
+                    var v = (window.posthog && posthog.getFeatureFlag)
+                        ? posthog.getFeatureFlag('pricing-tier-test') : null;
+                    if (v === 'test') applyTest();
+                } catch (e) {}
+            }
+            if (window.posthog && posthog.onFeatureFlags) posthog.onFeatureFlags(resolve);
+        })();
+    </script>
+
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="/lispspeechclinic/js/login-modal.js?v=20260707"></script>
     <script src="/lispspeechclinic/js/enhanced-analytics.js?v=20260707"></script>
