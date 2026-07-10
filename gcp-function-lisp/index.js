@@ -302,7 +302,10 @@ function buildAudioParts(prompt, words) {
     let header = `\n--- Clip ${i + 1}: "${w.word}" (${w.position || '?'}) ---`;
     if (acoustics) header += `\n[Praat acoustics] ${acoustics}`;
     parts.push({ text: header });
-    parts.push({ inline_data: { mime_type: 'audio/webm', data: b64 } });
+    // iOS Safari sends audio/mp4, everyone else audio/webm. Trust the client's
+    // reported container so Gemini decodes it correctly instead of assuming webm.
+    const mimeType = (w.mime && /^audio\//.test(w.mime)) ? w.mime : 'audio/webm';
+    parts.push({ inline_data: { mime_type: mimeType, data: b64 } });
   });
   return parts;
 }
