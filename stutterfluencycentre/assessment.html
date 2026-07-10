@@ -2614,6 +2614,7 @@
         let currentWordIndex = 0;
         let wordRecordings = [];       // Blob per word
         let wordRecordingsB64 = {};    // base64 per word (for playback on results page)
+        let wordRecordingsMime = {};   // actual recorded mime per sample (webm, or mp4 on iOS)
         let allWordsRecorded = false;
 
         // =============================================
@@ -2792,6 +2793,7 @@
             currentWordIndex = 0;
             wordRecordings = [];
             wordRecordingsB64 = {};
+            wordRecordingsMime = {};
             allWordsRecorded = false;
             recState = 'idle';
             renderVuMeter();
@@ -2961,6 +2963,7 @@
             const type = (mediaRecorder && mediaRecorder.mimeType) || 'audio/webm';
             const blob = new Blob(audioChunks, { type });
             wordRecordings[currentWordIndex] = blob;
+            wordRecordingsMime[c.id] = type.split(';')[0]; // base mime for the Gemini payload
 
             // Upload to Firebase (non-blocking) + cache base64 for results playback.
             if (typeof window.uploadRecordingToFirebase === 'function') {
@@ -3003,7 +3006,7 @@
                 const samples = STUTTER_CONDITIONS.map(c => {
                     const b64 = wordRecordingsB64[c.id];
                     if (!b64) return null;
-                    const s = { id: c.id, label: c.title, kind: c.kind, audio_base64: b64, mimeType: 'audio/webm' };
+                    const s = { id: c.id, label: c.title, kind: c.kind, audio_base64: b64, mimeType: wordRecordingsMime[c.id] || 'audio/webm' };
                     if (c.isPassage) s.targetText = c.prompt;   // reading passage target text
                     return s;
                 }).filter(Boolean);
