@@ -82,11 +82,15 @@
                 // AEC band-limited (~8kHz) and must NOT be mixed into training. Pull
                 // the training set from the lispv3 prefix only.
                 const pathPrefix = isLocal ? 'recordings/lisp/local-testing-v3' : 'recordings/lispv3';
-                const filePath = `${pathPrefix}/${userId}/${timestamp}_${wordIndex}_lisp_${word}.webm`;
+                // Label the file with the ACTUAL container (iOS records mp4, not webm)
+                // so the extension + contentType match the bytes.
+                const mime = (blob && blob.type ? blob.type.split(';')[0] : 'audio/webm');
+                const ext = mime.includes('mp4') ? 'mp4' : mime.includes('wav') ? 'wav' : 'webm';
+                const filePath = `${pathPrefix}/${userId}/${timestamp}_${wordIndex}_lisp_${word}.${ext}`;
 
                 const storageRef = ref(storage, filePath);
                 const metadata = {
-                    contentType: 'audio/webm',
+                    contentType: mime,
                     customMetadata: {
                         product: 'lisp',
                         // Capture format tag — filter training data by this even if
@@ -3201,6 +3205,7 @@
         let currentWordIndex = 0;
         let wordRecordings = [];       // Blob per word
         let wordRecordingsB64 = {};    // base64 per word (for playback on results page)
+        let wordRecordingsMime = {};   // actual recorded mime per word (webm/opus, or mp4 on iOS)
         let allWordsRecorded = false;
 
         // =============================================
@@ -3411,6 +3416,7 @@
             currentWordIndex = 0;
             wordRecordings = [];
             wordRecordingsB64 = {};
+            wordRecordingsMime = {};
             allWordsRecorded = false;
             isWaitingForNext = false;
             passageNoticeShown = false;
@@ -3961,7 +3967,11 @@
 
         // Called when a word recording finishes
         async function onWordRecordingStopped() {
-            const blob = new Blob(audioChunks, { type: 'audio/webm' });
+            // iOS Safari cannot encode webm — MediaRecorder falls back to audio/mp4.
+            // Use the recorder's ACTUAL mime (not a hardcoded 'audio/webm') so the
+            // blob, upload, and Gemini payload all agree with the real container.
+            const mime = ((mediaRecorder && mediaRecorder.mimeType) || 'audio/webm').split(';')[0];
+            const blob = new Blob(audioChunks, { type: mime });
 
             // Validate audio: reject if no speech detected during capture or
             // post-recording RMS shows silence. Prompt user to re-record.
@@ -3977,6 +3987,7 @@
             }
 
             wordRecordings.push(blob);
+            wordRecordingsMime[TEST_WORDS[currentWordIndex]] = mime;
             triggerHaptic(40); // word capture — matches iOS heavy impact
             syncRecordingContinueButton();
 
@@ -4163,7 +4174,8 @@
                     position: meta.position,
                     type: meta.type === 'sentence' ? 'sentence' : meta.type === 'passage' ? 'passage' : 'word',
                     tier: meta.tier,
-                    audio_base64: b64
+                    audio_base64: b64,
+                    mime: wordRecordingsMime[meta.word] || 'audio/webm'
                 });
             });
             if (!probes.length) return null;
@@ -4181,6 +4193,7 @@
                 mode: 'combined',
                 words: probes.map(p => ({
                     word: p.word, position: p.position, type: p.type, tier: p.tier, audio_base64: p.audio_base64,
+                    mime: p.mime,
                     acoustics: acousticsByWord[p.word] || null
                 })),
                 voiceType: userGender,
