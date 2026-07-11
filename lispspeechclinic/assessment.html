@@ -272,6 +272,7 @@
         /* Assessment Page Styles */
         .assessment-page {
             min-height: 100vh;
+            min-height: 100dvh; /* iOS/Chrome: fit the VISIBLE viewport (excludes toolbars) so no page scroll */
             padding-top: 100px;
             padding-bottom: 60px;
         }
@@ -1209,12 +1210,12 @@
         }
         .assessment-page:has(#step3.active),
         .assessment-page:has(#step4.active) {
-            padding: 0 !important; margin: 0; min-height: 100vh;
+            padding: 0 !important; margin: 0; min-height: 100vh; min-height: 100dvh;
         }
         #step3.assessment-step,
         #step4.assessment-step {
             padding: 0; margin: 0; border-radius: 0; border: none;
-            box-shadow: none; height: 100vh; min-height: 600px;
+            box-shadow: none; height: 100vh; height: 100dvh; min-height: 0;
             background: #fff;
         }
         #step3 .ob-split,
@@ -1854,6 +1855,7 @@
             padding: 0 !important;
             margin: 0;
             min-height: 100vh;
+            min-height: 100dvh;
         }
         #step2.assessment-step {
             padding: 0;
@@ -1862,7 +1864,8 @@
             border: none;
             box-shadow: none;
             height: 100vh;
-            min-height: 600px;
+            height: 100dvh;
+            min-height: 0;
         }
         #step2 .ob-split { height: 100%; }
         #step2 .ob-panel-left { padding-top: 100px; }
@@ -1925,7 +1928,9 @@
             #step2 .ob-split { grid-template-rows: 1fr; }
             #step2 .ob-panel-right { display: none; }
             /* Compact step2 so the whole login fits one mobile viewport */
-            #step2 .ob-panel-left { padding: 64px 18px 24px; }
+            /* Top-align the login card just below the nav (was centered in 100vh,
+               which left a large dead band at the top on iOS) */
+            #step2 .ob-panel-left { flex-direction: column; align-items: center; justify-content: flex-start; padding: 78px 18px 20px; }
             #step2 .ob-title { font-size: 24px; margin: 0 0 6px; }
             #step2 .ob-sub { font-size: 13px; margin: 0 0 14px; }
             #step2 .ob-social-btn { height: 46px; }
@@ -1942,7 +1947,7 @@
             #step3 .ob-panel-right { display: none; }
             #step4 .ob-split { grid-template-rows: 1fr; }
             #step4 .ob-panel-right { display: none; }
-            #step4 .ob-panel-left { flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 88px; }
+            #step4 .ob-panel-left { flex-direction: column; align-items: center; justify-content: flex-start; padding: 76px 18px 24px; }
             #step4 .ob-panel-left.showing-results { padding: 88px 18px 40px; }
             /* Compact step3 so all options + Next fit one viewport */
             #step3 .ob-wiz-body { padding: 72px 18px 6px; }
@@ -2061,6 +2066,7 @@
         @media (min-width: 601px) and (max-width: 1099px) {
             .assessment-page {
                 min-height: 100vh;
+                min-height: 100dvh;
                 display: flex;
                 align-items: center;
                 justify-content: center;
