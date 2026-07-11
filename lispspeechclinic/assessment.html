@@ -1523,6 +1523,10 @@
         @keyframes asmt-orb-spin { to { transform: rotate(360deg); } }
         @keyframes asmt-spin     { to { transform: rotate(360deg); } }
         @keyframes asmt-bars-pulse { 0%,100%{opacity:0.85} 50%{opacity:1} }
+        /* Deferred (part-2) result cards: circular-arrows sync icon spins while the
+           connected-speech / spontaneous sections compute in the background. */
+        .cat-pending-spin { display: inline-flex; }
+        .cat-pending-spin svg { animation: asmt-spin 1.6s linear infinite; transform-origin: 50% 50%; }
 
         /* ===== Inline results (ported from assessment-results.html) ===== */
         .asmt-results {
@@ -3271,8 +3275,12 @@
             if (userGender === 'female') return { low: 5000, high: 9000, target: 7000 };
             return { low: 4000, high: 8000, target: 6000 };
         }
-        let analysisPromise = null;    // Tracks the backend API call
-        let acousticsPromise = null;   // MFA+Praat, started at recording-complete so it overlaps the survey wizard
+        let analysisPromise = null;    // Tracks the part-1 (words) backend call; loader awaits this
+        // MFA+Praat is split by probe group so the slow word-batch align (~170s) can be
+        // prewarmed at the LAST word clip (hides behind sentence+passage recording + the
+        // survey), while the connected (sentence+passage) align prewarms at recording-complete.
+        let wordAcousticsPromise = null;
+        let connectedAcousticsPromise = null;
 
         // =============================================
         // MIC FEEDBACK CHIMES (wav samples)
@@ -4017,9 +4025,20 @@
             // Store base64 for playback on results page
             const b64 = await blobToBase64(blob);
             wordRecordingsB64[TEST_WORDS[currentWordIndex]] = b64;
-            // Any clip (re)capture invalidates a pending acoustics prewarm so the
-            // next send recomputes MFA+Praat against the current audio.
-            acousticsPromise = null;
+            // Any clip (re)capture invalidates ONLY the pending prewarm for that
+            // probe's group so the next send recomputes MFA+Praat against the current
+            // audio without discarding the other group's already-running align.
+            const capturedType = (TEST_WORD_META[currentWordIndex] || {}).type;
+            if (capturedType === 'sentence' || capturedType === 'passage') connectedAcousticsPromise = null;
+            else wordAcousticsPromise = null;
+
+            // The moment the LAST single-word probe is captured (the next probe is a
+            // sentence/passage), start its ~170s MFA+Praat batch so it hides behind the
+            // sentence + passage recording and the survey. Part 1 then needs only the
+            // Gemini wait. (Re-capturing the last word re-fires this after the null above.)
+            const _nextMeta = TEST_WORD_META[currentWordIndex + 1] || {};
+            const _curIsWord = capturedType !== 'sentence' && capturedType !== 'passage';
+            if (_curIsWord && (_nextMeta.type === 'sentence' || _nextMeta.type === 'passage')) prewarmWordAcoustics();
 
             // A freshly captured word 0 = brand-new assessment. Drop any prior
             // completed-results state so a refresh mid-run doesn't show stale results.
@@ -4045,10 +4064,11 @@
             } else {
                 // All words recorded — release mic (capture done)
                 allWordsRecorded = true;
-                // Start MFA+Praat NOW so its ~1-2 min runs DURING the survey wizard
-                // instead of blocking at wizFinish(). It doesn't need voiceType —
-                // only Gemini does — so it's safe to fire before the survey.
-                prewarmAcoustics();
+                // Start the CONNECTED (sentence+passage) MFA+Praat NOW so it runs
+                // DURING the survey wizard instead of blocking part 2. The word batch
+                // was already prewarmed at the last word clip above. Neither needs
+                // voiceType — only Gemini does — so both are safe to fire pre-survey.
+                prewarmConnectedAcoustics();
                 releaseMic();
                 syncRecordingContinueButton();
                 updateRecordButton();
@@ -4218,70 +4238,102 @@
             return await fetchPraatMetrics(alignProbes, windowsByWord);
         }
 
-        // Kick off MFA+Praat the instant recording finishes so its latency overlaps
-        // the survey wizard instead of blocking after it. Idempotent; failures
+        // Probe subsets: MFA+Praat is split so the slow single-word batch prewarms
+        // early (at the last word clip) and the connected batch prewarms at
+        // recording-complete. Both filter the SAME buildProbes() output by type.
+        function wordProbesOnly() { return buildProbes().filter(p => p.type === 'word'); }
+        function connectedProbesOnly() { return buildProbes().filter(p => p.type === 'sentence' || p.type === 'passage'); }
+
+        // Kick off MFA+Praat for a probe group so its latency overlaps later recording
+        // + the survey wizard instead of blocking the send. Idempotent; failures
         // degrade to ear-only ({}) and never throw so a bad align can't break send.
-        function prewarmAcoustics() {
-            if (acousticsPromise) return acousticsPromise;
-            const probes = buildProbes();
+        function prewarmWordAcoustics() {
+            if (wordAcousticsPromise) return wordAcousticsPromise;
+            const probes = wordProbesOnly();
             if (!probes.length) return null;
-            acousticsPromise = computeAcoustics(probes).catch(err => {
-                console.warn('Acoustics prewarm failed (ear-only fallback):', err);
+            wordAcousticsPromise = computeAcoustics(probes).catch(err => {
+                console.warn('Word acoustics prewarm failed (ear-only fallback):', err);
                 return {};
             });
-            return acousticsPromise;
+            return wordAcousticsPromise;
+        }
+        function prewarmConnectedAcoustics() {
+            if (connectedAcousticsPromise) return connectedAcousticsPromise;
+            const probes = connectedProbesOnly();
+            if (!probes.length) return null;
+            connectedAcousticsPromise = computeAcoustics(probes).catch(err => {
+                console.warn('Connected acoustics prewarm failed (ear-only fallback):', err);
+                return {};
+            });
+            return connectedAcousticsPromise;
         }
 
-        async function sendAudioToBackend() {
-            const probes = buildProbes();
+        // Identity so the backend writes the Firestore record itself (guaranteed even
+        // if the user exits) — see getLispIdentityPayload(). Hidden phone/countryCode
+        // inputs are already committed by wizFinish → wizCommitToHiddenInputs().
+        function lispIdentityPayload() {
+            return (typeof window.getLispIdentityPayload === 'function') ? window.getLispIdentityPayload() : null;
+        }
+        // Survey answers so the backend can fire 'assessment_completed' itself. Read via
+        // window.wizState — the wizard's const lives inside the DOMContentLoaded closure
+        // and is NOT in scope here; a bare wizState reference throws.
+        function lispSurveyPayload() {
+            const wiz = window.wizState || {};
+            return {
+                trouble_words_response: wiz.trouble || '',
+                age_group: wiz.age || '',
+                found_on: (wiz.source === 'other' ? (wiz.sourceOther || '') : (wiz.source || '')).toString().trim(),
+                first_name: localStorage.getItem('assessmentUserName') || ''
+            };
+        }
+
+        // PART 1 — single words (tiers 1–2). Fast path: word acoustics were prewarmed
+        // at the last word clip so only the Gemini wait remains. persist:true writes a
+        // PARTIAL Firestore record server-side (a record exists if the user bails before
+        // part 2). Returns word rows WITH tier, or null on failure.
+        async function sendWordsToBackend() {
+            const probes = wordProbesOnly();
             if (!probes.length) return null;
-
-            // Acoustics were started when recording finished (prewarmAcoustics) so
-            // they overlap the survey; await that here. Fall back to computing now if
-            // the prewarm never ran (e.g. a resumed session) or was invalidated by a
-            // re-record. {} on any failure → Gemini judges ear-only.
-            const acousticsByWord = (await (acousticsPromise || computeAcoustics(probes))) || {};
-
+            // Await the prewarm; fall back to computing now if it never ran (resumed
+            // session) or was invalidated by a re-record. {} on failure → ear-only.
+            const acousticsByWord = (await (wordAcousticsPromise || prewarmWordAcoustics() || computeAcoustics(probes))) || {};
             const payload = {
-                mode: 'combined',
+                mode: 'words',
+                persist: true,
                 words: probes.map(p => ({
                     word: p.word, position: p.position, type: p.type, tier: p.tier, audio_base64: p.audio_base64,
-                    mime: p.mime,
-                    acoustics: acousticsByWord[p.word] || null
+                    mime: p.mime, acoustics: acousticsByWord[p.word] || null
                 })),
                 voiceType: userGender,
-                // Identity so the backend writes the Firestore record itself — see
-                // getLispIdentityPayload(). Hidden phone/countryCode inputs are already
-                // committed by now (wizCommitToHiddenInputs runs before this await resolves).
-                user: (typeof window.getLispIdentityPayload === 'function') ? window.getLispIdentityPayload() : null,
-                // Survey answers so the backend can fire the 'assessment_completed'
-                // PostHog event itself (guaranteed even if the user exits). Read via
-                // window.wizState — the wizard's const lives inside the DOMContentLoaded
-                // closure and is NOT in scope here; a bare wizState reference throws.
-                survey: (function (wiz) {
-                    return {
-                        trouble_words_response: wiz.trouble || '',
-                        age_group: wiz.age || '',
-                        found_on: (wiz.source === 'other' ? (wiz.sourceOther || '') : (wiz.source || '')).toString().trim(),
-                        first_name: localStorage.getItem('assessmentUserName') || ''
-                    };
-                })(window.wizState || {})
+                user: lispIdentityPayload(),
+                survey: lispSurveyPayload()
             };
+            const res = await postToBackend(payload);
+            const tierByWord = {};
+            TEST_WORD_META.forEach(m => { tierByWord[m.word] = m.tier; });
+            return (res.words || []).map(r => ({ ...r, tier: r.tier || tierByWord[r.word] || 1 }));
+        }
 
-            let wordRows = [], sentenceRows = [], spontaneous = null;
-            try {
-                const res = await postToBackend(payload);
-                const tierByWord = {};
-                TEST_WORD_META.forEach(m => { tierByWord[m.word] = m.tier; });
-                wordRows = (res.words || []).map(r => ({ ...r, tier: tierByWord[r.word] || 1 }));
-                sentenceRows = res.rows || [];
-                spontaneous = res.spontaneous || null;
-            } catch (err) {
-                console.warn('Combined analysis failed:', err);
-                return null; // don't clobber the seeded local fallback with an empty result
-            }
-
-            return buildStructuredResult(wordRows, sentenceRows, spontaneous);
+        // PART 2 — connected speech (sentences) + spontaneous sample. Deferred: runs in
+        // the background and fills the collapsed accordions when ready. Sends the part-1
+        // word rows so the backend can finalize the full record + fire PostHog here.
+        async function sendConnectedToBackend(wordRows) {
+            const probes = connectedProbesOnly();
+            if (!probes.length) return { sentenceRows: [], spontaneous: null };
+            const acousticsByWord = (await (connectedAcousticsPromise || prewarmConnectedAcoustics() || computeAcoustics(probes))) || {};
+            const payload = {
+                mode: 'connected',
+                words: probes.map(p => ({
+                    word: p.word, position: p.position, type: p.type, tier: p.tier, audio_base64: p.audio_base64,
+                    mime: p.mime, acoustics: acousticsByWord[p.word] || null
+                })),
+                voiceType: userGender,
+                user: lispIdentityPayload(),
+                survey: lispSurveyPayload(),
+                part1: { words: wordRows || [] }
+            };
+            const res = await postToBackend(payload);
+            return { sentenceRows: res.rows || [], spontaneous: res.spontaneous || null };
         }
 
         // Group word + sentence rows into the three tier categories the results
@@ -4944,7 +4996,47 @@
         }
 
         // All categories collapsed by default (per product: 4 accordions, all closed).
-        function renderCategoryAccordions(categories) {
+        // Circular-arrows "sync" icon (NotebookLM "Generating Audio Overview…"
+        // reference) shown on the deferred (part-2) cards while they compute.
+        var CAT_SYNC_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563EB" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>';
+        // Deferred sections. `title` MUST equal the real category title (ASSESSMENT_TIERS
+        // labels for ids 3/4) so the filled cards replace these on refresh cleanly.
+        var PENDING_SECTIONS = [
+            {
+                title: 'Connected speech',
+                analyzingTitle: 'Analyzing your connected speech…',
+                analyzingSub: 'Single words are easy to say carefully — sentences are where a lisp really shows. This section and your overall score will update automatically in a couple of minutes.'
+            },
+            {
+                title: 'Spontaneous sample',
+                analyzingTitle: 'Analyzing your free-speech sample…',
+                analyzingSub: 'Natural conversation reveals what careful reading hides. Updates automatically — no need to refresh.'
+            }
+        ];
+        // One deferred card. mode 'analyzing' = spinner + sell-the-value copy;
+        // mode 'failed' = static fallback (part 2 errored, or page refreshed with no
+        // in-flight part-2 promise). Same card frame as the real accordions.
+        function pendingCardHTML(section, mode) {
+            var failed = mode === 'failed';
+            var title = failed ? section.title : section.analyzingTitle;
+            var sub = failed
+                ? "We couldn't finish this section. Your word results above are complete."
+                : section.analyzingSub;
+            var icon = failed ? '' : '<span class="cat-pending-spin" style="flex:0 0 auto; margin-top:1px;">' + CAT_SYNC_SVG + '</span>';
+            var h = '<div class="cat-card cat-pending" data-pending-title="' + section.title + '" '
+                + 'style="border:1px solid #E2E8F0; border-radius:12px; overflow:hidden; background:linear-gradient(135deg,#F8FAFC 0%,#EEF2F7 100%);">';
+            h += '<div class="cat-header" style="width:100%; display:flex; align-items:flex-start; gap:12px; padding:16px 18px;">';
+            if (icon) h += icon;
+            h += '<span style="flex:1; min-width:0; display:flex; flex-direction:column; gap:4px;">';
+            h += '<span style="font-weight:700; font-size:15px; color:#1A202C;">' + title + '</span>';
+            h += '<span style="font-weight:400; font-size:12.5px; color:#64748B; line-height:1.5;">' + sub + '</span>';
+            h += '</span>';
+            if (!failed) h += '<span style="font-size:12px; color:#64748B; white-space:nowrap; margin-top:1px;">analyzing</span>';
+            h += '</div></div>';
+            return h;
+        }
+
+        function renderCategoryAccordions(categories, partial) {
             var html = '<div class="cat-accordions" style="margin: 8px 0; display: flex; flex-direction: column; gap: 12px;">';
             categories.forEach(function(cat, idx) {
                 var bodyId = 'catBody-' + idx;
@@ -4975,6 +5067,17 @@
                 html += '<div id="' + bodyId + '" class="cat-body ' + bodyClass + '" style="display: ' + (openByDefault ? 'block' : 'none') + '; padding: 0 14px 8px;">' + inner + '</div>';
                 html += '</div>';
             });
+            // Partial (words-only) result: append the two deferred cards after the word
+            // categories for any section not yet present. Spinner + copy while part 2
+            // runs (window.part2Promise live); fallback if it isn't (refresh / failure).
+            if (partial) {
+                var have = {};
+                categories.forEach(function(c) { have[(c.title || '')] = true; });
+                var pendMode = window.part2Promise ? 'analyzing' : 'failed';
+                PENDING_SECTIONS.forEach(function(sec) {
+                    if (!have[sec.title]) html += pendingCardHTML(sec, pendMode);
+                });
+            }
             html += '</div>';
             return html;
         }
@@ -4992,7 +5095,7 @@
             if (typeof data === 'string') { el.innerHTML = convertMarkdownToHTML(data); return; }
             if (typeof data === 'object' && data !== null) {
                 if (Array.isArray(data.categories) && data.categories.length) {
-                    el.innerHTML = renderCategoryAccordions(data.categories);
+                    el.innerHTML = renderCategoryAccordions(data.categories, !!data.partial);
                 } else {
                     var text = data.analysis || data.result || data.response || JSON.stringify(data, null, 2);
                     el.innerHTML = convertMarkdownToHTML(text);
@@ -5181,6 +5284,63 @@
             if (results) results.style.display = 'flex';
             if (panel) panel.classList.add('showing-results');
             try { gtag('event', 'results_inline_view', { event_category: 'engagement', event_label: 'assessment_completion' }); } catch (e) {}
+        }
+
+        // Re-render the accordions from the stored result when part 2 fills in the
+        // connected/spontaneous sections — WITHOUT losing which accordions the user has
+        // opened. Cards are matched by title. No numeric score/GRI is rendered in this
+        // view (convertMarkdownToHTML strips GRI/SCI lines), so there is none to update.
+        function refreshResultsView() {
+            var container = document.getElementById('voiceAnalysisContent');
+            var results = document.getElementById('asmtResults');
+            // Only act if the results view is actually on screen.
+            if (!container || !results || results.style.display === 'none') return;
+
+            // Snapshot open/closed state by (real) card title before re-render.
+            var openByTitle = {};
+            container.querySelectorAll('.cat-card').forEach(function(card) {
+                var titleEl = card.querySelector('.cat-header span');
+                var body = card.querySelector('.cat-body');
+                var t = titleEl ? titleEl.textContent.trim() : '';
+                if (t && body) openByTitle[t] = (body.style.display !== 'none');
+            });
+
+            var stored = null;
+            try { stored = localStorage.getItem('analysisResult'); } catch (e) {}
+            if (!stored) return;
+            var data;
+            try { data = JSON.parse(stored); } catch (e) { return; }
+
+            displayAnalysisResults(data);
+            enhanceTableRows();
+            enhanceSentenceRows();
+
+            // Restore open accordions by matching title.
+            container.querySelectorAll('.cat-card').forEach(function(card) {
+                var titleEl = card.querySelector('.cat-header span');
+                var t = titleEl ? titleEl.textContent.trim() : '';
+                if (!openByTitle[t]) return;
+                var body = card.querySelector('.cat-body');
+                var btn = card.querySelector('.cat-header');
+                if (!body || !btn) return;
+                body.style.display = 'block';
+                btn.setAttribute('aria-expanded', 'true');
+                var chev = btn.querySelector('.cat-chevron');
+                if (chev) chev.style.transform = 'rotate(180deg)';
+            });
+        }
+
+        // Part 2 failed: swap the spinning "analyzing" cards for the static fallback in
+        // place (the stored result is still partial, so a re-render would re-show them).
+        function markDeferredSectionsFailed() {
+            window.part2Promise = null; // any later render also shows the fallback
+            var container = document.getElementById('voiceAnalysisContent');
+            if (!container) return;
+            container.querySelectorAll('.cat-pending').forEach(function(card) {
+                var title = card.getAttribute('data-pending-title') || '';
+                var sec = PENDING_SECTIONS.filter(function(s) { return s.title === title; })[0] || { title: title };
+                card.outerHTML = pendingCardHTML(sec, 'failed');
+            });
         }
 
         function goToPricing() {
@@ -5827,11 +5987,11 @@
                 source: null, sourceOther: '',
                 gender: null, cc: '+1', ccIso: 'us', phone: ''
             };
-            // Exposed for sendAudioToBackend(), which is defined OUTSIDE this
-            // DOMContentLoaded closure and cannot see the const above. Without
-            // this, building the Gemini payload throws ReferenceError AFTER the
-            // MFA + Praat calls succeed — the analysis silently never reaches
-            // Gemini and the results page comes up empty.
+            // Exposed for lispSurveyPayload() (used by sendWordsToBackend /
+            // sendConnectedToBackend), which is defined OUTSIDE this DOMContentLoaded
+            // closure and cannot see the const above. Without this, building the survey
+            // payload throws ReferenceError AFTER the MFA + Praat calls succeed — the
+            // analysis silently never reaches Gemini and the results page comes up empty.
             window.wizState = wizState;
 
             // Pull the current dial code + national number out of the plugin into
@@ -6063,18 +6223,46 @@
                 // Voice type drives the /s/ frequency band + is sent to the backend
                 // (voiceType) so Gemini interprets the expected sibilant range correctly.
                 userGender = wizState.gender || 'male';
-                // Fire Gemini analysis now that voice type is known. startProcessing
-                // (analyzing screen) awaits analysisPromise before redirecting.
+                // Two-phase analysis (voice type is now known, so Gemini interprets the
+                // expected sibilant range correctly).
+                //
+                // PART 1 (words): analysisPromise resolves when the fast word result is
+                // stored — startProcessing awaits it, so the loader ends after part 1
+                // (~1 min post-survey) and results render with sections 1–2 filled plus
+                // two PENDING accordions.
+                //
+                // PART 2 (connected + spontaneous): kicked off in the BACKGROUND from
+                // window.part2Promise. It fills the deferred accordions in place and
+                // replaces the partial record with the full one. These sections are the
+                // clinically most important — deferred for UX, never dropped.
                 analysisPromise = (async () => {
+                    let wordRows = null;
                     try {
-                        const gemini = await sendAudioToBackend();
-                        if (gemini && gemini.categories?.length) {
-                            // Results-page render source. The Firestore record is written
-                            // server-side by the analysis backend (guaranteed even on exit).
-                            localStorage.setItem('analysisResult', JSON.stringify(gemini));
+                        wordRows = await sendWordsToBackend();
+                        if (wordRows && wordRows.length) {
+                            // Partial result → sections 1–2 render immediately. Flagged so
+                            // renderCategoryAccordions appends the two pending cards.
+                            const partial = buildStructuredResult(wordRows, [], null);
+                            partial.partial = true;
+                            localStorage.setItem('analysisResult', JSON.stringify(partial));
                         }
                     } catch (err) {
-                        console.warn('Gemini analysis failed:', err);
+                        console.warn('Part 1 (words) analysis failed:', err);
+                    }
+                    // Start part 2 only if part 1 gave us word rows to merge with. Runs
+                    // detached from analysisPromise so the loader doesn't wait on it.
+                    if (wordRows && wordRows.length) {
+                        window.part2Promise = (async () => {
+                            try {
+                                const { sentenceRows, spontaneous } = await sendConnectedToBackend(wordRows);
+                                const full = buildStructuredResult(wordRows, sentenceRows, spontaneous);
+                                localStorage.setItem('analysisResult', JSON.stringify(full));
+                                refreshResultsView();
+                            } catch (err) {
+                                console.warn('Part 2 (connected) analysis failed:', err);
+                                markDeferredSectionsFailed();
+                            }
+                        })();
                     }
                     return null;
                 })();

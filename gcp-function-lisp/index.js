@@ -365,6 +365,50 @@ async function analyzeCombinedWithGemini(wordProbes, sentenceProbes, passageProb
   return callGemini(buildAudioParts(prompt, ordered));
 }
 
+// Connected-speech-only prompt (sentences + optional spontaneous passage). Mirrors
+// buildCombinedPrompt's PART 2/3 blocks WITHOUT the single-word part — used by the
+// deferred "connected" (part-2) call so the word results can render first while
+// these (clinically most important) sections process in the background. Output
+// headings are EXACTLY "### SENTENCE ANALYSIS" then (if a passage) "### SPONTANEOUS
+// ANALYSIS" so splitCombinedResponse parses this identically to combined mode.
+function buildConnectedPrompt(sentenceProbes, passageProbes, speakerContext) {
+  const sentencePrompt = buildSentencePrompt(sentenceProbes, speakerContext);
+  const nS = sentenceProbes.length, nP = passageProbes.length;
+
+  let prompt = `You will analyze ${nP ? 'TWO sets of audio clips' : 'a set of audio clips'}. The first ${nS} clips are sentences.${nP ? ` The final ${nP} clip(s) are a spontaneous free-speech monologue.` : ''} Follow the instruction block(s) below.
+
+================ PART 1 — SENTENCES (clips 1–${nS}) ================
+${sentencePrompt}
+`;
+
+  if (nP) {
+    let part2 = buildSpontaneousPrompt(speakerContext);
+    // Same passage acoustics aggregate line combined mode feeds in — the >8 kHz
+    // sibilant evidence Gemini cannot hear. Kept identical so results match.
+    const acLines = passageProbes.map(p => formatAcoustics(p.acoustics)).filter(Boolean);
+    if (acLines.length) {
+      part2 += `\n\n[Praat acoustics] Aggregate high-frequency sibilant measurements for the spontaneous clip(s): ${acLines.join(' | ')}. Treat these as ground-truth for the >8 kHz sibilant energy you cannot hear and weigh them against what you hear. Do NOT mention any numbers in your output.`;
+    }
+    prompt += `
+================ PART 2 — SPONTANEOUS SAMPLE (clip${nP > 1 ? 's' : ''} ${nS + 1}–${nS + nP}) ================
+${part2}
+`;
+  }
+
+  prompt += `
+================ COMBINED OUTPUT ================
+Output the sentence table under a heading line "### SENTENCE ANALYSIS"${nP ? ', then the qualitative section under a heading line "### SPONTANEOUS ANALYSIS"' : ''}. Output nothing else — no other commentary.
+Do NOT number the table rows. Put ONLY the bare sentence in the first column (e.g. "Sam saw…", not "1. Sam saw…").`;
+  return prompt;
+}
+
+async function analyzeConnectedWithGemini(sentenceProbes, passageProbes, speakerContext) {
+  const prompt = buildConnectedPrompt(sentenceProbes, passageProbes, speakerContext);
+  // Clip order must match the prompt: sentences, then spontaneous.
+  const ordered = [...sentenceProbes, ...passageProbes];
+  return callGemini(buildAudioParts(prompt, ordered));
+}
+
 // Split the combined response into word-table, sentence-table, and spontaneous
 // (qualitative) parts. Spontaneous is optional — empty string if absent.
 function splitCombinedResponse(rawText) {
@@ -527,6 +571,11 @@ async function writeLispUserRecord(user, analysis) {
         gri: analysis.gri ?? null,
         categories: analysis.categories ?? [],
         result: analysis.result ?? '',
+        // partial=true = words-only interim write (user may still be waiting on the
+        // deferred connected-speech part). Always written explicitly so the full
+        // (connected) write clears it — a merge-write deep-merges the map and would
+        // otherwise leave a stale partial:true behind.
+        partial: !!analysis.partial,
         completedAt: new Date().toISOString()
       },
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -728,15 +777,67 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         return res.status(200).json({ words: wordRows, rows: sentenceParsed.rows, spontaneous, gri, mode: 'combined', usage });
       }
 
+      // Part 2 of the split flow: connected speech (sentences) + spontaneous sample.
+      // The word rows were already scored by the earlier mode:'words' call and are
+      // handed back to us in req.body.part1.words so the persisted record + summary
+      // are complete. THIS is where the Firestore record is finalized (partial→full)
+      // and where the 'assessment_completed' PostHog event fires — with the full,
+      // sentence-informed summary.
+      if (mode === 'connected') {
+        const sentenceProbes = words.filter(w => w.type === 'sentence');
+        const passageProbes = words.filter(w => w.type === 'passage');
+        const { rawText, usage } = await analyzeConnectedWithGemini(sentenceProbes, passageProbes, speakerContext);
+        const { sentencePart, spontaneousPart } = splitCombinedResponse(rawText);
+        const sentenceParsed = parseSentenceTable(sentencePart, sentenceProbes.length);
+        const spontaneous = passageProbes.length ? parseSpontaneous(spontaneousPart) : null;
+
+        const part1Rows = (req.body.part1 && Array.isArray(req.body.part1.words)) ? req.body.part1.words : [];
+        const categories = buildLispCategories(part1Rows, sentenceParsed.rows, spontaneous);
+        // GRI over scored probes (words + sentences); spontaneous excluded.
+        const allQ = part1Rows.concat(sentenceParsed.rows).map(r => r.quality || 0);
+        const gri = allQ.length ? Math.max(0, Math.min(100, Math.round(allQ.reduce((a, b) => a + b, 0) / allQ.length))) : 0;
+        const result = lispStructuredToMarkdown(categories);
+
+        // Full record — clears the partial flag set by the mode:'words' persist write.
+        await writeLispUserRecord(req.body && req.body.user, { gri, categories, result });
+        // PostHog fires HERE (part-2 completion) with sentence-level detections included.
+        await sendPosthogAssessmentCompleted(req.body && req.body.user, req.body && req.body.survey, deriveLispSummary(categories, gri));
+
+        return res.status(200).json({ rows: sentenceParsed.rows, spontaneous, gri, mode: 'connected', usage });
+      }
+
       if (mode === 'sentences') {
         const { rawText, usage } = await analyzeSentencesWithGemini(words, speakerContext);
         const parsed = parseSentenceTable(rawText, words.length);
         return res.status(200).json({ ...parsed, mode: 'sentences', usage });
       }
 
+      // Words mode (default) — part 1 of the split flow (single words, tiers 1–2).
       const { rawText, usage } = await analyzeWithGemini(words, speakerContext);
       const parsed = parseGeminiTable(rawText, words.length);
-      res.status(200).json({ ...parsed, mode: 'words', usage });
+      // Attach each word's tier from the probe metadata so rows group into the same
+      // tier categories the results page renders (mirrors the combined branch).
+      const tierByWord = {};
+      words.forEach(p => { if (p.word != null) tierByWord[p.word] = p.tier || 1; });
+      const wordRows = parsed.words.map(r => ({ ...r, tier: tierByWord[r.word] || 1 }));
+
+      // Opt-in persist: write a PARTIAL Firestore record now so a record exists even
+      // if the user bails before the deferred part-2 (connected) call completes. The
+      // part-2 write replaces this with the full record and clears the partial flag.
+      // NO PostHog here — that fires on part-2 completion with the full summary.
+      if (req.body && req.body.persist === true) {
+        const wordsOnlyCategories = buildLispCategories(wordRows, [], null);
+        const wq = wordRows.map(r => r.quality || 0);
+        const wgri = wq.length ? Math.max(0, Math.min(100, Math.round(wq.reduce((a, b) => a + b, 0) / wq.length))) : 0;
+        await writeLispUserRecord(req.body && req.body.user, {
+          gri: wgri,
+          categories: wordsOnlyCategories,
+          result: lispStructuredToMarkdown(wordsOnlyCategories),
+          partial: true
+        });
+      }
+
+      res.status(200).json({ ...parsed, words: wordRows, mode: 'words', usage });
     } catch (err) {
       // Attach request context so failures are traceable (req.body vars are out of catch scope).
       const { mode: failMode, words: failWords, voiceType: failVoice } = req.body || {};
