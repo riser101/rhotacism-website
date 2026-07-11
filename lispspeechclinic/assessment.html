@@ -1523,10 +1523,12 @@
         @keyframes asmt-orb-spin { to { transform: rotate(360deg); } }
         @keyframes asmt-spin     { to { transform: rotate(360deg); } }
         @keyframes asmt-bars-pulse { 0%,100%{opacity:0.85} 50%{opacity:1} }
-        /* Deferred (part-2) result cards: circular-arrows sync icon spins while the
-           connected-speech / spontaneous sections compute in the background. */
-        .cat-pending-spin { display: inline-flex; }
-        .cat-pending-spin svg { animation: asmt-spin 1.6s linear infinite; transform-origin: 50% 50%; }
+        /* Deferred (part-2) sections: on expand, the body shows a single centered
+           "Still analysing" line with three animated dots while it computes. */
+        .cat-dots span { animation: catDotBlink 1.4s infinite both; }
+        .cat-dots span:nth-child(2) { animation-delay: .2s; }
+        .cat-dots span:nth-child(3) { animation-delay: .4s; }
+        @keyframes catDotBlink { 0%, 80%, 100% { opacity: .2; } 40% { opacity: 1; } }
 
         /* ===== Inline results (ported from assessment-results.html) ===== */
         .asmt-results {
@@ -4998,36 +5000,25 @@
         // All categories collapsed by default (per product: 4 accordions, all closed).
         // Circular-arrows "sync" icon (NotebookLM "Generating Audio Overview…"
         // reference) shown on the deferred (part-2) cards while they compute.
-        // Small spinning "sync" icon shown INSIDE the deferred section body (only
-        // visible once the user expands it) while part 2 is still analysing.
-        var CAT_SYNC_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2563EB" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>';
         // Solid down-arrow (matches the requested icon) — the expand affordance on every
         // accordion header. toggleCategory rotates it 180° when the card is open.
         var CAT_CHEVRON_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 8h16l-8 9z"/></svg>';
         // Deferred sections. `title` MUST equal the real category title (ASSESSMENT_TIERS
-        // labels for ids 3/4) so the filled cards replace these on refresh cleanly.
-        var PENDING_SECTIONS = [
-            {
-                title: 'Connected speech',
-                sub: 'Single words are easy to say carefully — sentences are where a lisp really shows. This section and your overall score update automatically in a couple of minutes.'
-            },
-            {
-                title: 'Spontaneous sample',
-                sub: 'Natural conversation reveals what careful reading hides. Updates automatically — no need to refresh.'
-            }
-        ];
-        // Body shown inside a collapsed deferred card (seen only on expand). mode
-        // 'analyzing' = spinner + "Still analysing…" copy; 'failed' = static fallback
-        // (part 2 errored, or page refreshed with no in-flight part-2 promise).
-        function pendingBodyHTML(section, mode) {
+        // labels for ids 3/4) so the filled cards replace these on refresh cleanly. The
+        // header shows NO status hint — the user only learns a section is still working
+        // if they expand it (collapsed cards look identical to the finished ones).
+        var PENDING_SECTIONS = [{ title: 'Connected speech' }, { title: 'Spontaneous sample' }];
+        // Body shown inside a collapsed deferred card (seen only on expand). 'analyzing'
+        // = one centered "Still analysing" line with animated dots; 'failed' = a single
+        // fallback line (part 2 errored, or page refreshed with no in-flight promise).
+        function pendingBodyHTML(mode) {
             if (mode === 'failed') {
-                return '<div style="padding: 8px 4px 10px; color:#64748B; font-size:13.5px; line-height:1.6;">'
+                return '<div style="padding: 12px 4px 14px; text-align:center; color:#64748B; font-size:13.5px; line-height:1.6;">'
                     + "We couldn't finish this section. Your word results above are complete."
                     + '</div>';
             }
-            return '<div style="display:flex; gap:10px; align-items:flex-start; padding: 8px 4px 10px; color:#64748B; font-size:13.5px; line-height:1.6;">'
-                + '<span class="cat-pending-spin" style="flex:0 0 auto; margin-top:1px;">' + CAT_SYNC_SVG + '</span>'
-                + '<span><strong style="color:#1A202C;">Still analysing…</strong><br>' + section.sub + '</span>'
+            return '<div style="padding: 14px 4px 16px; text-align:center; color:#64748B; font-size:14px;">'
+                + 'Still analysing<span class="cat-dots"><span>.</span><span>.</span><span>.</span></span>'
                 + '</div>';
         }
 
@@ -5083,9 +5074,9 @@
                     html += catCardHTML({
                         bodyId: 'catPend-' + i,
                         title: sec.title,
-                        countLabel: failed ? '' : 'analysing…',
+                        countLabel: '', // no status hint in the header — only on expand
                         bodyClass: 'cat-pending-body',
-                        inner: pendingBodyHTML(sec, failed ? 'failed' : 'analyzing'),
+                        inner: pendingBodyHTML(failed ? 'failed' : 'analyzing'),
                         pendingTitle: sec.title
                     });
                 });
