@@ -3271,6 +3271,7 @@
             return { low: 4000, high: 8000, target: 6000 };
         }
         let analysisPromise = null;    // Tracks the backend API call
+        let acousticsPromise = null;   // MFA+Praat, started at recording-complete so it overlaps the survey wizard
 
         // =============================================
         // MIC FEEDBACK CHIMES (wav samples)
@@ -4015,6 +4016,9 @@
             // Store base64 for playback on results page
             const b64 = await blobToBase64(blob);
             wordRecordingsB64[TEST_WORDS[currentWordIndex]] = b64;
+            // Any clip (re)capture invalidates a pending acoustics prewarm so the
+            // next send recomputes MFA+Praat against the current audio.
+            acousticsPromise = null;
 
             // A freshly captured word 0 = brand-new assessment. Drop any prior
             // completed-results state so a refresh mid-run doesn't show stale results.
@@ -4040,6 +4044,10 @@
             } else {
                 // All words recorded — release mic (capture done)
                 allWordsRecorded = true;
+                // Start MFA+Praat NOW so its ~1-2 min runs DURING the survey wizard
+                // instead of blocking at wizFinish(). It doesn't need voiceType —
+                // only Gemini does — so it's safe to fire before the survey.
+                prewarmAcoustics();
                 releaseMic();
                 syncRecordingContinueButton();
                 updateRecordButton();
@@ -4179,8 +4187,9 @@
             }
         }
 
-        async function sendAudioToBackend() {
-            // All recorded probes, tagged word vs. sentence, in test order.
+        // Build the tagged probe list from the recorded clips (word vs. sentence vs.
+        // passage), in test order. Shared by the acoustics prewarm and the send.
+        function buildProbes() {
             const probes = [];
             TEST_WORD_META.forEach(meta => {
                 const b64 = wordRecordingsB64[meta.word];
@@ -4194,16 +4203,43 @@
                     mime: wordRecordingsMime[meta.word] || 'audio/webm'
                 });
             });
-            if (!probes.length) return null;
+            return probes;
+        }
 
-            // MFA locates every sibilant, then Praat measures those exact windows.
-            // Merged per word into the Gemini payload so Gemini reasons over the full
-            // sibilant band (incl. the >8kHz energy it cannot hear). Best-effort — {}
-            // on failure. Words/sentences align from their known transcript; the
-            // free-form passage is transcribed by MFA (Cloud STT) first, then aligns.
+        // MFA locates every sibilant, then Praat measures those exact windows.
+        // Merged per word into the Gemini payload so Gemini reasons over the full
+        // sibilant band (incl. the >8kHz energy it cannot hear). Best-effort — {}
+        // on failure. Words/sentences align from their known transcript; the
+        // free-form passage is transcribed by MFA (Cloud STT) first, then aligns.
+        async function computeAcoustics(probes) {
             const alignProbes = probes.filter(p => p.type === 'word' || p.type === 'sentence' || p.type === 'passage');
             const windowsByWord = await fetchSibilantWindows(alignProbes);
-            const acousticsByWord = await fetchPraatMetrics(alignProbes, windowsByWord);
+            return await fetchPraatMetrics(alignProbes, windowsByWord);
+        }
+
+        // Kick off MFA+Praat the instant recording finishes so its latency overlaps
+        // the survey wizard instead of blocking after it. Idempotent; failures
+        // degrade to ear-only ({}) and never throw so a bad align can't break send.
+        function prewarmAcoustics() {
+            if (acousticsPromise) return acousticsPromise;
+            const probes = buildProbes();
+            if (!probes.length) return null;
+            acousticsPromise = computeAcoustics(probes).catch(err => {
+                console.warn('Acoustics prewarm failed (ear-only fallback):', err);
+                return {};
+            });
+            return acousticsPromise;
+        }
+
+        async function sendAudioToBackend() {
+            const probes = buildProbes();
+            if (!probes.length) return null;
+
+            // Acoustics were started when recording finished (prewarmAcoustics) so
+            // they overlap the survey; await that here. Fall back to computing now if
+            // the prewarm never ran (e.g. a resumed session) or was invalidated by a
+            // re-record. {} on any failure → Gemini judges ear-only.
+            const acousticsByWord = (await (acousticsPromise || computeAcoustics(probes))) || {};
 
             const payload = {
                 mode: 'combined',
