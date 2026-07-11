@@ -4998,48 +4998,59 @@
         // All categories collapsed by default (per product: 4 accordions, all closed).
         // Circular-arrows "sync" icon (NotebookLM "Generating Audio Overview…"
         // reference) shown on the deferred (part-2) cards while they compute.
-        var CAT_SYNC_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563EB" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>';
+        // Small spinning "sync" icon shown INSIDE the deferred section body (only
+        // visible once the user expands it) while part 2 is still analysing.
+        var CAT_SYNC_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2563EB" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>';
+        // Solid down-arrow (matches the requested icon) — the expand affordance on every
+        // accordion header. toggleCategory rotates it 180° when the card is open.
+        var CAT_CHEVRON_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 8h16l-8 9z"/></svg>';
         // Deferred sections. `title` MUST equal the real category title (ASSESSMENT_TIERS
         // labels for ids 3/4) so the filled cards replace these on refresh cleanly.
         var PENDING_SECTIONS = [
             {
                 title: 'Connected speech',
-                analyzingTitle: 'Analyzing your connected speech…',
-                analyzingSub: 'Single words are easy to say carefully — sentences are where a lisp really shows. This section and your overall score will update automatically in a couple of minutes.'
+                sub: 'Single words are easy to say carefully — sentences are where a lisp really shows. This section and your overall score update automatically in a couple of minutes.'
             },
             {
                 title: 'Spontaneous sample',
-                analyzingTitle: 'Analyzing your free-speech sample…',
-                analyzingSub: 'Natural conversation reveals what careful reading hides. Updates automatically — no need to refresh.'
+                sub: 'Natural conversation reveals what careful reading hides. Updates automatically — no need to refresh.'
             }
         ];
-        // One deferred card. mode 'analyzing' = spinner + sell-the-value copy;
-        // mode 'failed' = static fallback (part 2 errored, or page refreshed with no
-        // in-flight part-2 promise). Same card frame as the real accordions.
-        function pendingCardHTML(section, mode) {
-            var failed = mode === 'failed';
-            var title = failed ? section.title : section.analyzingTitle;
-            var sub = failed
-                ? "We couldn't finish this section. Your word results above are complete."
-                : section.analyzingSub;
-            var icon = failed ? '' : '<span class="cat-pending-spin" style="flex:0 0 auto; margin-top:1px;">' + CAT_SYNC_SVG + '</span>';
-            var h = '<div class="cat-card cat-pending" data-pending-title="' + section.title + '" '
-                + 'style="border:1px solid #E2E8F0; border-radius:12px; overflow:hidden; background:linear-gradient(135deg,#F8FAFC 0%,#EEF2F7 100%);">';
-            h += '<div class="cat-header" style="width:100%; display:flex; align-items:flex-start; gap:12px; padding:16px 18px;">';
-            if (icon) h += icon;
-            h += '<span style="flex:1; min-width:0; display:flex; flex-direction:column; gap:4px;">';
-            h += '<span style="font-weight:700; font-size:15px; color:#1A202C;">' + title + '</span>';
-            h += '<span style="font-weight:400; font-size:12.5px; color:#64748B; line-height:1.5;">' + sub + '</span>';
-            h += '</span>';
-            if (!failed) h += '<span style="font-size:12px; color:#64748B; white-space:nowrap; margin-top:1px;">analyzing</span>';
-            h += '</div></div>';
+        // Body shown inside a collapsed deferred card (seen only on expand). mode
+        // 'analyzing' = spinner + "Still analysing…" copy; 'failed' = static fallback
+        // (part 2 errored, or page refreshed with no in-flight part-2 promise).
+        function pendingBodyHTML(section, mode) {
+            if (mode === 'failed') {
+                return '<div style="padding: 8px 4px 10px; color:#64748B; font-size:13.5px; line-height:1.6;">'
+                    + "We couldn't finish this section. Your word results above are complete."
+                    + '</div>';
+            }
+            return '<div style="display:flex; gap:10px; align-items:flex-start; padding: 8px 4px 10px; color:#64748B; font-size:13.5px; line-height:1.6;">'
+                + '<span class="cat-pending-spin" style="flex:0 0 auto; margin-top:1px;">' + CAT_SYNC_SVG + '</span>'
+                + '<span><strong style="color:#1A202C;">Still analysing…</strong><br>' + section.sub + '</span>'
+                + '</div>';
+        }
+
+        // Shared accordion-card frame (collapsed by default) used for BOTH real result
+        // categories and the deferred (pending) sections, so they look identical.
+        function catCardHTML(opts) {
+            var extraClass = opts.pendingTitle ? ' cat-pending' : '';
+            var dataAttr = opts.pendingTitle ? ' data-pending-title="' + opts.pendingTitle + '"' : '';
+            var h = '<div class="cat-card' + extraClass + '"' + dataAttr + ' style="border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #fff;">';
+            h += '<button type="button" class="cat-header" aria-expanded="false" onclick="toggleCategory(\'' + opts.bodyId + '\', this)" '
+                + 'style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px 18px; background: #F8FAFC; border: none; cursor: pointer; text-align: left;">';
+            h += '<span style="flex: 1; min-width: 0; font-weight: 600; font-size: 15px; color: #1A202C;">' + opts.title + '</span>';
+            h += '<span style="font-size: 12px; color: #64748B; white-space: nowrap;">' + (opts.countLabel || '') + '</span>';
+            h += '<span class="cat-chevron" style="display: inline-flex; align-items: center; flex: 0 0 auto; transition: transform 0.2s; color: #94A3B8;">' + CAT_CHEVRON_SVG + '</span>';
+            h += '</button>';
+            h += '<div id="' + opts.bodyId + '" class="cat-body ' + (opts.bodyClass || '') + '" style="display: none; padding: 0 14px 8px;">' + opts.inner + '</div>';
+            h += '</div>';
             return h;
         }
 
         function renderCategoryAccordions(categories, partial) {
             var html = '<div class="cat-accordions" style="margin: 8px 0; display: flex; flex-direction: column; gap: 12px;">';
             categories.forEach(function(cat, idx) {
-                var bodyId = 'catBody-' + idx;
                 var count = (cat.rows || []).length;
                 var countLabel, bodyClass, inner;
                 if (cat.type === 'spontaneous') {
@@ -5055,27 +5066,28 @@
                     bodyClass = 'cat-words';
                     inner = convertMarkdownToHTML(wordCatMarkdown(cat.rows));
                 }
-                var openByDefault = false;
-                html += '<div class="cat-card" style="border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #fff;">';
-                html += '<button type="button" class="cat-header" aria-expanded="' + (openByDefault ? 'true' : 'false') + '" onclick="toggleCategory(\'' + bodyId + '\', this)" '
-                    + 'style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px 18px; background: #F8FAFC; border: none; cursor: pointer; text-align: left;">';
                 var catTitle = (cat.title || '').replace(/^\s*Tier\s*\d+\s*[—–-]\s*/i, '');
-                html += '<span style="flex: 1; font-weight: 600; font-size: 15px; color: #1A202C;">' + catTitle + '</span>';
-                html += '<span style="font-size: 12px; color: #64748B; white-space: nowrap;">' + countLabel + '</span>';
-                html += '<span class="cat-chevron" style="transition: transform 0.2s; color: #94A3B8; font-size: 14px;' + (openByDefault ? ' transform: rotate(180deg);' : '') + '">▾</span>';
-                html += '</button>';
-                html += '<div id="' + bodyId + '" class="cat-body ' + bodyClass + '" style="display: ' + (openByDefault ? 'block' : 'none') + '; padding: 0 14px 8px;">' + inner + '</div>';
-                html += '</div>';
+                html += catCardHTML({ bodyId: 'catBody-' + idx, title: catTitle, countLabel: countLabel, bodyClass: bodyClass, inner: inner });
             });
-            // Partial (words-only) result: append the two deferred cards after the word
-            // categories for any section not yet present. Spinner + copy while part 2
-            // runs (window.part2Promise live); fallback if it isn't (refresh / failure).
+            // Partial (words-only) result: render the deferred sections as NORMAL
+            // collapsed cards for any section not yet present. The "still analysing" (or
+            // fallback) copy lives in the collapsed body — seen only when the user taps
+            // to expand. When part 2 lands, refreshResultsView swaps these for the real
+            // result cards (matched by title, so open/closed state is preserved).
             if (partial) {
                 var have = {};
                 categories.forEach(function(c) { have[(c.title || '')] = true; });
-                var pendMode = window.part2Promise ? 'analyzing' : 'failed';
-                PENDING_SECTIONS.forEach(function(sec) {
-                    if (!have[sec.title]) html += pendingCardHTML(sec, pendMode);
+                var failed = !window.part2Promise;
+                PENDING_SECTIONS.forEach(function(sec, i) {
+                    if (have[sec.title]) return;
+                    html += catCardHTML({
+                        bodyId: 'catPend-' + i,
+                        title: sec.title,
+                        countLabel: failed ? '' : 'analysing…',
+                        bodyClass: 'cat-pending-body',
+                        inner: pendingBodyHTML(sec, failed ? 'failed' : 'analyzing'),
+                        pendingTitle: sec.title
+                    });
                 });
             }
             html += '</div>';
@@ -5330,17 +5342,13 @@
             });
         }
 
-        // Part 2 failed: swap the spinning "analyzing" cards for the static fallback in
-        // place (the stored result is still partial, so a re-render would re-show them).
+        // Part 2 failed: the stored result stays partial, so re-render from it with
+        // part2Promise cleared — renderCategoryAccordions then fills the deferred card
+        // bodies with the fallback copy instead of "still analysing". Open/closed state
+        // is preserved by refreshResultsView.
         function markDeferredSectionsFailed() {
-            window.part2Promise = null; // any later render also shows the fallback
-            var container = document.getElementById('voiceAnalysisContent');
-            if (!container) return;
-            container.querySelectorAll('.cat-pending').forEach(function(card) {
-                var title = card.getAttribute('data-pending-title') || '';
-                var sec = PENDING_SECTIONS.filter(function(s) { return s.title === title; })[0] || { title: title };
-                card.outerHTML = pendingCardHTML(sec, 'failed');
-            });
+            window.part2Promise = null;
+            refreshResultsView();
         }
 
         function goToPricing() {
