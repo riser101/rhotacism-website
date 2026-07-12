@@ -123,5 +123,19 @@
     }
   }
 
-  mountCheckout();
+  // ── Buttons: the box stays small (price + Apple Pay + card) until a pay button
+  // is pressed; only then does the inline Dodo checkout mount. Both methods open
+  // the same Dodo checkout, which presents Apple Pay (express) + card. ──
+  var mounted = false;
+  function openCheckout(method) {
+    track('lisp_retake_pay_click', { method: method || 'card' });
+    setState('checkout');
+    if (!mounted) { mounted = true; requestAnimationFrame(mountCheckout); }
+  }
+  document.querySelectorAll('[data-pay]').forEach(function (btn) {
+    btn.addEventListener('click', function () { openCheckout(btn.getAttribute('data-pay')); });
+  });
+  document.querySelectorAll('[data-back]').forEach(function (btn) {
+    btn.addEventListener('click', function () { setState('idle'); });
+  });
 })();

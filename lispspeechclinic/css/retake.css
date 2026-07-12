@@ -21,14 +21,21 @@ a:hover { color: #FFA05C; }
 /* ── Shared state machine: show the section matching #retake[data-state] ── */
 .rt-state { display: none; }
 #retake[data-state="idle"]       .rt-state-idle,
+#retake[data-state="checkout"]   .rt-state-checkout,
 #retake[data-state="processing"] .rt-state-processing,
 #retake[data-state="done"]       .rt-state-done { display: flex; }
 
-/* ── Inline Dodo checkout mount ── */
+/* ── Inline Dodo checkout mount (only shown in the checkout state) ── */
 .rt-dodo-mount { width: 100%; min-height: 88px; }
 #dodo-inline-checkout iframe { display: block; width: 100%; border: 0; margin: 0; }
 .rt-checkout-status { font-size: 12px; color: rgba(255,255,255,.5); text-align: center; margin: 10px 0 0; }
 .rt-checkout-status a { color: #FF8B42; font-weight: 600; }
+.rt-back {
+  align-self: flex-start; background: transparent; border: none; cursor: pointer;
+  color: rgba(255,255,255,.55); font-family: 'Inter', sans-serif; font-size: 13px;
+  font-weight: 600; padding: 0 0 10px;
+}
+.rt-back:hover { color: #fff; }
 
 /* ── Shared button base ── */
 .rt-btn {
@@ -87,7 +94,7 @@ a:hover { color: #FFA05C; }
   .rt-check-dot { flex: none; width: 20px; height: 20px; border-radius: 50%; background: rgba(34,197,94,.12); display: flex; align-items: center; justify-content: center; }
 
   .rt-card {
-    width: 500px; min-height: 300px; background: #121212;
+    width: 500px; min-height: 300px; max-height: calc(100dvh - 96px); background: #121212;
     border: 1px solid rgba(255,255,255,.08); border-radius: 14px;
     padding: 43px 36px 38px; display: flex; flex-direction: column;
     box-shadow: 0 22px 64px rgba(0,0,0,.5);
@@ -95,6 +102,9 @@ a:hover { color: #FFA05C; }
   .rt-card .rt-state { flex-direction: column; flex: 1; }
   .rt-card .rt-state-processing,
   .rt-card .rt-state-done { align-items: center; justify-content: center; gap: 16px; text-align: center; }
+  /* Checkout: the Dodo form is tall — keep the box inside the viewport and let
+     the form scroll within it. */
+  .rt-card .rt-state-checkout { min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
   .rt-card-price-row { display: flex; align-items: center; justify-content: space-between; }
   .rt-card-label { font-size: 16px; color: rgba(255,255,255,.7); }
@@ -121,6 +131,12 @@ a:hover { color: #FFA05C; }
   .rt-m-brand-name { font-family: 'Quicksand', sans-serif; font-size: 18px; font-weight: 700; color: #fff; }
 
   .rt-m-body { flex: 1; flex-direction: column; }
+  /* Checkout on mobile: fill the remaining height and scroll the Dodo form. */
+  .rt-m-checkout {
+    flex: 1; flex-direction: column; min-height: 0; overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  }
   .rt-m-hero { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 24px; padding: 24px 28px; }
   .rt-m-h1 { font-family: 'DM Serif Display', Georgia, serif; font-size: 40px; font-weight: 400; line-height: 1.15; margin: 0; }
   .rt-m-accent { color: #FFE066; }
