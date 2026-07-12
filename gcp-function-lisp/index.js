@@ -608,6 +608,151 @@ async function writeLispUserErrorRecord(user, errInfo) {
   }
 }
 
+// ============================================================================
+// RETAKE ENTITLEMENT — free-once enforcement + per-assessment records.
+//
+// The FIRST completed assessment for a person is free; every later one needs a
+// paid $19 retake credit. Sign-in is forced before the report, so a verified
+// authUserId is the primary identity — but a returning user can sign in with a
+// NEW account to look new. To catch that we resolve every attempt to a canonical
+// personId by OR-matching authUserId, normalized email, and normalized phone
+// (the survey collects email+phone right before the report, so this is the
+// strongest signal we have and it arrives in time for the report request).
+//
+// Records: lisp-persons/{personId} holds the running count + paidCredits;
+// lisp-persons/{personId}/assessments/{sessionId} holds one row per run (tier,
+// amount, variant, gri). lisp-identities/{type:value} indexes each identifier to
+// its person. Everything here FAILS OPEN: any Firestore error allows the run, so
+// a hiccup never blocks a legitimate first assessment.
+// ============================================================================
+
+// Gmail ignores dots and +suffix; normalize so alias emails collapse to one key.
+function normEmail(email) {
+  const e = String(email || '').trim().toLowerCase();
+  const at = e.indexOf('@');
+  if (at < 1) return '';
+  let local = e.slice(0, at), domain = e.slice(at + 1);
+  local = local.split('+')[0];
+  if (domain === 'gmail.com' || domain === 'googlemail.com') { local = local.replace(/\./g, ''); domain = 'gmail.com'; }
+  return local && domain ? local + '@' + domain : '';
+}
+
+// Soft phone key: last 10 digits, tolerant of country-prefix/formatting drift.
+// (Client sends intl-tel-input's value; E.164 would be stronger — see NOTES.)
+function normPhone(phone) {
+  const d = String(phone || '').replace(/\D/g, '');
+  return d.length >= 7 ? d.slice(-10) : '';
+}
+
+function identityKeys(user) {
+  const keys = [];
+  if (user && user.authUserId) keys.push('auth:' + String(user.authUserId));
+  const em = normEmail(user && user.email); if (em) keys.push('email:' + em);
+  const ph = normPhone(user && user.phone); if (ph) keys.push('phone:' + ph);
+  return keys;
+}
+
+// Resolve (or create) the canonical personId for this user's identifiers, and
+// point every identifier doc at it. First matching identifier wins.
+async function resolvePersonId(user) {
+  const keys = identityKeys(user);
+  if (!firestore || !keys.length) return { personId: (user && (user.authUserId || user.uid)) || null, keys, matched: false };
+  let personId = null;
+  for (const k of keys) {
+    const snap = await firestore.collection('lisp-identities').doc(k).get();
+    if (snap.exists && snap.data() && snap.data().personId) { personId = snap.data().personId; break; }
+  }
+  const matched = !!personId;
+  if (!personId) personId = 'p_' + String((user.authUserId || user.uid || '') || Date.now()) + '_' + Math.random().toString(36).slice(2, 8);
+  const batch = firestore.batch();
+  keys.forEach(k => batch.set(firestore.collection('lisp-identities').doc(k),
+    { personId, matchedKey: k, updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true }));
+  await batch.commit();
+  return { personId, keys, matched };
+}
+
+// Decide, BEFORE spending Gemini tokens, whether this delivery is free, paid
+// (a credit is available to consume), or must be paid for (retake_required).
+async function checkRetakeEntitlement(user) {
+  try {
+    if (!firestore) return { allowed: true, tier: 'free', personId: null };
+    const { personId } = await resolvePersonId(user);
+    const snap = await firestore.collection('lisp-persons').doc(String(personId)).get();
+    const p = snap.exists ? snap.data() : {};
+    const count = p.assessmentCount || 0;
+    const credits = p.paidCredits || 0;
+    if (count < 1) return { allowed: true, tier: 'free', personId };
+    if (credits > 0) return { allowed: true, tier: 'paid', personId };
+    return { allowed: false, tier: 'retake_required', personId };
+  } catch (e) {
+    console.error('entitlement check failed (fail-open):', e);
+    return { allowed: true, tier: 'free', personId: null };
+  }
+}
+
+// Record one completed assessment, idempotent per run (keyed on the client's
+// per-assessment sessionId): counts + consumes a credit only the FIRST time a
+// run is seen, so the split flow's part-1 and part-2 writes don't double count.
+// Called at PART 1 (words+clusters delivered) — the agreed "consumed" point.
+async function recordPersonAssessment(user, personId, tier, data) {
+  try {
+    if (!firestore || !personId || !user) return;
+    const key = String(user.sessionId || user.uid || Date.now());
+    const personRef = firestore.collection('lisp-persons').doc(String(personId));
+    const asmtRef = personRef.collection('assessments').doc(key);
+    await firestore.runTransaction(async (tx) => {
+      const [pSnap, aSnap] = await Promise.all([tx.get(personRef), tx.get(asmtRef)]);
+      const firstSeen = !aSnap.exists;
+      const pUpdate = {
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        ...(user.email ? { email: user.email } : {}),
+        ...(user.phone ? { phone: user.phone } : {})
+      };
+      if (firstSeen) {
+        if (!pSnap.exists) pUpdate.createdAt = admin.firestore.FieldValue.serverTimestamp();
+        pUpdate.assessmentCount = admin.firestore.FieldValue.increment(1);
+        if (tier === 'paid') pUpdate.paidCredits = admin.firestore.FieldValue.increment(-1);
+        else pUpdate.freeUsedAt = admin.firestore.FieldValue.serverTimestamp();
+      }
+      tx.set(personRef, pUpdate, { merge: true });
+      tx.set(asmtRef, {
+        tier: tier || 'free',
+        variant: (data && data.variant) || (user.variant || null),
+        amountCents: tier === 'paid' ? ((data && data.amountCents) || 1900) : 0,
+        currency: (data && data.currency) || 'USD',
+        gri: (data && data.gri != null) ? data.gri : null,
+        partial: !!(data && data.partial),
+        uid: user.uid || '', authUserId: user.authUserId || '',
+        ...(aSnap.exists ? {} : { createdAt: admin.firestore.FieldValue.serverTimestamp() }),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    });
+    console.log('🧾 recorded assessment for person ' + personId + ' tier=' + tier);
+  } catch (e) {
+    console.error('recordPersonAssessment failed:', e);
+  }
+}
+
+// Verify a Dodo payment server-side (never trust the client for the money
+// decision). Returns true only if the payment/session is actually succeeded.
+const DODO_API_BASE = process.env.DODO_API_BASE || 'https://live.dodopayments.com';
+async function verifyDodoPaid(paymentId) {
+  try {
+    const key = process.env.DODO_API_KEY;
+    if (!key || !paymentId) return false;
+    const r = await fetch(DODO_API_BASE + '/payments/' + encodeURIComponent(paymentId), {
+      headers: { 'Authorization': 'Bearer ' + key }
+    });
+    if (!r.ok) return false;
+    const d = await r.json();
+    const status = (d && (d.status || d.payment_status) || '').toLowerCase();
+    return status === 'succeeded' || status === 'paid' || status === 'completed';
+  } catch (e) {
+    console.error('verifyDodoPaid failed:', e);
+    return false;
+  }
+}
+
 // A word counts as a lisp hit when its judgment is a distortion type (matches the
 // results page Judgment column); Accurate/Unclear/Omitted are NOT hits.
 const LISP_HIT_JUDGMENTS = ['Interdental', 'Dentalized', 'Lateral', 'Distorted'];
@@ -714,6 +859,40 @@ functions.http('analyzeLispSpeech', async (req, res) => {
   console.log('🚀 Lisp analysis request received');
   corsMiddleware(req, res, async () => {
     if (req.method === 'OPTIONS') return res.status(200).end();
+
+    // GET — durable result rehydration. The full analysis is persisted server-side
+    // to lisp-users/{uid} the moment it finishes, so the browser can recover it
+    // after a refresh / iOS tab discard (which wipes the in-memory part-2 promise)
+    // instead of falsely showing "couldn't finish". Returns { status, latestAssessment? }.
+    if (req.method === 'GET') {
+      try {
+        const uid = ((req.query && req.query.uid) || '').toString().trim();
+        if (!uid) return res.status(400).json({ error: 'uid required' });
+        if (!firestore) return res.status(200).json({ status: 'unknown' });
+        const snap = await firestore.collection('lisp-users').doc(uid).get();
+        if (!snap.exists) return res.status(200).json({ status: 'missing' });
+        const d = snap.data() || {};
+        const a = d.latestAssessment || null;
+        if (a && !a.partial && Array.isArray(a.categories) && a.categories.length) {
+          return res.status(200).json({
+            status: 'ready',
+            latestAssessment: { gri: a.gri ?? null, categories: a.categories, result: a.result || '' }
+          });
+        }
+        // Report a genuine failure only when it's newer than the current partial write
+        // (a stale error from a prior attempt must not fail a fresh in-progress run).
+        if (d.lastAnalysisError && d.lastAnalysisError.mode !== 'words') {
+          const errAt = Date.parse(d.lastAnalysisError.at || '') || 0;
+          const partAt = a ? (Date.parse(a.completedAt || '') || 0) : 0;
+          if (errAt >= partAt) return res.status(200).json({ status: 'failed', error: d.lastAnalysisError });
+        }
+        return res.status(200).json({ status: a ? 'partial' : 'pending' });
+      } catch (err) {
+        console.error('❌ getLispAssessment (GET) error:', err);
+        return res.status(500).json({ error: err.message });
+      }
+    }
+
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
     try {
@@ -730,6 +909,20 @@ functions.http('analyzeLispSpeech', async (req, res) => {
       const region = req.headers['x-appengine-region'] || req.headers['x-region'] || 'Unspecified';
       const speakerContext = { country, region, voiceType: voiceType || 'unspecified' };
       console.log(`🎚️  Mode: ${mode || 'words'} | ${words.length} probes | voice: ${speakerContext.voiceType}`);
+
+      // Free-once enforcement — gate the value-delivering PART-1 modes BEFORE any
+      // Gemini spend. 'connected'/'sentences' are part-2/aux of an already-allowed
+      // run and are never gated. Identity is resolved by authUserId OR email OR
+      // phone (survey email+phone arrive with this request). Fails open.
+      let entTier = 'free', personId = null;
+      if (mode === 'combined' || mode === 'words' || mode == null) {
+        const ent = await checkRetakeEntitlement(req.body && req.body.user);
+        if (!ent.allowed) {
+          console.log('🔒 retake_required — person', ent.personId);
+          return res.status(402).json({ retake_required: true });
+        }
+        entTier = ent.tier; personId = ent.personId;
+      }
 
       // Praat coverage: shows in Cloud logs whether acoustic metrics reached Gemini,
       // how many clips carried them, and a sample line. If Praat was down the client
@@ -773,6 +966,8 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         const lispSummary = deriveLispSummary(categories, gri);
         await writeLispUserRecord(req.body && req.body.user, { gri, categories, result });
         await sendPosthogAssessmentCompleted(req.body && req.body.user, req.body && req.body.survey, lispSummary);
+        // Consume the assessment (combined delivers part 1 in one shot).
+        await recordPersonAssessment(req.body && req.body.user, personId, entTier, { gri, partial: false });
 
         return res.status(200).json({ words: wordRows, rows: sentenceParsed.rows, spontaneous, gri, mode: 'combined', usage });
       }
@@ -837,6 +1032,15 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         });
       }
 
+      // PART 1 delivered (words + clusters) → the agreed "assessment consumed"
+      // point. Idempotent per run, so the later part-2 (connected) call won't
+      // double count. If the user quits before part 2, this still counts.
+      {
+        const wq2 = wordRows.map(r => r.quality || 0);
+        const wgri2 = wq2.length ? Math.round(wq2.reduce((a, b) => a + b, 0) / wq2.length) : null;
+        await recordPersonAssessment(req.body && req.body.user, personId, entTier, { gri: wgri2, partial: true });
+      }
+
       res.status(200).json({ ...parsed, words: wordRows, mode: 'words', usage });
     } catch (err) {
       // Attach request context so failures are traceable (req.body vars are out of catch scope).
@@ -851,6 +1055,40 @@ functions.http('analyzeLispSpeech', async (req, res) => {
       // Still create/annotate the user's record so a failed attempt is tracked and
       // the record exists even though Gemini produced no analysis to store.
       await writeLispUserErrorRecord(req.body && req.body.user, { message: err.message, mode: failMode || 'combined' });
+      res.status(500).json({ error: err.message });
+    }
+  });
+});
+
+// Grant a paid retake credit to a person after a verified $19 payment. Intended
+// to be driven by the Dodo `payment.succeeded` webhook (server-to-server), which
+// is the authoritative money signal. The client may also call it on inline-
+// checkout success, but the credit is ONLY granted after verifyDodoPaid()
+// confirms the payment with Dodo — the client is never trusted for the decision.
+// Body: { user, payment_id, amount_cents?, variant? }
+functions.http('grantLispRetakeCredit', (req, res) => {
+  corsMiddleware(req, res, async () => {
+    if (req.method === 'OPTIONS') return res.status(200).end();
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+    try {
+      const { user, payment_id, amount_cents, variant } = req.body || {};
+      if (!user || !payment_id) return res.status(400).json({ error: 'user and payment_id required' });
+      const paid = await verifyDodoPaid(payment_id);
+      if (!paid) { console.warn('grantLispRetakeCredit: payment not verified', payment_id); return res.status(402).json({ verified: false }); }
+      if (!firestore) return res.status(200).json({ ok: true, note: 'firestore unavailable' });
+      const { personId } = await resolvePersonId(user);
+      await firestore.collection('lisp-persons').doc(String(personId)).set({
+        paidCredits: admin.firestore.FieldValue.increment(1),
+        lastPaidAt: admin.firestore.FieldValue.serverTimestamp(),
+        lastPaymentId: String(payment_id),
+        lastPaidAmountCents: amount_cents || 1900,
+        ...(variant ? { lastVariant: variant } : {}),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      console.log('💳 granted retake credit to person ' + personId + ' (payment ' + payment_id + ')');
+      res.status(200).json({ ok: true, personId });
+    } catch (err) {
+      console.error('❌ grantLispRetakeCredit error:', err);
       res.status(500).json({ error: err.message });
     }
   });

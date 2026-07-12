@@ -5074,7 +5074,11 @@
             if (partial) {
                 var have = {};
                 categories.forEach(function(c) { have[(c.title || '')] = true; });
-                var failed = !window.part2Promise;
+                // Show the "failed" copy ONLY on a genuine failure (a live part-2 error
+                // or the backend poller giving up). A plain reload / tab-restore leaves
+                // this false, so the deferred cards read "still analysing" while the
+                // server-persisted result is recovered — see pollForFullResult.
+                var failed = !!window.part2Failed;
                 PENDING_SECTIONS.forEach(function(sec, i) {
                     if (have[sec.title]) return;
                     html += catCardHTML({
@@ -5276,7 +5280,14 @@
             try {
                 var stored = localStorage.getItem('analysisResult');
                 if (stored) {
-                    displayAnalysisResults(JSON.parse(stored));
+                    var storedObj = JSON.parse(stored);
+                    displayAnalysisResults(storedObj);
+                    // Words-only (partial) result on screen: the deferred connected/
+                    // spontaneous sections are still being computed AND persisted
+                    // server-side. Recover the full result from the backend so a
+                    // refresh / tab-restore (which wiped window.part2Promise) still
+                    // completes them instead of stalling on "still analysing".
+                    if (storedObj && storedObj.partial) pollForFullResult();
                     // Persist a completed marker so a refresh lands back on results
                     // instead of restarting the recording flow.
                     try { localStorage.setItem('assessmentCompleted', '1'); } catch (e) {}
@@ -5339,13 +5350,63 @@
             });
         }
 
-        // Part 2 failed: the stored result stays partial, so re-render from it with
-        // part2Promise cleared — renderCategoryAccordions then fills the deferred card
+        // Part 2 failed: the stored result stays partial, so re-render from it with the
+        // failure flag set — renderCategoryAccordions then fills the deferred card
         // bodies with the fallback copy instead of "still analysing". Open/closed state
         // is preserved by refreshResultsView.
         function markDeferredSectionsFailed() {
             window.part2Promise = null;
+            window.part2Failed = true;
             refreshResultsView();
+        }
+
+        // The record is keyed on the signed-in Firebase uid, persisted synchronously at
+        // login in localStorage.userAuth.id — so it's available immediately on a cold
+        // reload without waiting for Firebase to re-hydrate auth.currentUser. Fall back
+        // to the live auth object for the warm (same-session) path.
+        function getResultUid() {
+            try {
+                var ua = JSON.parse(localStorage.getItem('userAuth') || 'null');
+                if (ua && ua.id) return String(ua.id);
+            } catch (e) {}
+            return (auth.currentUser && auth.currentUser.uid) || null;
+        }
+
+        // Durable, browser-independent completion. The backend persists the FULL result
+        // to lisp-users/{uid} the moment part 2 finishes (partial→full). So regardless of
+        // refreshes or iOS tab discards that wipe window.part2Promise, poll the backend by
+        // uid until the full record lands (adopt it), the server records a real failure
+        // (show fallback), or we time out. The live in-memory path still fills sections
+        // faster when it survives — this self-cancels once the stored result is full.
+        var _resultPollActive = false;
+        async function pollForFullResult() {
+            if (_resultPollActive) return;
+            var uid = getResultUid();
+            if (!uid) return;
+            _resultPollActive = true;
+            var deadline = Date.now() + 5 * 60 * 1000; // room for the ~1–2 min part 2
+            var tick = async function() {
+                var latest = null;
+                try { latest = JSON.parse(localStorage.getItem('analysisResult') || 'null'); } catch (e) {}
+                if (latest && !latest.partial) { _resultPollActive = false; return; } // already full
+                try {
+                    var r = await fetch(GCP_ANALYZE_URL + '?uid=' + encodeURIComponent(uid), { method: 'GET' });
+                    if (r.ok) {
+                        var data = await r.json();
+                        if (data.status === 'ready' && data.latestAssessment) {
+                            var a = data.latestAssessment;
+                            localStorage.setItem('analysisResult', JSON.stringify({ gri: a.gri, categories: a.categories, result: a.result || '' }));
+                            window.part2Promise = null; window.part2Failed = false;
+                            refreshResultsView();
+                            _resultPollActive = false; return;
+                        }
+                        if (data.status === 'failed') { _resultPollActive = false; markDeferredSectionsFailed(); return; }
+                    }
+                } catch (e) { /* transient network — keep polling */ }
+                if (Date.now() < deadline) { setTimeout(tick, 6000); }
+                else { _resultPollActive = false; markDeferredSectionsFailed(); }
+            };
+            tick();
         }
 
         function goToPricing() {
@@ -6257,6 +6318,7 @@
                     // Start part 2 only if part 1 gave us word rows to merge with. Runs
                     // detached from analysisPromise so the loader doesn't wait on it.
                     if (wordRows && wordRows.length) {
+                        window.part2Failed = false; // fresh run — clear any prior failure
                         window.part2Promise = (async () => {
                             try {
                                 const { sentenceRows, spontaneous } = await sendConnectedToBackend(wordRows);
