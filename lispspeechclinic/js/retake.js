@@ -22,7 +22,10 @@
   var daysText = days + (days === 1 ? ' day' : ' days');
   document.querySelectorAll('[data-days-slot]').forEach(function (el) { el.textContent = daysText; });
 
-  var firstName = (localStorage.getItem('lispUserFirstName') || localStorage.getItem('assessmentUserName') || '').trim().split(' ')[0];
+  // Prefer the real Google/Apple display name over the email-derived fallback.
+  var authName = '';
+  try { var _ua = JSON.parse(localStorage.getItem('userAuth') || 'null'); authName = (_ua && _ua.name) ? String(_ua.name) : ''; } catch (e) {}
+  var firstName = (localStorage.getItem('lispUserFirstName') || authName || localStorage.getItem('assessmentUserName') || '').trim().split(' ')[0];
   document.querySelectorAll('[data-name-slot]').forEach(function (el) {
     el.textContent = firstName ? ('Welcome back, ' + firstName) : 'Welcome back';
   });

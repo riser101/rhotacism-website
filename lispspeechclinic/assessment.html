@@ -6469,7 +6469,12 @@
 
             function obAfterSignIn(user, provider) {
                 window.obLoggedInUser = { email: user.email, uid: user.uid, provider };
-                try { localStorage.setItem('userAuth', JSON.stringify({ email: user.email, id: user.uid, provider })); } catch (e) {}
+                // Capture the real display name from Google/Apple so pages like the
+                // retake paywall can greet the user by their actual first name
+                // (not the email-derived fallback).
+                var displayName = (user && user.displayName) ? String(user.displayName).trim() : '';
+                try { localStorage.setItem('userAuth', JSON.stringify({ email: user.email, id: user.uid, provider, name: displayName })); } catch (e) {}
+                if (displayName) { try { localStorage.setItem('lispUserFirstName', displayName.split(' ')[0]); } catch (e) {} }
                 nextStep();
             }
 
