@@ -733,25 +733,9 @@ async function recordPersonAssessment(user, personId, tier, data) {
   }
 }
 
-// Verify a Dodo payment server-side (never trust the client for the money
-// decision). Returns true only if the payment/session is actually succeeded.
-const DODO_API_BASE = process.env.DODO_API_BASE || 'https://live.dodopayments.com';
-async function verifyDodoPaid(paymentId) {
-  try {
-    const key = process.env.DODO_API_KEY;
-    if (!key || !paymentId) return false;
-    const r = await fetch(DODO_API_BASE + '/payments/' + encodeURIComponent(paymentId), {
-      headers: { 'Authorization': 'Bearer ' + key }
-    });
-    if (!r.ok) return false;
-    const d = await r.json();
-    const status = (d && (d.status || d.payment_status) || '').toLowerCase();
-    return status === 'succeeded' || status === 'paid' || status === 'completed';
-  } catch (e) {
-    console.error('verifyDodoPaid failed:', e);
-    return false;
-  }
-}
+// Credits are granted authoritatively by the Dodo `payment.succeeded` webhook
+// (gcp-function-dodo), which resolves this same personId and increments
+// paidCredits idempotently. See resolvePersonId — the identity model is shared.
 
 // A word counts as a lisp hit when its judgment is a distortion type (matches the
 // results page Judgment column); Accurate/Unclear/Omitted are NOT hits.
@@ -1060,36 +1044,3 @@ functions.http('analyzeLispSpeech', async (req, res) => {
   });
 });
 
-// Grant a paid retake credit to a person after a verified $19 payment. Intended
-// to be driven by the Dodo `payment.succeeded` webhook (server-to-server), which
-// is the authoritative money signal. The client may also call it on inline-
-// checkout success, but the credit is ONLY granted after verifyDodoPaid()
-// confirms the payment with Dodo — the client is never trusted for the decision.
-// Body: { user, payment_id, amount_cents?, variant? }
-functions.http('grantLispRetakeCredit', (req, res) => {
-  corsMiddleware(req, res, async () => {
-    if (req.method === 'OPTIONS') return res.status(200).end();
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-    try {
-      const { user, payment_id, amount_cents, variant } = req.body || {};
-      if (!user || !payment_id) return res.status(400).json({ error: 'user and payment_id required' });
-      const paid = await verifyDodoPaid(payment_id);
-      if (!paid) { console.warn('grantLispRetakeCredit: payment not verified', payment_id); return res.status(402).json({ verified: false }); }
-      if (!firestore) return res.status(200).json({ ok: true, note: 'firestore unavailable' });
-      const { personId } = await resolvePersonId(user);
-      await firestore.collection('lisp-persons').doc(String(personId)).set({
-        paidCredits: admin.firestore.FieldValue.increment(1),
-        lastPaidAt: admin.firestore.FieldValue.serverTimestamp(),
-        lastPaymentId: String(payment_id),
-        lastPaidAmountCents: amount_cents || 1900,
-        ...(variant ? { lastVariant: variant } : {}),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
-      console.log('💳 granted retake credit to person ' + personId + ' (payment ' + payment_id + ')');
-      res.status(200).json({ ok: true, personId });
-    } catch (err) {
-      console.error('❌ grantLispRetakeCredit error:', err);
-      res.status(500).json({ error: err.message });
-    }
-  });
-});

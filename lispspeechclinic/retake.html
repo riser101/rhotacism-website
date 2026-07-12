@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Retake Your Lisp Assessment - Lisp Speech Clinic</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <meta name="description" content="Retake your lisp assessment and see how far you've come. A one-time $19 unlocks a fresh 5-minute assessment scored against your baseline.">
+    <meta name="robots" content="noindex">
+    <link rel="canonical" href="https://topspeech.health/lispspeechclinic/retake.html">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/lispspeechclinic/css/retake.css?v=20260712">
+</head>
+<body>
+
+<div id="retake" data-state="idle">
+
+  <!-- ══════════════════════ DESKTOP (≥761px) ══════════════════════ -->
+  <div class="rt-desktop" data-screen-label="Lisp Speech Clinic — Retake Paywall (web)">
+    <div class="rt-desktop-inner">
+      <div class="rt-divider"></div>
+
+      <!-- Left column: welcome + retake pitch -->
+      <div class="rt-left">
+        <div class="rt-brand">
+          <img src="/lispspeechclinic/images/lisp-icon.png" alt="" class="rt-brand-icon">
+          <span class="rt-brand-name">Lisp Speech Clinic</span>
+        </div>
+
+        <div><span class="rt-badge" data-name-slot>Welcome back</span></div>
+
+        <h1 class="rt-h1">Retake your assessment</h1>
+
+        <p class="rt-sub">Your last assessment was <strong data-days-slot>a few days</strong> ago.</p>
+
+        <div class="rt-checklist">
+          <div class="rt-check-item"><span class="rt-check-dot"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>A quiet room with minimal background noise</div>
+          <div class="rt-check-item"><span class="rt-check-dot"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>Same device and mic setup, if you can</div>
+          <div class="rt-check-item"><span class="rt-check-dot"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>Speak at a natural pace — don't over-enunciate</div>
+        </div>
+      </div>
+
+      <!-- Right column: payment card -->
+      <div class="rt-card">
+        <div class="rt-state rt-state-idle">
+          <div class="rt-card-price-row">
+            <span class="rt-card-label">Assessment retake</span>
+            <span class="rt-card-price">$19</span>
+          </div>
+          <div class="rt-dodo-mount" data-dodo-mount></div>
+          <p class="rt-checkout-status" data-dodo-status>Loading secure checkout…</p>
+          <p class="rt-secure">
+            <svg width="12" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            Secured by Dodo Payments · one-time charge
+          </p>
+        </div>
+
+        <div class="rt-state rt-state-processing">
+          <div class="rt-spinner"></div>
+          <p class="rt-proc-text">Confirming your payment…</p>
+        </div>
+
+        <div class="rt-state rt-state-done">
+          <div class="rt-done-check">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <h2 class="rt-done-title">Payment confirmed</h2>
+          <p class="rt-done-sub">Your retake is unlocked. Receipt sent to your email.</p>
+          <button class="rt-btn rt-btn-start" data-start>Start My Assessment</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ MOBILE (≤760px, option 1c) ══════════════════════ -->
+  <div class="rt-mobile tsh-gradient-bg" data-screen-label="Lisp Speech Clinic — Retake Paywall (mobile)">
+    <div class="rt-m-brand">
+      <img src="/lispspeechclinic/images/lisp-icon.png" alt="" class="rt-m-brand-icon">
+      <span class="rt-m-brand-name">Lisp Speech Clinic</span>
+    </div>
+
+    <div class="rt-state rt-state-idle rt-m-body">
+      <div class="rt-m-hero">
+        <h1 class="rt-m-h1">Your S sound has changed.<br><span class="rt-m-accent">Prove it.</span></h1>
+        <p class="rt-m-p">It's been <strong data-days-slot>a few days</strong> since your free assessment. Same 5-minute test, new score — measured against your baseline.</p>
+        <div class="rt-timeline">
+          <div class="rt-tl-row"><span class="rt-tl-dot rt-tl-dot-past"></span><span class="rt-tl-label rt-tl-label-past" data-baseline-slot>Baseline — free</span></div>
+          <div class="rt-tl-line"></div>
+          <div class="rt-tl-row"><span class="rt-tl-dot rt-tl-dot-now"></span><span class="rt-tl-label rt-tl-label-now">Today — your new score</span></div>
+        </div>
+      </div>
+
+      <div class="rt-m-paybar">
+        <div class="rt-m-paybar-row">
+          <span class="rt-m-paybar-label">Assessment retake</span>
+          <span class="rt-m-paybar-price">$19</span>
+        </div>
+        <div class="rt-dodo-mount" data-dodo-mount></div>
+        <p class="rt-checkout-status" data-dodo-status>Loading secure checkout…</p>
+      </div>
+    </div>
+
+    <div class="rt-state rt-state-processing rt-m-center">
+      <div class="rt-spinner rt-spinner-gold"></div>
+      <p class="rt-proc-text">Confirming your payment…</p>
+    </div>
+
+    <div class="rt-state rt-state-done rt-m-center">
+      <div class="rt-done-check">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <h2 class="rt-m-done-title">Unlocked.</h2>
+      <p class="rt-done-sub">Same test, <strong data-days-slot>a few days</strong> of work. Let's see the number.</p>
+      <button class="rt-btn rt-btn-start rt-m-btn-start" data-start>Start My Assessment</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="/lispspeechclinic/js/retake.js?v=20260712"></script>
+</body>
+</html>

@@ -1607,6 +1607,19 @@
             min-height: 0;
             background: #fff;
         }
+        /* Pricing step only: drop the right photo panel and let the cards fill the
+           full viewport width. Scoped via :has() so the loader/results views (which
+           share this split) keep their image. */
+        #step4 .ob-split:has(.ob-panel-left.showing-pricing) {
+            grid-template-columns: 1fr;
+        }
+        #step4 .ob-split:has(.ob-panel-left.showing-pricing) .ob-panel-right {
+            display: none;
+        }
+        #step4 .ob-panel-left.showing-pricing .pricing-header,
+        #step4 .ob-panel-left.showing-pricing .pricing-grid {
+            max-width: none;
+        }
         .asmt-pricing-view {
             flex: 1 1 auto;
             min-height: 0;
@@ -3446,7 +3459,25 @@
         let lastSpeechTime = 0;
         let wordTimedOut = false;
 
+        // Returning users must pay $19 to retake. Anyone who has completed a free
+        // assessment before is routed to the paywall unless they've paid
+        // (lispRetakePaid) or arrived through the unlocked retake flow (?retake=1).
+        function retakeGateBlocks() {
+            try {
+                var p = new URLSearchParams(location.search);
+                var unlocked = p.get('retake') === '1' || localStorage.getItem('lispRetakePaid') === '1';
+                var didBefore = localStorage.getItem('lispHasCompletedAssessment') === '1'
+                    || localStorage.getItem('assessmentCompleted') === '1';
+                if (didBefore && !unlocked) {
+                    location.href = '/lispspeechclinic/retake.html';
+                    return true;
+                }
+            } catch (e) {}
+            return false;
+        }
+
         function initWordRecording() {
+            if (retakeGateBlocks()) return;
             currentWordIndex = 0;
             wordRecordings = [];
             wordRecordingsB64 = {};
@@ -4137,10 +4168,18 @@
                         signal: ctrl.signal
                     });
                     clearTimeout(timer);
+                    // 402 = returning user must pay for this retake. Not an error to
+                    // retry — surface it so the caller can show the $19 paywall.
+                    if (resp.status === 402) {
+                        const e = new Error('retake_required');
+                        e.retakeRequired = true;
+                        throw e;
+                    }
                     if (!resp.ok) throw new Error('Backend error: ' + resp.status + ' - ' + (await resp.text()));
                     return await resp.json();
                 } catch (err) {
                     clearTimeout(timer);
+                    if (err && err.retakeRequired) throw err; // don't retry a paywall
                     lastErr = err;
                     console.warn(`Backend attempt ${attempt}/${MAX_TRIES} failed:`, err?.message || err);
                     if (attempt < MAX_TRIES) {
@@ -5291,6 +5330,15 @@
                     // Persist a completed marker so a refresh lands back on results
                     // instead of restarting the recording flow.
                     try { localStorage.setItem('assessmentCompleted', '1'); } catch (e) {}
+                    // Durable retake markers: a second attempt is gated behind the
+                    // $19 paywall (retake.html). This flag survives the mid-run
+                    // removal of assessmentCompleted; the date feeds retake.html.
+                    try {
+                        localStorage.setItem('lispHasCompletedAssessment', '1');
+                        localStorage.setItem('lispLastAssessmentDate', new Date().toISOString().slice(0, 10));
+                        // Consume the retake unlock so each $19 buys exactly one retake.
+                        localStorage.removeItem('lispRetakePaid');
+                    } catch (e) {}
                 } else {
                     displayErrorMessage();
                 }
@@ -5412,7 +5460,8 @@
         function goToPricing() {
             try { gtag('event', 'results_cta_click', { event_category: 'conversion', event_label: 'inline_results_to_pricing' }); } catch (e) {}
             // Swap the results view for the pricing view inside the same left panel
-            // (keeps the split layout / girl image instead of navigating away).
+            // (no navigation). CSS (showing-pricing) drops the right photo panel and
+            // lets the cards span the full width on this step.
             var panel = document.querySelector('#step4 .ob-panel-left');
             var results = document.getElementById('asmtResults');
             var pricing = document.getElementById('asmtPricing');
@@ -6313,6 +6362,13 @@
                             localStorage.setItem('analysisResult', JSON.stringify(partial));
                         }
                     } catch (err) {
+                        // Server says this person already used their free assessment and
+                        // has no paid credit → send them to the $19 paywall. (Honest
+                        // paying users never reach here — they arrive with a credit.)
+                        if (err && err.retakeRequired) {
+                            window.location.href = '/lispspeechclinic/retake.html';
+                            return;
+                        }
                         console.warn('Part 1 (words) analysis failed:', err);
                     }
                     // Start part 2 only if part 1 gave us word rows to merge with. Runs
@@ -6530,9 +6586,6 @@
     <script src="/lispspeechclinic/js/enhanced-analytics.js?v=20260707"></script>
     <script src="/lispspeechclinic/js/login-modal.js?v=20260707"></script>
     <script src="/lispspeechclinic/js/nav.js?v=20260707"></script>
-
-    <!-- Footer Placeholder -->
-    <!-- FOOTER_PLACEHOLDER -->
 
 
 
