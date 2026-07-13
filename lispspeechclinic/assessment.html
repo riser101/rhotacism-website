@@ -1978,9 +1978,10 @@
             #step2 .ob-split { grid-template-rows: 1fr; }
             #step2 .ob-panel-right { display: none; }
             /* Compact step2 so the whole login fits one mobile viewport */
-            /* Top-align the login card just below the nav (was centered in 100vh,
-               which left a large dead band at the top on iOS) */
-            #step2 .ob-panel-left { flex-direction: column; align-items: center; justify-content: flex-start; padding: 78px 18px 20px; }
+            /* Vertically centre the login card in the dvh viewport — dvh (set on
+               #step2) avoids the old 100vh iOS dead-band that top-alignment
+               previously worked around. */
+            #step2 .ob-panel-left { flex-direction: column; align-items: center; justify-content: center; padding: max(28px, env(safe-area-inset-top, 0px)) 18px calc(28px + env(safe-area-inset-bottom, 0px)); }
             #step2 .ob-title { font-size: 24px; margin: 0 0 6px; }
             #step2 .ob-sub { font-size: 13px; margin: 0 0 14px; }
             #step2 .ob-social-btn { height: 46px; }
