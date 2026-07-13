@@ -1,7 +1,7 @@
 /* Lisp Speech Clinic — retake paywall ($19).
    Desktop = split two-column card layout; mobile (≤760px) = black centered
-   hero + stacked Apple Pay / card buttons. Strictly responsive PWA — no fixed
-   canvas. */
+   hero + single pay button (redirects to Dodo's hosted checkout, where the
+   Apple Pay / card wallets live). Strictly responsive PWA — no fixed canvas. */
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: #000; font-family: 'Inter', system-ui, sans-serif; }
@@ -22,21 +22,8 @@ a:hover { color: #FFA05C; }
 /* ── Shared state machine: show the section matching #retake[data-state] ── */
 .rt-state { display: none; }
 #retake[data-state="idle"]       .rt-state-idle,
-#retake[data-state="checkout"]   .rt-state-checkout,
 #retake[data-state="processing"] .rt-state-processing,
 #retake[data-state="done"]       .rt-state-done { display: flex; }
-
-/* ── Inline Dodo checkout mount (only shown in the checkout state) ── */
-.rt-dodo-mount { width: 100%; min-height: 88px; }
-#dodo-inline-checkout iframe { display: block; width: 100%; border: 0; margin: 0; }
-.rt-checkout-status { font-size: 12px; color: rgba(255,255,255,.5); text-align: center; margin: 10px 0 0; }
-.rt-checkout-status a { color: #FF8B42; font-weight: 600; }
-.rt-back {
-  align-self: flex-start; background: transparent; border: none; cursor: pointer;
-  color: rgba(255,255,255,.55); font-family: 'Inter', sans-serif; font-size: 13px;
-  font-weight: 600; padding: 0 0 10px;
-}
-.rt-back:hover { color: #fff; }
 
 /* ── Shared button base ── */
 .rt-btn {
@@ -103,17 +90,12 @@ a:hover { color: #FFA05C; }
   .rt-card .rt-state { flex-direction: column; flex: 1; }
   .rt-card .rt-state-processing { align-items: center; justify-content: center; gap: 18px; text-align: center; }
   .rt-card .rt-state-done { align-items: center; justify-content: center; gap: 16px; text-align: center; }
-  /* Checkout: the Dodo form is tall — keep the box inside the viewport and let
-     the form scroll within it. */
-  .rt-card .rt-state-checkout { min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
   .rt-card-price-row { display: flex; align-items: center; justify-content: space-between; }
   .rt-card-label { font-size: 16px; color: rgba(255,255,255,.7); }
   .rt-card-price { font-family: 'Quicksand', sans-serif; font-size: 36px; font-weight: 700; color: #fff; }
 
-  .rt-btn-apple { height: 52px; margin-top: 31px; background: #fff; color: #000; border-radius: 8px; font-size: 17px; }
-  .rt-btn-apple:hover { background: #e8e8e8; }
-  .rt-btn-payone { height: 52px; margin-top: 12px; background: #E85700; color: #fff; border-radius: 8px; font-size: 17px; }
+  .rt-btn-payone { height: 52px; margin-top: 31px; background: #E85700; color: #fff; border-radius: 8px; font-size: 17px; }
   .rt-btn-payone:hover { background: #FF8B42; }
   .rt-secure { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: rgba(255,255,255,.4); text-align: center; margin: 23px 0 0; }
 
@@ -155,18 +137,9 @@ a:hover { color: #FFA05C; }
   .rt-m-price-unit { font-size: 14px; color: rgba(255,255,255,.5); }
 
   .rt-m-actions { flex: none; display: flex; flex-direction: column; gap: 12px; }
-  .rt-m-btn-apple { height: 52px; background: #fff; color: #000; border-radius: 12px; font-size: 17px; }
-  .rt-m-btn-apple:hover { background: #e8e8e8; }
   .rt-m-btn-cardone { height: 52px; background: #E85700; color: #fff; border-radius: 12px; font-size: 16px; }
   .rt-m-btn-cardone:hover { background: #FF8B42; }
   .rt-m-note { text-align: center; font-size: 11px; color: rgba(255,255,255,.4); margin: 4px 0 0; }
-
-  /* checkout: hide the brand + let the Dodo form fill + scroll */
-  #retake[data-state="checkout"] .rt-m-brand { display: none; }
-  .rt-m-checkout {
-    flex: 1; flex-direction: column; min-height: 0; overflow-y: auto;
-    -webkit-overflow-scrolling: touch; padding-top: 16px;
-  }
 
   .rt-m-proc { flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
   .rt-m-proc .rt-proc-text { font-size: 15px; }
