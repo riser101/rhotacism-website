@@ -88,3 +88,9 @@ verify → promote to prod.** (Full detail in `README-BUILD.md` → "Deployment"
   and before promoting to `main`.
 
 ## Testing & Verification
+
+- **Stuck behind the retake paywall?** The free-once gate is server-side in
+  Firestore (`rollr-academy`), keyed on identity — not localStorage. To take the
+  full free assessment again, reset your person record:
+  `cd gcp-function-lisp && node reset-entitlement.js you@gmail.com`. See
+  README-BUILD.md → "Resetting the retake (free-once) gate for testing".
