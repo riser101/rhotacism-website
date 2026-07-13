@@ -1,14 +1,17 @@
 /* Lisp Speech Clinic — $19 retake paywall.
-   Mounts Dodo Payments INLINE checkout (Apple Pay + card) directly in the bento
-   box — same-page, minimum friction. Reuses the same GCP Cloud Run /checkout
-   session endpoint the assessment program checkout uses; only the product differs.
-   States: idle (checkout) → processing → done, via #retake[data-state]. */
+   Redirects to Dodo Payments' HOSTED checkout (full page) so Apple Pay / Google
+   Pay wallets are offered (Dodo does not support wallets in the inline overlay).
+   Reuses the same GCP Cloud Run /checkout session endpoint the assessment program
+   checkout uses; only the product differs. After payment Dodo redirects back to
+   this page (return_url) with a payment_id, and we reflect success + let the user
+   start their assessment. States: idle → processing (redirecting) → done. */
 (function () {
   'use strict';
 
   var RETAKE_PRODUCT = 'pdt_0Nj0v8UWXMwVLyCVuRUk3';
   var DODO_FN_BASE   = 'https://dodowebhook-9267895976.us-central1.run.app';
   var ASSESSMENT_URL = '/lispspeechclinic/assessment.html?retake=1';
+  var RETURN_URL     = window.location.origin + '/lispspeechclinic/retake.html?paid=1';
 
   var root = document.getElementById('retake');
   if (!root) return;
@@ -22,9 +25,20 @@
   var daysText = days + (days === 1 ? ' day' : ' days');
   document.querySelectorAll('[data-days-slot]').forEach(function (el) { el.textContent = daysText; });
 
-  // Prefer the real Google/Apple display name over the email-derived fallback.
-  var authName = '';
-  try { var _ua = JSON.parse(localStorage.getItem('userAuth') || 'null'); authName = (_ua && _ua.name) ? String(_ua.name) : ''; } catch (e) {}
+  // Resolve the buyer's identity from every place it might live: the assessment
+  // flow (assessmentUser*) OR social login (userAuth / userEmail). Checkout below
+  // reuses these so the Dodo form is prefilled even when the user only signed in
+  // socially (e.g. a fresh Safari) and never ran the assessment on this device.
+  var authObj = null;
+  try { authObj = JSON.parse(localStorage.getItem('userAuth') || 'null'); } catch (e) {}
+  var authName  = (authObj && authObj.name)  ? String(authObj.name)  : '';
+  var buyerEmail = localStorage.getItem('assessmentUserEmail')
+    || (authObj && authObj.email ? String(authObj.email) : '')
+    || localStorage.getItem('userEmail') || '';
+  var buyerName = authName
+    || localStorage.getItem('assessmentUserName')
+    || localStorage.getItem('lispUserFirstName') || '';
+  var buyerPhone = localStorage.getItem('assessmentUserPhone') || '';
   var firstName = (localStorage.getItem('lispUserFirstName') || authName || localStorage.getItem('assessmentUserName') || '').trim().split(' ')[0];
   document.querySelectorAll('[data-name-slot]').forEach(function (el) {
     el.textContent = firstName ? ('Welcome back, ' + firstName) : 'Welcome back';
@@ -49,101 +63,47 @@
     btn.addEventListener('click', function () { track('lisp_retake_start_assessment', {}); window.location.href = ASSESSMENT_URL; });
   });
 
-  // ── Dodo inline checkout ──
-  function getSdk() {
-    if (window.DodoPaymentsCheckout && window.DodoPaymentsCheckout.DodoPayments) return window.DodoPaymentsCheckout.DodoPayments;
-    if (window.DodoPayments) return window.DodoPayments;
-    return null;
-  }
-  var sdkPromise = null;
-  function loadSdk() {
-    if (getSdk()) return Promise.resolve();
-    if (sdkPromise) return sdkPromise;
-    sdkPromise = new Promise(function (resolve, reject) {
-      var s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/dodopayments-checkout@latest/dist/index.js';
-      s.onload = resolve; s.onerror = reject;
-      document.head.appendChild(s);
-    });
-    return sdkPromise;
+  // ── Return from Dodo's hosted checkout ──
+  // On completion Dodo redirects to return_url with ?payment_id=… (and a status).
+  // Treat that as success unless the status explicitly says otherwise — the
+  // assessment gate re-checks the server-side credit regardless, so an over-
+  // optimistic "done" screen can't unlock a run that wasn't actually paid.
+  var params = new URLSearchParams(window.location.search);
+  var status = (params.get('status') || '').toLowerCase();
+  var returned = params.get('paid') === '1' || params.get('payment_id') || params.get('status');
+  if (returned && !/fail|cancel|error|declin/.test(status)) {
+    onSuccess();
   }
 
-  var initDone = false;
-  function ensureInit() {
-    if (initDone) return;
-    getSdk().Initialize({
-      mode: 'live',
-      displayType: 'inline',
-      onEvent: function (ev) {
-        var t = ev && (ev.event_type || ev.type);
-        try { console.log('[dodo]', t); } catch (e) {}
-        if (t === 'checkout.form_ready' || t === 'checkout.opened') hideStatus();
-        if (t === 'checkout.payment_succeeded' || t === 'checkout.completed' || t === 'checkout.redirect' || t === 'payment.succeeded') onSuccess();
-      }
-    });
-    initDone = true;
-  }
-
-  // Pick the mount container that's actually visible for the current breakpoint.
-  function visibleMount() {
-    var els = document.querySelectorAll('[data-dodo-mount]');
-    for (var i = 0; i < els.length; i++) { if (els[i].offsetParent !== null) return els[i]; }
-    return els[0] || null;
-  }
-  function hideStatus() {
-    document.querySelectorAll('[data-dodo-status]').forEach(function (el) { el.style.display = 'none'; });
-  }
-
-  async function mountCheckout() {
-    var host = visibleMount();
-    if (!host) return;
-    host.id = 'dodo-inline-checkout';
+  // ── Pay: redirect to Dodo's hosted checkout ──
+  // QA: a hidden ?test=1 on the paywall makes Pay jump the gate instead of opening
+  // Dodo, so the full retake flow can be tested without paying (test=1 is forwarded
+  // to the analysis server, which allows the gated run). Not discoverable by users.
+  var TEST_MODE = params.get('test') === '1';
+  var redirecting = false;
+  async function startCheckout(method) {
+    track('lisp_retake_pay_click', { method: method || 'card' });
+    if (TEST_MODE) { window.location.href = ASSESSMENT_URL + '&test=1'; return; }
+    if (redirecting) return;
+    redirecting = true;
+    setState('processing');
     try {
-      var email = localStorage.getItem('assessmentUserEmail') || '';
-      var phone = localStorage.getItem('assessmentUserPhone') || '';
-      var name = '';
-      try { var ua = JSON.parse(localStorage.getItem('userAuth') || 'null'); name = (ua && ua.name) || localStorage.getItem('assessmentUserName') || ''; } catch (e) {}
-
       var resp = await fetch(DODO_FN_BASE + '/checkout', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product_id: RETAKE_PRODUCT, email: email, name: name, phone: phone, discount_code: '' })
+        body: JSON.stringify({ product_id: RETAKE_PRODUCT, email: buyerEmail, name: buyerName, phone: buyerPhone, discount_code: '', return_url: RETURN_URL })
       });
       if (!resp.ok) throw new Error('session http ' + resp.status);
       var data = await resp.json();
       if (!data.checkout_url) throw new Error('no checkout_url');
-
-      await loadSdk();
-      ensureInit();
-      var sdk = getSdk();
-      if (!sdk) throw new Error('sdk missing');
-      try { sdk.Checkout.close(); } catch (e) {}
-      host.innerHTML = '';
-      sdk.Checkout.open({ checkoutUrl: data.checkout_url, elementId: 'dodo-inline-checkout' });
-      setTimeout(hideStatus, 3000);
       track('lisp_retake_checkout_open', { days_since_last: days });
+      window.location.assign(data.checkout_url);
     } catch (e) {
-      try { console.error('[dodo] mount failed', e); } catch (_) {}
+      try { console.error('[dodo] checkout redirect failed', e); } catch (_) {}
+      redirecting = false;
+      setState('idle');
     }
   }
-
-  // ── Buttons: the box stays small (price + Apple Pay + card) until a pay button
-  // is pressed; only then does the inline Dodo checkout mount. Both methods open
-  // the same Dodo checkout, which presents Apple Pay (express) + card. ──
-  // QA: a hidden ?test=1 on the paywall makes Pay jump the gate instead of opening
-  // Dodo, so the full retake flow can be tested without paying (test=1 is forwarded
-  // to the analysis server, which allows the gated run). Not discoverable by users.
-  var TEST_MODE = new URLSearchParams(window.location.search).get('test') === '1';
-  var mounted = false;
-  function openCheckout(method) {
-    track('lisp_retake_pay_click', { method: method || 'card' });
-    if (TEST_MODE) { window.location.href = ASSESSMENT_URL + '&test=1'; return; }
-    setState('checkout');
-    if (!mounted) { mounted = true; requestAnimationFrame(mountCheckout); }
-  }
   document.querySelectorAll('[data-pay]').forEach(function (btn) {
-    btn.addEventListener('click', function () { openCheckout(btn.getAttribute('data-pay')); });
-  });
-  document.querySelectorAll('[data-back]').forEach(function (btn) {
-    btn.addEventListener('click', function () { setState('idle'); });
+    btn.addEventListener('click', function () { startCheckout(btn.getAttribute('data-pay')); });
   });
 })();
