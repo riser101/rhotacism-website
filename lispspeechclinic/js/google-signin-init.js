@@ -20,7 +20,7 @@ function initializeGoogleSignIn() {
 
             // Initialize Google Sign-In
             google.accounts.id.initialize({
-                client_id: '653307587559-bg7qf4p5h70q4kcrdnircer7ht79c4ha.apps.googleusercontent.com',
+                client_id: '9267895976-8ueksa7davc1tasdmkgeu76b34du2rvn.apps.googleusercontent.com',
                 callback: handleCredentialResponse,
                 auto_select: false,
                 cancel_on_tap_outside: true
