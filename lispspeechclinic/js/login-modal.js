@@ -55,6 +55,14 @@ function handleCredentialResponse(response) {
         localStorage.setItem('userAuth', JSON.stringify(userData));
         localStorage.setItem('userEmail', responsePayload.email);
 
+        // On the assessment onboarding, hand off to complete the Firebase sign-in
+        // and advance the wizard — skip the nav-modal FormEasy + redirect-to-
+        // exercises flow. Gated on the hook, so other pages are unaffected.
+        if (typeof window.obOnGoogleCredential === 'function') {
+            window.obOnGoogleCredential(response);
+            return;
+        }
+
         // Track successful login with Google Analytics
         if (typeof gtag !== 'undefined') {
             gtag('event', 'google_login_success', {

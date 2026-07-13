@@ -19,11 +19,16 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24/build/css/intlTelInput.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/intl-tel-input@24/build/js/intlTelInputWithUtils.min.js"></script>
 
+    <!-- Google Identity Services — Google sign-in returns a credential token to
+         this page (same-origin), so it works reliably on mobile (unlike the
+         cross-domain popup/redirect that was failing there). -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <!-- Firebase SDK (modular, from CDN) -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
         import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js';
-        import { getAuth, onAuthStateChanged, signInAnonymously, GoogleAuthProvider, OAuthProvider, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
+        import { getAuth, onAuthStateChanged, signInAnonymously, GoogleAuthProvider, OAuthProvider, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, sendPasswordResetEmail, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyAMttgCdssC5eilsw08XcS5QxNURmvXhNg",
@@ -143,8 +148,21 @@
             const cred = await signInWithEmailAndPassword(auth, email, password);
             return cred.user;
         };
+        // On mobile, signInWithPopup does not reliably resolve — the browser does a
+        // full-page redirect and the popup promise never completes (user lands back
+        // on the login page and "nothing happens"). Use signInWithRedirect on mobile
+        // and complete it via getRedirectResult on load; keep popup on desktop.
+        function obIsMobile() {
+            return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+                || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+        }
         window.obFirebaseGoogleSignIn = async function() {
             const provider = new GoogleAuthProvider();
+            if (obIsMobile()) {
+                sessionStorage.setItem('obAuthPending', 'google');
+                await signInWithRedirect(auth, provider);
+                return null; // page navigates to Google; completion handled on return
+            }
             const cred = await signInWithPopup(auth, provider);
             return cred.user;
         };
@@ -152,8 +170,27 @@
             const provider = new OAuthProvider('apple.com');
             provider.addScope('email');
             provider.addScope('name');
+            if (obIsMobile()) {
+                sessionStorage.setItem('obAuthPending', 'apple');
+                await signInWithRedirect(auth, provider);
+                return null;
+            }
             const cred = await signInWithPopup(auth, provider);
             return cred.user;
+        };
+        // Called on load to finish a mobile redirect sign-in. Returns the user or null.
+        window.obFirebaseConsumeRedirect = async function() {
+            try {
+                const res = await getRedirectResult(auth);
+                return (res && res.user) ? res.user : null;
+            } catch (e) { console.warn('getRedirectResult failed:', e); return null; }
+        };
+        // Google sign-in via GIS hands an ID token to this page; exchange it for a
+        // Firebase session here — same-origin, so it works reliably on mobile.
+        window.obFirebaseSignInWithGoogleToken = async function(idToken) {
+            const credential = GoogleAuthProvider.credential(idToken);
+            const result = await signInWithCredential(auth, credential);
+            return result.user;
         };
         window.obFirebasePasswordReset = async function(email) {
             await sendPasswordResetEmail(auth, email);
@@ -1989,6 +2026,11 @@
         .ob-google-btn { margin-bottom: 10px; }
         .ob-apple-btn { margin-bottom: 4px; background: #000; color: #fff; border-color: #000; }
         .ob-apple-btn:hover:not(:disabled) { background: #1a1a1a; border-color: #1a1a1a; }
+        /* GIS overlay: the invisible Google button covers the custom one so the tap
+           runs Google's same-origin credential flow (reliable on mobile). */
+        .ob-gsi-wrap { position: relative; }
+        .ob-gsi-overlay { position: absolute; inset: 0; z-index: 2; opacity: 0.0001; overflow: hidden; }
+        .ob-gsi-overlay > div, .ob-gsi-overlay iframe { width: 100% !important; height: 100% !important; min-width: 0 !important; }
         .ob-divider {
             display: flex; align-items: center; gap: 10px;
             margin: 18px 0 16px; color: rgba(0,0,0,0.35); font-size: 12px;
@@ -2630,10 +2672,16 @@
                     <h2 class="ob-title">Assessment</h2>
                     <p class="ob-sub">Register to unlock your free Speech Assessment &amp; identify the root cause of your lisp today.</p>
 
-                    <button class="ob-social-btn ob-google-btn" id="obGoogleBtn" type="button">
-                        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"/><path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
-                        <span>Continue with Google</span>
-                    </button>
+                    <!-- Custom-styled button for looks; the real (invisible) GIS button
+                         is overlaid on top so the tap triggers Google's reliable,
+                         same-origin credential flow (works on mobile). -->
+                    <div class="ob-gsi-wrap">
+                        <button class="ob-social-btn ob-google-btn" id="obGoogleBtn" type="button" tabindex="-1" aria-hidden="true">
+                            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"/><path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+                            <span>Continue with Google</span>
+                        </button>
+                        <div id="obGsiButton" class="ob-gsi-overlay"></div>
+                    </div>
 
                     <button class="ob-social-btn ob-apple-btn" id="obAppleBtn" type="button">
                         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.05 20.28c-.98.95-2.05.86-3.08.43-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.43C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
@@ -6561,19 +6609,63 @@
                 }
             })();
 
-            if (obGoogleBtn) {
-                obGoogleBtn.addEventListener('click', async () => {
+            // Google sign-in via GIS (Google Identity Services). The shared
+            // handleCredentialResponse (login-modal.js) delegates here; we do the
+            // Firebase credential exchange + advance the wizard. GIS returns the
+            // token to this page (same-origin), so it works reliably on mobile —
+            // unlike the popup/redirect that was failing there. The GIS button is
+            // rendered invisibly over the custom button (#obGsiButton).
+            window.obOnGoogleCredential = async function (response) {
+                try {
                     obClearError();
-                    obGoogleBtn.disabled = true;
-                    try {
-                        const user = await window.obFirebaseGoogleSignIn();
-                        obAfterSignIn(user, 'google');
-                    } catch (err) {
-                        obShowError(obFriendlyError(err));
-                        obGoogleBtn.disabled = false;
+                    const user = await window.obFirebaseSignInWithGoogleToken(response.credential);
+                    if (user) obAfterSignIn(user, 'google');
+                } catch (e) {
+                    console.warn('Google sign-in failed:', e);
+                    obShowError(obFriendlyError(e));
+                }
+            };
+            (function obRenderGsi() {
+                const host = document.getElementById('obGsiButton');
+                if (!host || host.dataset.gsiReady) return;
+                let tries = 0;
+                (function wait() {
+                    if (window.google && google.accounts && google.accounts.id && typeof handleCredentialResponse === 'function') {
+                        try {
+                            google.accounts.id.initialize({
+                                client_id: '653307587559-bg7qf4p5h70q4kcrdnircer7ht79c4ha.apps.googleusercontent.com',
+                                callback: handleCredentialResponse,
+                                auto_select: false,
+                                cancel_on_tap_outside: true
+                            });
+                            const w = host.clientWidth || (host.parentElement && host.parentElement.clientWidth) || 320;
+                            google.accounts.id.renderButton(host, {
+                                type: 'standard', theme: 'outline', size: 'large',
+                                text: 'continue_with', shape: 'rectangular',
+                                logo_alignment: 'left', width: Math.min(400, Math.max(200, Math.round(w)))
+                            });
+                            host.dataset.gsiReady = '1';
+                        } catch (e) { console.warn('GIS render failed:', e); }
+                    } else if (tries++ < 120) { setTimeout(wait, 100); }
+                    else {
+                        // GIS never loaded — fall back to the popup/redirect flow so
+                        // Google sign-in still works.
+                        const btn = document.getElementById('obGoogleBtn');
+                        if (btn && !btn.dataset.fallback) {
+                            btn.dataset.fallback = '1';
+                            btn.removeAttribute('aria-hidden');
+                            btn.removeAttribute('tabindex');
+                            btn.addEventListener('click', async () => {
+                                obClearError();
+                                try {
+                                    const user = await window.obFirebaseGoogleSignIn();
+                                    if (user) obAfterSignIn(user, 'google');
+                                } catch (e) { obShowError(obFriendlyError(e)); }
+                            });
+                        }
                     }
-                });
-            }
+                })();
+            })();
 
             const obAppleBtn = document.getElementById('obAppleBtn');
             if (obAppleBtn) {
@@ -6582,13 +6674,27 @@
                     obAppleBtn.disabled = true;
                     try {
                         const user = await window.obFirebaseAppleSignIn();
-                        obAfterSignIn(user, 'apple');
+                        if (user) obAfterSignIn(user, 'apple'); // mobile redirects away → completed on load
                     } catch (err) {
                         obShowError(obFriendlyError(err));
                         obAppleBtn.disabled = false;
                     }
                 });
             }
+
+            // Complete a mobile redirect sign-in (Google/Apple use signInWithRedirect
+            // on mobile). Runs on load: if we returned from an OAuth redirect, finish
+            // sign-in and advance from the login step (which shows first, so no
+            // assessment progress is lost across the redirect).
+            (async () => {
+                var pending = sessionStorage.getItem('obAuthPending');
+                if (!pending || typeof window.obFirebaseConsumeRedirect !== 'function') return;
+                sessionStorage.removeItem('obAuthPending');
+                try {
+                    var user = await window.obFirebaseConsumeRedirect();
+                    if (user) obAfterSignIn(user, pending);
+                } catch (e) { console.warn('redirect sign-in completion failed:', e); }
+            })();
 
         });
 
@@ -6604,7 +6710,7 @@
     </script>
     <!-- Enhanced Analytics -->
     <script src="/lispspeechclinic/js/enhanced-analytics.js?v=20260707"></script>
-    <script src="/lispspeechclinic/js/login-modal.js?v=20260707"></script>
+    <script src="/lispspeechclinic/js/login-modal.js?v=20260713"></script>
     <script src="/lispspeechclinic/js/nav.js?v=20260707"></script>
 
 

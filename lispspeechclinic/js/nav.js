@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load login-modal.js script first
     const loginModalScript = document.createElement('script');
-    loginModalScript.src = basePath + '/js/login-modal.js?v=20260707';
+    loginModalScript.src = basePath + '/js/login-modal.js?v=20260713';
     loginModalScript.onload = function() {
         // Check if navigation already exists in DOM (static HTML for SEO)
         const existingNav = document.getElementById('mainNavbar');
