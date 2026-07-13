@@ -673,8 +673,18 @@ async function resolvePersonId(user) {
 
 // Decide, BEFORE spending Gemini tokens, whether this delivery is free, paid
 // (a credit is available to consume), or must be paid for (retake_required).
+// QA test bypass — these emails are NEVER gated (unlimited retakes) so the full
+// flow can be tested without paying. Env-overridable; keep it to real test
+// accounts. Remove or empty LISP_TEST_EMAILS to disable.
+const TEST_EMAILS = new Set(
+  (process.env.LISP_TEST_EMAILS || 'founder@topspeech.health,sy.yousuf9106@gmail.com')
+    .split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
+);
+
 async function checkRetakeEntitlement(user) {
   try {
+    const rawEmail = (user && user.email) ? String(user.email).trim().toLowerCase() : '';
+    if (rawEmail && TEST_EMAILS.has(rawEmail)) return { allowed: true, tier: 'test', personId: null };
     if (!firestore) return { allowed: true, tier: 'free', personId: null };
     const { personId } = await resolvePersonId(user);
     const snap = await firestore.collection('lisp-persons').doc(String(personId)).get();
@@ -696,6 +706,7 @@ async function checkRetakeEntitlement(user) {
 // Called at PART 1 (words+clusters delivered) — the agreed "consumed" point.
 async function recordPersonAssessment(user, personId, tier, data) {
   try {
+    if (tier === 'test') return; // QA bypass — don't count or consume for test accounts
     if (!firestore || !personId || !user) return;
     const key = String(user.sessionId || user.uid || Date.now());
     const personRef = firestore.collection('lisp-persons').doc(String(personId));

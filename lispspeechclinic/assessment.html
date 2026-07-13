@@ -3462,8 +3462,19 @@
         // Returning users must pay $19 to retake. Anyone who has completed a free
         // assessment before is routed to the paywall unless they've paid
         // (lispRetakePaid) or arrived through the unlocked retake flow (?retake=1).
+        // QA test bypass — must match the server allowlist (gcp-function-lisp
+        // TEST_EMAILS). Allowlisted accounts + ?testbypass=1 skip the paywall.
+        var LISP_TEST_EMAILS = ['founder@topspeech.health', 'sy.yousuf9106@gmail.com'];
+        function retakeTestBypass() {
+            try {
+                if (new URLSearchParams(location.search).get('testbypass') === '1') return true;
+                var email = (localStorage.getItem('assessmentUserEmail') || '').trim().toLowerCase();
+                return !!email && LISP_TEST_EMAILS.indexOf(email) >= 0;
+            } catch (e) { return false; }
+        }
         function retakeGateBlocks() {
             try {
+                if (retakeTestBypass()) return false; // QA: never gate test accounts
                 var p = new URLSearchParams(location.search);
                 var unlocked = p.get('retake') === '1' || localStorage.getItem('lispRetakePaid') === '1';
                 var didBefore = localStorage.getItem('lispHasCompletedAssessment') === '1'
