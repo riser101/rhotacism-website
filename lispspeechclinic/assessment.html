@@ -1676,23 +1676,23 @@
             min-height: 100%;
             justify-content: flex-start;
         }
-        .asmt-pricing-view .pricing-header { text-align: center; max-width: 1120px; width: 100%; }
+        .asmt-pricing-view .pricing-header { text-align: center; max-width: 1240px; width: 100%; }
         .asmt-pricing-view .pricing-header h1 {
             font-family: 'Inter', sans-serif;
-            font-size: clamp(19px, 1.9vw, 28px);
+            font-size: clamp(24px, 2.4vw, 34px);
             font-weight: 800; color: #1A202C; line-height: 1.05;
-            letter-spacing: -0.025em; margin: 0 0 10px; text-wrap: balance;
+            letter-spacing: -0.025em; margin: 0 0 12px; text-wrap: balance;
         }
         .asmt-pricing-view .pricing-header p {
-            font-size: 13px; line-height: 1.45; color: #4A5568; margin: 0; font-weight: 700; text-wrap: pretty;
+            font-size: 15px; line-height: 1.45; color: #4A5568; margin: 0; font-weight: 700; text-wrap: pretty;
         }
         .asmt-pricing-view .shield-icon {
             display: inline; vertical-align: middle; margin-right: 4px;
             position: relative; top: -1px; width: 17px; height: 17px; object-fit: contain;
         }
         .asmt-pricing-view .pricing-grid {
-            width: 100%; max-width: 1120px; margin-top: 18px;
-            display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: stretch;
+            width: 100%; max-width: 1240px; margin-top: 26px;
+            display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: stretch;
         }
         .asmt-pricing-view .card-wrap { position: relative; padding-top: 0; display: flex; flex-direction: column; }
         .asmt-pricing-view .card-wrap.has-badge { padding-top: 40px; }
@@ -1705,8 +1705,8 @@
         }
         .asmt-pricing-view .pricing-card {
             position: relative; background: #FDFDFD;
-            border: 1px solid #E2E8F0; border-radius: 14px;
-            padding: 15px 13px 13px; box-shadow: 0 10px 26px rgba(0,0,0,0.07);
+            border: 1px solid #E2E8F0; border-radius: 18px;
+            padding: 24px 22px 22px; box-shadow: 0 10px 26px rgba(0,0,0,0.07);
             cursor: pointer; transition: transform .25s cubic-bezier(0.4,0,0.2,1), box-shadow .25s;
             display: flex; flex-direction: column; flex: 1; min-height: 0;
         }
@@ -1717,57 +1717,57 @@
         }
         .asmt-pricing-view .pricing-card:hover { transform: translateY(-5px); }
         .asmt-pricing-view .plan-eyebrow {
-            font-size: 9.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
-            color: rgba(0,0,0,0.5); margin-bottom: 5px;
+            font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+            color: rgba(0,0,0,0.5); margin-bottom: 7px;
         }
         .asmt-pricing-view .pricing-card.highlight .plan-eyebrow { color: #0291F7; }
         .asmt-pricing-view .plan-title {
-            font-size: 15.5px; font-weight: 700; color: #1A202C; letter-spacing: -0.01em; margin-bottom: 5px;
+            font-size: 19px; font-weight: 700; color: #1A202C; letter-spacing: -0.01em; margin-bottom: 7px;
         }
         .asmt-pricing-view .plan-desc {
-            font-size: 10.5px; line-height: 1.4; color: #4A5568; font-weight: 600; margin: 0 0 11px;
+            font-size: 12.5px; line-height: 1.45; color: #4A5568; font-weight: 600; margin: 0 0 15px;
         }
-        .asmt-pricing-view .price-row { display: flex; align-items: baseline; gap: 5px; margin-bottom: 5px; }
+        .asmt-pricing-view .price-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
         .asmt-pricing-view .price-currency {
-            font-size: 14px; font-weight: 600; color: rgba(0,0,0,0.6); transform: translateY(-9px);
+            font-size: 17px; font-weight: 600; color: rgba(0,0,0,0.6); transform: translateY(-11px);
         }
         .asmt-pricing-view .price-amount {
-            font-size: 33px; font-weight: 700; color: #1A202C; line-height: 1; letter-spacing: -0.02em;
+            font-size: 42px; font-weight: 700; color: #1A202C; line-height: 1; letter-spacing: -0.02em;
         }
-        .asmt-pricing-view .price-suffix { font-size: 11px; color: rgba(0,0,0,0.5); margin-left: 4px; }
-        .asmt-pricing-view .price-split { display: flex; align-items: stretch; gap: 12px; margin-bottom: 5px; }
+        .asmt-pricing-view .price-suffix { font-size: 13px; color: rgba(0,0,0,0.5); margin-left: 4px; }
+        .asmt-pricing-view .price-split { display: flex; align-items: stretch; gap: 16px; margin-bottom: 6px; }
         .asmt-pricing-view .price-split .price-row { margin-bottom: 0; }
         .asmt-pricing-view .price-col { display: flex; flex-direction: column; justify-content: center; }
         .asmt-pricing-view .price-vline { width: 1px; background: rgba(0,0,0,0.12); align-self: stretch; }
         .asmt-pricing-view .pricing-card.highlight .price-vline { background: rgba(2,145,247,0.3); }
-        .asmt-pricing-view .duration-row { display: flex; align-items: baseline; gap: 4px; }
+        .asmt-pricing-view .duration-row { display: flex; align-items: baseline; gap: 5px; }
         .asmt-pricing-view .duration-amount {
-            font-size: 33px; font-weight: 700; color: rgba(0,0,0,0.3); line-height: 1; letter-spacing: -0.02em;
+            font-size: 42px; font-weight: 700; color: rgba(0,0,0,0.3); line-height: 1; letter-spacing: -0.02em;
         }
         .asmt-pricing-view .pricing-card.highlight .duration-amount { color: rgba(2,145,247,0.5); }
-        .asmt-pricing-view .duration-unit { font-size: 13px; font-weight: 600; color: rgba(0,0,0,0.5); }
+        .asmt-pricing-view .duration-unit { font-size: 16px; font-weight: 600; color: rgba(0,0,0,0.5); }
         .asmt-pricing-view .price-note {
-            font-size: 10px; font-weight: 500; color: rgba(0,0,0,0.5); margin-top: 5px; letter-spacing: 0.02em;
+            font-size: 12px; font-weight: 500; color: rgba(0,0,0,0.5); margin-top: 6px; letter-spacing: 0.02em;
         }
         .asmt-pricing-view .divider {
             height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.10) 50%, transparent 100%);
-            margin: 11px 0 9px;
+            margin: 15px 0 13px;
         }
         .asmt-pricing-view .features {
-            list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; flex-grow: 1;
+            list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; flex-grow: 1;
         }
         .asmt-pricing-view .features li {
-            display: flex; align-items: flex-start; gap: 6px; font-size: 10.5px; line-height: 1.3;
+            display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; line-height: 1.4;
             color: #2D3748; font-weight: 700; font-family: 'DM Sans', 'Inter', sans-serif;
         }
         .asmt-pricing-view .check {
-            flex: 0 0 13px; width: 13px; height: 13px; margin-top: 2px;
+            flex: 0 0 15px; width: 15px; height: 15px; margin-top: 2px;
             display: flex; align-items: center; justify-content: center; background: transparent;
         }
         .asmt-pricing-view .cta {
-            margin-top: 12px; width: 100%; padding: 10px 12px; border-radius: 9px;
+            margin-top: 18px; width: 100%; padding: 14px 16px; border-radius: 11px;
             border: 1px solid #CBD5E0; cursor: pointer; font-family: inherit;
-            font-size: 11.5px; font-weight: 700; letter-spacing: -0.005em; color: #1A202C;
+            font-size: 14px; font-weight: 700; letter-spacing: -0.005em; color: #1A202C;
             background: #fff; box-shadow: 0 5px 0 0 #CBD5E0;
             transition: transform .12s ease, box-shadow .12s ease, background .25s;
         }
@@ -1782,13 +1782,13 @@
             transform: translateY(7px); box-shadow: 0 0 0 0 #013a5f, 0 14px 28px rgba(2,145,247,0.3);
         }
         .asmt-pricing-view .trust-strip {
-            margin-top: 18px; width: 100%; max-width: 1120px;
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+            margin-top: 26px; width: 100%; max-width: 1240px;
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
         }
         .asmt-pricing-view .trust-pill {
-            display: flex; align-items: center; justify-content: center; gap: 7px; padding: 7px 14px;
+            display: flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 18px;
             background: #F7FAFC; border: 1px solid #E2E8F0; border-radius: 999px;
-            font-size: 12px; color: #111; font-weight: 700; white-space: nowrap;
+            font-size: 13.5px; color: #111; font-weight: 700; white-space: nowrap;
         }
         .asmt-pricing-view .footer-separator-wrap {
             margin-top: 24px; border-top: 1px solid rgba(0,0,0,0.07); width: 100%;
