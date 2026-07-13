@@ -6533,7 +6533,7 @@
             // its free assessment (cross-device truth, keyed on email/authUserId),
             // and routes straight to the $19 paywall if so — unless already unlocked
             // (paid / ?retake=1 / ?test=1). Fails open on any error.
-            async function serverRetakeGateBlocks(user) {
+            async function serverRetakeGateBlocks(user, name) {
                 try {
                     var p = new URLSearchParams(location.search);
                     var unlocked = retakeTestMode() || p.get('retake') === '1' || localStorage.getItem('lispRetakePaid') === '1';
@@ -6541,11 +6541,24 @@
                     var qs = new URLSearchParams({
                         check: 'entitlement',
                         authUserId: (user && user.uid) || '',
-                        email: (user && user.email) || ''
+                        email: (user && user.email) || '',
+                        // Send the display name so the server can capture Apple's
+                        // one-shot name; it echoes back the stored (authoritative) name.
+                        name: name || ''
                     });
                     var r = await fetch(GCP_ANALYZE_URL + '?' + qs.toString(), { method: 'GET' });
                     if (!r.ok) return false;
                     var data = await r.json();
+                    // Adopt the server's stored name (source of truth across devices —
+                    // Apple won't resend it on later logins). Don't clobber a good local
+                    // name; only fill when missing.
+                    if (data && data.name) {
+                        try {
+                            var ua = JSON.parse(localStorage.getItem('userAuth') || '{}') || {};
+                            if (!ua.name) { ua.name = String(data.name); localStorage.setItem('userAuth', JSON.stringify(ua)); }
+                            localStorage.setItem('lispUserFirstName', String(data.name).split(' ')[0]);
+                        } catch (e) {}
+                    }
                     if (data && data.allowed === false) {
                         try { localStorage.setItem('lispHasCompletedAssessment', '1'); } catch (e) {}
                         location.href = '/lispspeechclinic/retake.html';
@@ -6567,7 +6580,7 @@
                 var name = displayName || (prev && prev.name) || localStorage.getItem('lispUserFirstName') || '';
                 try { localStorage.setItem('userAuth', JSON.stringify({ email: user.email, id: user.uid, provider, name: name })); } catch (e) {}
                 if (name) { try { localStorage.setItem('lispUserFirstName', String(name).split(' ')[0]); } catch (e) {} }
-                if (await serverRetakeGateBlocks(user)) return; // returning user → paywall
+                if (await serverRetakeGateBlocks(user, name)) return; // returning user → paywall
                 nextStep();
             }
 

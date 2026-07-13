@@ -45,9 +45,13 @@ const corsOptions = {
     'http://127.0.0.1:8080',
     'http://localhost:8080',
     'http://127.0.0.1:5501',
-    'http://localhost:5501'
+    'http://localhost:5501',
+    // Vercel preview/staging deploys of this project (ephemeral subdomains:
+    // rhotacism-website-git-staging-…, per-commit hashes, etc.). Lets the
+    // staging frontend reach this backend for the post-login entitlement gate.
+    /^https:\/\/rhotacism-website-[a-z0-9-]+\.vercel\.app$/
   ],
-  methods: ['POST', 'OPTIONS'],
+  methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
   credentials: false
 };
@@ -704,14 +708,24 @@ async function lookupEntitlement(user) {
       const snap = await firestore.collection('lisp-identities').doc(k).get();
       if (snap.exists && snap.data() && snap.data().personId) { personId = snap.data().personId; break; }
     }
-    if (!personId) return { allowed: true, tier: 'free' };
-    const snap = await firestore.collection('lisp-persons').doc(String(personId)).get();
+    if (!personId) return { allowed: true, tier: 'free', name: '' };
+    const ref = firestore.collection('lisp-persons').doc(String(personId));
+    const snap = await ref.get();
     const p = snap.exists ? snap.data() : {};
+    // Persist the real display name the FIRST time we see it (Apple only returns
+    // the name on the initial authorization, so the DB is the cross-device source
+    // of truth). Never overwrite an already-stored name with a later/blank value.
+    let name = (p.name || '').toString();
+    const incoming = (user.name || '').toString().trim();
+    if (!name && incoming) {
+      name = incoming;
+      try { await ref.set({ name: incoming, updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true }); } catch (e) {}
+    }
     const count = p.assessmentCount || 0;
     const credits = p.paidCredits || 0;
-    if (count < 1) return { allowed: true, tier: 'free' };
-    if (credits > 0) return { allowed: true, tier: 'paid' };
-    return { allowed: false, tier: 'retake_required' };
+    if (count < 1) return { allowed: true, tier: 'free', name };
+    if (credits > 0) return { allowed: true, tier: 'paid', name };
+    return { allowed: false, tier: 'retake_required', name };
   } catch (e) {
     console.error('lookupEntitlement failed (fail-open):', e);
     return { allowed: true, tier: 'free' };
@@ -885,7 +899,8 @@ functions.http('analyzeLispSpeech', async (req, res) => {
           const ent = await lookupEntitlement({
             authUserId: ((req.query.authUserId) || '').toString().trim(),
             email: ((req.query.email) || '').toString().trim(),
-            phone: ((req.query.phone) || '').toString().trim()
+            phone: ((req.query.phone) || '').toString().trim(),
+            name: ((req.query.name) || '').toString().trim()
           });
           return res.status(200).json(ent);
         }
