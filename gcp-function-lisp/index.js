@@ -690,6 +690,34 @@ async function checkRetakeEntitlement(user) {
   }
 }
 
+// Read-only entitlement lookup for the POST-LOGIN gate. Resolves personId from
+// EXISTING identity docs only (never creates/links, unlike resolvePersonId), then
+// reads assessmentCount. Lets the client route a returning user straight to the
+// paywall the moment they log in — before recording — using the same free-once
+// truth the analysis-time gate enforces. Fails open (allowed:true) on any miss.
+async function lookupEntitlement(user) {
+  try {
+    if (!firestore) return { allowed: true, tier: 'free' };
+    const keys = identityKeys(user);
+    let personId = null;
+    for (const k of keys) {
+      const snap = await firestore.collection('lisp-identities').doc(k).get();
+      if (snap.exists && snap.data() && snap.data().personId) { personId = snap.data().personId; break; }
+    }
+    if (!personId) return { allowed: true, tier: 'free' };
+    const snap = await firestore.collection('lisp-persons').doc(String(personId)).get();
+    const p = snap.exists ? snap.data() : {};
+    const count = p.assessmentCount || 0;
+    const credits = p.paidCredits || 0;
+    if (count < 1) return { allowed: true, tier: 'free' };
+    if (credits > 0) return { allowed: true, tier: 'paid' };
+    return { allowed: false, tier: 'retake_required' };
+  } catch (e) {
+    console.error('lookupEntitlement failed (fail-open):', e);
+    return { allowed: true, tier: 'free' };
+  }
+}
+
 // Record one completed assessment, idempotent per run (keyed on the client's
 // per-assessment sessionId): counts + consumes a credit only the FIRST time a
 // run is seen, so the split flow's part-1 and part-2 writes don't double count.
@@ -851,6 +879,16 @@ functions.http('analyzeLispSpeech', async (req, res) => {
     // instead of falsely showing "couldn't finish". Returns { status, latestAssessment? }.
     if (req.method === 'GET') {
       try {
+        // Post-login gate: has this identity already used its free assessment?
+        // ?check=entitlement&email=&authUserId=&phone= → { allowed, tier }.
+        if (req.query && req.query.check === 'entitlement') {
+          const ent = await lookupEntitlement({
+            authUserId: ((req.query.authUserId) || '').toString().trim(),
+            email: ((req.query.email) || '').toString().trim(),
+            phone: ((req.query.phone) || '').toString().trim()
+          });
+          return res.status(200).json(ent);
+        }
         const uid = ((req.query && req.query.uid) || '').toString().trim();
         if (!uid) return res.status(400).json({ error: 'uid required' });
         if (!firestore) return res.status(200).json({ status: 'unknown' });
