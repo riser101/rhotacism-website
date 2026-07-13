@@ -2838,6 +2838,9 @@
                     <div id="voiceAnalysisContent"></div>
                     <button type="button" class="asmt-results-cta" onclick="goToPricing()">Unlock Your Therapy Plan</button>
                     <p class="asmt-results-subnote" id="asmtPlansSubnote">Plans start from $75/month. Cancel anytime.</p>
+                    <!-- Returning users view this report as often as they like; retaking
+                         the assessment (a fresh recording + score) is the paid $19 flow. -->
+                    <button type="button" class="asmt-results-retake" onclick="window.location.href='/lispspeechclinic/retake.html'" style="display:block;margin:14px auto 0;background:none;border:none;color:rgba(255,255,255,0.55);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;">Retake assessment</button>
                   </div>
                   <!-- Inline pricing (mirrors pricing.html exactly — shown in the left panel on Continue) -->
                   <div class="asmt-pricing-view" id="asmtPricing" style="display:none;">
@@ -6204,9 +6207,21 @@
                 return true;
             }
 
+            // Switch the view to the inline results (step4) and render whatever's in
+            // localStorage.analysisResult. Shared by the local fast path and the
+            // server-backed rehydrate below.
+            function activateResultsStep() {
+                document.querySelectorAll('.assessment-step.active').forEach(el => el.classList.remove('active'));
+                orderIdx = Math.max(0, STEP_ORDER.indexOf(4));
+                currentStepNum = 4;
+                document.getElementById('step4').classList.add('active');
+                updateProgress();
+                renderInlineResults();
+            }
+
             // After completing the assessment, a refresh should land back on the
             // inline results (step4), not restart recording. Test/login routes own
-            // the flow, so let them win.
+            // the flow, so let them win. Fast path: the result is still in localStorage.
             function maybeShowCompletedResults() {
                 const h = location.hash;
                 if (/^#(test|onboarding|login|\/login)/.test(h)) return false;
@@ -6214,16 +6229,52 @@
                 try { completed = localStorage.getItem('assessmentCompleted') === '1'; } catch (e) {}
                 try { stored = localStorage.getItem('analysisResult'); } catch (e) {}
                 if (!completed || !stored) return false;
-                document.querySelectorAll('.assessment-step.active').forEach(el => el.classList.remove('active'));
-                orderIdx = Math.max(0, STEP_ORDER.indexOf(4));
-                currentStepNum = 4;
-                document.getElementById('step4').classList.add('active');
-                updateProgress();
-                renderInlineResults();
+                activateResultsStep();
                 return true;
             }
 
+            // Server-backed rehydration: a signed-in user whose local report copy is
+            // gone (localStorage eviction — recordings can be multi-MB — a cleared
+            // cache, or simply a different browser) should still see their existing
+            // report on refresh, fetched by uid, rather than the login/recording flow.
+            // This only ever SHOWS a report that already exists server-side; it never
+            // routes to the paywall and never starts a new (paid) run.
+            // Fetch this uid's stored report from the server and, if one exists, show
+            // it. Returns true when a report was rendered. Shared by the on-load
+            // rehydrate and the post-login gate (both prefer showing an existing
+            // report over the login/recording flow or the paywall).
+            async function fetchAndShowReport(uid) {
+                if (!uid) return false;
+                try {
+                    var r = await fetch(GCP_ANALYZE_URL + '?uid=' + encodeURIComponent(uid), { method: 'GET' });
+                    if (!r.ok) return false;
+                    var data = await r.json();
+                    if (!(data && data.status === 'ready' && data.latestAssessment)) return false; // no report yet
+                    var a = data.latestAssessment;
+                    try { localStorage.setItem('analysisResult', JSON.stringify({ gri: a.gri, categories: a.categories, result: a.result || '' })); } catch (e) {}
+                    activateResultsStep();
+                    return true;
+                } catch (e) { return false; } // offline / transient — caller keeps its fallback
+            }
+
+            async function rehydrateStoredReport() {
+                const h = location.hash;
+                if (/^#(test|onboarding)/.test(h)) return;              // test routes own the flow
+                try { if (localStorage.getItem('assessmentCompleted') === '1') return; } catch (e) {} // local path handled it
+                // Don't hijack a user who explicitly wants a NEW (unlocked/paid) run.
+                try {
+                    var p = new URLSearchParams(location.search);
+                    if (p.get('retake') === '1' || p.get('test') === '1' || localStorage.getItem('lispRetakePaid') === '1') return;
+                } catch (e) {}
+                var uid = getResultUid();
+                if (!uid) return;                                       // not signed in → normal flow
+                // Don't yank the user out of an active recording session.
+                if (currentStepNum === 1 && wordRecordings && wordRecordings.length) return;
+                await fetchAndShowReport(uid);
+            }
+
             if (!maybeShowCompletedResults() && !maybeJumpToOnboarding() && !maybeSkipLogin() && !maybeResumeSession()) maybeJumpToLogin();
+            rehydrateStoredReport();
             window.addEventListener('hashchange', maybeJumpToLogin);
 
             // ===== Step3 Wizard (comfort + age + source + phone) =====
@@ -6665,6 +6716,11 @@
                     }
                     if (data && data.allowed === false) {
                         try { localStorage.setItem('lispHasCompletedAssessment', '1'); } catch (e) {}
+                        // Returning user: show their existing report (free, unlimited)
+                        // rather than the paywall. The report view carries the "Retake —
+                        // $19" button, so the paid flow stays reachable on intent. Only
+                        // fall back to the paywall when no report can be recovered.
+                        if (await fetchAndShowReport((user && user.uid) || getResultUid())) return true;
                         location.href = '/lispspeechclinic/retake.html';
                         return true;
                     }
