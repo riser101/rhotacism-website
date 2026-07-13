@@ -57,4 +57,34 @@ without delaying it). Do not re-add inline `posthog.capture('app_store_click')`
 onclick handlers — that double-counts. Inline `gtag(...)` calls are the GA path
 and are expected.
 
+## Deployment: staging-first (MANDATORY)
+
+`main` is Vercel's Production Branch — **any push to `main` deploys to production
+immediately.** Never push feature work to `main`. The flow is always: **staging →
+verify → promote to prod.** (Full detail in `README-BUILD.md` → "Deployment".)
+
+- **Deploy staging** by pushing to the branch named **`staging`** (fixed name).
+  Vercel auto-builds it to a stable alias that only stays valid while the branch
+  is named `staging`:
+  `https://rhotacism-website-git-staging-yousuf-syeds-projects.vercel.app`
+  (Per-commit hash URLs change every deploy and are usually stale — verify the
+  `-git-staging-` alias, never a hash URL.)
+- **Do not rename the staging branch or use ad-hoc staging branch names.** The
+  staging alias is the only Vercel origin whitelisted for Google sign-in; a
+  different name → new alias → sign-in fails with `origin_mismatch`.
+- **Promote to prod** only after the user verifies staging:
+  ```bash
+  git checkout main && git merge --ff-only staging && git push origin main
+  ```
+- **Backend is NOT on Vercel.** `gcp-function-lisp/` is a Cloud Run service; the
+  frontend hardcodes its prod URL, so staging hits the prod function. Deploy
+  backend changes explicitly and only when additive/backward-compatible (so prod
+  is unaffected until the frontend is promoted):
+  ```bash
+  cd gcp-function-lisp && gcloud run deploy analyze-lisp-speech --source . \
+    --region=us-central1 --project=detache-platform
+  ```
+- **Pushing is outward-facing:** confirm with the user before pushing `staging`
+  and before promoting to `main`.
+
 ## Testing & Verification

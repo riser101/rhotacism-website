@@ -44,17 +44,70 @@ This reverts all HTML files back to placeholders so git repo stays clean.
 
 ---
 
-## Production Deployment (Vercel)
+## Deployment (staging-first — REQUIRED)
 
-**Automatic.** No manual steps required.
+**Never push feature work straight to `main`.** `main` is Vercel's Production
+Branch — every push to it deploys to production immediately. All changes go to
+**staging first, verify, then promote to prod.**
 
-1. Push to git (HTML files have placeholders)
-2. Vercel detects push and starts deployment
-3. Vercel runs `node build.js` (configured in `vercel.json`)
-4. Nav/footer injected into all HTML files (including 404.html)
-5. Site deployed with static nav/footer in source HTML
+### Staging
 
-Search engines now see full nav/footer without needing to render JavaScript.
+- Deploy staging by pushing to the branch named **`staging`** (fixed name — do
+  not use ad-hoc branch names for staging).
+- Vercel auto-builds it to a **stable** preview alias that never changes as long
+  as the branch is named `staging`:
+
+  ```
+  https://rhotacism-website-git-staging-yousuf-syeds-projects.vercel.app
+  ```
+
+  (Per-commit hash URLs like `…-6pt6wlsgh-…` change every deploy and predate the
+  latest code — always test the `-git-staging-` alias, not a hash URL.)
+
+- This one origin is whitelisted for Google sign-in, so auth works on staging.
+  If you ever change the staging branch name the alias changes and Google
+  sign-in breaks with `origin_mismatch` — see "OAuth / Firebase" below.
+
+### Promote to production
+
+Once verified on staging, fast-forward `main` and push:
+
+```bash
+git checkout main
+git merge --ff-only staging
+git push origin main   # → production deploy
+```
+
+Vercel runs `node build.js` on deploy (both envs), so committed HTML carries
+`<!-- *_PLACEHOLDER -->` and deployed HTML has nav/footer inlined. Search
+engines see full nav/footer without rendering JavaScript.
+
+### Backend (Cloud Run) is separate
+
+The lisp analysis backend (`gcp-function-lisp/`) is a **Cloud Run service, not
+deployed by Vercel**. The frontend hardcodes its prod URL, so staging hits the
+**prod** function. Backend changes must be deployed explicitly:
+
+```bash
+cd gcp-function-lisp
+gcloud run deploy analyze-lisp-speech --source . \
+  --region=us-central1 --project=detache-platform
+```
+
+There is no separate backend staging env — deploy backend changes only when they
+are additive/backward-compatible (they don't alter existing routes/behaviour),
+so prod is unaffected until the frontend that uses them is promoted.
+
+### OAuth / Firebase whitelist (one-time, console only)
+
+The staging alias is already whitelisted. If the staging URL ever changes, add
+the new origin in both:
+
+- Google Cloud Console → project **rollr-academy** → Credentials → OAuth client
+  `9267895976-8ueksa7davc1tasdmkgeu76b34du2rvn` → **Authorized JavaScript
+  origins** (origin only, no path/trailing slash).
+- Firebase Console → **rollr-academy** → Authentication → Settings →
+  **Authorized domains** (host only).
 
 ---
 
