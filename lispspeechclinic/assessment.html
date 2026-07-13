@@ -1644,18 +1644,19 @@
             min-height: 0;
             background: #fff;
         }
-        /* Pricing step only: drop the right photo panel and let the cards fill the
-           full viewport width. Scoped via :has() so the loader/results views (which
-           share this split) keep their image. */
-        #step4 .ob-split:has(.ob-panel-left.showing-pricing) {
-            grid-template-columns: 1fr;
-        }
-        #step4 .ob-split:has(.ob-panel-left.showing-pricing) .ob-panel-right {
-            display: none;
-        }
-        #step4 .ob-panel-left.showing-pricing .pricing-header,
+        /* Pricing step: keep the split layout (hero photo stays on the right) and
+           show the pricing inline in the left panel, with the plans stacked
+           vertically one below the other. */
         #step4 .ob-panel-left.showing-pricing .pricing-grid {
-            max-width: none;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            max-width: 560px;
+        }
+        #step4 .ob-panel-left.showing-pricing .pricing-header {
+            max-width: 560px;
+        }
+        #step4 .ob-panel-left.showing-pricing .card-wrap.has-badge {
+            padding-top: 32px;
         }
         .asmt-pricing-view {
             flex: 1 1 auto;
