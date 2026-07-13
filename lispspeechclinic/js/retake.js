@@ -35,10 +35,21 @@
   var buyerEmail = localStorage.getItem('assessmentUserEmail')
     || (authObj && authObj.email ? String(authObj.email) : '')
     || localStorage.getItem('userEmail') || '';
-  var buyerName = authName
-    || localStorage.getItem('assessmentUserName')
-    || localStorage.getItem('lispUserFirstName') || '';
+  // Full name comes from the social login: userAuth.name is set from the
+  // Google/Apple displayName at sign-in (see assessment.html → obAfterSignIn),
+  // with lispUserFirstName (also derived from the real name) as fallback. We do
+  // NOT use assessmentUserName — that's synthesised from the email local-part
+  // (e.g. "Sy.yousuf9106"), never a real name.
+  var buyerName = authName || localStorage.getItem('lispUserFirstName') || '';
   var buyerPhone = localStorage.getItem('assessmentUserPhone') || '';
+
+  // Infer the billing country from Vercel's edge GeoIP (same /api/geo the
+  // assessment uses to default the phone country code), so Dodo's checkout
+  // pre-selects it. Kicked off now; resolved by the time Pay is clicked.
+  var geoCountryPromise = fetch('/api/geo')
+    .then(function (r) { return r.json(); })
+    .then(function (d) { return (d && d.country) ? String(d.country).toUpperCase() : ''; })
+    .catch(function () { return ''; });
   var firstName = (localStorage.getItem('lispUserFirstName') || authName || localStorage.getItem('assessmentUserName') || '').trim().split(' ')[0];
   document.querySelectorAll('[data-name-slot]').forEach(function (el) {
     el.textContent = firstName ? ('Welcome back, ' + firstName) : 'Welcome back';
@@ -88,9 +99,11 @@
     redirecting = true;
     setState('processing');
     try {
+      var billingCountry = '';
+      try { billingCountry = await geoCountryPromise; } catch (e) {}
       var resp = await fetch(DODO_FN_BASE + '/checkout', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product_id: RETAKE_PRODUCT, email: buyerEmail, name: buyerName, phone: buyerPhone, discount_code: '', return_url: RETURN_URL })
+        body: JSON.stringify({ product_id: RETAKE_PRODUCT, email: buyerEmail, name: buyerName, phone: buyerPhone, discount_code: '', return_url: RETURN_URL, billing_country: billingCountry })
       });
       if (!resp.ok) throw new Error('session http ' + resp.status);
       var data = await resp.json();
