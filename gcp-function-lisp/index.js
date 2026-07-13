@@ -914,7 +914,7 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         if (a && !a.partial && Array.isArray(a.categories) && a.categories.length) {
           return res.status(200).json({
             status: 'ready',
-            latestAssessment: { gri: a.gri ?? null, categories: a.categories, result: a.result || '' }
+            latestAssessment: { gri: a.gri ?? null, categories: a.categories, result: a.result || '', completedAt: a.completedAt || null }
           });
         }
         // Report a genuine failure only when it's newer than the current partial write

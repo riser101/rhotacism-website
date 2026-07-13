@@ -18,12 +18,58 @@
   function setState(s) { root.setAttribute('data-state', s); }
   function track(ev, props) { try { if (window.posthog && window.posthog.capture) window.posthog.capture(ev, props || {}); } catch (e) {} }
 
-  // ── Personalise: days since last assessment, name, baseline label ──
+  // ── Personalise: time since last assessment, name, baseline label ──
+  // Elapsed time is computed from a real timestamp (server `completedAt` is the
+  // source of truth; the localStorage full-ISO stamp is the instant-paint / offline
+  // fallback), so sub-day gaps render as minutes/hours instead of a floored "1 day".
+  var GCP_ANALYZE_URL = 'https://analyze-lisp-speech-653307587559.us-central1.run.app';
+  // Days-since-baseline still keyed off the (date-only) baseline label below.
   var lastDateStr = localStorage.getItem('lispLastAssessmentDate') || '2026-07-07';
   var lastDate = new Date(lastDateStr + 'T00:00:00');
   var days = Math.max(1, Math.floor((Date.now() - lastDate.getTime()) / 86400000));
-  var daysText = days + (days === 1 ? ' day' : ' days');
-  document.querySelectorAll('[data-days-slot]').forEach(function (el) { el.textContent = daysText; });
+
+  // Best available full timestamp for the last assessment, in ms (0 = unknown).
+  function localLastMs() {
+    var iso = localStorage.getItem('lispLastAssessmentAt');
+    var t = iso ? Date.parse(iso) : NaN;
+    if (!isNaN(t)) return t;
+    // Legacy: only the date-only stamp exists — treat as that day's midnight.
+    var d = Date.parse(lastDateStr + 'T00:00:00');
+    return isNaN(d) ? 0 : d;
+  }
+  // Noun phrase for the elapsed gap — always reads correctly with the static
+  // " ago" already in the HTML: minutes < 1h, hours < 1d, else days.
+  function agoText(ms) {
+    if (!ms || ms < 0) return 'a few days';
+    var mins = Math.floor(ms / 60000);
+    if (mins < 1) return 'moments';
+    if (mins < 60) return mins + (mins === 1 ? ' minute' : ' minutes');
+    var hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + (hrs === 1 ? ' hour' : ' hours');
+    var d = Math.floor(hrs / 24);
+    return d + (d === 1 ? ' day' : ' days');
+  }
+  function renderElapsed(lastMs) {
+    var txt = agoText(Date.now() - lastMs);
+    document.querySelectorAll('[data-days-slot]').forEach(function (el) { el.textContent = txt; });
+  }
+  renderElapsed(localLastMs());
+
+  // Correct against the server's authoritative completedAt (the localStorage stamp
+  // is missing on a fresh device / social-only login). Best-effort; UI already shows
+  // the local estimate.
+  var _uid = (authObjEarly() || {}).id;
+  if (_uid) {
+    fetch(GCP_ANALYZE_URL + '?uid=' + encodeURIComponent(_uid))
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        var iso = d && d.latestAssessment && d.latestAssessment.completedAt;
+        var t = iso ? Date.parse(iso) : NaN;
+        if (!isNaN(t)) { try { localStorage.setItem('lispLastAssessmentAt', iso); } catch (e) {} renderElapsed(t); }
+      })
+      .catch(function () {});
+  }
+  function authObjEarly() { try { return JSON.parse(localStorage.getItem('userAuth') || 'null'); } catch (e) { return null; } }
 
   // Resolve the buyer's identity from every place it might live: the assessment
   // flow (assessmentUser*) OR social login (userAuth / userEmail). Checkout below
