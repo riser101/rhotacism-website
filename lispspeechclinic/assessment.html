@@ -6522,7 +6522,34 @@
                 return map[code] || (err && err.message) || 'Sign in failed.';
             }
 
-            function obAfterSignIn(user, provider) {
+            // Returning-user gate, checked the moment login completes (all sign-in
+            // paths funnel here). Asks the server whether this identity already used
+            // its free assessment (cross-device truth, keyed on email/authUserId),
+            // and routes straight to the $19 paywall if so — unless already unlocked
+            // (paid / ?retake=1 / ?test=1). Fails open on any error.
+            async function serverRetakeGateBlocks(user) {
+                try {
+                    var p = new URLSearchParams(location.search);
+                    var unlocked = retakeTestMode() || p.get('retake') === '1' || localStorage.getItem('lispRetakePaid') === '1';
+                    if (unlocked) return false;
+                    var qs = new URLSearchParams({
+                        check: 'entitlement',
+                        authUserId: (user && user.uid) || '',
+                        email: (user && user.email) || ''
+                    });
+                    var r = await fetch(GCP_ANALYZE_URL + '?' + qs.toString(), { method: 'GET' });
+                    if (!r.ok) return false;
+                    var data = await r.json();
+                    if (data && data.allowed === false) {
+                        try { localStorage.setItem('lispHasCompletedAssessment', '1'); } catch (e) {}
+                        location.href = '/lispspeechclinic/retake.html';
+                        return true;
+                    }
+                } catch (e) {}
+                return false;
+            }
+
+            async function obAfterSignIn(user, provider) {
                 window.obLoggedInUser = { email: user.email, uid: user.uid, provider };
                 // Capture the real display name from Google/Apple so pages like the
                 // retake paywall can greet the user by their actual first name.
@@ -6534,6 +6561,7 @@
                 var name = displayName || (prev && prev.name) || localStorage.getItem('lispUserFirstName') || '';
                 try { localStorage.setItem('userAuth', JSON.stringify({ email: user.email, id: user.uid, provider, name: name })); } catch (e) {}
                 if (name) { try { localStorage.setItem('lispUserFirstName', String(name).split(' ')[0]); } catch (e) {} }
+                if (await serverRetakeGateBlocks(user)) return; // returning user → paywall
                 nextStep();
             }
 
