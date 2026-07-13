@@ -109,6 +109,38 @@ the new origin in both:
 - Firebase Console → **rollr-academy** → Authentication → Settings →
   **Authorized domains** (host only).
 
+### Resetting the retake (free-once) gate for testing
+
+The first completed assessment for a person is free; later ones require a paid
+$19 retake credit. The gate is **server-side** in Firestore (project
+**`rollr-academy`**), keyed on identity (`authUserId` / normalized email /
+phone) — clearing browser storage does **nothing**. Once your email has run the
+free assessment, you're locked to the paywall on every retake.
+
+To take the full free assessment again, delete your person record with the
+one-off script (uses the function's own `firebase-admin` + the same gmail
+dot/`+` normalization the backend uses):
+
+```bash
+cd gcp-function-lisp
+gcloud auth application-default login   # once, if not already authed
+node reset-entitlement.js you@gmail.com another@email.com +15551234567
+```
+
+It resolves each identifier to its `personId`, deletes the `lisp-persons/{id}`
+doc + its `assessments` subcollection (resetting `assessmentCount` to 0 → next
+run is `free`), and clears the identity→person mappings.
+
+- Gmail normalization collapses `you+alias@gmail.com` and `y.o.u@gmail.com` to
+  the base key, so `+alias` tricks **won't** dodge the gate — reset the base
+  identity.
+- Google sign-in also creates a separate `authUserId` key. If resetting by email
+  alone doesn't free you, also pass `auth:<UID>`.
+
+**Note for Claude/agents working in this repo:** when a user says their email is
+"stuck behind the retake paywall" or they "can't take the full assessment," this
+script is the fix — don't hunt through frontend/localStorage.
+
 ---
 
 ## Making Nav/Footer Changes

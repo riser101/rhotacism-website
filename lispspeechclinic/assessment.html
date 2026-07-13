@@ -3509,6 +3509,9 @@
         const WORD_TIMEOUT = 5000;
         let lastSpeechTime = 0;
         let wordTimedOut = false;
+        let autoChainTimer = null;   // pending hands-free start of the next probe
+        let silentRetryCount = 0;    // consecutive silent timeouts on the current word
+        const pendingB64 = [];       // in-flight blob→base64 conversions (awaited at finish)
 
         // Returning users must pay $19 to retake. Anyone who has completed a free
         // assessment before is routed to the paywall unless they've paid
@@ -3758,6 +3761,9 @@
 
         async function handleRecordTap() {
             if (allWordsRecorded) return;
+            // Any manual tap takes control back from the hands-free chain.
+            if (autoChainTimer) { clearTimeout(autoChainTimer); autoChainTimer = null; }
+            silentRetryCount = 0;
             triggerHaptic(20); // tap tick — fires inside user gesture
             userGender = 'male';
             if (isRecording) {
@@ -3833,6 +3839,7 @@
 
         // Fully release mic + audio graph (session end / leaving capture step).
         function releaseMic() {
+            destroyVad();
             if (audioStream) {
                 audioStream.getTracks().forEach(t => t.stop());
                 audioStream = null;
@@ -3856,6 +3863,7 @@
         // Start recording one word with audio analysis
         async function startWordRecording() {
             try {
+                if (autoChainTimer) { clearTimeout(autoChainTimer); autoChainTimer = null; }
                 await ensureMicStream();
                 // Fullband Opus @ 256k mono: preserves the 5-14kHz sibilant band
                 // intact (transparent for single voice). Default MediaRecorder used a
@@ -3865,6 +3873,7 @@
                     : new MediaRecorder(audioStream);
                 audioChunks = [];
                 speechDetected = false;
+                speechStartTime = 0;
                 lastSpeechTime = 0;
 
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
@@ -3883,11 +3892,25 @@
                 startWordTimer();
                 startVad(audioStream);
 
-                // Timeout: if no speech after 5 seconds, flag it
+                // Timeout: no speech after 5s. First two times, discard the silent
+                // capture and auto-restart the same word (no tap needed); third
+                // consecutive silence falls back to the manual retry state.
                 silenceTimer = setTimeout(() => {
                     if (isRecording && !speechDetected) {
-                        wordTimedOut = true;
-                        stopWordRecording(true); // discard
+                        if (silentRetryCount < 2 && !document.hidden) {
+                            silentRetryCount++;
+                            const retryIdx = currentWordIndex;
+                            stopWordRecording(true); // discard
+                            autoChainTimer = setTimeout(() => {
+                                autoChainTimer = null;
+                                if (isRecording || wordTimedOut || allWordsRecorded) return;
+                                if (currentStepNum !== 1 || currentWordIndex !== retryIdx) return;
+                                startWordRecording();
+                            }, 250);
+                        } else {
+                            wordTimedOut = true;
+                            stopWordRecording(true); // discard
+                        }
                     }
                 }, WORD_TIMEOUT);
 
@@ -3949,12 +3972,16 @@
                     if (lvl > maxLevel) maxLevel = lvl;
                 }
 
-                // Fallback amplitude-based detection only if VAD failed to initialize
-                if (!vadInstance) {
+                // Amplitude fallback: armed until the VAD confirms speech for THIS
+                // word (not merely until the VAD instance exists). A short word can
+                // be fully spoken before the VAD model is live — the fallback must
+                // still auto-stop it, else nothing ever will.
+                if (!vadSawSpeech) {
                     if (maxLevel > SPEECH_THRESHOLD) {
                         if (!speechDetected) {
                             speechDetected = true;
                             speechStartTime = Date.now();
+                            silentRetryCount = 0;
                         }
                         lastSpeechTime = Date.now();
                     }
@@ -4020,68 +4047,118 @@
             }
         }
 
-        // Silero VAD v5 — detects human speech only, ignores fans/static/clicks
+        // Silero VAD v5 — detects human speech only, ignores fans/static/clicks.
+        // The instance is built ONCE per silence-tolerance profile and reused via
+        // pause()/start() across words. Building per word (old behavior) opened an
+        // init window in which a short word could be fully spoken before the model
+        // was live — VAD then never saw a speech start, the amplitude fallback had
+        // already disarmed, and the recording never auto-stopped (the Mac
+        // "say every word twice" bug). Rebuilds happen only on probe-type
+        // transitions (words → sentences → passage), where speech is long enough
+        // to outlast the rebuild.
         const VAD_ASSET_BASE = 'https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/';
         const ORT_WASM_BASE  = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/';
         let vadInstance = null;
+        let vadRedemption = 0;      // redemptionFrames the live instance was built with
+        let vadStream = null;       // the MediaStream the live instance was built on
+        let vadInitPromise = null;  // in-flight MicVAD.new — serialized, never overlapping
+        let vadArmed = false;       // current recording wants VAD events
+        let vadSawSpeech = false;   // VAD confirmed speech for the CURRENT word
+
+        // Sentences are spoken with natural breaks between phrases. Each VAD
+        // frame ≈ 32ms; words tolerate ~384ms silence (12 frames), read sentences
+        // ~1.4s (45 frames) so mid-sentence pauses don't end recording, and the
+        // free-speech passage ~3s (95 frames) for think-pauses.
+        function currentVadRedemption() {
+            const curType = (TEST_WORD_META[currentWordIndex] || {}).type;
+            return curType === 'passage' ? 95 : curType === 'sentence' ? 45 : 12;
+        }
+
+        function buildVad(stream, redemption) {
+            return window.vad.MicVAD.new({
+                model: 'v5',
+                baseAssetPath: VAD_ASSET_BASE,
+                onnxWASMBasePath: ORT_WASM_BASE,
+                getStream: async () => stream,
+                pauseStream: async () => {},
+                resumeStream: async () => stream,
+                startOnLoad: false,
+                positiveSpeechThreshold: 0.6,
+                negativeSpeechThreshold: 0.4,
+                minSpeechFrames: 3,
+                redemptionFrames: redemption,
+                onSpeechStart: () => {
+                    console.log('[VAD] ✅ human voice detected — speech start');
+                    if (!vadArmed || !isRecording) return;
+                    vadSawSpeech = true;
+                    silentRetryCount = 0;
+                    if (!speechDetected) {
+                        speechDetected = true;
+                        speechStartTime = Date.now();
+                    }
+                    lastSpeechTime = Date.now();
+                },
+                onSpeechEnd: (audio) => {
+                    const dur = Date.now() - speechStartTime;
+                    console.log('[VAD] 🛑 human voice ended — duration ' + dur + 'ms, samples=' + (audio ? audio.length : 0));
+                    if (!vadArmed || !isRecording) return;
+                    lastSpeechTime = Date.now();
+                    // Free-speech (passage) is manual-stop only — VAD must NOT end it
+                    // on a think-pause. The user taps to commit + advance.
+                    const isPassage = (TEST_WORD_META[currentWordIndex] || {}).type === 'passage';
+                    if (!isPassage && vadSawSpeech && dur >= MIN_SPEECH_DURATION) {
+                        stopWordRecording();
+                    }
+                },
+                onVADMisfire: () => {
+                    console.log('[VAD] ⚠️ misfire — sound too short, ignored as non-speech');
+                },
+            });
+        }
+
         async function startVad(stream) {
+            // Set synchronously so the amplitude fallback is correctly armed for
+            // this word before any awaits.
+            vadSawSpeech = false;
+            vadArmed = true;
             try {
                 if (!window.vad || !window.vad.MicVAD) return;
-                // Sentences are spoken with natural breaks between phrases. Each VAD
-                // frame ≈ 32ms; words tolerate ~384ms silence (12 frames), sentences
-                // tolerate ~1.4s (45 frames) so mid-sentence pauses don't end recording.
-                const curType = (TEST_WORD_META[currentWordIndex] || {}).type;
-                const isSentenceProbe = curType === 'sentence' || curType === 'passage';
-                // Free-speech passage tolerates longer think-pauses (~3s ≈ 95
-                // frames) than read sentences (~1.4s ≈ 45 frames).
-                const redemption = curType === 'passage' ? 95 : isSentenceProbe ? 45 : 12;
-                vadInstance = await window.vad.MicVAD.new({
-                    model: 'v5',
-                    baseAssetPath: VAD_ASSET_BASE,
-                    onnxWASMBasePath: ORT_WASM_BASE,
-                    getStream: async () => stream,
-                    pauseStream: async () => {},
-                    resumeStream: async () => stream,
-                    startOnLoad: false,
-                    positiveSpeechThreshold: 0.6,
-                    negativeSpeechThreshold: 0.4,
-                    minSpeechFrames: 3,
-                    redemptionFrames: redemption,
-                    onSpeechStart: () => {
-                        console.log('[VAD] ✅ human voice detected — speech start');
-                        if (!isRecording) return;
-                        if (!speechDetected) {
-                            speechDetected = true;
-                            speechStartTime = Date.now();
-                        }
-                        lastSpeechTime = Date.now();
-                    },
-                    onSpeechEnd: (audio) => {
-                        const dur = Date.now() - speechStartTime;
-                        console.log('[VAD] 🛑 human voice ended — duration ' + dur + 'ms, samples=' + (audio ? audio.length : 0));
-                        if (!isRecording) return;
-                        lastSpeechTime = Date.now();
-                        // Free-speech (passage) is manual-stop only — VAD must NOT end it
-                        // on a think-pause. The user taps to commit + advance.
-                        const isPassage = (TEST_WORD_META[currentWordIndex] || {}).type === 'passage';
-                        if (!isPassage && dur >= MIN_SPEECH_DURATION) {
-                            stopWordRecording();
-                        }
-                    },
-                    onVADMisfire: () => {
-                        console.log('[VAD] ⚠️ misfire — sound too short, ignored as non-speech');
-                    },
-                });
+                while (vadInitPromise) await vadInitPromise;
+                const redemption = currentVadRedemption();
+                // Rebuild when the silence tolerance changes (probe-type transition)
+                // or the mic stream was re-acquired (releaseMic → re-enter capture) —
+                // an instance bound to a dead stream hears nothing.
+                if (vadInstance && (vadRedemption !== redemption || vadStream !== stream)) {
+                    try { vadInstance.pause(); vadInstance.destroy && vadInstance.destroy(); } catch (_) {}
+                    vadInstance = null;
+                }
+                if (!vadInstance) {
+                    vadRedemption = redemption;
+                    vadStream = stream;
+                    vadInitPromise = buildVad(stream, redemption);
+                    try { vadInstance = await vadInitPromise; }
+                    finally { vadInitPromise = null; }
+                }
+                // Recording may have ended while the model loaded — leave the
+                // instance paused; the amplitude fallback covered this word.
+                if (!vadArmed) return;
                 vadInstance.start();
-                console.log('[VAD] started — listening for human voice (ignores noise amplitude)');
+                console.log('[VAD] listening — human voice only (ignores noise amplitude)');
             } catch (e) {
                 console.warn('VAD init failed, falling back to amplitude detection:', e);
                 vadInstance = null;
             }
         }
         function stopVad() {
+            vadArmed = false;
             if (vadInstance) {
-                try { vadInstance.pause(); vadInstance.destroy && vadInstance.destroy(); } catch (_) {}
+                try { vadInstance.pause(); } catch (_) {}
+            }
+        }
+        function destroyVad() {
+            stopVad();
+            if (vadInstance) {
+                try { vadInstance.destroy ? vadInstance.destroy() : vadInstance.pause(); } catch (_) {}
                 vadInstance = null;
             }
         }
@@ -4107,37 +4184,47 @@
                 return;
             }
 
+            const capturedIdx = currentWordIndex;
+            const capturedWord = TEST_WORDS[capturedIdx];
+            const capturedType = (TEST_WORD_META[capturedIdx] || {}).type;
+
             wordRecordings.push(blob);
-            wordRecordingsMime[TEST_WORDS[currentWordIndex]] = mime;
+            wordRecordingsMime[capturedWord] = mime;
             triggerHaptic(40); // word capture — matches iOS heavy impact
             syncRecordingContinueButton();
+            silentRetryCount = 0;
 
             // Upload individual word recording to Firebase Storage
             if (typeof window.uploadRecordingToFirebase === 'function') {
-                window.uploadRecordingToFirebase(blob, TEST_WORDS[currentWordIndex], currentWordIndex);
+                window.uploadRecordingToFirebase(blob, capturedWord, capturedIdx);
             }
 
-            // Store base64 for playback on results page
-            const b64 = await blobToBase64(blob);
-            wordRecordingsB64[TEST_WORDS[currentWordIndex]] = b64;
-            // Any clip (re)capture invalidates ONLY the pending prewarm for that
-            // probe's group so the next send recomputes MFA+Praat against the current
-            // audio without discarding the other group's already-running align.
-            const capturedType = (TEST_WORD_META[currentWordIndex] || {}).type;
-            if (capturedType === 'sentence' || capturedType === 'passage') connectedAcousticsPromise = null;
-            else wordAcousticsPromise = null;
+            // Base64 (playback/Gemini), prewarm bookkeeping and progress persistence
+            // run in the background so the next word appears immediately. The finish
+            // branch awaits ALL of these before anything reads wordRecordingsB64.
+            pendingB64.push(blobToBase64(blob).then(b64 => {
+                wordRecordingsB64[capturedWord] = b64;
+                // Any clip (re)capture invalidates ONLY the pending prewarm for that
+                // probe's group so the next send recomputes MFA+Praat against the current
+                // audio without discarding the other group's already-running align.
+                if (capturedType === 'sentence' || capturedType === 'passage') connectedAcousticsPromise = null;
+                else wordAcousticsPromise = null;
 
-            // The moment the LAST single-word probe is captured (the next probe is a
-            // sentence/passage), start its ~170s MFA+Praat batch so it hides behind the
-            // sentence + passage recording and the survey. Part 1 then needs only the
-            // Gemini wait. (Re-capturing the last word re-fires this after the null above.)
-            const _nextMeta = TEST_WORD_META[currentWordIndex + 1] || {};
-            const _curIsWord = capturedType !== 'sentence' && capturedType !== 'passage';
-            if (_curIsWord && (_nextMeta.type === 'sentence' || _nextMeta.type === 'passage')) prewarmWordAcoustics();
+                // The moment the LAST single-word probe is captured (the next probe is a
+                // sentence/passage), start its ~170s MFA+Praat batch so it hides behind the
+                // sentence + passage recording and the survey. Part 1 then needs only the
+                // Gemini wait. (Re-capturing the last word re-fires this after the null above.)
+                const _nextMeta = TEST_WORD_META[capturedIdx + 1] || {};
+                const _curIsWord = capturedType !== 'sentence' && capturedType !== 'passage';
+                if (_curIsWord && (_nextMeta.type === 'sentence' || _nextMeta.type === 'passage')) prewarmWordAcoustics();
+
+                // Persist AFTER this clip's base64 exists so a refresh restores it.
+                saveSessionProgress();
+            }));
 
             // A freshly captured word 0 = brand-new assessment. Drop any prior
             // completed-results state so a refresh mid-run doesn't show stale results.
-            if (currentWordIndex === 0) {
+            if (capturedIdx === 0) {
                 try { localStorage.removeItem('assessmentCompleted'); localStorage.removeItem('analysisResult'); } catch (e) {}
             }
 
@@ -4147,18 +4234,34 @@
                 if (bar) bar.style.height = '6px';
             }
 
-            if (currentWordIndex < TEST_WORDS.length - 1) {
-                // Auto-advance active word; user taps to record next
-                currentWordIndex++;
+            if (capturedIdx < TEST_WORDS.length - 1) {
+                // Auto-advance active word
+                currentWordIndex = capturedIdx + 1;
                 wordTimedOut = false;
                 isWaitingForNext = false;
                 renderWordPicker();
                 updateRecordButton();
-                // Persist so a refresh resumes at this word, not the login.
-                saveSessionProgress();
+                // Hands-free chain: start the next probe automatically after a short
+                // gap so the user just reads down the list — no tap per word. A tap
+                // during the gap or while recording takes back manual control
+                // (handleRecordTap/startWordRecording clear the timer). The passage
+                // keeps its notice + manual start; skip if the tab is hidden or the
+                // user left the capture step.
+                if ((TEST_WORD_META[currentWordIndex] || {}).type !== 'passage') {
+                    clearTimeout(autoChainTimer);
+                    autoChainTimer = setTimeout(() => {
+                        autoChainTimer = null;
+                        if (isRecording || allWordsRecorded || wordTimedOut) return;
+                        if (document.hidden || currentStepNum !== 1) return;
+                        startWordRecording();
+                    }, 500);
+                }
             } else {
                 // All words recorded — release mic (capture done)
                 allWordsRecorded = true;
+                // Everything below (connected prewarm, playback persistence, and the
+                // later Gemini send) reads wordRecordingsB64 — wait for stragglers.
+                await Promise.all(pendingB64);
                 // Start the CONNECTED (sentence+passage) MFA+Praat NOW so it runs
                 // DURING the survey wizard instead of blocking part 2. The word batch
                 // was already prewarmed at the last word clip above. Neither needs
