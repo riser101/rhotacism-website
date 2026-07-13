@@ -1,6 +1,7 @@
 /* Lisp Speech Clinic — retake paywall ($19).
-   Desktop = split two-column card layout; mobile (≤760px) = option 1c gradient
-   hero + sticky glass pay bar. Strictly responsive PWA — no fixed canvas. */
+   Desktop = split two-column card layout; mobile (≤760px) = black centered
+   hero + stacked Apple Pay / card buttons. Strictly responsive PWA — no fixed
+   canvas. */
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: #000; font-family: 'Inter', system-ui, sans-serif; }
@@ -54,11 +55,11 @@ a:hover { color: #FFA05C; }
 .rt-proc-text { font-size: 16px; color: rgba(255,255,255,.7); margin: 0; }
 .rt-done-check {
   width: 64px; height: 64px; border-radius: 50%;
-  background: rgba(34,197,94,.15); border: 1px solid rgba(34,197,94,.45);
+  background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.3);
   display: flex; align-items: center; justify-content: center; animation: rt-pop .4s ease;
 }
 .rt-done-sub { font-size: 14px; line-height: 1.6; color: rgba(255,255,255,.6); margin: 0; }
-.rt-btn-start { width: 100%; height: 56px; background: #FF8B42; color: #fff; border-radius: 12px; font-size: 16px; margin-top: 8px; }
+.rt-btn-start { width: 100%; height: 52px; background: #FF8B42; color: #fff; border-radius: 8px; font-size: 16px; margin-top: 8px; }
 .rt-btn-start:hover { background: #E65100; }
 
 /* ══════════════════════════ DESKTOP ══════════════════════════ */
@@ -100,7 +101,7 @@ a:hover { color: #FFA05C; }
     box-shadow: 0 22px 64px rgba(0,0,0,.5);
   }
   .rt-card .rt-state { flex-direction: column; flex: 1; }
-  .rt-card .rt-state-processing,
+  .rt-card .rt-state-processing { align-items: center; justify-content: center; gap: 18px; text-align: center; }
   .rt-card .rt-state-done { align-items: center; justify-content: center; gap: 16px; text-align: center; }
   /* Checkout: the Dodo form is tall — keep the box inside the viewport and let
      the form scroll within it. */
@@ -110,71 +111,70 @@ a:hover { color: #FFA05C; }
   .rt-card-label { font-size: 16px; color: rgba(255,255,255,.7); }
   .rt-card-price { font-family: 'Quicksand', sans-serif; font-size: 36px; font-weight: 700; color: #fff; }
 
-  .rt-btn-apple { height: 57px; margin-top: 31px; background: #fff; color: #000; border-radius: 8px; font-size: 17px; }
+  .rt-btn-apple { height: 52px; margin-top: 31px; background: #fff; color: #000; border-radius: 8px; font-size: 17px; }
   .rt-btn-apple:hover { background: #e8e8e8; }
-  .rt-btn-card { height: 51px; margin-top: 15px; background: #E85700; color: #fff; border-radius: 8px; font-size: 17px; }
-  .rt-btn-card:hover { background: #FF8B42; }
-  .rt-btn-payone { height: 58px; margin-top: 30px; background: #E85700; color: #fff; border-radius: 10px; font-size: 17px; }
+  .rt-btn-payone { height: 52px; margin-top: 12px; background: #E85700; color: #fff; border-radius: 8px; font-size: 17px; }
   .rt-btn-payone:hover { background: #FF8B42; }
   .rt-secure { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: rgba(255,255,255,.4); text-align: center; margin: 23px 0 0; }
 
   .rt-done-title { font-family: 'Quicksand', sans-serif; font-size: 22px; font-weight: 700; margin: 0; color: #fff; }
 }
 
-/* ══════════════════════════ MOBILE (option 1c) ══════════════════════════ */
+/* ══════════════════════════ MOBILE (minimal sheet) ══════════════════════════ */
 @media (max-width: 760px) {
   .rt-mobile {
-    min-height: 100dvh; color: #fff; display: flex; flex-direction: column; position: relative;
-    padding-top: env(safe-area-inset-top, 0px);
+    min-height: 100dvh; width: 100%; background: #000; color: #fff; box-sizing: border-box;
+    display: flex; flex-direction: column; font-family: 'Inter', system-ui, sans-serif;
+    padding: 0 24px calc(28px + env(safe-area-inset-bottom, 0px));
   }
 
-  .rt-m-brand { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 28px 0 0; }
-  .rt-m-brand-icon { height: 36px; width: 36px; border-radius: 50%; }
-  .rt-m-brand-name { font-family: 'Quicksand', sans-serif; font-size: 18px; font-weight: 700; color: #fff; }
-
-  .rt-m-body { flex: 1; flex-direction: column; }
-  /* Checkout on mobile: fill the remaining height and scroll the Dodo form. */
-  .rt-m-checkout {
-    flex: 1; flex-direction: column; min-height: 0; overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 16px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  .rt-m-brand {
+    flex: none; display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: max(28px, env(safe-area-inset-top, 28px)) 0 8px;
   }
-  .rt-m-hero { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 24px; padding: 24px 28px; }
-  .rt-m-h1 { font-family: 'DM Serif Display', Georgia, serif; font-size: 40px; font-weight: 400; line-height: 1.15; margin: 0; }
-  .rt-m-accent { color: #FFE066; }
-  .rt-m-p { font-size: 15px; line-height: 1.7; color: rgba(255,255,255,.75); margin: 0; }
+  .rt-m-brand-icon { width: 36px; height: 36px; border-radius: 50%; flex: none; }
+  .rt-m-brand-name { font-family: 'Quicksand', sans-serif; font-size: 18px; font-weight: 700; color: #fff; white-space: nowrap; }
+
+  /* idle: centered hero + bottom action stack */
+  .rt-m-idle { flex: 1; flex-direction: column; min-height: 0; }
+  .rt-m-hero {
+    flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 20px; text-align: center;
+  }
+  .rt-m-badge-row { display: flex; justify-content: center; }
+  .rt-m-badge {
+    display: inline-block; padding: 6px 12px; background: rgba(255,152,0,.1); color: #FF9800;
+    border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; white-space: nowrap;
+  }
+  .rt-m-h1 { font-family: 'Quicksand', sans-serif; font-size: 32px; font-weight: 700; line-height: 1.2; margin: 0; color: #fff; }
+  .rt-m-p { font-size: 15px; line-height: 1.6; color: rgba(255,255,255,.7); margin: 0 12px; }
   .rt-m-p strong { color: #fff; }
 
-  .rt-timeline { display: flex; flex-direction: column; }
-  .rt-tl-row { display: flex; align-items: center; gap: 14px; }
-  .rt-tl-dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
-  .rt-tl-dot-past { background: rgba(255,255,255,.4); }
-  .rt-tl-dot-now  { background: #FFE066; box-shadow: 0 0 12px rgba(255,224,102,.6); }
-  .rt-tl-line { width: 2px; height: 28px; background: linear-gradient(to bottom, rgba(255,255,255,.3), #FFE066); margin-left: 5px; }
-  .rt-tl-label { font-size: 13px; }
-  .rt-tl-label-past { color: rgba(255,255,255,.6); }
-  .rt-tl-label-now  { color: #FFE066; font-weight: 600; }
+  .rt-m-price { display: flex; align-items: baseline; justify-content: center; gap: 8px; margin-top: 8px; }
+  .rt-m-price-amt { font-family: 'Quicksand', sans-serif; font-size: 56px; font-weight: 700; color: #fff; }
+  .rt-m-price-unit { font-size: 14px; color: rgba(255,255,255,.5); }
 
-  .rt-m-paybar {
-    flex: none;
-    margin: 0 12px calc(12px + env(safe-area-inset-bottom, 0px));
-    background: rgba(255,255,255,.1);
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,.2); border-radius: 16px;
-    padding: 14px; display: flex; flex-direction: column; gap: 10px;
+  .rt-m-actions { flex: none; display: flex; flex-direction: column; gap: 12px; }
+  .rt-m-btn-apple { height: 52px; background: #fff; color: #000; border-radius: 12px; font-size: 17px; }
+  .rt-m-btn-apple:hover { background: #e8e8e8; }
+  .rt-m-btn-cardone { height: 52px; background: #E85700; color: #fff; border-radius: 12px; font-size: 16px; }
+  .rt-m-btn-cardone:hover { background: #FF8B42; }
+  .rt-m-note { text-align: center; font-size: 11px; color: rgba(255,255,255,.4); margin: 4px 0 0; }
+
+  /* checkout: hide the brand + let the Dodo form fill + scroll */
+  #retake[data-state="checkout"] .rt-m-brand { display: none; }
+  .rt-m-checkout {
+    flex: 1; flex-direction: column; min-height: 0; overflow-y: auto;
+    -webkit-overflow-scrolling: touch; padding-top: 16px;
   }
-  .rt-m-paybar-row { display: flex; align-items: center; justify-content: space-between; padding: 0 6px; }
-  .rt-m-paybar-label { font-size: 13px; color: rgba(255,255,255,.75); }
-  .rt-m-paybar-price { font-family: 'Quicksand', sans-serif; font-size: 22px; font-weight: 700; }
-  .rt-m-btn-pay { height: 50px; background: #000; color: #fff; border-radius: 12px; font-size: 16px; }
-  .rt-m-btn-pay:hover { background: #1a1a1a; }
-  .rt-m-btn-card { height: 44px; background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.3); border-radius: 12px; font-size: 14px; }
-  .rt-m-btn-card:hover { background: rgba(255,255,255,.08); }
-  .rt-m-btn-payone { height: 58px; background: #E85700; color: #fff; border-radius: 16px; font-size: 18px; }
-  .rt-m-btn-payone:hover { background: #FF8B42; }
-  .rt-m-paybar-note { font-size: 12px; color: rgba(255,255,255,.5); text-align: center; margin: 10px 0 0; }
 
-  .rt-m-center { flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 20px; text-align: center; padding: 0 28px; }
-  .rt-m-done-title { font-family: 'DM Serif Display', Georgia, serif; font-size: 32px; font-weight: 400; margin: 0; }
-  .rt-m-btn-start { max-width: 320px; }
+  .rt-m-proc { flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+  .rt-m-proc .rt-proc-text { font-size: 15px; }
+
+  .rt-m-done { flex: 1; flex-direction: column; }
+  .rt-m-done-top { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; text-align: center; }
+  .rt-m-done .rt-done-check { width: 72px; height: 72px; background: rgba(34,197,94,.1); }
+  .rt-m-done .rt-done-sub { color: rgba(255,255,255,.7); margin: 0 20px; }
+  .rt-m-done-title { font-family: 'Quicksand', sans-serif; font-size: 26px; font-weight: 700; margin: 0; color: #fff; }
+  .rt-m-btn-start { border-radius: 12px; }
 }
