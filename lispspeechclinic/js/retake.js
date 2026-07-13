@@ -25,9 +25,20 @@
   var daysText = days + (days === 1 ? ' day' : ' days');
   document.querySelectorAll('[data-days-slot]').forEach(function (el) { el.textContent = daysText; });
 
-  // Prefer the real Google/Apple display name over the email-derived fallback.
-  var authName = '';
-  try { var _ua = JSON.parse(localStorage.getItem('userAuth') || 'null'); authName = (_ua && _ua.name) ? String(_ua.name) : ''; } catch (e) {}
+  // Resolve the buyer's identity from every place it might live: the assessment
+  // flow (assessmentUser*) OR social login (userAuth / userEmail). Checkout below
+  // reuses these so the Dodo form is prefilled even when the user only signed in
+  // socially (e.g. a fresh Safari) and never ran the assessment on this device.
+  var authObj = null;
+  try { authObj = JSON.parse(localStorage.getItem('userAuth') || 'null'); } catch (e) {}
+  var authName  = (authObj && authObj.name)  ? String(authObj.name)  : '';
+  var buyerEmail = localStorage.getItem('assessmentUserEmail')
+    || (authObj && authObj.email ? String(authObj.email) : '')
+    || localStorage.getItem('userEmail') || '';
+  var buyerName = authName
+    || localStorage.getItem('assessmentUserName')
+    || localStorage.getItem('lispUserFirstName') || '';
+  var buyerPhone = localStorage.getItem('assessmentUserPhone') || '';
   var firstName = (localStorage.getItem('lispUserFirstName') || authName || localStorage.getItem('assessmentUserName') || '').trim().split(' ')[0];
   document.querySelectorAll('[data-name-slot]').forEach(function (el) {
     el.textContent = firstName ? ('Welcome back, ' + firstName) : 'Welcome back';
@@ -77,14 +88,9 @@
     redirecting = true;
     setState('processing');
     try {
-      var email = localStorage.getItem('assessmentUserEmail') || '';
-      var phone = localStorage.getItem('assessmentUserPhone') || '';
-      var name = '';
-      try { var ua = JSON.parse(localStorage.getItem('userAuth') || 'null'); name = (ua && ua.name) || localStorage.getItem('assessmentUserName') || ''; } catch (e) {}
-
       var resp = await fetch(DODO_FN_BASE + '/checkout', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product_id: RETAKE_PRODUCT, email: email, name: name, phone: phone, discount_code: '', return_url: RETURN_URL })
+        body: JSON.stringify({ product_id: RETAKE_PRODUCT, email: buyerEmail, name: buyerName, phone: buyerPhone, discount_code: '', return_url: RETURN_URL })
       });
       if (!resp.ok) throw new Error('session http ' + resp.status);
       var data = await resp.json();
