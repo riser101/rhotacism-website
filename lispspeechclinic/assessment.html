@@ -5157,7 +5157,7 @@
                     while (cells.length < headers.length) cells.push('');
                     return cells.slice(0, headers.length);
                 });
-                let tableHTML = '<div class="analysis-table-wrapper" style="overflow-x: auto; margin: 24px 0; -webkit-overflow-scrolling: touch; max-width: 100%;"><table style="min-width: 600px; border-collapse: collapse; font-size: 14px; background: white; border: 1px solid #E2E8F0;">';
+                let tableHTML = '<div class="analysis-table-wrapper" style="margin: 24px 0; max-width: 100%;"><table style="width: 100%; table-layout: auto; border-collapse: collapse; font-size: 14px; background: white; border: 1px solid #E2E8F0;">';
                 tableHTML += '<thead><tr style="background: linear-gradient(135deg, #E8842A 0%, #D96B20 100%); color: white;">';
                 headers.forEach((header, j) => {
                     const stickyStyle = j === 0 ? 'position: sticky; left: 0; z-index: 2; background: #E07830;' : '';
