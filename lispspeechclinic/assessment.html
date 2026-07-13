@@ -6470,11 +6470,15 @@
             function obAfterSignIn(user, provider) {
                 window.obLoggedInUser = { email: user.email, uid: user.uid, provider };
                 // Capture the real display name from Google/Apple so pages like the
-                // retake paywall can greet the user by their actual first name
-                // (not the email-derived fallback).
+                // retake paywall can greet the user by their actual first name.
+                // Apple only returns the name on the FIRST authorization, so save it
+                // then and NEVER overwrite a saved name with a blank on later sign-ins.
                 var displayName = (user && user.displayName) ? String(user.displayName).trim() : '';
-                try { localStorage.setItem('userAuth', JSON.stringify({ email: user.email, id: user.uid, provider, name: displayName })); } catch (e) {}
-                if (displayName) { try { localStorage.setItem('lispUserFirstName', displayName.split(' ')[0]); } catch (e) {} }
+                var prev = {};
+                try { prev = JSON.parse(localStorage.getItem('userAuth') || '{}') || {}; } catch (e) {}
+                var name = displayName || (prev && prev.name) || localStorage.getItem('lispUserFirstName') || '';
+                try { localStorage.setItem('userAuth', JSON.stringify({ email: user.email, id: user.uid, provider, name: name })); } catch (e) {}
+                if (name) { try { localStorage.setItem('lispUserFirstName', String(name).split(' ')[0]); } catch (e) {} }
                 nextStep();
             }
 
