@@ -673,18 +673,8 @@ async function resolvePersonId(user) {
 
 // Decide, BEFORE spending Gemini tokens, whether this delivery is free, paid
 // (a credit is available to consume), or must be paid for (retake_required).
-// QA test bypass — these emails are NEVER gated (unlimited retakes) so the full
-// flow can be tested without paying. Env-overridable; keep it to real test
-// accounts. Remove or empty LISP_TEST_EMAILS to disable.
-const TEST_EMAILS = new Set(
-  (process.env.LISP_TEST_EMAILS || 'founder@topspeech.health,sy.yousuf9106@gmail.com')
-    .split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
-);
-
 async function checkRetakeEntitlement(user) {
   try {
-    const rawEmail = (user && user.email) ? String(user.email).trim().toLowerCase() : '';
-    if (rawEmail && TEST_EMAILS.has(rawEmail)) return { allowed: true, tier: 'test', personId: null };
     if (!firestore) return { allowed: true, tier: 'free', personId: null };
     const { personId } = await resolvePersonId(user);
     const snap = await firestore.collection('lisp-persons').doc(String(personId)).get();
@@ -910,7 +900,11 @@ functions.http('analyzeLispSpeech', async (req, res) => {
       // run and are never gated. Identity is resolved by authUserId OR email OR
       // phone (survey email+phone arrive with this request). Fails open.
       let entTier = 'free', personId = null;
-      if (mode === 'combined' || mode === 'words' || mode == null) {
+      if (req.body && req.body.test === true) {
+        // QA bypass — one simple signal (from the paywall "skip" control) to jump
+        // the gate and test the full flow. Not counted/consumed.
+        entTier = 'test';
+      } else if (mode === 'combined' || mode === 'words' || mode == null) {
         const ent = await checkRetakeEntitlement(req.body && req.body.user);
         if (!ent.allowed) {
           console.log('🔒 retake_required — person', ent.personId);

@@ -36,6 +36,13 @@ a:hover { color: #FFA05C; }
   font-weight: 600; padding: 0 0 10px;
 }
 .rt-back:hover { color: #fff; }
+/* QA skip control (remove/hide before launch — see SHOW_SKIP in retake.js) */
+.rt-skip {
+  display: block; margin: 14px auto 0; background: transparent; border: none; cursor: pointer;
+  color: rgba(255,255,255,.35); font-family: 'Inter', sans-serif; font-size: 12px;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.rt-skip:hover { color: rgba(255,255,255,.6); }
 
 /* ── Shared button base ── */
 .rt-btn {

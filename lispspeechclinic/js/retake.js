@@ -129,15 +129,9 @@
   // ── Buttons: the box stays small (price + Apple Pay + card) until a pay button
   // is pressed; only then does the inline Dodo checkout mount. Both methods open
   // the same Dodo checkout, which presents Apple Pay (express) + card. ──
-  // QA: ?test=1 skips Dodo and simulates a successful payment so the done-state
-  // and "Start My Assessment" handoff can be tested without a real charge.
-  // (Completing the retake itself still needs an allowlisted test account — see
-  // TEST_EMAILS in gcp-function-lisp.)
-  var TEST_MODE = new URLSearchParams(window.location.search).get('test') === '1';
   var mounted = false;
   function openCheckout(method) {
     track('lisp_retake_pay_click', { method: method || 'card' });
-    if (TEST_MODE) { setState('processing'); setTimeout(onSuccess, 900); return; }
     setState('checkout');
     if (!mounted) { mounted = true; requestAnimationFrame(mountCheckout); }
   }
@@ -146,5 +140,17 @@
   });
   document.querySelectorAll('[data-back]').forEach(function (btn) {
     btn.addEventListener('click', function () { setState('idle'); });
+  });
+
+  // QA: a single "skip" control on the paywall jumps the gate so the whole retake
+  // flow (gate → assessment) can be tested without paying. The test=1 param tells
+  // the analysis server to allow the run. Set SHOW_SKIP = false before launch.
+  var SHOW_SKIP = true;
+  document.querySelectorAll('[data-skip]').forEach(function (el) {
+    if (!SHOW_SKIP) { el.style.display = 'none'; return; }
+    el.addEventListener('click', function () {
+      track('lisp_retake_test_skip', {});
+      window.location.href = ASSESSMENT_URL + '&test=1';
+    });
   });
 })();
