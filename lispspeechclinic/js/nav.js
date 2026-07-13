@@ -1,3 +1,37 @@
+// Entry router for the assessment CTA. Returning users who've already used their
+// free assessment belong on the $19 retake paywall — send them there directly
+// instead of loading assessment.html (which would flash the old report before
+// bouncing to retake.html). Cross-device users still get the server-side gate
+// inside assessment.html (sign-in entitlement check + analysis 402).
+function lispAssessmentDest() {
+    var dest = '/lispspeechclinic/assessment.html';
+    try {
+        var p = new URLSearchParams(location.search);
+        var unlocked = p.get('retake') === '1' || p.get('test') === '1'
+            || localStorage.getItem('lispRetakePaid') === '1';
+        var didBefore = localStorage.getItem('lispHasCompletedAssessment') === '1'
+            || localStorage.getItem('assessmentCompleted') === '1';
+        if (didBefore && !unlocked) dest = '/lispspeechclinic/retake.html';
+    } catch (e) {}
+    return dest;
+}
+// Used by the nav "Free Assessment" <button>s (no href to fall back on).
+window.lispStartAssessment = function () { window.location.href = lispAssessmentDest(); };
+
+// The guide/blog pages link to the assessment with plain <a href> anchors (kept
+// for SEO). Intercept those clicks the same way so returning users are routed to
+// the paywall without the report flash. Delegated on document, so it also covers
+// nav/footer markup injected later.
+document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a || !/\/lispspeechclinic\/assessment\.html$/.test(a.pathname || '')) return;
+    if (a.search) return; // a link carrying its own ?retake=1/?test=1 owns its routing
+    if (lispAssessmentDest() === '/lispspeechclinic/retake.html') {
+        e.preventDefault();
+        window.location.href = '/lispspeechclinic/retake.html';
+    }
+});
+
 // Load navigation HTML (or initialize if already in DOM for SEO)
 document.addEventListener('DOMContentLoaded', function() {
     // Use absolute paths for all assets
@@ -5,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load login-modal.js script first
     const loginModalScript = document.createElement('script');
-    loginModalScript.src = basePath + '/js/login-modal.js?v=20260713';
+    loginModalScript.src = basePath + '/js/login-modal.js?v=20260713b';
     loginModalScript.onload = function() {
         // Check if navigation already exists in DOM (static HTML for SEO)
         const existingNav = document.getElementById('mainNavbar');
@@ -14,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
             initializeNavigation();
         } else {
             // Fallback: Load navigation dynamically if not in DOM
-            fetch(basePath + '/includes/nav.html?v=20260713')
+            fetch(basePath + '/includes/nav.html?v=20260713b')
                 .then(response => response.text())
                 .then(html => {
                     document.body.insertAdjacentHTML('afterbegin', html);
@@ -58,10 +92,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load Google Sign-In initialization script
     const googleSignInScript = document.createElement('script');
-    googleSignInScript.src = basePath + '/js/google-signin-init.js?v=20260713';
+    googleSignInScript.src = basePath + '/js/google-signin-init.js?v=20260713b';
     googleSignInScript.onload = function() {
         // After google-signin-init.js is loaded, load the modal HTML
-        fetch(basePath + '/includes/login-modal.html?v=20260713')
+        fetch(basePath + '/includes/login-modal.html?v=20260713b')
             .then(response => response.text())
             .then(html => {
                 // Insert login modal at the end of body

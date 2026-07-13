@@ -11,8 +11,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/lispspeechclinic/css/common-gradient.css?v=20260713">
-    <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css?v=20260713">
+    <link rel="stylesheet" href="/lispspeechclinic/css/common-gradient.css?v=20260713b">
+    <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css?v=20260713b">
     <!-- intl-tel-input: searchable country phone picker for the assessment step-4 phone
          field. WithUtils bundle includes libphonenumber for format validation
          (isValidNumber). Deferred — only used once the user reaches step 4. -->
@@ -258,7 +258,7 @@
     <!-- END POSTHOG ANALYTICS CODE -->
 
     <!-- Load PostHog Event Tracking -->
-    <script src="/lispspeechclinic/js/posthog-tracking.js?v=20260713"></script>
+    <script src="/lispspeechclinic/js/posthog-tracking.js?v=20260713b"></script>
 
 
     <script type="application/ld+json">
@@ -2458,7 +2458,7 @@
             .rec-aside .aside-box.proto-box { order: 4; }
         }
     </style>
-    <link rel="stylesheet" href="css/nav.css?v=20260713">
+    <link rel="stylesheet" href="css/nav.css?v=20260713b">
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/bundle.min.js"></script>
 </head>
@@ -3346,6 +3346,7 @@
             return { low: 4000, high: 8000, target: 6000 };
         }
         let analysisPromise = null;    // Tracks the part-1 (words) backend call; loader awaits this
+        let retakeRedirecting = false; // Set when a 402 sends us to the retake paywall; suppresses the results render so the old report never flashes before navigation
         // MFA+Praat is split by probe group so the slow word-batch align (~170s) can be
         // prewarmed at the LAST word clip (hides behind sentence+passage recording + the
         // survey), while the connected (sentence+passage) align prewarms at recording-complete.
@@ -4974,6 +4975,10 @@
                 await analysisPromise;
             }
 
+            // 402 → we're navigating to the retake paywall; don't render the stale
+            // report in the brief window before the browser tears down this page.
+            if (retakeRedirecting) return;
+
             // Ensure all done
             stopLoaderAnim();
             for (let i = 1; i <= 4; i++) markDone('loading' + i);
@@ -6421,6 +6426,7 @@
                         // has no paid credit → send them to the $19 paywall. (Honest
                         // paying users never reach here — they arrive with a credit.)
                         if (err && err.retakeRequired) {
+                            retakeRedirecting = true; // stop the loader from flashing the stale report before we navigate
                             window.location.href = '/lispspeechclinic/retake.html';
                             return;
                         }
@@ -6733,9 +6739,9 @@
         gtag('event', 'assessment_started', { event_category: 'engagement', event_label: 'multi_step_assessment' });
     </script>
     <!-- Enhanced Analytics -->
-    <script src="/lispspeechclinic/js/enhanced-analytics.js?v=20260713"></script>
-    <script src="/lispspeechclinic/js/login-modal.js?v=20260713"></script>
-    <script src="/lispspeechclinic/js/nav.js?v=20260713"></script>
+    <script src="/lispspeechclinic/js/enhanced-analytics.js?v=20260713b"></script>
+    <script src="/lispspeechclinic/js/login-modal.js?v=20260713b"></script>
+    <script src="/lispspeechclinic/js/nav.js?v=20260713b"></script>
 
 
 
