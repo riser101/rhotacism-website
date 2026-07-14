@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load login-modal.js script first
     const loginModalScript = document.createElement('script');
-    loginModalScript.src = basePath + '/js/login-modal.js?v=20260713b';
+    loginModalScript.src = basePath + '/js/login-modal.js?v=20260714';
     loginModalScript.onload = function() {
         // Check if navigation already exists in DOM (static HTML for SEO)
         const existingNav = document.getElementById('mainNavbar');
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
             initializeNavigation();
         } else {
             // Fallback: Load navigation dynamically if not in DOM
-            fetch(basePath + '/includes/nav.html?v=20260713b')
+            fetch(basePath + '/includes/nav.html?v=20260714')
                 .then(response => response.text())
                 .then(html => {
                     document.body.insertAdjacentHTML('afterbegin', html);
@@ -58,10 +58,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load Google Sign-In initialization script
     const googleSignInScript = document.createElement('script');
-    googleSignInScript.src = basePath + '/js/google-signin-init.js?v=20260713b';
+    googleSignInScript.src = basePath + '/js/google-signin-init.js?v=20260714';
     googleSignInScript.onload = function() {
         // After google-signin-init.js is loaded, load the modal HTML
-        fetch(basePath + '/includes/login-modal.html?v=20260713b')
+        fetch(basePath + '/includes/login-modal.html?v=20260714')
             .then(response => response.text())
             .then(html => {
                 // Insert login modal at the end of body

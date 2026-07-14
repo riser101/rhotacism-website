@@ -18,14 +18,22 @@ function initializeGoogleSignIn() {
                 return;
             }
 
-            // Initialize Google Sign-In
-            google.accounts.id.initialize({
-                client_id: '9267895976-8ueksa7davc1tasdmkgeu76b34du2rvn.apps.googleusercontent.com',
-                callback: handleCredentialResponse,
-                auto_select: false,
-                cancel_on_tap_outside: true
-            });
-            console.log('✅ Google Sign-In initialized');
+            // Initialize Google Sign-In — unless the page owns the GIS config
+            // (assessment onboarding sets ux_mode:'redirect' on iOS; initialize()
+            // is last-write-wins, so re-initializing here would revert it to the
+            // popup flow that iOS silently drops).
+            if (window.__gisConfigLocked) {
+                console.log('ℹ️ GIS config owned by page script; skipping re-initialize');
+            } else {
+                google.accounts.id.initialize({
+                    client_id: '9267895976-8ueksa7davc1tasdmkgeu76b34du2rvn.apps.googleusercontent.com',
+                    callback: handleCredentialResponse,
+                    auto_select: false,
+                    cancel_on_tap_outside: true,
+                    itp_support: true
+                });
+                console.log('✅ Google Sign-In initialized');
+            }
 
             // Render the button if container exists
             const buttonContainer = document.querySelector('.g_id_signin');

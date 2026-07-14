@@ -11,8 +11,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/lispspeechclinic/css/common-gradient.css?v=20260713b">
-    <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css?v=20260713b">
+    <link rel="stylesheet" href="/lispspeechclinic/css/common-gradient.css?v=20260714">
+    <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css?v=20260714">
     <!-- intl-tel-input: searchable country phone picker for the assessment step-4 phone
          field. WithUtils bundle includes libphonenumber for format validation
          (isValidNumber). Deferred — only used once the user reaches step 4. -->
@@ -24,15 +24,40 @@
          cross-domain popup/redirect that was failing there). -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
+    <!-- iOS uses GIS ux_mode:'redirect' — the popup flow loses the credential
+         when iOS discards the backgrounded tab and the page reloads on return.
+         /api/gis-callback bounces Google's credential POST back here in the
+         #giscred fragment. Stash it and normalize the hash to #login
+         synchronously, before any DOMContentLoaded hash routing runs. -->
+    <script>
+        (function () {
+            var m = location.hash.match(/[#&]giscred=([^&]+)/);
+            if (!m) return;
+            window.__obGisRedirectCredential = decodeURIComponent(m[1]);
+            history.replaceState(null, '', location.pathname + location.search + '#login');
+        })();
+    </script>
+
     <!-- Firebase SDK (modular, from CDN) -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
         import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js';
         import { getAuth, onAuthStateChanged, signInAnonymously, GoogleAuthProvider, OAuthProvider, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, sendPasswordResetEmail, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
 
+        // Same-origin auth: /__/auth/* is proxied to firebaseapp.com by
+        // vercel.json, so OAuth redirect state stays first-party. iOS WebKit
+        // (all iOS browsers) partitions cross-origin storage, which made
+        // getRedirectResult() silently return null — Apple/Google redirect
+        // sign-ins died without an error.
+        const SAME_ORIGIN_AUTH_HOSTS = [
+            'topspeech.health',
+            'www.topspeech.health',
+            'rhotacism-website-git-staging-yousuf-syeds-projects.vercel.app'
+        ];
         const firebaseConfig = {
             apiKey: "AIzaSyAMttgCdssC5eilsw08XcS5QxNURmvXhNg",
-            authDomain: "rollr-academy.firebaseapp.com",
+            authDomain: SAME_ORIGIN_AUTH_HOSTS.includes(location.hostname)
+                ? location.hostname : "rollr-academy.firebaseapp.com",
             projectId: "rollr-academy",
             storageBucket: "rollr-academy.firebasestorage.app",
             messagingSenderId: "9267895976",
@@ -258,7 +283,7 @@
     <!-- END POSTHOG ANALYTICS CODE -->
 
     <!-- Load PostHog Event Tracking -->
-    <script src="/lispspeechclinic/js/posthog-tracking.js?v=20260713b"></script>
+    <script src="/lispspeechclinic/js/posthog-tracking.js?v=20260714"></script>
 
 
     <script type="application/ld+json">
@@ -2459,7 +2484,7 @@
             .rec-aside .aside-box.proto-box { order: 4; }
         }
     </style>
-    <link rel="stylesheet" href="css/nav.css?v=20260713b">
+    <link rel="stylesheet" href="css/nav.css?v=20260714">
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/bundle.min.js"></script>
 </head>
@@ -6839,6 +6864,19 @@
                     obShowError(obFriendlyError(e));
                 }
             };
+
+            const obIsIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+                || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+
+            // Credential returned by the iOS GIS redirect flow, stashed from the
+            // #giscred fragment by the <head> snippet. Runs through the standard
+            // callback so localStorage auth state is set exactly as in popup mode.
+            if (window.__obGisRedirectCredential && typeof handleCredentialResponse === 'function') {
+                const gisCred = window.__obGisRedirectCredential;
+                delete window.__obGisRedirectCredential;
+                handleCredentialResponse({ credential: gisCred, select_by: 'redirect' });
+            }
+
             (function obRenderGsi() {
                 const host = document.getElementById('obGsiButton');
                 if (!host || host.dataset.gsiReady) return;
@@ -6846,12 +6884,27 @@
                 (function wait() {
                     if (window.google && google.accounts && google.accounts.id && typeof handleCredentialResponse === 'function') {
                         try {
-                            google.accounts.id.initialize({
+                            // iOS discards the backgrounded tab during the GIS popup
+                            // flow, so the credential callback never fires after the
+                            // page reloads on return. Redirect mode survives that:
+                            // Google POSTs the credential to /api/gis-callback, which
+                            // bounces it back in the #giscred fragment (handled above).
+                            const gisConfig = {
                                 client_id: '9267895976-8ueksa7davc1tasdmkgeu76b34du2rvn.apps.googleusercontent.com',
                                 callback: handleCredentialResponse,
                                 auto_select: false,
-                                cancel_on_tap_outside: true
-                            });
+                                cancel_on_tap_outside: true,
+                                itp_support: true
+                            };
+                            if (obIsIOS) {
+                                gisConfig.ux_mode = 'redirect';
+                                gisConfig.login_uri = location.origin + '/api/gis-callback';
+                            }
+                            // Tell google-signin-init.js (nav) not to re-initialize —
+                            // initialize() is last-write-wins and would revert
+                            // ux_mode back to popup.
+                            window.__gisConfigLocked = true;
+                            google.accounts.id.initialize(gisConfig);
                             const w = host.clientWidth || (host.parentElement && host.parentElement.clientWidth) || 320;
                             google.accounts.id.renderButton(host, {
                                 type: 'standard', theme: 'outline', size: 'large',
@@ -6923,9 +6976,9 @@
         gtag('event', 'assessment_started', { event_category: 'engagement', event_label: 'multi_step_assessment' });
     </script>
     <!-- Enhanced Analytics -->
-    <script src="/lispspeechclinic/js/enhanced-analytics.js?v=20260713b"></script>
-    <script src="/lispspeechclinic/js/login-modal.js?v=20260713b"></script>
-    <script src="/lispspeechclinic/js/nav.js?v=20260713b"></script>
+    <script src="/lispspeechclinic/js/enhanced-analytics.js?v=20260714"></script>
+    <script src="/lispspeechclinic/js/login-modal.js?v=20260714"></script>
+    <script src="/lispspeechclinic/js/nav.js?v=20260714"></script>
 
 
 

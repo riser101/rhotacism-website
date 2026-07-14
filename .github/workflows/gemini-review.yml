@@ -1,0 +1,24 @@
+name: Gemini PR Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize] # Runs on new PRs and when new commits are pushed
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # Essential for letting the bot post comments
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Gemini Code Review
+        uses: sshnaidm/gemini-code-review-action@v2
+        with:
+          gemini-key: ${{ secrets.GEMINI_API_KEY }}
+          # Optional: Customize the model. Defaults to gemini-pro or gemini-1.5-flash depending on the action version.
+          # model: 'gemini-1.5-pro' 
+  
