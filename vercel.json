@@ -3,6 +3,17 @@
   "outputDirectory": ".",
   "redirects": [
     {
+      "source": "/:path*",
+      "destination": "https://topspeech.health/:path*",
+      "permanent": true,
+      "has": [
+        {
+          "type": "host",
+          "value": "www.topspeech.health"
+        }
+      ]
+    },
+    {
       "source": "/therollracademy/:path*",
       "destination": "https://topspeech.health/therollracademy/:path*",
       "permanent": true,
