@@ -5411,6 +5411,11 @@
             return map;
         })();
 
+        function markJudgmentCell(cell) {
+            if (!cell) return;
+            var v = cell.textContent.trim().toLowerCase();
+            if (v && v !== 'accurate') { cell.style.color = '#E53E3E'; cell.style.fontWeight = '600'; }
+        }
         function enhanceTableRows() {
             var container = document.getElementById('voiceAnalysisContent');
             if (!container) return;
@@ -5427,6 +5432,7 @@
                 var matchedWord = TEST_WORDS.find(function(w) { return w === cellText; });
                 if (!matchedWord) return;
                 matchedCount++;
+                markJudgmentCell(accuracyCell);
                 if (accuracyCell.textContent.trim().toLowerCase() === 'accurate') {
                     accurateCount++;
                 } else {
@@ -5484,6 +5490,7 @@
                 var tds = tr.querySelectorAll('td');
                 if (tds.length < 2) return;
                 var sentenceCell = tds[0], recordingCell = tds[1], judgmentCell = tds[2], slippedCell = tds[4];
+                markJudgmentCell(judgmentCell);
                 if (judgmentCell && normalizeSentence(sentenceCell.textContent)) {
                     matchedCount++;
                     if (judgmentCell.textContent.trim().toLowerCase() === 'accurate') accurateCount++;
