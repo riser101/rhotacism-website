@@ -168,6 +168,24 @@
             };
         };
 
+        // Current user's ID token — proof of sign-in for the app login handoff.
+        window.getFirebaseIdToken = async function() {
+            try { return auth.currentUser ? await auth.currentUser.getIdToken() : null; }
+            catch (e) { return null; }
+        };
+
+        // Entitlement probe for the results-page live unlock: force-refresh the ID
+        // token so a `paid` custom claim granted server-side (parent checkout on
+        // another device) is visible without re-login.
+        window.checkPaidClaim = async function() {
+            try {
+                const u = auth.currentUser;
+                if (!u) return false;
+                const r = await u.getIdTokenResult(true);
+                return r.claims && r.claims.paid === true;
+            } catch (e) { return false; }
+        };
+
         // Expose Firebase auth handlers for login step
         window.obFirebaseEmailSignIn = async function(email, password) {
             const cred = await signInWithEmailAndPassword(auth, email, password);
@@ -1599,6 +1617,41 @@
             display: flex; flex-direction: column;
             flex: 1 1 auto; min-height: 0;
         }
+        .asmt-share-parent {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 12px; flex-wrap: nowrap;
+            background: #EEF2F7; border-radius: 12px;
+            padding: 12px 14px; margin: 12px 0 4px; flex-shrink: 0;
+        }
+        .asmt-share-copy { font: 500 11.5px 'Inter', sans-serif; color: #1A202C; flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        @media (max-width: 420px) { .asmt-share-parent { flex-wrap: wrap; } .asmt-share-copy { white-space: normal; } }
+        /* Form open: let the copy wrap to two lines (keep context), give the email
+           input the row's remaining width, and drop the status to its own line. */
+        .asmt-share-parent.form-open { flex-wrap: wrap; }
+        .asmt-share-parent.form-open .asmt-share-copy {
+            white-space: normal; overflow: visible; text-overflow: clip;
+            flex: 1 1 140px; line-height: 1.45;
+        }
+        .asmt-share-parent.form-open .asmt-share-form { flex: 1 1 auto; }
+        .asmt-share-parent.form-open .asmt-share-form input { flex: 1 1 auto; width: auto; max-width: none; min-width: 0; }
+        .asmt-share-btn {
+            background: transparent; color: #2563eb; border: 1px solid #2563eb; border-radius: 10px;
+            padding: 7px 14px; font: 700 11px 'Inter', sans-serif; cursor: pointer;
+            white-space: nowrap;
+        }
+        .asmt-share-btn:hover { background: #2563eb; color: #fff; }
+        .asmt-share-form { display: flex; gap: 6px; }
+        .asmt-share-form input {
+            padding: 8px 10px; border: 1px solid #CBD5E0; border-radius: 999px;
+            font: 14px 'Inter', sans-serif; width: 190px; max-width: 55vw;
+        }
+        .asmt-share-form button {
+            background: #2563eb; color: #fff; border: none; border-radius: 999px;
+            padding: 8px 16px; font: 600 13px 'Inter', sans-serif; cursor: pointer;
+        }
+        .asmt-share-form button:disabled { opacity: 0.6; cursor: default; }
+        .asmt-share-status { font: 12px 'Inter', sans-serif; margin: 0; color: #4A5568; width: 100%; text-align: right; }
+        .asmt-share-status:empty { display: none; }
         .asmt-results-title {
             font: 800 22px 'Inter', sans-serif;
             color: #1A202C; margin: 0 0 4px; letter-spacing: -0.4px;
@@ -2861,6 +2914,16 @@
                     <h2 class="asmt-results-title">Your /s/ Sound Analysis</h2>
                     <p class="asmt-results-sub">Tap a category to see the words and hear your recordings.</p>
                     <div id="voiceAnalysisContent"></div>
+                    <!-- Teen-only (survey ageGroup=teen): email the report PDF to a parent/guardian -->
+                    <div class="asmt-share-parent" id="shareParentWrap" style="display:none;">
+                      <span class="asmt-share-copy">Keep your parent or guardian in the loop on your progress.</span>
+                      <button type="button" class="asmt-share-btn" id="shareParentBtn" onclick="openShareParent()">Share with parent or guardian</button>
+                      <div class="asmt-share-form" id="shareParentForm" style="display:none;">
+                        <input type="email" id="parentEmailInput" placeholder="Parent's email" autocomplete="email">
+                        <button type="button" id="shareParentSend" onclick="sendParentReport()">Send</button>
+                      </div>
+                      <p class="asmt-share-status" id="shareParentStatus"></p>
+                    </div>
                     <button type="button" class="asmt-results-cta" onclick="goToPricing()">Unlock Your Therapy Plan</button>
                     <p class="asmt-results-subnote" id="asmtPlansSubnote">Plans start from $75/month. Cancel anytime.</p>
                     <!-- Returning users view this report as often as they like; retaking
@@ -5289,7 +5352,7 @@
                 var count = (cat.rows || []).length;
                 var countLabel, bodyClass, inner;
                 if (cat.type === 'spontaneous') {
-                    countLabel = 'qualitative';
+                    countLabel = 'Qualitative';
                     bodyClass = 'cat-spontaneous';
                     inner = convertMarkdownToHTML(spontaneousCatMarkdown(cat.spontaneous));
                 } else if (cat.type === 'sentences') {
@@ -5561,7 +5624,159 @@
             if (loader) loader.style.display = 'none';
             if (results) results.style.display = 'flex';
             if (panel) panel.classList.add('showing-results');
+            maybeShowShareParent();
+            startPaidWatch();
             try { gtag('event', 'results_inline_view', { event_category: 'engagement', event_label: 'assessment_completion' }); } catch (e) {}
+        }
+
+        // ----- Live unlock: flip the CTA when the paid claim lands -----
+        // A parent buying from the shared report (on their own device) grants the
+        // `paid` claim to THIS child's account. While the child sits on the results
+        // page, poll the claim (+ recheck on tab focus); when it turns true, swap
+        // "Unlock Your Therapy Plan" for a direct "Start Day 1" link to the app.
+        var paidWatchTimer = null;
+        var paidWatchDone = false;
+        function flipCtaToApp() {
+            paidWatchDone = true;
+            if (paidWatchTimer) { clearInterval(paidWatchTimer); paidWatchTimer = null; }
+            document.removeEventListener('visibilitychange', paidWatchOnVisible);
+            var cta = document.querySelector('.asmt-results-cta');
+            if (cta) {
+                cta.textContent = 'Your plan is unlocked — Start Day 1 →';
+                cta.onclick = async function() {
+                    var APP = 'https://lsc.topspeech.health';
+                    cta.disabled = true;
+                    // Mint a one-time app login token so the child skips the app's
+                    // login screen (#/handoff door in the PWA). Any failure falls
+                    // back to the plain app URL (normal sign-in).
+                    try {
+                        var idToken = window.getFirebaseIdToken ? await window.getFirebaseIdToken() : null;
+                        if (idToken) {
+                            var r = await fetch(window.SHARE_EMAIL_API, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ action: 'mintAppHandoff', idToken: idToken })
+                            });
+                            if (r.ok) {
+                                var j = await r.json();
+                                if (j && j.token) {
+                                    window.location.href = APP + '/#/handoff/' + encodeURIComponent(j.token);
+                                    return;
+                                }
+                            }
+                        }
+                    } catch (e) { console.error('handoff mint failed:', e); }
+                    window.location.href = APP;
+                };
+            }
+            var note = document.getElementById('asmtPlansSubnote');
+            if (note) note.textContent = 'Sign in with the same account you used for this assessment.';
+            try { gtag('event', 'results_live_unlock', { event_category: 'conversion', event_label: 'paid_claim_flip' }); } catch (e) {}
+        }
+        async function paidWatchTick() {
+            if (paidWatchDone) return;
+            if (window.checkPaidClaim && await window.checkPaidClaim()) flipCtaToApp();
+        }
+        function paidWatchOnVisible() { if (document.visibilityState === 'visible') paidWatchTick(); }
+        function startPaidWatch() {
+            if (paidWatchDone || paidWatchTimer) return;
+            // Parent viewing a shared report has no signed-in user here — skip.
+            try { if (new URLSearchParams(location.search).get('share')) return; } catch (e) {}
+            paidWatchTick();
+            paidWatchTimer = setInterval(paidWatchTick, 30000);
+            document.addEventListener('visibilitychange', paidWatchOnVisible);
+        }
+
+        // ----- Share report with parent/guardian (teen survey answer only) -----
+        // The bar lives INSIDE #voiceAnalysisContent (right after the accordions, before
+        // the severity key) so it hugs the cards instead of being pushed to the bottom of
+        // the flex-stretched container. innerHTML re-renders detach it, so we hold a JS
+        // reference and re-append after every render.
+        var shareParentNode = null;
+        function maybeShowShareParent() {
+            var age = document.querySelector('input[name="ageGroup"]:checked')?.value
+                || localStorage.getItem('assessmentUserAge') || '';
+            var wrap = shareParentNode || document.getElementById('shareParentWrap');
+            if (!wrap) return;
+            shareParentNode = wrap;
+            wrap.style.display = (age === 'teen') ? 'flex' : 'none';
+            var container = document.getElementById('voiceAnalysisContent');
+            if (container && age === 'teen') {
+                var legend = container.querySelector('.severity-legend');
+                container.insertBefore(wrap, legend || null);
+            }
+        }
+        function openShareParent() {
+            document.getElementById('shareParentBtn').style.display = 'none';
+            document.getElementById('shareParentForm').style.display = 'flex';
+            var wrap = document.getElementById('shareParentWrap');
+            if (wrap) wrap.classList.add('form-open');
+            document.getElementById('parentEmailInput').focus();
+        }
+        // Email/share function endpoint — local functions-framework when the site
+        // itself is served locally, prod Cloud Function otherwise.
+        window.SHARE_EMAIL_API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+            ? 'http://localhost:8081'
+            : 'https://us-central1-rollr-academy.cloudfunctions.net/sendResetEmail';
+
+        async function sendParentReport() {
+            var input = document.getElementById('parentEmailInput');
+            var status = document.getElementById('shareParentStatus');
+            var btn = document.getElementById('shareParentSend');
+            var email = (input.value || '').trim();
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                status.textContent = 'Enter a valid email address.';
+                status.style.color = '#E53E3E';
+                return;
+            }
+            var stored = {};
+            try { stored = JSON.parse(localStorage.getItem('analysisResult') || '{}'); } catch (e) {}
+            // Per-category accuracy summary for the email (skip qualitative spontaneous section).
+            var summary = (stored.categories || [])
+                .filter(function(c) { return c.type !== 'spontaneous' && (c.rows || []).length; })
+                .map(function(c) {
+                    var rows = c.rows || [];
+                    var acc = rows.filter(function(r) { return String(r.judgment || '').trim().toLowerCase() === 'accurate'; }).length;
+                    return {
+                        title: (c.title || '').replace(/^\s*Tier\s*\d+\s*[—–-]\s*/i, ''),
+                        total: rows.length,
+                        accurate: acc
+                    };
+                });
+            var teenName = localStorage.getItem('assessmentUserName') || localStorage.getItem('lispUserFirstName') || '';
+            // Identity so the backend can mint a share-token link to this child's
+            // server-persisted report (lisp-users/{uid}.latestAssessment).
+            var ident = {};
+            try { ident = window.getLispIdentityPayload ? window.getLispIdentityPayload() : {}; } catch (e) {}
+            var teenEmail = ident.email || localStorage.getItem('assessmentUserEmail') || '';
+            btn.disabled = true;
+            status.textContent = 'Sending…';
+            status.style.color = '#4A5568';
+            try {
+                var resp = await fetch(window.SHARE_EMAIL_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'shareReport',
+                        parentEmail: email,
+                        teenName: teenName,
+                        uid: ident.uid || '',
+                        teenEmail: teenEmail,
+                        gri: (typeof stored.gri === 'number') ? stored.gri : null,
+                        summary: summary
+                    })
+                });
+                if (!resp.ok) throw new Error('send failed: ' + resp.status);
+                document.getElementById('shareParentForm').style.display = 'none';
+                status.textContent = 'Report sent to ' + email;
+                status.style.color = '#2F855A';
+                try { gtag('event', 'share_report_parent', { event_category: 'engagement', event_label: 'teen_results' }); } catch (e) {}
+            } catch (e) {
+                console.error('shareReport error:', e);
+                status.textContent = 'Could not send. Please try again.';
+                status.style.color = '#E53E3E';
+                btn.disabled = false;
+            }
         }
 
         // Re-render the accordions from the stored result when part 2 fills in the
@@ -5592,6 +5807,7 @@
             displayAnalysisResults(data);
             enhanceTableRows();
             enhanceSentenceRows();
+            maybeShowShareParent(); // re-append the share bar (re-render detached it)
 
             // Restore open accordions by matching title.
             container.querySelectorAll('.cat-card').forEach(function(card) {
@@ -6006,6 +6222,8 @@
             const code = document.getElementById('countryCode').value;
             const trouble = document.querySelector('input[name="troubleWords"]:checked')?.value || '';
             const age = document.querySelector('input[name="ageGroup"]:checked')?.value || '';
+            // Persist for the results view (teen → "Share with parent" button), incl. after reloads.
+            try { if (age) localStorage.setItem('assessmentUserAge', age); } catch (e) {}
             const foundOn = reason?.value === 'other' ? document.getElementById('otherReason').value : (reason?.value || '');
             const fullPhone = phone ? code + ' ' + phone : '';
             // E.164-ish for Dodo prefill (e.g. "+919876543210").
@@ -6316,8 +6534,41 @@
                 await fetchAndShowReport(uid);
             }
 
-            if (!maybeShowCompletedResults() && !maybeJumpToOnboarding() && !maybeSkipLogin() && !maybeResumeSession()) maybeJumpToLogin();
-            rehydrateStoredReport();
+            // Shared-report mode: a parent/guardian opening ?share=<token> from the
+            // share email. Fetches the child's server-persisted report via the token
+            // (no login) and renders the normal inline results view. Returns true
+            // synchronously (fetch completes async) so no other route runs.
+            function maybeShowSharedReport() {
+                var token = '';
+                try { token = new URLSearchParams(location.search).get('share') || ''; } catch (e) {}
+                if (!token) return false;
+                (async function() {
+                    try {
+                        var resp = await fetch(window.SHARE_EMAIL_API, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'getSharedReport', token: token })
+                        });
+                        if (!resp.ok) throw new Error(resp.status === 410 ? 'This report link has expired.' : 'This report link is invalid or has been removed.');
+                        var data = await resp.json();
+                        try {
+                            localStorage.setItem('analysisResult', JSON.stringify({ gri: data.gri, categories: data.categories || [], result: '' }));
+                            // Child's email → checkout prefill. Purchase entitlement is
+                            // keyed to the checkout email, so a parent buying from this
+                            // shared view must buy FOR the child's account.
+                            if (data.email) localStorage.setItem('assessmentUserEmail', data.email);
+                        } catch (e) {}
+                        activateResultsStep();
+                    } catch (e) {
+                        alert(e.message || 'Could not load this report.');
+                        window.location.href = '/lispspeechclinic/';
+                    }
+                })();
+                return true;
+            }
+
+            if (!maybeShowSharedReport() && !maybeShowCompletedResults() && !maybeJumpToOnboarding() && !maybeSkipLogin() && !maybeResumeSession()) maybeJumpToLogin();
+            if (!new URLSearchParams(location.search).get('share')) rehydrateStoredReport();
             window.addEventListener('hashchange', maybeJumpToLogin);
 
             // ===== Step3 Wizard (comfort + age + source + phone) =====
@@ -6512,7 +6763,11 @@
                     btn.addEventListener('click', () => { wizState.trouble = btn.dataset.trouble; wizUpdate(); });
                 });
                 content.querySelectorAll('[data-age]').forEach(btn => {
-                    btn.addEventListener('click', () => { wizState.age = btn.dataset.age; wizUpdate(); });
+                    btn.addEventListener('click', () => {
+                        wizState.age = btn.dataset.age;
+                        try { localStorage.setItem('assessmentUserAge', wizState.age); } catch (e) {}
+                        wizUpdate();
+                    });
                 });
                 content.querySelectorAll('[data-source]').forEach(btn => {
                     btn.addEventListener('click', () => {
