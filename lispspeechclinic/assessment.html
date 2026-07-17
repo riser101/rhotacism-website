@@ -5755,6 +5755,11 @@
             // server-persisted report (lisp-users/{uid}.latestAssessment).
             var ident = {};
             try { ident = window.getLispIdentityPayload ? window.getLispIdentityPayload() : {}; } catch (e) {}
+            // After a refresh auth.currentUser may not be restored yet — fall back to
+            // the persisted identity (userAuth in localStorage) so the backend can
+            // still mint the "View full report" link instead of a degraded email.
+            var shareUid = ident.uid || ident.authUserId || '';
+            try { if (!shareUid) shareUid = (typeof getResultUid === 'function' && getResultUid()) || ''; } catch (e) {}
             var teenEmail = ident.email || localStorage.getItem('assessmentUserEmail') || '';
             btn.disabled = true;
             status.textContent = 'Sending…';
@@ -5767,7 +5772,7 @@
                         action: 'shareReport',
                         parentEmail: email,
                         teenName: teenName,
-                        uid: ident.uid || '',
+                        uid: shareUid,
                         teenEmail: teenEmail,
                         gri: (typeof stored.gri === 'number') ? stored.gri : null,
                         summary: summary
