@@ -5748,7 +5748,9 @@
                         accurate: acc
                     };
                 });
-            var teenName = localStorage.getItem('assessmentUserName') || localStorage.getItem('lispUserFirstName') || '';
+            // Prefer the real first name (from Google sign-in) over assessmentUserName,
+            // which is just the capitalized email prefix (e.g. "Nukillapraveen1").
+            var teenName = (localStorage.getItem('lispUserFirstName') || localStorage.getItem('assessmentUserName') || '').trim().split(' ')[0];
             // Identity so the backend can mint a share-token link to this child's
             // server-persisted report (lisp-users/{uid}.latestAssessment).
             var ident = {};
