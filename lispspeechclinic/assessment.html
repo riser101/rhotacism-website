@@ -5479,9 +5479,6 @@
             var v = cell.textContent.trim().toLowerCase();
             if (v && v !== 'accurate') {
                 cell.style.color = '#E53E3E'; cell.style.fontWeight = '600';
-                // Show "Lisp" instead of the specific type (Interdental/Lateral/…).
-                cell.title = cell.textContent.trim();
-                cell.textContent = 'Lisp';
             }
         }
         function enhanceTableRows() {
