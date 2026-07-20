@@ -6157,6 +6157,7 @@
             if (dodoSuccessHandled) return;
             dodoSuccessHandled = true;
             try { gtag('event', 'inline_checkout_success', { event_category: 'conversion', event_label: dodoCurrentProduct }); } catch (e) {}
+            try { posthog.capture('inline_checkout_success', { product_id: dodoCurrentProduct, plan: DODO_PLAN_NAMES[dodoCurrentProduct] || null }, { transport: 'sendBeacon' }); } catch (e) {}
             renderCheckoutSuccess('<p style="font:500 14px \'Inter\',sans-serif; color:#4A5568; margin:0; line-height:1.5;">Setting up your program… taking you to your app.</p>');
             var token = await claimLoginToken(dodoSessionId);
             if (token) {
