@@ -7048,6 +7048,16 @@
                 var name = displayName || (prev && prev.name) || localStorage.getItem('lispUserFirstName') || '';
                 try { localStorage.setItem('userAuth', JSON.stringify({ email: user.email, id: user.uid, provider, name: name })); } catch (e) {}
                 if (name) { try { localStorage.setItem('lispUserFirstName', String(name).split(' ')[0]); } catch (e) {} }
+                // Identify + capture login completion so Messaging workflows can
+                // trigger off it. Keep uuid as distinct_id (see registerEmail).
+                try {
+                    if (window.posthog && typeof window.posthog.capture === 'function') {
+                        const did = (typeof window.posthog.get_distinct_id === 'function' && window.posthog.get_distinct_id()) || null;
+                        if (did && typeof window.posthog.identify === 'function') window.posthog.identify(did, { email: user.email, first_name: name || undefined });
+                        else if (typeof window.posthog.setPersonProperties === 'function') window.posthog.setPersonProperties({ email: user.email, first_name: name || undefined });
+                        window.posthog.capture('login_completed', { login_method: provider, user_email: user.email, user_name: name || '' });
+                    }
+                } catch (e) {}
                 if (await serverRetakeGateBlocks(user, name)) return; // returning user → paywall
                 nextStep();
             }
