@@ -192,8 +192,10 @@
             });
         });
 
-        // Track CTA clicks specifically
-        const ctaButtons = document.querySelectorAll('.btn-primary, .cta-button, [class*="cta"]');
+        // Track CTA clicks specifically. .obw-cta is the assessment wizard's
+        // generic step "Next" button reused on every step — excluded so it
+        // doesn't get conflated with real buy-intent CTA clicks.
+        const ctaButtons = document.querySelectorAll('.btn-primary, .cta-button, [class*="cta"]:not(.obw-cta)');
         ctaButtons.forEach(button => {
             button.addEventListener('click', function() {
                 posthog.capture('cta_click', {
