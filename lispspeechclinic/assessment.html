@@ -1673,15 +1673,9 @@
             color: #fff; border: none; border-radius: 12px;
             padding: 14px 20px; min-height: 52px; font: 600 15px 'Inter', sans-serif;
             cursor: pointer; letter-spacing: 0.2px;
-            /* Solid bottom edge — same 3D "pressable" treatment as the home hero CTA */
-            box-shadow: 0 6px 0 0 #000;
             transition: background 0.2s ease, transform 0.12s ease, box-shadow 0.12s ease;
         }
         .asmt-results-cta:hover { background: #111; }
-        .asmt-results-cta:active {
-            transform: translateY(6px);
-            box-shadow: 0 0 0 0 #000;
-        }
         .asmt-results-subnote {
             flex-shrink: 0;
             margin-top: 12px;
@@ -5894,6 +5888,7 @@
 
         function goToPricing() {
             try { gtag('event', 'results_cta_click', { event_category: 'conversion', event_label: 'inline_results_to_pricing' }); } catch (e) {}
+            try { posthog.capture('buy_cta_click', { event_label: 'inline_results_to_pricing' }); } catch (e) {}
             // Swap the results view for the pricing view inside the same left panel
             // (no navigation). CSS (showing-pricing) drops the right photo panel and
             // lets the cards span the full width on this step.
