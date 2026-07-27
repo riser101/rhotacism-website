@@ -2905,7 +2905,12 @@
         // =============================================
         async function registerEmail(email) {
             localStorage.setItem('assessmentUserEmail', email);
-            const name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
+            // Google/Apple give us the real name — use it. Only email-link users have
+            // no provider profile, so only they get the local-part fallback.
+            const ua = JSON.parse(localStorage.getItem('userAuth') || '{}') || {};
+            const name = (ua.provider !== 'email-link' && ua.name)
+                ? String(ua.name).split(' ')[0]
+                : email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
             localStorage.setItem('assessmentUserName', name);
             submitToFormEasy('assessment_step1', { email: email, message: 'User started R-sound assessment' });
             gtag('event', 'email_capture', { event_category: 'conversion', event_label: 'assessment_step1' });
@@ -3297,7 +3302,13 @@
 
             function obAfterSignIn(user, provider) {
                 window.obLoggedInUser = { email: user.email, uid: user.uid, provider };
-                try { localStorage.setItem('userAuth', JSON.stringify({ email: user.email, id: user.uid, provider })); } catch (e) {}
+                // Capture the real display name from Google/Apple. Apple only returns it
+                // on the FIRST authorization, so never overwrite a saved name with a blank.
+                var displayName = (user && user.displayName) ? String(user.displayName).trim() : '';
+                var prev = {};
+                try { prev = JSON.parse(localStorage.getItem('userAuth') || '{}') || {}; } catch (e) {}
+                var name = displayName || (prev && prev.name) || '';
+                try { localStorage.setItem('userAuth', JSON.stringify({ email: user.email, id: user.uid, provider, name: name })); } catch (e) {}
                 nextStep();
             }
 
