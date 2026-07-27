@@ -6183,7 +6183,12 @@
         // =============================================
         async function registerEmail(email) {
             localStorage.setItem('assessmentUserEmail', email);
-            const name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
+            // Google/Apple give us the real name — use it. Only email-link users have
+            // no provider profile, so only they get the local-part fallback.
+            const ua = JSON.parse(localStorage.getItem('userAuth') || '{}') || {};
+            const name = (ua.provider !== 'email-link' && ua.name)
+                ? String(ua.name).split(' ')[0]
+                : email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
             localStorage.setItem('assessmentUserName', name);
             submitToFormEasy('assessment_step1', { email: email, message: 'User started /s/ sound assessment' });
             gtag('event', 'email_capture', { event_category: 'conversion', event_label: 'assessment_step1' });
