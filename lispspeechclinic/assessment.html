@@ -3541,6 +3541,7 @@
                 case 1: {
                     userGender = 'male';
                     if (!allWordsRecorded) { alert('Please record all ' + TEST_WORDS.length + ' words.'); return false; }
+                    submitToFormEasy('assessment_step1_voice', { voice_type: userGender, message: `Step 1: Voice - ${userGender}` });
                     return true;
                 }
                 case 2: {
@@ -3548,14 +3549,7 @@
                         alert('Please sign in to continue.');
                         return false;
                     }
-                    // The ONE "started" row. Fires here (login is the first step) so it
-                    // lands minutes before the "completed" row — writing both at survey
-                    // submit raced FormEasy's prepend and silently dropped completed rows.
-                    submitToFormEasy('assessment_step1', {
-                        email: window.obLoggedInUser.email,
-                        provider: window.obLoggedInUser.provider || 'password',
-                        message: 'User started /s/ sound assessment'
-                    });
+                    submitToFormEasy('assessment_step2_login', { email: window.obLoggedInUser.email, provider: window.obLoggedInUser.provider || 'password', message: `Step 2: Login - ${window.obLoggedInUser.email}` });
                     return true;
                 }
                 case 3: {
@@ -6196,9 +6190,7 @@
                 ? String(ua.name).split(' ')[0]
                 : email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
             localStorage.setItem('assessmentUserName', name);
-            // NOTE: no FormEasy write here. The "started" row is sent once at the login
-            // step (validateCurrentStep case 2). Sending it here too put two writes ~50ms
-            // apart, which raced FormEasy's prepend and lost "completed" rows.
+            submitToFormEasy('assessment_step1', { email: email, message: 'User started /s/ sound assessment' });
             gtag('event', 'email_capture', { event_category: 'conversion', event_label: 'assessment_step1' });
             // Identify the PostHog person with email + first name so Messaging
             // workflows can resolve a recipient address and personalize emails.
@@ -6216,22 +6208,41 @@
             } catch (e) { /* posthog not ready */ }
         }
 
-        async function submitToFormEasy(source, extraData) {
-            try {
-                await fetch(FORMEASY_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({
-                        email: localStorage.getItem('assessmentUserEmail') || '',
-                        source: source,
-                        timestamp: new Date().toISOString(),
-                        page: 'assessment.html',
-                        ...extraData
-                    }),
-                    keepalive: true
-                });
-            } catch (e) { console.error('FormEasy error:', e); }
+        // FormEasy prepends each row (insertRowBefore + setValues) with no LockService,
+        // so two POSTs landing together run as concurrent Apps Script executions and one
+        // clobbers the other — that is how completed-assessment rows went missing (a blank
+        // row left behind where the lost one should be). registerEmail() and
+        // submitFinalAssessment() fire ~50ms apart from the same click, so they collided
+        // routinely. This queue serialises every send: one request in flight at a time,
+        // with a gap after each so the server-side execution finishes before the next
+        // arrives. Every event still gets its own row — nothing is dropped or merged.
+        let formEasyQueue = Promise.resolve();
+        const FORMEASY_GAP_MS = 1200;
+
+        function submitToFormEasy(source, extraData) {
+            const send = async () => {
+                try {
+                    await fetch(FORMEASY_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            email: localStorage.getItem('assessmentUserEmail') || '',
+                            source: source,
+                            timestamp: new Date().toISOString(),
+                            page: 'assessment.html',
+                            ...extraData
+                        }),
+                        keepalive: true
+                    });
+                } catch (e) { console.error('FormEasy error:', e); }
+                // Spacing, not latency: no-cors resolves when the request is SENT, not
+                // when Apps Script finishes writing, so the gap is what prevents overlap.
+                await new Promise(r => setTimeout(r, FORMEASY_GAP_MS));
+            };
+            // Chain on both settle paths so one failure can't stall the queue.
+            formEasyQueue = formEasyQueue.then(send, send);
+            return formEasyQueue;
         }
 
         async function submitFinalAssessment() {
