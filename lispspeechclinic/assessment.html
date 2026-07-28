@@ -3541,7 +3541,6 @@
                 case 1: {
                     userGender = 'male';
                     if (!allWordsRecorded) { alert('Please record all ' + TEST_WORDS.length + ' words.'); return false; }
-                    submitToFormEasy('assessment_step1_voice', { voice_type: userGender, message: `Step 1: Voice - ${userGender}` });
                     return true;
                 }
                 case 2: {
@@ -3549,7 +3548,14 @@
                         alert('Please sign in to continue.');
                         return false;
                     }
-                    submitToFormEasy('assessment_step2_login', { email: window.obLoggedInUser.email, provider: window.obLoggedInUser.provider || 'password', message: `Step 2: Login - ${window.obLoggedInUser.email}` });
+                    // The ONE "started" row. Fires here (login is the first step) so it
+                    // lands minutes before the "completed" row — writing both at survey
+                    // submit raced FormEasy's prepend and silently dropped completed rows.
+                    submitToFormEasy('assessment_step1', {
+                        email: window.obLoggedInUser.email,
+                        provider: window.obLoggedInUser.provider || 'password',
+                        message: 'User started /s/ sound assessment'
+                    });
                     return true;
                 }
                 case 3: {
@@ -6190,7 +6196,9 @@
                 ? String(ua.name).split(' ')[0]
                 : email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
             localStorage.setItem('assessmentUserName', name);
-            submitToFormEasy('assessment_step1', { email: email, message: 'User started /s/ sound assessment' });
+            // NOTE: no FormEasy write here. The "started" row is sent once at the login
+            // step (validateCurrentStep case 2). Sending it here too put two writes ~50ms
+            // apart, which raced FormEasy's prepend and lost "completed" rows.
             gtag('event', 'email_capture', { event_category: 'conversion', event_label: 'assessment_step1' });
             // Identify the PostHog person with email + first name so Messaging
             // workflows can resolve a recipient address and personalize emails.
@@ -6939,6 +6947,11 @@
                 obwCta.addEventListener('click', () => {
                     if (!wizCanAdvance()) return;
                     if (wizState.step === WIZ_TOTAL) {
+                        // Submit exactly once. Back-from-analyzing (a supported path, see
+                        // initStep3Wizard) and double-clicks otherwise re-ran wizFinish →
+                        // a second analysis, a second sheet row and a duplicate lead alert.
+                        if (wizState._finished) return;
+                        wizState._finished = true;
                         wizFinish();
                         nextStep();
                         return;
@@ -7037,6 +7050,11 @@
             }
 
             async function obAfterSignIn(user, provider) {
+                // Called from every sign-in path (redirect result, auth-state listener,
+                // email-link, pending-provider replay) — several can fire for ONE sign-in.
+                // Without this guard each one wrote its own sheet row and re-ran the gate.
+                if (window._obSignInHandled) return;
+                window._obSignInHandled = true;
                 window.obLoggedInUser = { email: user.email, uid: user.uid, provider };
                 // Capture the real display name from Google/Apple so pages like the
                 // retake paywall can greet the user by their actual first name.
