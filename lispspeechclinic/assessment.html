@@ -3596,6 +3596,7 @@
         let wordTimedOut = false;
         let autoChainTimer = null;   // pending hands-free start of the next probe
         let silentRetryCount = 0;    // consecutive silent timeouts on the current word
+        let recordingFinalised = false; // this word's blob has been built (once only)
         const pendingB64 = [];       // in-flight blob→base64 conversions (awaited at finish)
 
         // Returning users must pay $19 to retake. Anyone who has completed a free
@@ -3966,9 +3967,22 @@
                 speechDetected = false;
                 speechStartTime = 0;
                 lastSpeechTime = 0;
+                recordingFinalised = false;
 
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                mediaRecorder.onstop = () => onWordRecordingStopped();
+                // 'stop' and the final 'dataavailable' are two separate events, and on
+                // some Android Chrome devices the last chunk lands AFTER 'stop'. Building
+                // the blob in onstop therefore captured only the WebM header — a 110-byte
+                // file with zero audio frames, while the mic itself worked fine. Finalise
+                // on whichever arrives last instead.
+                mediaRecorder.ondataavailable = e => {
+                    if (e.data && e.data.size) audioChunks.push(e.data);
+                    if (mediaRecorder && mediaRecorder.state === 'inactive') finaliseWordRecording();
+                };
+                mediaRecorder.onstop = () => {
+                    // Data may still be in flight. Cap the wait so a device that never
+                    // delivers a final chunk can't stall the assessment.
+                    setTimeout(finaliseWordRecording, 250);
+                };
 
                 mediaRecorder.start();
                 isRecording = true;
@@ -4252,6 +4266,14 @@
                 try { vadInstance.destroy ? vadInstance.destroy() : vadInstance.pause(); } catch (_) {}
                 vadInstance = null;
             }
+        }
+
+        // Build this word's file exactly once, whether the trigger was the final
+        // 'dataavailable' or the onstop timeout — whichever arrives first wins.
+        function finaliseWordRecording() {
+            if (recordingFinalised) return;
+            recordingFinalised = true;
+            onWordRecordingStopped();
         }
 
         // Called when a word recording finishes
