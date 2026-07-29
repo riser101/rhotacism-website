@@ -780,6 +780,121 @@ async function recordPersonAssessment(user, personId, tier, data) {
 // (gcp-function-dodo), which resolves this same personId and increments
 // paidCredits idempotently. See resolvePersonId — the identity model is shared.
 
+// ============================================================================
+// LEAD ALERT — hand the finished lead to the tsh-lead-alert Cloud Run service
+// (cloud-functions/tsh-sales-automation), which drafts the founder's outreach
+// and pushes it to Telegram.
+//
+// This REPLACES the old trigger: the browser wrote a row to a Google Sheet via
+// FormEasy and an Apps Script timer polled it every minute. That row was a
+// no-cors fetch from the tab — closed tab, ad blocker, or FormEasy's row-
+// clobbering race silently lost the lead, and the poller added ~11 min of
+// latency. Firing from here instead means the alert is as durable as the
+// Firestore write directly above it, and lands within seconds.
+//
+// Body shape is byte-identical to what the Apps Script used to POST, so the
+// Python service (webhook.py → classify.py) needs no changes.
+// ============================================================================
+const LEAD_ALERT_URL = process.env.LEAD_ALERT_URL || 'https://tsh-lead-alert-9267895976.us-central1.run.app';
+const LEAD_ALERT_SECRET = process.env.LEAD_ALERT_SECRET || '';
+
+// Cloud Run requires a Google-signed ID token whose audience is the service URL.
+// The Apps Script hand-rolled this from a service-account key; on Cloud Run the
+// runtime SA is picked up by ADC, so the library does it. Cached by the client.
+let _leadAlertClient = null;
+async function leadAlertIdToken() {
+  if (!_leadAlertClient) {
+    const { GoogleAuth } = require('google-auth-library');
+    _leadAlertClient = await new GoogleAuth().getIdTokenClient(LEAD_ALERT_URL);
+  }
+  const headers = await _leadAlertClient.getRequestHeaders(LEAD_ALERT_URL);
+  return headers.Authorization || headers.authorization || '';
+}
+
+// The pipe-delimited string classify.py regex-parses (comfort|age|found_on|phone)
+// and is_completed() looks for the marker in. Same format the survey step wrote
+// to the Sheet — see submitFinalAssessment() in assessment.html.
+function buildLeadMessage(user, survey) {
+  const s = survey || {}, u = user || {};
+  const phone = (u.phone || '').trim();
+  const fullPhone = phone ? `${(u.countryCode || '').trim()} ${phone}`.trim() : '';
+  return [
+    '✅ User completed assessment',
+    `comfort=${s.trouble_words_response || '—'}`,
+    `age=${s.age_group || '—'}`,
+    `found_on=${s.found_on || '—'}`,
+    `phone=${fullPhone || '—'}`
+  ].join(' | ');
+}
+
+// Guard against double-briefing. The Apps Script deduped via its `lastSig`
+// high-water mark; with the trigger moved here, a client retry of part 2 (or a
+// resumed session re-running the analysis) would otherwise send a second
+// identical Telegram briefing. Marker lives on the user's own doc.
+// Checked BEFORE sending; the marker is written only AFTER a successful send
+// (see sendLeadAlert). Writing it up-front would bury the lead permanently on any
+// transient failure — sendLeadAlert swallows errors, so nothing would notice.
+async function alreadyAlerted(uid) {
+  if (!firestore || !uid) return false;  // can't dedupe → send, don't drop the lead
+  try {
+    const snap = await firestore.collection('lisp-users').doc(String(uid)).get();
+    return !!(snap.exists && snap.data().leadAlertSentAt);
+  } catch (e) {
+    console.error('leadAlert dedupe check failed (sending anyway):', e.message);
+    return false;
+  }
+}
+
+async function setLeadAlerted(uid) {
+  if (!firestore || !uid) return;
+  try {
+    await firestore.collection('lisp-users').doc(String(uid))
+      .set({ leadAlertSentAt: new Date().toISOString() }, { merge: true });
+  } catch (e) {
+    console.error('leadAlert marker write failed (lead may be briefed twice):', e.message);
+  }
+}
+
+// Fire the briefing. NEVER throws: this runs after the analysis is already
+// persisted, so a Telegram/Gemini failure downstream must not turn a successful
+// part-2 response into a 500 — that would make the browser call
+// markDeferredSectionsFailed() and show "couldn't finish" on a report that
+// actually completed.
+async function sendLeadAlert(user, survey) {
+  try {
+    const u = user || {};
+    if (!u.email) { console.warn('No email — skipping lead alert'); return; }
+    if (!LEAD_ALERT_SECRET) { console.warn('LEAD_ALERT_SECRET unset — skipping lead alert'); return; }
+
+    if (await alreadyAlerted(u.uid)) {
+      console.log('🔁 lead already briefed — skipping', u.email);
+      return;
+    }
+
+    const resp = await fetch(`${LEAD_ALERT_URL}/webhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: await leadAlertIdToken() },
+      body: JSON.stringify({
+        secret: LEAD_ALERT_SECRET,
+        name: (survey && survey.first_name) || '',
+        email: u.email,
+        message: buildLeadMessage(u, survey),
+        date: new Date().toISOString()
+      })
+    });
+    const body = await resp.text();
+    if (!resp.ok) {
+      // Nothing was marked, so the next part-2 run for this uid retries.
+      console.error('❌ lead alert failed:', resp.status, body);
+      return;
+    }
+    await setLeadAlerted(u.uid);
+    console.log('📨 lead alert sent for', u.email, '→', body.slice(0, 200));
+  } catch (err) {
+    console.error('❌ lead alert error:', err);
+  }
+}
+
 // A word counts as a lisp hit when its judgment is a distortion type (matches the
 // results page Judgment column); Accurate/Unclear/Omitted are NOT hits.
 const LISP_HIT_JUDGMENTS = ['Interdental', 'Dentalized', 'Lateral', 'Distorted'];
@@ -1039,6 +1154,9 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         await writeLispUserRecord(req.body && req.body.user, { gri, categories, result });
         // PostHog fires HERE (part-2 completion) with sentence-level detections included.
         await sendPosthogAssessmentCompleted(req.body && req.body.user, req.body && req.body.survey, deriveLispSummary(categories, gri));
+        // Telegram lead briefing. The record above is what the alert service reads
+        // back, so this must come after it. Self-swallowing — see sendLeadAlert.
+        await sendLeadAlert(req.body && req.body.user, req.body && req.body.survey);
 
         return res.status(200).json({ rows: sentenceParsed.rows, spontaneous, gri, mode: 'connected', usage });
       }
