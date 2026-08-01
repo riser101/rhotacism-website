@@ -3566,6 +3566,7 @@
         let audioContext = null;
         let analyserNode = null;
         let audioStream = null;
+        let recorderStream = null;  // WebAudio tap the MediaRecorder records (see ensureMicStream)
         let vuAnimFrame = null;
         let wordTimer = null;
         let wordStartTime = 0;
@@ -3915,6 +3916,22 @@
             analyserNode.maxDecibels = -20;
             source.connect(analyserNode);
 
+            // MediaRecorder records a WebAudio TAP of the mic, not the raw
+            // getUserMedia track. On some Android builds the raw track feeds only
+            // the WebAudio consumers (analyser + Silero VAD, each with its own
+            // AudioContext) and MediaRecorder gets a dead tap — every uploaded clip
+            // had the right duration but was digital silence (-91 dB mean AND max),
+            // while the VU meter animated and the VAD logged real speech. Recording
+            // the tap means the recorder eats the exact signal those two prove is live.
+            const recorderTap = audioContext.createMediaStreamDestination();
+            // Destination nodes default to 2ch and would upmix the mono mic to stereo.
+            // Force mono: the lispv3 training set and the MFA/Praat pipeline that reads
+            // it from the bucket are mono-only.
+            recorderTap.channelCount = 1;
+            recorderTap.channelCountMode = 'explicit';
+            source.connect(recorderTap);
+            recorderStream = recorderTap.stream;
+
             // Record the ACTUAL capture sample rate for diagnostics. AEC-off should
             // yield 48000 on both; a 16000 here means the hardware/OS capped the mic,
             // and the sibilant band is still lost regardless of codec. Bridged to the
@@ -3940,6 +3957,9 @@
                 try { audioContext.close(); } catch (_) {}
                 audioContext = null;
             }
+            // Tap tracks die with the context — drop the reference so the next
+            // ensureMicStream rebuilds it rather than recording a closed graph.
+            recorderStream = null;
         }
 
         // Guard: not every browser accepts the opus mimeType option (older Safari).
@@ -3960,9 +3980,13 @@
                 // Fullband Opus @ 256k mono: preserves the 5-14kHz sibilant band
                 // intact (transparent for single voice). Default MediaRecorder used a
                 // low bitrate that, combined with AEC, gutted high-frequency content.
+                // Record the WebAudio tap (see ensureMicStream) — the raw track goes
+                // silent for MediaRecorder on some Android builds. audioStream is only
+                // a fallback for the impossible case where the tap wasn't built.
+                const captureStream = recorderStream || audioStream;
                 mediaRecorder = supportsFullbandOpus()
-                    ? new MediaRecorder(audioStream, { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: 256000 })
-                    : new MediaRecorder(audioStream);
+                    ? new MediaRecorder(captureStream, { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: 256000 })
+                    : new MediaRecorder(captureStream);
                 audioChunks = [];
                 speechDetected = false;
                 speechStartTime = 0;
