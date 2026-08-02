@@ -4308,9 +4308,11 @@
             const mime = ((mediaRecorder && mediaRecorder.mimeType) || 'audio/webm').split(';')[0];
             const blob = new Blob(audioChunks, { type: mime });
 
-            // Validate audio: reject if no speech detected during capture or
-            // post-recording RMS shows silence. Prompt user to re-record.
-            if (!speechDetected) {
+            // Validate audio: reject if no speech detected during capture, or if the
+            // recorder produced a frameless file (header only, ~110-800 bytes — known
+            // Android MediaRecorder failure; a real clip clears 2 KB). Either way the
+            // user re-records; an empty clip must never reach the backend.
+            if (!speechDetected || blob.size < 1500) {
                 wordTimedOut = true;
                 audioChunks = [];
                 for (let i = 0; i < VU_BAR_COUNT; i++) {
