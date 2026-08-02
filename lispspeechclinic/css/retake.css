@@ -64,7 +64,7 @@ a:hover { color: #FFA05C; }
   .rt-divider{ order: 2; width: 1px; align-self: stretch; background: rgba(255,255,255,.1); margin: 0 96px; }
   .rt-card   { order: 3; }
 
-  .rt-brand { display: flex; align-items: center; gap: 20px; }
+  .rt-brand { display: flex; align-items: center; gap: 20px; text-decoration: none; }
   .rt-brand-icon { height: 37px; width: 37px; border-radius: 50%; flex: none; }
   .rt-brand-name { font-family: 'Quicksand', sans-serif; font-size: 19px; font-weight: 700; color: #fff; white-space: nowrap; }
 
@@ -112,7 +112,7 @@ a:hover { color: #FFA05C; }
 
   .rt-m-brand {
     flex: none; display: flex; align-items: center; justify-content: center; gap: 10px;
-    padding: max(28px, env(safe-area-inset-top, 28px)) 0 8px;
+    padding: max(28px, env(safe-area-inset-top, 28px)) 0 8px; text-decoration: none;
   }
   .rt-m-brand-icon { width: 36px; height: 36px; border-radius: 50%; flex: none; }
   .rt-m-brand-name { font-family: 'Quicksand', sans-serif; font-size: 18px; font-weight: 700; color: #fff; white-space: nowrap; }
