@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Opening checkout&hellip;</title>
+<style>
+  html, body { height: 100%; margin: 0; background: #fff; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15px; color: #718096;
+  }
+</style>
+</head>
+<body>
+  <p>Opening checkout&hellip;</p>
+  <script>
+    !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.crossOrigin = "anonymous", p.async = !0, p.src = s.api_host.replace(".i.posthog.com", "-assets.i.posthog.com") + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "init capture register register_once identify setPersonProperties reset get_distinct_id opt_in_capturing opt_out_capturing".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
+    posthog.init('phc_WFJFjSjFujXoTr85nd8fyZ6BdKtdo27RTADMbvnJn2O', { api_host: 'https://us.i.posthog.com', defaults: '2025-11-30' });
+
+    (function () {
+      var CHECKOUT = 'https://checkout.dodopayments.com/buy/pdt_0NfsBcHAFwBTjsHXCrZhn';
+      var q = new URLSearchParams(location.search);
+
+      posthog.capture('email_cta_click', {
+        campaign: q.get('utm_campaign') || null,
+        email_id: q.get('utm_content') || null,
+        product: 'mastery_6mo',
+        $set_once: { first_email_cta_click: new Date().toISOString() }
+      }, { transport: 'sendBeacon' });
+
+      var dest = CHECKOUT + '?quantity=1&redirect_url=' +
+        encodeURIComponent('https://lsc.topspeech.health');
+
+      // Forward whatever attribution the email carried.
+      ['utm_source', 'utm_campaign', 'utm_content', 'utm_medium'].forEach(function (k) {
+        if (q.get(k)) dest += '&' + k + '=' + encodeURIComponent(q.get(k));
+      });
+
+      // Give the beacon a beat, then go. Fallback covers a blocked PostHog.
+      setTimeout(function () { location.replace(dest); }, 250);
+    })();
+  </script>
+  <noscript>
+    <p><a href="https://checkout.dodopayments.com/buy/pdt_0NfsBcHAFwBTjsHXCrZhn?quantity=1&amp;redirect_url=https://lsc.topspeech.health">Continue to checkout</a></p>
+  </noscript>
+</body>
+</html>
