@@ -1684,6 +1684,93 @@
             color: #888;
             letter-spacing: 0.2px;
         }
+        /* ===== Specialist call CTA (primary conversion path on the results view) ===== */
+        .asmt-specialist-card {
+            flex-shrink: 0;
+            margin: 18px auto 0; width: 100%; max-width: 460px;
+            background: #fff;
+            border: 1px solid rgba(2,145,247,0.28);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 6px 22px rgba(2,145,247,0.10);
+            text-align: left;
+        }
+        .asmt-specialist-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+        .asmt-specialist-avatar {
+            width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
+            background: #EAF4FE; color: #0291F7;
+            display: flex; align-items: center; justify-content: center;
+            font: 700 16px 'Inter', sans-serif;
+        }
+        .asmt-specialist-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .asmt-specialist-meta { min-width: 0; }
+        .asmt-specialist-eyebrow {
+            font: 700 10.5px 'Inter', sans-serif; letter-spacing: 1.4px; text-transform: uppercase;
+            color: #0291F7; margin: 0 0 3px;
+        }
+        .asmt-specialist-name { font: 700 15px 'Inter', sans-serif; color: #1A202C; margin: 0; line-height: 1.25; }
+        .asmt-specialist-role { font: 500 12.5px 'Inter', sans-serif; color: rgba(0,0,0,0.5); margin: 2px 0 0; }
+        .asmt-specialist-blurb {
+            font: 400 13.5px 'Inter', sans-serif; line-height: 1.5;
+            color: rgba(0,0,0,0.62); margin: 0 0 14px;
+        }
+        .asmt-specialist-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; min-height: 52px;
+            background: #0291F7; color: #fff; border: none; border-radius: 12px;
+            padding: 14px 18px; font: 700 15px 'Inter', sans-serif; cursor: pointer;
+            transition: background 0.2s ease, transform 0.12s ease;
+        }
+        .asmt-specialist-btn:hover { background: #0277cc; }
+        .asmt-specialist-btn:active { transform: translateY(1px); }
+        .asmt-specialist-btn svg { flex-shrink: 0; }
+        .asmt-specialist-note { text-align: center; font: 400 12px 'Inter', sans-serif; color: #8a94a3; margin: 10px 0 0; }
+        /* Demote the old "Continue" button to a secondary path below the call card */
+        .asmt-results-cta.secondary {
+            background: transparent; color: #4A5568; border: 1px solid #D7DEE7;
+            margin-top: 12px; font-weight: 600;
+        }
+        .asmt-results-cta.secondary:hover { background: #F4F7FB; color: #1A202C; }
+        /* Secondary call prompt on the inline pricing view */
+        .asmt-pricing-call {
+            max-width: 640px; margin: 10px auto 0;
+            background: #EAF4FE; border: 1px solid rgba(2,145,247,0.25); border-radius: 14px;
+            padding: 16px 18px;
+            display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+        }
+        .asmt-pricing-call-copy { font: 600 14px 'Inter', sans-serif; color: #1A3A52; margin: 0; flex: 1 1 220px; line-height: 1.45; }
+        .asmt-pricing-call-btn {
+            background: #0291F7; color: #fff; border: none; border-radius: 10px;
+            padding: 12px 20px; min-height: 48px; font: 700 14px 'Inter', sans-serif;
+            cursor: pointer; white-space: nowrap; transition: background 0.2s ease;
+        }
+        .asmt-pricing-call-btn:hover { background: #0277cc; }
+        @media (max-width: 560px) {
+            .asmt-pricing-call { flex-direction: column; align-items: stretch; text-align: center; }
+            .asmt-pricing-call-btn { width: 100%; }
+        }
+        /* Booking modal (hosts the Cal.com/Calendly embed in an iframe) */
+        .specialist-modal {
+            position: fixed; inset: 0; z-index: 9999; display: none;
+            align-items: center; justify-content: center;
+            background: rgba(15,23,42,0.55); padding: 16px;
+        }
+        .specialist-modal.open { display: flex; }
+        .specialist-modal-inner {
+            position: relative; width: 100%; max-width: 560px; height: min(760px, 92vh);
+            background: #fff; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+            display: flex; flex-direction: column;
+        }
+        .specialist-modal-close {
+            position: absolute; top: 10px; right: 10px; z-index: 2;
+            width: 34px; height: 34px; border-radius: 50%; border: none;
+            background: rgba(255,255,255,0.92); color: #1A202C;
+            font-size: 20px; line-height: 1; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .specialist-modal-frame { flex: 1 1 auto; width: 100%; border: none; }
         .cell-play-btn {
             display: inline-flex; align-items: center; gap: 3px; margin-top: 2px;
             padding: 3px 7px; border: none; border-radius: 4px; font-size: 11px;
@@ -2918,11 +3005,43 @@
                       </div>
                       <p class="asmt-share-status" id="shareParentStatus"></p>
                     </div>
-                    <button type="button" class="asmt-results-cta" onclick="goToPricing()">Continue →</button>
+                    <!-- Primary conversion path: free specialist call. This is the emotional
+                         peak of the flow — the user has just received their report. A trained
+                         program specialist reviews it live and helps them choose a plan.
+                         NOTE: this specialist is NOT a licensed clinician; copy deliberately
+                         avoids "therapist"/clinical-credential language. -->
+                    <div class="asmt-specialist-card">
+                      <div class="asmt-specialist-head">
+                        <div class="asmt-specialist-avatar" aria-hidden="true">
+                          <!-- Swap in the specialist's real photo:
+                               <img src="/lispspeechclinic/team/your-specialist.jpg" alt=""> -->
+                          <span>TS</span>
+                        </div>
+                        <div class="asmt-specialist-meta">
+                          <p class="asmt-specialist-eyebrow">Free results review</p>
+                          <p class="asmt-specialist-name">Talk through your report 1-on-1</p>
+                          <p class="asmt-specialist-role">with a Top Speech program specialist</p>
+                        </div>
+                      </div>
+                      <p class="asmt-specialist-blurb">A specialist will walk you through your /s/ results, answer any questions, and help you choose the right program for your goals.</p>
+                      <button type="button" class="asmt-specialist-btn" onclick="openSpecialistCall('results')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 10l4.5-2.5v9L15 14M4 7h9a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Book my free 10-min call
+                      </button>
+                      <p class="asmt-specialist-note">Free · 10 minutes · video call · no obligation</p>
+                    </div>
+                    <button type="button" class="asmt-results-cta secondary" onclick="goToPricing()">See my program →</button>
                     <p class="asmt-results-subnote" id="asmtPlansSubnote">Plans start from $75/month. Cancel anytime.</p>
                     <!-- Returning users view this report as often as they like; retaking
                          the assessment (a fresh recording + score) is the paid $19 flow. -->
                     <button type="button" class="asmt-results-retake" onclick="window.location.href='/lispspeechclinic/retake.html'" style="display:block;margin:14px auto 0;background:none;border:none;color:rgba(255,255,255,0.55);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;">Retake assessment</button>
+                  </div>
+                  <!-- Specialist booking modal (Cal.com/Calendly embed) -->
+                  <div class="specialist-modal" id="specialistModal" role="dialog" aria-modal="true" aria-label="Book a free call with a specialist">
+                    <div class="specialist-modal-inner">
+                      <button type="button" class="specialist-modal-close" onclick="closeSpecialistModal()" aria-label="Close">×</button>
+                      <iframe class="specialist-modal-frame" id="specialistFrame" title="Book a free 10-minute call" src="about:blank" allow="camera; microphone; autoplay; fullscreen"></iframe>
+                    </div>
                   </div>
                   <!-- Inline pricing (mirrors pricing.html exactly — shown in the left panel on Continue) -->
                   <div class="asmt-pricing-view" id="asmtPricing" style="display:none;">
@@ -3042,6 +3161,12 @@
                                 </article>
                             </div>
 
+                        </section>
+
+                        <!-- Secondary specialist-call prompt for users who stall on the plan grid -->
+                        <section class="asmt-pricing-call">
+                            <p class="asmt-pricing-call-copy">Not sure which program fits? Book a free 10-minute call and a specialist will help you choose.</p>
+                            <button type="button" class="asmt-pricing-call-btn" onclick="openSpecialistCall('pricing')">Book my free call</button>
                         </section>
 
                         <section class="trust-strip">
@@ -5682,8 +5807,12 @@
             paidWatchDone = true;
             if (paidWatchTimer) { clearInterval(paidWatchTimer); paidWatchTimer = null; }
             document.removeEventListener('visibilitychange', paidWatchOnVisible);
+            // Paid users don't need the sales call — collapse it to the app entry point.
+            var specialistCard = document.querySelector('.asmt-specialist-card');
+            if (specialistCard) specialistCard.style.display = 'none';
             var cta = document.querySelector('.asmt-results-cta');
             if (cta) {
+                cta.classList.remove('secondary');
                 cta.textContent = 'Your plan is unlocked — Start Day 1 →';
                 cta.onclick = async function() {
                     var APP = 'https://lsc.topspeech.health';
@@ -5945,6 +6074,89 @@
             if (pricing) { pricing.style.display = 'block'; pricing.scrollTop = 0; }
             if (panel) { panel.classList.remove('showing-results'); panel.classList.add('showing-pricing'); }
         }
+
+        // =============================================
+        // SPECIALIST CALL — free 10-min video call where a trained program
+        // specialist walks the user through their report and the program and helps
+        // them pick a plan. This is the primary conversion path off the results view.
+        // The specialist is NOT a licensed clinician — copy avoids clinical claims.
+        // Point SPECIALIST_BOOKING_URL at your Cal.com/Calendly 10-min event link.
+        // =============================================
+        const SPECIALIST_BOOKING_URL = 'https://cal.com/topspeech/results-review'; // TODO: replace with the real 10-min booking link
+
+        function buildSpecialistBookingUrl() {
+            var email = '', name = '', uid = '', gri = '';
+            try { email = (window.obLoggedInUser && window.obLoggedInUser.email) || ''; } catch (e) {}
+            try {
+                var ua = JSON.parse(localStorage.getItem('userAuth') || '{}') || {};
+                if (!email) email = ua.email || '';
+                name = ua.name || localStorage.getItem('lispUserFirstName') || '';
+            } catch (e) {}
+            try { uid = (typeof getResultUid === 'function' && getResultUid()) || ''; } catch (e) {}
+            try {
+                var r = JSON.parse(localStorage.getItem('analysisResult') || '{}') || {};
+                if (typeof r.gri === 'number') gri = String(r.gri);
+            } catch (e) {}
+            // Hand the specialist the user's context so they open the call already
+            // looking at the right report.
+            var note = (gri ? ('Lisp score (GRI): ' + gri) : 'Completed free lisp assessment') + (uid ? (' · ref ' + uid) : '');
+            var params = new URLSearchParams();
+            if (name)  params.set('name', name);
+            if (email) params.set('email', email);
+            // Calendly reads `a1`; Cal.com reads `notes`/`metadata[*]`. Unknown params
+            // are ignored by the other provider, so sending both is safe.
+            params.set('a1', note);
+            params.set('notes', note);
+            if (uid) params.set('metadata[uid]', uid);
+            var sep = SPECIALIST_BOOKING_URL.indexOf('?') > -1 ? '&' : '?';
+            return SPECIALIST_BOOKING_URL + sep + params.toString();
+        }
+
+        function openSpecialistCall(placement) {
+            placement = placement || 'results';
+            try { posthog.capture('specialist_cta_click', { placement: placement }, { transport: 'sendBeacon' }); } catch (e) {}
+            try { gtag('event', 'specialist_cta_click', { event_category: 'conversion', event_label: placement }); } catch (e) {}
+            var modal = document.getElementById('specialistModal');
+            var frame = document.getElementById('specialistFrame');
+            if (modal && frame) {
+                frame.src = buildSpecialistBookingUrl();
+                modal.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            } else {
+                // Fallback if the modal markup isn't on the page for some reason.
+                window.open(buildSpecialistBookingUrl(), '_blank', 'noopener');
+            }
+        }
+
+        function closeSpecialistModal() {
+            var modal = document.getElementById('specialistModal');
+            var frame = document.getElementById('specialistFrame');
+            if (modal) modal.classList.remove('open');
+            if (frame) frame.src = 'about:blank'; // stop the embed
+            document.body.style.overflow = '';
+        }
+
+        // Close on backdrop click (but not when clicking inside the dialog).
+        document.addEventListener('click', function (e) {
+            var modal = document.getElementById('specialistModal');
+            if (modal && modal.classList.contains('open') && e.target === modal) closeSpecialistModal();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeSpecialistModal();
+        });
+
+        // Fire a conversion event when the booking provider confirms a scheduled call.
+        // Calendly posts { event: 'calendly.event_scheduled' }; Cal.com posts a
+        // 'bookingSuccessful' message. Match either shape.
+        window.addEventListener('message', function (e) {
+            var d = e && e.data;
+            if (!d) return;
+            var kind = (typeof d === 'string') ? d : (d.event || d.type || '');
+            if (typeof kind === 'string' && /event_scheduled|bookingSuccessful/i.test(kind)) {
+                try { posthog.capture('specialist_call_booked', {}, { transport: 'sendBeacon' }); } catch (e2) {}
+                try { gtag('event', 'specialist_call_booked', { event_category: 'conversion' }); } catch (e2) {}
+            }
+        });
 
         // =============================================
         // INLINE DODO CHECKOUT — renders the payment on-site (in the left panel)
