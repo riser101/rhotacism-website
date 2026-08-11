@@ -7384,7 +7384,7 @@
                 try {
                     var v = (window.posthog && posthog.getFeatureFlag)
                         ? posthog.getFeatureFlag('pricing-tier-test') : null;
-                    if (v === 'test') applyTest(); // control / null / anything else => leave control HTML
+                    if (false) applyTest(); // control / null / anything else => leave control HTML
                 } catch (e) {}
             }
             if (window.posthog && posthog.onFeatureFlags) posthog.onFeatureFlags(resolve);
