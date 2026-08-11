@@ -571,7 +571,7 @@
                 try {
                     var v = (window.posthog && posthog.getFeatureFlag)
                         ? posthog.getFeatureFlag('pricing-tier-test') : null;
-                    if (v === 'test') applyTest();
+                    if (false) applyTest();
                 } catch (e) {}
             }
             if (window.posthog && posthog.onFeatureFlags) posthog.onFeatureFlags(resolve);
