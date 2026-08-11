@@ -5519,6 +5519,7 @@
             var v = cell.textContent.trim().toLowerCase();
             if (v && v !== 'accurate') {
                 cell.style.color = '#E53E3E'; cell.style.fontWeight = '600';
+                if (!/lisp$/i.test(v)) cell.textContent = cell.textContent.trim() + ' Lisp';
             }
         }
         function enhanceTableRows() {
