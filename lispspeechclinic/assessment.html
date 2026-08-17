@@ -6094,8 +6094,10 @@
 
                 await dodoMountSession();
                 try { gtag('event', 'inline_checkout_open', { event_category: 'conversion', event_label: productId }); } catch (e) {}
+                try { posthog.capture('inline_checkout_open', { product_id: productId, plan: DODO_PLAN_NAMES[productId] || null }, { transport: 'sendBeacon' }); } catch (e) {}
             } catch (err) {
                 console.error('[inline-checkout] failed:', err);
+                try { posthog.capture('inline_checkout_error', { product_id: productId, message: String(err && err.message || err).slice(0, 200) }, { transport: 'sendBeacon' }); } catch (e) {}
                 if (pageEl) pageEl.style.display = '';
                 if (footEl) footEl.style.display = '';
                 if (wrap) wrap.style.display = 'none';
