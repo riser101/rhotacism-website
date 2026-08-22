@@ -8,7 +8,10 @@
 
     // Wait for PostHog to be ready
     function initPostHogTracking() {
-        if (typeof posthog === 'undefined') {
+        // posthog.init() is skipped on localhost, and the loader stub only gains its
+        // method shims inside init() — so the global can exist without capture().
+        // Check for the method, not just the global, or every handler below throws.
+        if (typeof posthog === 'undefined' || typeof posthog.capture !== 'function') {
             console.warn('PostHog not initialized');
             return;
         }
