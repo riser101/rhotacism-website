@@ -13,15 +13,10 @@
             return;
         }
 
-        // Track page view with detailed info
-        posthog.capture('$pageview', {
-            page_title: document.title,
-            page_url: window.location.href,
-            page_path: window.location.pathname,
-            referrer: document.referrer,
-            viewport_width: window.innerWidth,
-            viewport_height: window.innerHeight
-        });
+        // NOTE: $pageview is auto-captured by posthog.init(defaults: '2025-11-30'),
+        // which already sends $current_url / $pathname / $referrer / $viewport_*.
+        // Capturing it again here double-counted every pageview and halved every
+        // view-to-click conversion rate. Do not re-add.
 
         // Track App Store link clicks. Uses sendBeacon so the event survives the
         // navigation without delaying it — the browser guarantees delivery even as

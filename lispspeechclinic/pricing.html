@@ -16,8 +16,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css?v=20260722">
-    <link rel="stylesheet" href="/lispspeechclinic/css/nav.css?v=20260722">
+    <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css?v=20260822">
+    <link rel="stylesheet" href="/lispspeechclinic/css/nav.css?v=20260822">
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
@@ -386,7 +386,7 @@
     <!-- END POSTHOG ANALYTICS CODE -->
 
     <!-- Load PostHog Event Tracking -->
-    <script src="/lispspeechclinic/js/posthog-tracking.js?v=20260722"></script>
+    <script src="/lispspeechclinic/js/posthog-tracking.js?v=20260822"></script>
 </head>
 <body>
     <!-- NAV_PLACEHOLDER -->
@@ -578,9 +578,29 @@
         })();
     </script>
 
+    <!-- Track Dodo checkout clicks (sendBeacon survives the navigation) -->
+    <script>
+        (function () {
+            document.querySelectorAll('.pricing-grid .cta[onclick*="dodopayments"]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    if (!(window.posthog && posthog.capture)) return;
+                    var onclick = btn.getAttribute('onclick') || '';
+                    var m = onclick.match(/buy\/(pdt_[A-Za-z0-9]+)/);
+                    var card = btn.closest('.pricing-card');
+                    var title = card && card.querySelector('.plan-title');
+                    posthog.capture('pricing_checkout_click', {
+                        product_id: m ? m[1] : null,
+                        plan: title ? title.textContent.trim() : null,
+                        surface: 'pricing_page'
+                    }, { transport: 'sendBeacon' });
+                });
+            });
+        })();
+    </script>
+
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="/lispspeechclinic/js/login-modal.js?v=20260722"></script>
-    <script src="/lispspeechclinic/js/enhanced-analytics.js?v=20260722"></script>
-    <script src="/lispspeechclinic/js/nav.js?v=20260722"></script>
+    <script src="/lispspeechclinic/js/login-modal.js?v=20260822"></script>
+    <script src="/lispspeechclinic/js/enhanced-analytics.js?v=20260822"></script>
+    <script src="/lispspeechclinic/js/nav.js?v=20260822"></script>
 </body>
 </html>

@@ -11,8 +11,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/lispspeechclinic/css/common-gradient.css?v=20260722">
-    <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css?v=20260722">
+    <link rel="stylesheet" href="/lispspeechclinic/css/common-gradient.css?v=20260822">
+    <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css?v=20260822">
     <!-- intl-tel-input: searchable country phone picker for the assessment step-4 phone
          field. WithUtils bundle includes libphonenumber for format validation
          (isValidNumber). Deferred — only used once the user reaches step 4. -->
@@ -301,7 +301,7 @@
     <!-- END POSTHOG ANALYTICS CODE -->
 
     <!-- Load PostHog Event Tracking -->
-    <script src="/lispspeechclinic/js/posthog-tracking.js?v=20260722"></script>
+    <script src="/lispspeechclinic/js/posthog-tracking.js?v=20260822"></script>
 
 
     <script type="application/ld+json">
@@ -2262,7 +2262,6 @@
             .seg-header { margin-bottom: 6px; }
             .tier-badge { font-size: 8px; padding: 2px 6px; }
             .seg-phoneme { font-size: 13px; }
-            .seg-sep { font-size: 10px; }
             .seg-position { font-size: 9px; }
             .seg-counter { font-size: 10px; }
             .seg-pip { height: 3px; }
@@ -2281,7 +2280,6 @@
             .seg-header { margin-bottom: 10px; }
             .tier-badge { font-size: 9px; padding: 3px 8px; }
             .seg-phoneme { font-size: 16px; }
-            .seg-sep { font-size: 12px; }
             .seg-position { font-size: 10px; }
             .seg-counter { font-size: 11px; }
             .seg-pip { height: 4px; }
@@ -2351,7 +2349,9 @@
             color: #fff;
             letter-spacing: 0.03em;
         }
-        .seg-sep { color: rgba(255,255,255,0.2); font-size: 12px; }
+        /* Separator lives on the label so a narrow-screen wrap carries it to the
+           next line instead of stranding it at the end of the previous one. */
+        .seg-position::before { content: '·'; margin-right: 3px; color: rgba(255,255,255,0.2); }
         .seg-position {
             font-family: monospace;
             font-size: 10px;
@@ -2531,7 +2531,7 @@
             .rec-aside .aside-box.proto-box { order: 4; }
         }
     </style>
-    <link rel="stylesheet" href="css/nav.css?v=20260722">
+    <link rel="stylesheet" href="css/nav.css?v=20260822">
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/bundle.min.js"></script>
 </head>
@@ -2675,16 +2675,15 @@
 
                     <!-- Unified recording panel: word picker + waveform + record button -->
                     <div class="recording-panel">
-                    <!-- Segment identity + 12-segment progress strip -->
+                    <!-- Segment identity + 9-segment progress strip -->
                     <div class="seg-block">
                         <div class="seg-header">
                             <div class="seg-left">
                                 <span class="tier-badge" id="segTierBadge">TIER 1</span>
                                 <span class="seg-phoneme" id="segPhoneme">/s/</span>
-                                <span class="seg-sep">·</span>
                                 <span class="seg-position" id="segPosition">INITIAL</span>
                             </div>
-                            <div class="seg-counter">SEG <b id="segNum">01</b>/<span id="segOf">12</span></div>
+                            <div class="seg-counter">SEG <b id="segNum">01</b>/<span id="segOf">9</span></div>
                         </div>
                         <div class="seg-strip" id="segStrip"><!-- pips filled by JS --></div>
                     </div>
@@ -3148,39 +3147,26 @@
                 words: [
                     // /s/ initial
                     { word: 'sun',     position: 'initial', sound: '/s/' },
-                    { word: 'soap',    position: 'initial', sound: '/s/' },
                     { word: 'sock',    position: 'initial', sound: '/s/' },
                     // /s/ medial
                     { word: 'pencil',  position: 'medial', sound: '/s/' },
                     { word: 'bicycle', position: 'medial', sound: '/s/' },
-                    { word: 'dinosaur',position: 'medial', sound: '/s/' },
                     // /s/ final
                     { word: 'bus',     position: 'final', sound: '/s/' },
-                    { word: 'house',   position: 'final', sound: '/s/' },
                     { word: 'mouse',   position: 'final', sound: '/s/' },
                     // /z/ initial
                     { word: 'zoo',     position: 'initial', sound: '/z/' },
-                    { word: 'zebra',   position: 'initial', sound: '/z/' },
                     // /z/ medial
                     { word: 'music',   position: 'medial', sound: '/z/' },
-                    { word: 'lazy',    position: 'medial', sound: '/z/' },
                     // /z/ final
                     { word: 'nose',    position: 'final', sound: '/z/' },
-                    { word: 'rose',    position: 'final', sound: '/z/' },
                     // s-clusters (initial)
                     { word: 'spoon',   position: 'cluster', sound: '/sp/' },
                     { word: 'star',    position: 'cluster', sound: '/st/' },
-                    { word: 'school',  position: 'cluster', sound: '/sk/' },
                     { word: 'slide',   position: 'cluster', sound: '/sl/' },
-                    { word: 'smile',   position: 'cluster', sound: '/sm/' },
-                    { word: 'snake',   position: 'cluster', sound: '/sn/' },
-                    { word: 'swing',   position: 'cluster', sound: '/sw/' },
                     // s-clusters (final)
                     { word: 'box',     position: 'cluster', sound: '/ks/' },
-                    { word: 'six',     position: 'cluster', sound: '/ks/' },
-                    { word: 'nest',    position: 'cluster', sound: '/st/' },
-                    { word: 'mask',    position: 'cluster', sound: '/sk/' },
-                    { word: 'boats',   position: 'cluster', sound: '/ts/' }
+                    { word: 'nest',    position: 'cluster', sound: '/st/' }
                 ]
             },
             {
@@ -3189,13 +3175,10 @@
                 words: [
                     // /ʃ/ (sh)
                     { word: 'shoe',    position: 'initial', sound: '/ʃ/' },
-                    { word: 'fish',    position: 'final', sound: '/ʃ/' },
                     // /tʃ/ (ch)
-                    { word: 'chair',   position: 'initial', sound: '/tʃ/' },
                     { word: 'watch',   position: 'final', sound: '/tʃ/' },
                     // /dʒ/ (j)
-                    { word: 'jump',    position: 'initial', sound: '/dʒ/' },
-                    { word: 'bridge',  position: 'final', sound: '/dʒ/' }
+                    { word: 'jump',    position: 'initial', sound: '/dʒ/' }
                 ]
             },
             {
@@ -3243,24 +3226,20 @@
         }
 
         // =============================================
-        // SEGMENT METADATA — 12 segments across 3 tiers.
+        // SEGMENT METADATA — 9 segments across 4 tiers.
         // Partitions the linear TEST_WORDS list (sound + position groups).
         // Display only; recording loop stays index-driven.
         // =============================================
         const SEGMENTS = [
-            { tier: 1, phoneme: '/s/',   pos: 'INITIAL',      count: 3 },
-            { tier: 1, phoneme: '/s/',   pos: 'MEDIAL',       count: 3 },
-            { tier: 1, phoneme: '/s/',   pos: 'FINAL',        count: 3 },
-            { tier: 1, phoneme: '/z/',   pos: 'INITIAL',      count: 2 },
-            { tier: 1, phoneme: '/z/',   pos: 'MEDIAL',       count: 2 },
-            { tier: 1, phoneme: '/z/',   pos: 'FINAL',        count: 2 },
-            { tier: 1, phoneme: '/s/',   pos: 'CLUSTERS (I)', count: 7 },
-            { tier: 1, phoneme: '/s/',   pos: 'CLUSTERS (F)', count: 5 },
-            { tier: 2, phoneme: '/ʃ/',   pos: 'SH',           count: 2 },
-            { tier: 2, phoneme: '/tʃ/',  pos: 'CH',           count: 2 },
-            { tier: 2, phoneme: '/dʒ/',  pos: 'J',            count: 2 },
-            { tier: 3, phoneme: '/s,z/', pos: 'SENTENCES',    count: 6 },
-            { tier: 4, phoneme: '/s,z/', pos: 'FREE SPEECH',  count: 1 },
+            { tier: 1, phoneme: '/s/',      pos: 'INITIAL',      count: 2 },
+            { tier: 1, phoneme: '/s/',      pos: 'MEDIAL',       count: 2 },
+            { tier: 1, phoneme: '/s/',      pos: 'FINAL',        count: 2 },
+            { tier: 1, phoneme: '/z/',      pos: 'ALL POSITIONS',count: 3 },
+            { tier: 1, phoneme: '/s/',      pos: 'CLUSTERS (I)', count: 3 },
+            { tier: 1, phoneme: '/s/',      pos: 'CLUSTERS (F)', count: 2 },
+            { tier: 2, phoneme: '/ʃ,tʃ,dʒ/',pos: 'SH · CH · J',  count: 3 },
+            { tier: 3, phoneme: '/s,z/',    pos: 'SENTENCES',    count: 6 },
+            { tier: 4, phoneme: '/s,z/',    pos: 'FREE SPEECH',  count: 1 },
         ];
         const SEG_TIER_META = {
             1: { label: 'TIER 1', name: 'Core /s/ and /z/',   cls: 't1', color: '#22D3EE', border: 'rgba(34,211,238,0.4)',  doneCls: 'done-t1', curCls: 'cur-t1' },
@@ -4442,7 +4421,7 @@
             });
         }
 
-        // All probes (64 words + sentences) go to Gemini in ONE request. The
+        // All probes (17 words + 6 sentences + 1 spontaneous) go to Gemini in ONE request. The
         // backend returns two tables — words and sentences — which we group into
         // tier categories for the results page.
         // Client-side retry: each attempt is a FRESH fetch (fresh connection), so a
@@ -6069,6 +6048,18 @@
         }
 
         async function openInlineCheckout(productId, btn) {
+            // Buy-intent, captured at click time. Must fire BEFORE the button label is
+            // swapped to 'Loading…' below (the generic cta_click/button_click handlers in
+            // posthog-tracking.js read innerText after this, so they see 'Loading…' and
+            // lose the plan). sendBeacon so it survives if the user navigates away while
+            // the checkout session is still being created.
+            try {
+                posthog.capture('pricing_checkout_click', {
+                    product_id: productId,
+                    plan: DODO_PLAN_NAMES[productId] || null,
+                    surface: 'assessment_inline'
+                }, { transport: 'sendBeacon' });
+            } catch (e) {}
             var pageEl = document.querySelector('#asmtPricing .pricing-page');
             var footEl = document.querySelector('#asmtPricing .footer-separator-wrap');
             var wrap = document.getElementById('dodoCheckoutWrap');
@@ -7336,9 +7327,9 @@
         gtag('event', 'assessment_started', { event_category: 'engagement', event_label: 'multi_step_assessment' });
     </script>
     <!-- Enhanced Analytics -->
-    <script src="/lispspeechclinic/js/enhanced-analytics.js?v=20260722"></script>
-    <script src="/lispspeechclinic/js/login-modal.js?v=20260722"></script>
-    <script src="/lispspeechclinic/js/nav.js?v=20260722"></script>
+    <script src="/lispspeechclinic/js/enhanced-analytics.js?v=20260822"></script>
+    <script src="/lispspeechclinic/js/login-modal.js?v=20260822"></script>
+    <script src="/lispspeechclinic/js/nav.js?v=20260822"></script>
 
 
 
