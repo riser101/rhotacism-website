@@ -409,17 +409,14 @@
            without svh.
            ------------------------------------------------------------------ */
         @media (max-width: 768px) {
-            body { padding-bottom: 96px; }
-
             /* The first screen is exactly one viewport: header + trust + card.
                The review and footer therefore begin below the fold. */
             .pricing-page { --top-pad: 80px; }
             .plans-screen {
-                min-height: calc(100vh - var(--top-pad));
-                min-height: calc(100svh - var(--top-pad));
-                /* Reserve the floating CTA's zone below the track, so the card
-                   (and its border) always ends above the button. */
-                padding-bottom: calc(74px + env(safe-area-inset-bottom));
+                /* The sticky CTA sits in flow right after the dots, so its zone
+                   is subtracted here — no dead gap between dots and button. */
+                min-height: calc(100vh - var(--top-pad) - 76px - env(safe-area-inset-bottom));
+                min-height: calc(100svh - var(--top-pad) - 76px - env(safe-area-inset-bottom));
             }
 
             /* Header: buy back vertical space for the card. */
@@ -507,18 +504,18 @@
             .features li svg { width: clamp(10px, 1.5vh, 14px); height: clamp(10px, 1.5vh, 14px); }
             .features li svg { width: clamp(10px, 1.5svh, 14px); height: clamp(10px, 1.5svh, 14px); }
 
-            /* The CTA floats over the card rather than sitting in a bar, so the
-               card owns the full screen. The wrapper ignores pointer events so
+            /* The CTA is a sticky bar at the bottom of the viewport: pinned
+               while the cards are on screen, settles into flow once the buyer
+               scrolls past the plans. The wrapper ignores pointer events so
                only the button itself is clickable. */
             .global-cta-wrap {
-                position: fixed;
+                position: sticky;
                 bottom: 0;
-                left: 0;
                 width: 100%;
                 max-width: none;
                 z-index: 50;
                 margin-top: 0;
-                padding: 0 18px calc(16px + env(safe-area-inset-bottom));
+                padding: 10px 18px calc(14px + env(safe-area-inset-bottom));
                 background: none;
                 border-top: none;
                 pointer-events: none;
@@ -527,7 +524,7 @@
                 max-width: none;
                 pointer-events: auto;
                 border-radius: 14px;
-                box-shadow: 0 7px 0 0 #013a5f, 0 12px 34px rgba(0,0,0,0.55), 0 0 0 6px rgba(26,26,26,0.35);
+                box-shadow: 0 7px 0 0 #013a5f, 0 12px 34px rgba(0,0,0,0.55);
             }
 
             .carousel-dots {

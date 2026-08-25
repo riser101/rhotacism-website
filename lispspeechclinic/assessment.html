@@ -1730,25 +1730,30 @@
         #step4 .ob-panel-left.showing-pricing .card-wrap.has-badge {
             padding-top: 32px;
         }
-        /* Testimonial: desktop overlays it on the step-4 photo panel; the in-flow
-           strip in the pricing column is mobile-only (photo hidden ≤900px). */
-        #step4 .ob-panel-left.showing-pricing .testimonial-strip { display: none; }
+        /* Testimonial: shown in-flow below the CTA at every width (matches the
+           card's 600px cap on tablet/desktop); the photo-panel overlay note is
+           hidden while the pricing view is up so the review isn't duplicated. */
+        #step4 .ob-panel-left.showing-pricing .testimonial-strip { max-width: 600px; }
+        #step4 .ob-panel-left.showing-pricing ~ .ob-panel-right .ob-photo-testimonial { display: none; }
+        /* White review note "clipped" onto the step-4 photo — same card styling
+           as the pricing.html testimonial (white, 3px edges, photo avatar, blue
+           verified chip), with a slight tilt + tape strip to sell the note look. */
         .ob-photo-testimonial {
-            position: absolute; left: 28px; right: 28px; bottom: 100px; z-index: 2;
-            background: rgba(17,24,39,0.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.16); border-left: 3px solid #0291F7;
-            border-radius: 12px; padding: 12px 16px; margin: 0;
+            position: absolute; left: 26px; top: 96px; right: auto; bottom: auto; z-index: 2;
+            max-width: 380px;
+            background: #fff; border: 1px solid #E2E8F0;
+            border-radius: 3px; padding: 14px 16px; margin: 0;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+            transform: scale(0.8); transform-origin: top left;
+        }
+        .ob-photo-testimonial::before {
+            content: ''; position: absolute; top: -13px; left: 16px;
+            width: 28px; height: 28px;
+            background: url('/lispspeechclinic/images/paperclip.png?v=20260825') no-repeat center / contain;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.25));
         }
         .ob-photo-testimonial blockquote {
-            margin: 9px 0 0; font-size: 13px; line-height: 1.5; color: #fff; font-weight: 400;
-        }
-        .ob-photo-testimonial .review-name { color: #fff; }
-        .ob-photo-testimonial .review-meta { color: rgba(255,255,255,0.75); }
-        .ob-photo-testimonial .review-verified {
-            color: #9AE6B4; background: rgba(56,161,105,0.28); border-color: rgba(154,230,180,0.4);
-        }
-        @media (max-width: 900px) {
-            #step4 .ob-panel-left.showing-pricing .testimonial-strip { display: block; }
+            margin: 10px 0 0; font-size: 13.5px; line-height: 1.55; color: #1F2937; font-weight: 400;
         }
         .asmt-pricing-view {
             flex: 1 1 auto;
@@ -1769,6 +1774,9 @@
             min-height: 100%;
             justify-content: flex-start;
         }
+        .asmt-pricing-view .plans-screen {
+            width: 100%; display: flex; flex-direction: column; align-items: center;
+        }
         .asmt-pricing-view .pricing-header { text-align: center; max-width: 1240px; width: 100%; }
         .asmt-pricing-view .pricing-header h1 {
             font-family: 'Inter', sans-serif;
@@ -1786,7 +1794,7 @@
         .asmt-pricing-view .testimonial-strip {
             max-width: 680px; width: 100%; margin: 18px auto 0; padding: 14px 16px;
             background: #fff; border: 1px solid #E2E8F0;
-            border-radius: 12px; box-shadow: 0 4px 14px rgba(26,32,44,0.06); text-align: left;
+            border-radius: 3px; box-shadow: 0 6px 18px rgba(0,0,0,0.18); text-align: left;
         }
         .asmt-pricing-view .testimonial-strip blockquote {
             margin: 10px 0 0; font-size: 13.5px; line-height: 1.55; color: #1F2937; font-weight: 400;
@@ -1794,17 +1802,18 @@
         .review-head { display: flex; align-items: center; gap: 10px; }
         .review-avatar {
             width: 34px; height: 34px; border-radius: 50%; flex: 0 0 34px;
-            background: #0291F7; color: #fff; font-weight: 700; font-size: 15px;
-            display: flex; align-items: center; justify-content: center;
+            object-fit: cover; object-position: center 30%; display: block;
         }
         .review-id { display: flex; flex-direction: column; min-width: 0; }
         .review-name { font-size: 13.5px; font-weight: 700; color: #1A202C; line-height: 1.3; }
         .review-meta { font-size: 11.5px; font-weight: 500; color: #718096; line-height: 1.3; }
         .review-verified {
-            margin-left: auto; display: inline-flex; align-items: center; gap: 4px;
-            font-size: 11px; font-weight: 700; color: #2F855A; background: #F0FFF4;
-            border: 1px solid #C6F6D5; border-radius: 999px; padding: 3px 8px; white-space: nowrap;
+            align-self: flex-start; margin-top: 4px;
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 11px; font-weight: 700; color: #1E56D6; background: #EFF4FF;
+            border: 1px solid #C9D9FF; border-radius: 3px; padding: 3px 8px; white-space: nowrap;
         }
+        .review-verified img { width: 13px; height: 13px; display: block; }
         .asmt-pricing-view .pricing-grid {
             width: 100%; max-width: 1240px; margin-top: 26px;
             display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: stretch;
@@ -1820,17 +1829,21 @@
         }
         .asmt-pricing-view .pricing-card {
             position: relative; background: #FDFDFD;
-            border: 1px solid #E2E8F0; border-radius: 18px;
-            padding: 24px 22px 22px; box-shadow: 0 10px 26px rgba(0,0,0,0.07);
-            cursor: pointer; transition: transform .25s cubic-bezier(0.4,0,0.2,1), box-shadow .25s;
+            border: 2px solid #E2E8F0; border-radius: 18px;
+            padding: 23px 21px 21px; box-shadow: 0 10px 26px rgba(0,0,0,0.07);
+            cursor: pointer; opacity: 0.8;
+            transition: transform .25s cubic-bezier(0.4,0,0.2,1), box-shadow .25s, border-color .25s, opacity .25s;
             display: flex; flex-direction: column; flex: 1; min-height: 0;
         }
         .asmt-pricing-view .pricing-card.highlight {
-            border-color: #0291F7;
             box-shadow: 0 16px 40px -10px rgba(2,145,247,0.25), 0 10px 32px rgba(0,0,0,0.09);
-            transform: translateY(-5px);
         }
-        .asmt-pricing-view .pricing-card:hover { transform: translateY(-5px); }
+        .asmt-pricing-view .pricing-card:hover { transform: translateY(-5px); opacity: 1; }
+        .asmt-pricing-view .pricing-card.active {
+            border-color: #0291F7;
+            opacity: 1;
+            box-shadow: 0 0 0 4px rgba(2,145,247,0.14), 0 16px 40px -10px rgba(2,145,247,0.25);
+        }
         .asmt-pricing-view .plan-eyebrow {
             font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
             color: rgba(0,0,0,0.5); margin-bottom: 7px;
@@ -1879,32 +1892,42 @@
             flex: 0 0 15px; width: 15px; height: 15px; margin-top: 2px;
             display: flex; align-items: center; justify-content: center; background: transparent;
         }
+        /* Single global CTA: sticky to the bottom of the scrolling panel so it's
+           always in view while the buyer compares the (stacked) cards. */
+        .asmt-pricing-view .global-cta-wrap {
+            position: sticky; bottom: 0; z-index: 5;
+            width: 100%; max-width: 560px; margin-top: 22px;
+            padding: 12px 0 14px;
+            display: flex; justify-content: center;
+            background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 40%);
+            pointer-events: none;
+        }
         .asmt-pricing-view .cta {
-            margin-top: 18px; width: 100%; padding: 14px 16px; border-radius: 11px;
-            border: 1px solid #CBD5E0; cursor: pointer; font-family: inherit;
-            font-size: 14px; font-weight: 700; letter-spacing: -0.005em; color: #1A202C;
-            background: #fff; box-shadow: 0 5px 0 0 #CBD5E0;
+            width: 100%; max-width: 360px; padding: 15px 18px; border-radius: 12px;
+            border: none; cursor: pointer; font-family: inherit; pointer-events: auto;
+            font-size: 15px; font-weight: 700; letter-spacing: -0.005em; color: #fff;
+            background: linear-gradient(135deg, #0291F7 0%, #026db9 100%);
+            box-shadow: 0 7px 0 0 #013a5f, 0 14px 28px rgba(2,145,247,0.3);
             transition: transform .12s ease, box-shadow .12s ease, background .25s;
         }
-        .asmt-pricing-view .cta:hover { background: #F7FAFC; }
-        .asmt-pricing-view .cta:active { transform: translateY(5px); box-shadow: 0 0 0 0 #CBD5E0; }
-        .asmt-pricing-view .pricing-card.highlight .cta {
-            border: none; color: #fff; background: linear-gradient(135deg, #0291F7 0%, #026db9 100%);
-            box-shadow: 0 7px 0 0 #013a5f, 0 14px 28px rgba(2,145,247,0.3);
-        }
-        .asmt-pricing-view .pricing-card.highlight .cta:hover { background: linear-gradient(135deg, #0291F7 0%, #026db9 100%); }
-        .asmt-pricing-view .pricing-card.highlight .cta:active {
+        .asmt-pricing-view .cta:active {
             transform: translateY(7px); box-shadow: 0 0 0 0 #013a5f, 0 14px 28px rgba(2,145,247,0.3);
         }
         .asmt-pricing-view .trust-strip {
-            margin-top: 26px; width: 100%; max-width: 1240px;
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+            margin-top: 14px; width: 100%; max-width: 1240px;
+            display: flex; justify-content: center;
         }
+        .asmt-pricing-view .trust-track {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+        }
+        .asmt-pricing-view .trust-pill.trust-dup { display: none; }
         .asmt-pricing-view .trust-pill {
-            display: flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 18px;
+            display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 16px;
             background: #F7FAFC; border: 1px solid #E2E8F0; border-radius: 999px;
-            font-size: 13.5px; color: #111; font-weight: 700; white-space: nowrap;
+            font-size: 12.5px; color: #111; font-weight: 700; white-space: nowrap;
         }
+        /* Position indicator for the mobile carousel; hidden on desktop. */
+        .asmt-pricing-view .carousel-dots { display: none; }
         .asmt-pricing-view .footer-separator-wrap {
             margin-top: 24px; border-top: 1px solid rgba(0,0,0,0.07); width: 100%;
         }
@@ -1913,17 +1936,210 @@
             background: linear-gradient(90deg, transparent 0%, #454500 25%, #9a901a 50%, #454500 75%, transparent 100%);
             opacity: 0.8;
         }
-        /* Narrow / real-mobile (right panel hidden, left is full width): stack the plans */
+        /* Slider (every width): the cards are a horizontal swipe track — one
+           full-width card per screen; the snapped card is the selected one, so
+           the sticky CTA names what the buyer is looking at. Mirrors
+           pricing.html's mobile design — fluid clamp(<floor>, <n>svh, <desktop>)
+           sizing so header + trust + card + CTA fill exactly one viewport,
+           adapted to the panel's own scroll container. */
+            .asmt-pricing-view .pricing-page { --top-pad: 92px; --cta-zone: 76px; }
+
+            /* The first screen is exactly one viewport: header + trust + card
+               + sticky CTA. The CTA sits in flow right after the dots, so its
+               zone is subtracted here — no dead gap between dots and button. */
+            .asmt-pricing-view .plans-screen {
+                min-height: calc(100vh - var(--top-pad) - var(--cta-zone) - env(safe-area-inset-bottom));
+                min-height: calc(100svh - var(--top-pad) - var(--cta-zone) - env(safe-area-inset-bottom));
+            }
+
+            /* Header: buy back vertical space for the card. */
+            .asmt-pricing-view .pricing-header h1 { font-size: clamp(22px, 3.3vh, 30px); margin-bottom: 7px; }
+            .asmt-pricing-view .pricing-header h1 { font-size: clamp(22px, 3.3svh, 30px); }
+            .asmt-pricing-view .pricing-header p { font-size: clamp(12px, 1.8vh, 15px); line-height: 1.35; }
+            .asmt-pricing-view .pricing-header p { font-size: clamp(12px, 1.8svh, 15px); }
+            .asmt-pricing-view .shield-icon { width: 15px; height: 15px; }
+            .asmt-pricing-view .trust-strip { margin-top: 10px; }
+            .asmt-pricing-view .trust-track { gap: 5px; }
+            .asmt-pricing-view .trust-pill { padding: clamp(5px, 0.75vh, 9px) clamp(9px, 1.35vh, 12px); font-size: clamp(10.5px, 1.57vh, 12px); gap: 5px; }
+            .asmt-pricing-view .trust-pill { padding: clamp(5px, 0.75svh, 9px) clamp(9px, 1.35svh, 12px); font-size: clamp(10.5px, 1.57svh, 12px); }
+            .asmt-pricing-view .trust-pill svg { width: 12px; height: 12px; }
+
+            /* The track claims whatever height is left, and the cards stretch
+               into it — no dead gap between the card and the button. */
+            #step4 .ob-panel-left.showing-pricing .pricing-grid,
+            .asmt-pricing-view .pricing-grid {
+                display: flex;
+                flex: 1 1 auto;
+                min-height: 0;
+                max-width: none;
+                margin-top: 6px;
+                gap: 12px;
+                padding: 3px 0;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior-x: contain;
+                scrollbar-width: none;
+            }
+            .asmt-pricing-view .pricing-grid::-webkit-scrollbar { display: none; }
+            .asmt-pricing-view .card-wrap {
+                flex: 0 0 100%;
+                min-height: 0;
+                scroll-snap-align: center;
+            }
+            .asmt-pricing-view .pricing-card {
+                height: 100%;
+                overflow-y: auto;
+                overscroll-behavior-y: contain;
+                scrollbar-width: none;
+            }
+            .asmt-pricing-view .pricing-card::-webkit-scrollbar { display: none; }
+            /* No lift inside a snap track — it clips against the track edges. */
+            .asmt-pricing-view .pricing-card,
+            .asmt-pricing-view .pricing-card:hover,
+            .asmt-pricing-view .pricing-card.highlight { transform: none; }
+
+            /* Card: same content, scale interpolated between the 375x667 floor
+               and the original desktop sizes. */
+            .asmt-pricing-view .pricing-card { padding: clamp(12px, 1.8vh, 22px) clamp(13px, 1.95vh, 22px); border-radius: clamp(14px, 2.1vh, 18px); }
+            .asmt-pricing-view .pricing-card { padding: clamp(12px, 1.8svh, 22px) clamp(13px, 1.95svh, 22px); border-radius: clamp(14px, 2.1svh, 18px); }
+
+            .asmt-pricing-view .plan-eyebrow { font-size: clamp(9.5px, 1.42vh, 11px); margin-bottom: clamp(3px, 0.45vh, 7px); }
+            .asmt-pricing-view .plan-eyebrow { font-size: clamp(9.5px, 1.42svh, 11px); margin-bottom: clamp(3px, 0.45svh, 7px); }
+            .asmt-pricing-view .plan-title { font-size: clamp(16px, 2.4vh, 19px); margin-bottom: clamp(3px, 0.45vh, 7px); }
+            .asmt-pricing-view .plan-title { font-size: clamp(16px, 2.4svh, 19px); margin-bottom: clamp(3px, 0.45svh, 7px); }
+            .asmt-pricing-view .plan-desc { font-size: clamp(11px, 1.65vh, 12.5px); line-height: 1.32; margin-bottom: clamp(7px, 1.05vh, 15px); }
+            .asmt-pricing-view .plan-desc { font-size: clamp(11px, 1.65svh, 12.5px); margin-bottom: clamp(7px, 1.05svh, 15px); }
+
+            .asmt-pricing-view .price-split { gap: clamp(12px, 1.8vh, 16px); margin-bottom: clamp(3px, 0.45vh, 6px); }
+            .asmt-pricing-view .price-split { gap: clamp(12px, 1.8svh, 16px); margin-bottom: clamp(3px, 0.45svh, 6px); }
+            .asmt-pricing-view .price-currency { font-size: clamp(13px, 1.95vh, 17px); transform: translateY(-8px); }
+            .asmt-pricing-view .price-currency { font-size: clamp(13px, 1.95svh, 17px); }
+            .asmt-pricing-view .price-amount, .asmt-pricing-view .duration-amount { font-size: clamp(29px, 4.35vh, 42px); }
+            .asmt-pricing-view .price-amount, .asmt-pricing-view .duration-amount { font-size: clamp(29px, 4.35svh, 42px); }
+            .asmt-pricing-view .duration-unit { font-size: clamp(12px, 1.8vh, 16px); }
+            .asmt-pricing-view .duration-unit { font-size: clamp(12px, 1.8svh, 16px); }
+            .asmt-pricing-view .price-note { font-size: clamp(9px, 1.35vh, 12px); margin-top: clamp(2px, 0.3vh, 6px); letter-spacing: 0.02em; }
+            .asmt-pricing-view .price-note { font-size: clamp(9px, 1.35svh, 12px); margin-top: clamp(2px, 0.3svh, 6px); }
+
+            .asmt-pricing-view .divider { margin: clamp(8px, 1.2vh, 15px) 0 clamp(7px, 1.05vh, 13px); }
+            .asmt-pricing-view .divider { margin: clamp(8px, 1.2svh, 15px) 0 clamp(7px, 1.05svh, 13px); }
+            .asmt-pricing-view .features { gap: clamp(4px, 0.6vh, 8px); }
+            .asmt-pricing-view .features { gap: clamp(4px, 0.6svh, 8px); }
+            .asmt-pricing-view .features li { font-size: clamp(11px, 1.65vh, 12.5px); line-height: clamp(14px, 2.1vh, 17px); gap: clamp(6px, 0.9vh, 8px); }
+            .asmt-pricing-view .features li { font-size: clamp(11px, 1.65svh, 12.5px); line-height: clamp(14px, 2.1svh, 17px); gap: clamp(6px, 0.9svh, 8px); }
+            .asmt-pricing-view .check { flex: 0 0 clamp(12px, 1.8vh, 15px); width: clamp(12px, 1.8vh, 15px); height: clamp(12px, 1.8vh, 15px); margin-top: 1px; }
+            .asmt-pricing-view .check { flex: 0 0 clamp(12px, 1.8svh, 15px); width: clamp(12px, 1.8svh, 15px); height: clamp(12px, 1.8svh, 15px); }
+            .asmt-pricing-view .features li svg { width: clamp(10px, 1.5vh, 14px); height: clamp(10px, 1.5vh, 14px); }
+            .asmt-pricing-view .features li svg { width: clamp(10px, 1.5svh, 14px); height: clamp(10px, 1.5svh, 14px); }
+
+            /* The CTA is a sticky bar at the bottom of the scroll container:
+               pinned while the cards are on screen, settles into flow once the
+               buyer scrolls past the plans. The wrapper ignores pointer events
+               so only the button itself is clickable. */
+            .asmt-pricing-view .global-cta-wrap {
+                position: sticky;
+                bottom: 0;
+                width: 100%;
+                max-width: none;
+                z-index: 50;
+                margin-top: 0;
+                padding: 10px 18px calc(14px + env(safe-area-inset-bottom));
+                background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 45%);
+                pointer-events: none;
+            }
+            .asmt-pricing-view .global-cta-wrap .cta {
+                max-width: none;
+                pointer-events: auto;
+                border-radius: 14px;
+                box-shadow: 0 7px 0 0 #013a5f, 0 12px 34px rgba(0,0,0,0.3), 0 0 0 6px rgba(255,255,255,0.35);
+            }
+
+            .asmt-pricing-view .carousel-dots {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 6px;
+                margin-top: 10px;
+                pointer-events: none;
+            }
+            .asmt-pricing-view .carousel-dots span {
+                width: 6px;
+                height: 6px;
+                border-radius: 999px;
+                background: rgba(0,0,0,0.18);
+                transition: background .25s, width .25s;
+            }
+            .asmt-pricing-view .carousel-dots span.active { width: 18px; background: #0291F7; }
+
+        /* Tablet + desktop (>=768px): cap the swipe track so a single card
+           doesn't stretch across the whole panel, and let the card be
+           content-height instead of filling the viewport. */
+        @media (min-width: 768px) {
+            /* Centre the header+card+CTA cluster in the panel's leftover height;
+               the decorative footer bar is dropped so it doesn't float mid-panel. */
+            .asmt-pricing-view .pricing-page { padding-top: 84px; justify-content: center; }
+            #step4 .ob-panel-left.showing-pricing .plans-screen { min-height: 0; }
+            .asmt-pricing-view .footer-separator-wrap { display: none; }
+            #step4 .ob-panel-left.showing-pricing .pricing-grid {
+                flex: 0 0 auto;
+                width: 100%;
+                max-width: 600px;
+                margin-left: auto;
+                margin-right: auto;
+                margin-top: 24px;
+            }
+            #step4 .ob-panel-left.showing-pricing .pricing-card { height: auto; }
+            .asmt-pricing-view .carousel-dots { margin-top: 16px; }
+            .asmt-pricing-view .global-cta-wrap { padding-top: 18px; }
+            .asmt-pricing-view .global-cta-wrap .cta {
+                display: block;
+                max-width: 600px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+
+        /* Narrow / real-mobile (right panel hidden, left is full width) */
         @media (max-width: 640px) {
-            .asmt-pricing-view .shield-icon { width: 18px; height: 18px; }
-            .asmt-pricing-view .pricing-page { padding: 88px 16px 60px; }
-            .asmt-pricing-view .pricing-header p { font-size: 15px; }
-            .asmt-pricing-view .pricing-grid { grid-template-columns: 1fr; margin-top: 24px; gap: 16px; max-width: 560px; }
-            .asmt-pricing-view .pricing-card { min-height: auto; padding: 24px 20px 20px; }
-            .asmt-pricing-view .price-amount { font-size: 50px; }
-            .asmt-pricing-view .features li { font-size: 14px; }
-            .asmt-pricing-view .trust-strip { display: grid; grid-template-columns: 1fr 1fr; max-width: 320px; padding: 0 4px; }
-            .asmt-pricing-view .trust-pill { padding: 9px 12px; font-size: 12px; }
+            .asmt-pricing-view .pricing-page { --top-pad: clamp(70px, 10.5vh, 88px); }
+            .asmt-pricing-view .pricing-page { --top-pad: clamp(70px, 10.5svh, 88px); }
+            .asmt-pricing-view .pricing-page { padding: var(--top-pad) 16px 24px; }
+            .asmt-pricing-view .pricing-card { min-height: auto; }
+            .asmt-pricing-view .trust-track {
+                display: grid; grid-template-columns: 1fr 1fr; max-width: 300px; padding: 0 4px;
+            }
+            .asmt-pricing-view .trust-pill { padding: 8px 12px; font-size: 12px; }
+        }
+
+        /* iPhone 13 (390px) and narrower: the four trust pills collapse into a
+           single auto-sliding marquee line (duplicated .trust-dup pills make the
+           loop seamless). Same treatment as pricing.html. */
+        @media (max-width: 390px) {
+            .asmt-pricing-view .trust-strip {
+                overflow: hidden;
+                justify-content: flex-start;
+                -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
+                mask-image: linear-gradient(90deg, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
+            }
+            .asmt-pricing-view .trust-track {
+                display: flex;
+                flex-wrap: nowrap;
+                width: max-content;
+                max-width: none;
+                padding: 0;
+                gap: 8px;
+                animation: trust-marquee 28s linear infinite;
+            }
+            .asmt-pricing-view .trust-pill.trust-dup { display: flex; }
+        }
+        @keyframes trust-marquee {
+            from { transform: translateX(0); }
+            /* Two identical halves + uniform 8px gap => one period = 50% + 4px. */
+            to { transform: translateX(calc(-50% - 4px)); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .asmt-pricing-view .trust-track { animation: none; }
         }
 
         /* legacy wrapper kept for any leftover refs (no longer used) */
@@ -2968,6 +3184,9 @@
                   <!-- Inline pricing (mirrors pricing.html exactly — shown in the left panel on Continue) -->
                   <div class="asmt-pricing-view" id="asmtPricing" style="display:none;">
                     <main class="pricing-page">
+                      <!-- On mobile this fills exactly one viewport, so the card can take
+                           the whole screen (mirrors pricing.html). -->
+                      <div class="plans-screen">
                         <section class="pricing-header">
                             <h1>Fix Your Lisp In 20 Weeks. Guaranteed.</h1>
                             <p>
@@ -2976,93 +3195,49 @@
                             </p>
                         </section>
 
-                        <figure class="testimonial-strip">
-                            <div class="review-head">
-                              <span class="review-avatar" aria-hidden="true">T</span>
-                              <span class="review-id">
-                                <span class="review-name">Tanishka N.</span>
-                                <span class="review-meta">United Kingdom &middot; via WhatsApp &middot; Aug 2026</span>
-                              </span>
-                              <span class="review-verified"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M7.5 12.5L10.5 15.5L16.5 8.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified assessment</span>
+                        <section class="trust-strip">
+                          <div class="trust-track">
+                            <div class="trust-pill">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3L4 6V12C4 16.5 7.5 20.7 12 22C16.5 20.7 20 16.5 20 12V6L12 3Z" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                HIPAA-compliant
                             </div>
-                            <blockquote>&ldquo;I have not tried their full scheme yet, but even the assessment on its own is very helpful and identifies crucial points which greatly assist in trying to fix your lisp yourself. If you are able to afford it, I think it's a great idea to join this program as it genuinely seems that they are trying to help and will help you achieve your speech goals.&rdquo;</blockquote>
-                        </figure>
+                            <div class="trust-pill">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#111" stroke-width="1.8"/><path d="M8 12L11 15L16 9" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                Clinical Oversight
+                            </div>
+                            <div class="trust-pill">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 12C7 9.2 9.2 7 12 7C14.8 7 17 9.2 17 12" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M3 12H5M19 12H21M12 3V5" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="14" r="3" stroke="#111" stroke-width="1.8"/></svg>
+                                Evidence based
+                            </div>
+                            <div class="trust-pill">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="9" r="3" stroke="#111" stroke-width="1.8"/><circle cx="17" cy="10" r="2.5" stroke="#111" stroke-width="1.8"/><path d="M3 19C3 16 5.7 14 9 14C12.3 14 15 16 15 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M15 19C15 17 16.5 15.5 19 15.5C21 15.5 22 17 22 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/></svg>
+                                Trusted in 94+ Countries
+                            </div>
+                            <!-- Duplicates for the <=390px marquee loop; hidden elsewhere. -->
+                            <div class="trust-pill trust-dup" aria-hidden="true">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3L4 6V12C4 16.5 7.5 20.7 12 22C16.5 20.7 20 16.5 20 12V6L12 3Z" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                HIPAA-compliant
+                            </div>
+                            <div class="trust-pill trust-dup" aria-hidden="true">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#111" stroke-width="1.8"/><path d="M8 12L11 15L16 9" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                Clinical Oversight
+                            </div>
+                            <div class="trust-pill trust-dup" aria-hidden="true">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 12C7 9.2 9.2 7 12 7C14.8 7 17 9.2 17 12" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M3 12H5M19 12H21M12 3V5" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="14" r="3" stroke="#111" stroke-width="1.8"/></svg>
+                                Evidence based
+                            </div>
+                            <div class="trust-pill trust-dup" aria-hidden="true">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="9" r="3" stroke="#111" stroke-width="1.8"/><circle cx="17" cy="10" r="2.5" stroke="#111" stroke-width="1.8"/><path d="M3 19C3 16 5.7 14 9 14C12.3 14 15 16 15 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M15 19C15 17 16.5 15.5 19 15.5C21 15.5 22 17 22 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/></svg>
+                                Trusted in 94+ Countries
+                            </div>
+                          </div>
+                        </section>
 
                         <section class="pricing-grid">
 
-                            <!-- Card 1: 3-month / Momentum -->
+                            <!-- Card 1: 1-month / Foundation -->
                             <div class="card-wrap">
-                                <article class="pricing-card">
-                                    <div class="plan-eyebrow">The Core Correction Window</div>
-                                    <div class="plan-title">Momentum Program</div>
-                                    <p class="plan-desc">Unlock 3 Months Of Progressive Training. Giving Your Brain &amp; Tongue The Time Needed To Break Old Habits &amp; Automate Lisp-free Speech.</p>
-                                    <div class="price-split">
-                                        <div class="price-col">
-                                            <div class="price-row">
-                                                <span class="price-currency">$</span>
-                                                <span class="price-amount">249</span>
-                                            </div>
-                                            <span class="price-note">one-time payment</span>
-                                        </div>
-                                        <div class="price-vline"></div>
-                                        <div class="price-col">
-                                            <div class="duration-row">
-                                                <span class="duration-amount">3</span>
-                                                <span class="duration-unit">months</span>
-                                            </div>
-                                            <span class="price-note">just $83 / month</span>
-                                        </div>
-                                    </div>
-                                    <div class="divider"></div>
-                                    <ul class="features">
-                                        <li class="bold"><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Everything In Foundation Program.</span></li>
-                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>The 3 Month Habit Rewire:<br>The Critical Timeframe Needed To Lock-in Your New, Lisp-free Speech.</span></li>
-                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Achieve Perfect, Lisp-free Speech At The Syllable Level (Sa, See, Is).</span></li>
-                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Achieve Perfect, Lisp-free Speech At Word Level (yes, so, and because).</span></li>
-                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Speak in full, Connected Sentences Without Losing Your Lisp-free Accuracy.</span></li>
-                                    </ul>
-                                    <button class="cta" type="button" onclick="openInlineCheckout('pdt_0NfsBcql0S0RwfIVqQMgh', this)">Start 3-month program</button>
-                                </article>
-                            </div>
-
-                            <!-- Card 2: 6-month / Mastery (highlighted) -->
-                            <div class="card-wrap">
-                                <article class="pricing-card highlight">
-                                    <div class="plan-eyebrow">The Complete Protocol</div>
-                                    <div class="plan-title">Mastery Program</div>
-                                    <p class="plan-desc">Recommended Track. Covers Full 3 Month Sequential Curriculum, And Unlocks An Extra 1 Month Of Dedicated Maintenance Track To Ensure Your Lisp Never Returns.</p>
-                                    <div class="price-split">
-                                        <div class="price-col">
-                                            <div class="price-row">
-                                                <span class="price-currency">$</span>
-                                                <span class="price-amount">448</span>
-                                            </div>
-                                            <span class="price-note">one-time payment</span>
-                                        </div>
-                                        <div class="price-vline"></div>
-                                        <div class="price-col">
-                                            <div class="duration-row">
-                                                <span class="duration-amount">6</span>
-                                                <span class="duration-unit">months</span>
-                                            </div>
-                                            <span class="price-note">just $75 / month</span>
-                                        </div>
-                                    </div>
-                                    <div class="divider"></div>
-                                    <ul class="features">
-                                        <li class="bold"><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Everything In Foundation + Momentum Programs.</span></li>
-                                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Tools To Perfect Crystal-Clear Articulation During Longer Conversations &amp; Stories While Learning To Seamlessly Self-Correct On The Fly.</span></li>
-                                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Perfect Your New Speech Skills Out In The Wild: Structured Role-Play, Simulate Real-World Scenarios. You'll Drop The Mental Gymnastics And Start Speaking Naturally.</span></li>
-                                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Tools To Make Your Lisp-Free Speech 100% Automatic—Even Under Pressure.</span></li>
-                                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Maintenance &amp; Relapse-Prevention Track.</span></li>
-                                    </ul>
-                                    <button class="cta" type="button" onclick="openInlineCheckout('pdt_0NfsBcHAFwBTjsHXCrZhn', this)">Start 6-month program</button>
-                                </article>
-                            </div>
-
-                            <!-- Card 3: 1-month / Foundation -->
-                            <div class="card-wrap">
-                                <article class="pricing-card">
+                                <article class="pricing-card" data-cta="Start 1-month program" data-product="pdt_0NfsBdExMhutyEZI9jb69">
                                     <div class="plan-eyebrow">Phase 1: Weeks 1–4</div>
                                     <div class="plan-title">Foundation Program</div>
                                     <p class="plan-desc">Every Transformation Starts At Day One. Unlock 1 Month Of Foundational Speech Exercises.</p>
@@ -3091,30 +3266,97 @@
                                         <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Catch and Correct Speech Mistakes Instantly with Quick Feedback Check Tool.</span></li>
                                         <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Build a Bulletproof Daily Practice Habit with Intelligent Reminders.</span></li>
                                     </ul>
-                                    <button class="cta" type="button" onclick="openInlineCheckout('pdt_0NfsBdExMhutyEZI9jb69', this)">Start 1-month program</button>
                                 </article>
                             </div>
 
-                        </section>
+                        <!-- Card 2: 3-month / Momentum -->
+                            <div class="card-wrap">
+                                <article class="pricing-card" data-cta="Start 3-month program" data-product="pdt_0NfsBcql0S0RwfIVqQMgh">
+                                    <div class="plan-eyebrow">The Core Correction Window</div>
+                                    <div class="plan-title">Momentum Program</div>
+                                    <p class="plan-desc">Unlock 3 Months Of Progressive Training. Giving Your Brain &amp; Tongue The Time Needed To Break Old Habits &amp; Automate Lisp-free Speech.</p>
+                                    <div class="price-split">
+                                        <div class="price-col">
+                                            <div class="price-row">
+                                                <span class="price-currency">$</span>
+                                                <span class="price-amount">249</span>
+                                            </div>
+                                            <span class="price-note">one-time payment</span>
+                                        </div>
+                                        <div class="price-vline"></div>
+                                        <div class="price-col">
+                                            <div class="duration-row">
+                                                <span class="duration-amount">3</span>
+                                                <span class="duration-unit">months</span>
+                                            </div>
+                                            <span class="price-note">just $83 / month</span>
+                                        </div>
+                                    </div>
+                                    <div class="divider"></div>
+                                    <ul class="features">
+                                        <li class="bold"><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Everything In Foundation Program.</span></li>
+                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>The 3 Month Habit Rewire:<br>The Critical Timeframe Needed To Lock-in Your New, Lisp-free Speech.</span></li>
+                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Achieve Perfect, Lisp-free Speech At The Syllable Level (Sa, See, Is).</span></li>
+                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Achieve Perfect, Lisp-free Speech At Word Level (yes, so, and because).</span></li>
+                                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="#38A169" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Speak in full, Connected Sentences Without Losing Your Lisp-free Accuracy.</span></li>
+                                    </ul>
+                                </article>
+                            </div>
 
-                        <section class="trust-strip">
-                            <div class="trust-pill">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3L4 6V12C4 16.5 7.5 20.7 12 22C16.5 20.7 20 16.5 20 12V6L12 3Z" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                HIPAA-compliant
+                            <!-- Card 3: 6-month / Mastery (highlighted) -->
+                            <div class="card-wrap">
+                                <article class="pricing-card highlight" data-cta="Start 6-month program" data-default data-product="pdt_0NfsBcHAFwBTjsHXCrZhn">
+                                    <div class="plan-eyebrow">The Complete Protocol</div>
+                                    <div class="plan-title">Mastery Program</div>
+                                    <p class="plan-desc">Recommended Track. Covers Full 3 Month Sequential Curriculum, And Unlocks An Extra 1 Month Of Dedicated Maintenance Track To Ensure Your Lisp Never Returns.</p>
+                                    <div class="price-split">
+                                        <div class="price-col">
+                                            <div class="price-row">
+                                                <span class="price-currency">$</span>
+                                                <span class="price-amount">448</span>
+                                            </div>
+                                            <span class="price-note">one-time payment</span>
+                                        </div>
+                                        <div class="price-vline"></div>
+                                        <div class="price-col">
+                                            <div class="duration-row">
+                                                <span class="duration-amount">6</span>
+                                                <span class="duration-unit">months</span>
+                                            </div>
+                                            <span class="price-note">just $75 / month</span>
+                                        </div>
+                                    </div>
+                                    <div class="divider"></div>
+                                    <ul class="features">
+                                        <li class="bold"><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Everything In Foundation + Momentum Programs.</span></li>
+                                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Tools To Perfect Crystal-Clear Articulation During Longer Conversations &amp; Stories While Learning To Seamlessly Self-Correct On The Fly.</span></li>
+                                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Perfect Your New Speech Skills Out In The Wild: Structured Role-Play, Simulate Real-World Scenarios. You'll Drop The Mental Gymnastics And Start Speaking Naturally.</span></li>
+                                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Tools To Make Your Lisp-Free Speech 100% Automatic—Even Under Pressure.</span></li>
+                                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Maintenance &amp; Relapse-Prevention Track.</span></li>
+                                    </ul>
+                                </article>
                             </div>
-                            <div class="trust-pill">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#111" stroke-width="1.8"/><path d="M8 12L11 15L16 9" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                Clinical Oversight
+
+                            </section>
+
+                        <div class="carousel-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                      </div>
+
+                        <div class="global-cta-wrap">
+                            <button id="asmtGlobalCta" class="cta" type="button">Start 6-month program</button>
+                        </div>
+
+                        <figure class="testimonial-strip">
+                            <div class="review-head">
+                              <img class="review-avatar" src="/lispspeechclinic/images/review-tanishka.jpg?v=20260825" alt="Tanishka N." width="34" height="34">
+                              <span class="review-id">
+                                <span class="review-name">Tanishka N.</span>
+                                <span class="review-meta">United Kingdom &middot; via WhatsApp &middot; Aug 2026</span>
+                                <span class="review-verified"><img src="/lispspeechclinic/images/checklist.png?v=20260825" alt="" width="13" height="13">Verified assessment</span>
+                              </span>
                             </div>
-                            <div class="trust-pill">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 12C7 9.2 9.2 7 12 7C14.8 7 17 9.2 17 12" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M3 12H5M19 12H21M12 3V5" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="14" r="3" stroke="#111" stroke-width="1.8"/></svg>
-                                Evidence based
-                            </div>
-                            <div class="trust-pill">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="9" r="3" stroke="#111" stroke-width="1.8"/><circle cx="17" cy="10" r="2.5" stroke="#111" stroke-width="1.8"/><path d="M3 19C3 16 5.7 14 9 14C12.3 14 15 16 15 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M15 19C15 17 16.5 15.5 19 15.5C21 15.5 22 17 22 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/></svg>
-                                Trusted in 94+ Countries
-                            </div>
-                        </section>
+                            <blockquote>&ldquo;Even the biweekly assessments on their own are very helpful and identifies crucial points which greatly assist in trying to fix your lisp yourself. I think it's a great idea to join this program as it genuinely seems that they are trying to help and will help you achieve your speech goals.&rdquo;</blockquote>
+                        </figure>
                     </main>
                     <div class="footer-separator-wrap">
                         <div class="footer-accent-bar"></div>
@@ -3163,14 +3405,14 @@
                   <img src="/lispspeechclinic/sign-in-page-image.jpg" alt="" class="ob-hero-img">
                   <figure class="ob-photo-testimonial">
                     <div class="review-head">
-                      <span class="review-avatar" aria-hidden="true">T</span>
+                      <img class="review-avatar" src="/lispspeechclinic/images/review-tanishka.jpg?v=20260825" alt="Tanishka N." width="34" height="34">
                       <span class="review-id">
                         <span class="review-name">Tanishka N.</span>
                         <span class="review-meta">United Kingdom &middot; via WhatsApp &middot; Aug 2026</span>
+                        <span class="review-verified"><img src="/lispspeechclinic/images/checklist.png?v=20260825" alt="" width="13" height="13">Verified assessment</span>
                       </span>
-                      <span class="review-verified"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M7.5 12.5L10.5 15.5L16.5 8.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified assessment</span>
                     </div>
-                    <blockquote>&ldquo;I have not tried their full scheme yet, but even the assessment on its own is very helpful and identifies crucial points which greatly assist in trying to fix your lisp yourself. If you are able to afford it, I think it's a great idea to join this program as it genuinely seems that they are trying to help and will help you achieve your speech goals.&rdquo;</blockquote>
+                    <blockquote>&ldquo;Even the biweekly assessments on their own are very helpful and identifies crucial points which greatly assist in trying to fix your lisp yourself. I think it's a great idea to join this program as it genuinely seems that they are trying to help and will help you achieve your speech goals.&rdquo;</blockquote>
                   </figure>
                   <div class="ob-photo-badge">
                     <div class="ob-badge-left">
@@ -5989,6 +6231,9 @@
             if (results) results.style.display = 'none';
             if (pricing) { pricing.style.display = 'block'; pricing.scrollTop = 0; }
             if (panel) { panel.classList.remove('showing-results'); panel.classList.add('showing-pricing'); }
+            // Now that the view has real layout, snap the mobile carousel to the
+            // selected (default) plan.
+            try { window.asmtPricingCentreSelected && window.asmtPricingCentreSelected(); } catch (e) {}
         }
 
         // =============================================
@@ -7403,15 +7648,93 @@
 
 
 
+    <!-- Plan selection: cards are the radio group, one global CTA opens the inline
+         checkout. Desktop = click to select. Mobile (<=768px) = the grid is a
+         scroll-snap carousel, so the snapped card selects itself. Mirrors
+         pricing.html; checkout goes through openInlineCheckout (no navigation). -->
+    <script>
+        (function () {
+            var track = document.querySelector('.asmt-pricing-view .pricing-grid');
+            var wraps = Array.prototype.slice.call(document.querySelectorAll('.asmt-pricing-view .card-wrap'));
+            var cards = Array.prototype.slice.call(document.querySelectorAll('.asmt-pricing-view .pricing-card[data-product]'));
+            var btn = document.getElementById('asmtGlobalCta');
+            if (!track || !cards.length || !btn) return;
+
+            function isCarousel() {
+                return true; // the inline pricing is a slider at every width
+            }
+
+            var dots = Array.prototype.slice.call(document.querySelectorAll('.asmt-pricing-view .carousel-dots span'));
+
+            function select(card) {
+                if (!card) return;
+                cards.forEach(function (c) { c.classList.toggle('active', c === card); });
+                dots.forEach(function (d, i) { d.classList.toggle('active', cards[i] === card); });
+                btn.textContent = card.getAttribute('data-cta') || btn.textContent;
+            }
+
+            // Which card sits closest to the middle of the track? Measured in
+            // viewport coords so it doesn't depend on the offsetParent chain.
+            function centreOf(el) {
+                var r = el.getBoundingClientRect();
+                return r.left + r.width / 2;
+            }
+            function centred() {
+                var mid = centreOf(track);
+                var best = null, bestDist = Infinity;
+                wraps.forEach(function (w, i) {
+                    var d = Math.abs(centreOf(w) - mid);
+                    if (d < bestDist) { bestDist = d; best = cards[i]; }
+                });
+                return best;
+            }
+
+            var raf;
+            track.addEventListener('scroll', function () {
+                if (!isCarousel()) return;
+                if (raf) cancelAnimationFrame(raf);
+                raf = requestAnimationFrame(function () { select(centred()); });
+            }, { passive: true });
+
+            cards.forEach(function (card, i) {
+                card.addEventListener('click', function () {
+                    select(card);
+                    // Tapping a peeking neighbour should bring it fully into view.
+                    if (isCarousel() && wraps[i] && wraps[i].scrollIntoView) {
+                        wraps[i].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                    }
+                });
+            });
+
+            var initial = document.querySelector('.asmt-pricing-view .pricing-card[data-default]') || cards[0];
+            select(initial);
+
+            // The view is display:none until goToPricing() shows it, so rects are
+            // unusable at load. Called from goToPricing to open the carousel on
+            // the selected plan without an animated scroll.
+            window.asmtPricingCentreSelected = function () {
+                if (!isCarousel()) return;
+                var card = document.querySelector('.asmt-pricing-view .pricing-card.active') || initial;
+                var i = cards.indexOf(card);
+                if (wraps[i]) track.scrollLeft += centreOf(wraps[i]) - centreOf(track);
+            };
+
+            btn.addEventListener('click', function () {
+                var card = document.querySelector('.asmt-pricing-view .pricing-card.active');
+                if (card) openInlineCheckout(card.getAttribute('data-product'), btn);
+            });
+        })();
+    </script>
+
     <!-- Pricing A/B experiment (PostHog flag: pricing-tier-test) ----------------
          Default HTML above renders the CONTROL prices. When PostHog buckets the
          buyer into `test`, this swaps the three plan prices, per-month sub-notes,
-         the results sub-note, and the Dodo product id each button checks out with.
+         the results sub-note, and the Dodo product id each card checks out with.
          Flag not loaded / control => no-op, so the page is always safe to render
          before PostHog resolves (and on localhost where PostHog is disabled). -->
     <script>
         (function () {
-            // Keyed by the CONTROL product id in each button's onclick.
+            // Keyed by the CONTROL product id in each card's data-product.
             var TEST = {
                 'pdt_0NfsBdExMhutyEZI9jb69': { id: 'pdt_0NirP81xjUDwOIJzVguz7', price: '19', sub: 'of full access' },      // Foundation 1mo  $99 -> $19
                 'pdt_0NfsBcql0S0RwfIVqQMgh': { id: 'pdt_0NirPYjMyH0ig1B3ZBLj8', price: '49', sub: 'just $16 / month' },    // Momentum 3mo   $249 -> $49
@@ -7420,15 +7743,10 @@
             var TEST_SUBNOTE = 'Plans start from $13/month. Cancel anytime.';
 
             function applyTest() {
-                var btns = document.querySelectorAll('.asmt-pricing-view .cta[onclick*="openInlineCheckout"]');
-                btns.forEach(function (btn) {
-                    var m = btn.getAttribute('onclick').match(/openInlineCheckout\('([^']+)'/);
-                    if (!m) return;
-                    var cfg = TEST[m[1]];
+                document.querySelectorAll('.asmt-pricing-view .pricing-card[data-product]').forEach(function (card) {
+                    var cfg = TEST[card.getAttribute('data-product')];
                     if (!cfg) return;
-                    btn.setAttribute('onclick', "openInlineCheckout('" + cfg.id + "', this)");
-                    var card = btn.closest('.pricing-card');
-                    if (!card) return;
+                    card.setAttribute('data-product', cfg.id);
                     var amt = card.querySelector('.price-amount');
                     if (amt) amt.textContent = cfg.price;
                     var notes = card.querySelectorAll('.price-note');

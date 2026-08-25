@@ -9,4 +9,5 @@ venv/
 .venv/
 **/venv/
 __pycache__/
-*.pyc
+*.pyctest-results/
+playwright-report/
