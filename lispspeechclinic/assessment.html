@@ -11,8 +11,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/lispspeechclinic/css/common-gradient.css?v=20260822">
-    <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css?v=20260822">
+    <link rel="stylesheet" href="/lispspeechclinic/css/common-gradient.css?v=20260825">
+    <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css?v=20260825">
     <!-- intl-tel-input: searchable country phone picker for the assessment step-4 phone
          field. WithUtils bundle includes libphonenumber for format validation
          (isValidNumber). Deferred — only used once the user reaches step 4. -->
@@ -301,7 +301,7 @@
     <!-- END POSTHOG ANALYTICS CODE -->
 
     <!-- Load PostHog Event Tracking -->
-    <script src="/lispspeechclinic/js/posthog-tracking.js?v=20260822"></script>
+    <script src="/lispspeechclinic/js/posthog-tracking.js?v=20260825"></script>
 
 
     <script type="application/ld+json">
@@ -1730,6 +1730,26 @@
         #step4 .ob-panel-left.showing-pricing .card-wrap.has-badge {
             padding-top: 32px;
         }
+        /* Testimonial: desktop overlays it on the step-4 photo panel; the in-flow
+           strip in the pricing column is mobile-only (photo hidden ≤900px). */
+        #step4 .ob-panel-left.showing-pricing .testimonial-strip { display: none; }
+        .ob-photo-testimonial {
+            position: absolute; left: 28px; right: 28px; bottom: 100px; z-index: 2;
+            background: rgba(17,24,39,0.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.16); border-left: 3px solid #0291F7;
+            border-radius: 12px; padding: 12px 16px; margin: 0;
+        }
+        .ob-photo-testimonial blockquote {
+            margin: 9px 0 0; font-size: 13px; line-height: 1.5; color: #fff; font-weight: 400;
+        }
+        .ob-photo-testimonial .review-name { color: #fff; }
+        .ob-photo-testimonial .review-meta { color: rgba(255,255,255,0.75); }
+        .ob-photo-testimonial .review-verified {
+            color: #9AE6B4; background: rgba(56,161,105,0.28); border-color: rgba(154,230,180,0.4);
+        }
+        @media (max-width: 900px) {
+            #step4 .ob-panel-left.showing-pricing .testimonial-strip { display: block; }
+        }
         .asmt-pricing-view {
             flex: 1 1 auto;
             min-height: 0;
@@ -1762,6 +1782,28 @@
         .asmt-pricing-view .shield-icon {
             display: inline; vertical-align: middle; margin-right: 4px;
             position: relative; top: -1px; width: 17px; height: 17px; object-fit: contain;
+        }
+        .asmt-pricing-view .testimonial-strip {
+            max-width: 680px; width: 100%; margin: 18px auto 0; padding: 14px 16px;
+            background: #fff; border: 1px solid #E2E8F0;
+            border-radius: 12px; box-shadow: 0 4px 14px rgba(26,32,44,0.06); text-align: left;
+        }
+        .asmt-pricing-view .testimonial-strip blockquote {
+            margin: 10px 0 0; font-size: 13.5px; line-height: 1.55; color: #2D3748; font-weight: 400;
+        }
+        .review-head { display: flex; align-items: center; gap: 10px; }
+        .review-avatar {
+            width: 34px; height: 34px; border-radius: 50%; flex: 0 0 34px;
+            background: #0291F7; color: #fff; font-weight: 700; font-size: 15px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .review-id { display: flex; flex-direction: column; min-width: 0; }
+        .review-name { font-size: 13.5px; font-weight: 700; color: #1A202C; line-height: 1.3; }
+        .review-meta { font-size: 11.5px; font-weight: 500; color: #718096; line-height: 1.3; }
+        .review-verified {
+            margin-left: auto; display: inline-flex; align-items: center; gap: 4px;
+            font-size: 11px; font-weight: 700; color: #2F855A; background: #F0FFF4;
+            border: 1px solid #C6F6D5; border-radius: 999px; padding: 3px 8px; white-space: nowrap;
         }
         .asmt-pricing-view .pricing-grid {
             width: 100%; max-width: 1240px; margin-top: 26px;
@@ -2531,7 +2573,7 @@
             .rec-aside .aside-box.proto-box { order: 4; }
         }
     </style>
-    <link rel="stylesheet" href="css/nav.css?v=20260822">
+    <link rel="stylesheet" href="css/nav.css?v=20260825">
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/bundle.min.js"></script>
 </head>
@@ -2934,6 +2976,18 @@
                             </p>
                         </section>
 
+                        <figure class="testimonial-strip">
+                            <div class="review-head">
+                              <span class="review-avatar" aria-hidden="true">T</span>
+                              <span class="review-id">
+                                <span class="review-name">Tanishka N.</span>
+                                <span class="review-meta">United Kingdom &middot; via WhatsApp &middot; Aug 2026</span>
+                              </span>
+                              <span class="review-verified"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M7.5 12.5L10.5 15.5L16.5 8.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified assessment</span>
+                            </div>
+                            <blockquote>&ldquo;I have not tried their full scheme yet, but even the assessment on its own is very helpful and identifies crucial points which greatly assist in trying to fix your lisp yourself. If you are able to afford it, I think it's a great idea to join this program as it genuinely seems that they are trying to help and will help you achieve your speech goals.&rdquo;</blockquote>
+                        </figure>
+
                         <section class="pricing-grid">
 
                             <!-- Card 1: 3-month / Momentum -->
@@ -3107,6 +3161,17 @@
                 </div>
                 <aside class="ob-panel-right" aria-hidden="true">
                   <img src="/lispspeechclinic/sign-in-page-image.jpg" alt="" class="ob-hero-img">
+                  <figure class="ob-photo-testimonial">
+                    <div class="review-head">
+                      <span class="review-avatar" aria-hidden="true">T</span>
+                      <span class="review-id">
+                        <span class="review-name">Tanishka N.</span>
+                        <span class="review-meta">United Kingdom &middot; via WhatsApp &middot; Aug 2026</span>
+                      </span>
+                      <span class="review-verified"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M7.5 12.5L10.5 15.5L16.5 8.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified assessment</span>
+                    </div>
+                    <blockquote>&ldquo;I have not tried their full scheme yet, but even the assessment on its own is very helpful and identifies crucial points which greatly assist in trying to fix your lisp yourself. If you are able to afford it, I think it's a great idea to join this program as it genuinely seems that they are trying to help and will help you achieve your speech goals.&rdquo;</blockquote>
+                  </figure>
                   <div class="ob-photo-badge">
                     <div class="ob-badge-left">
                       <p class="ob-photo-badge-name">Anonymous · Teen on family iPhone · Florida</p>
@@ -7327,9 +7392,9 @@
         gtag('event', 'assessment_started', { event_category: 'engagement', event_label: 'multi_step_assessment' });
     </script>
     <!-- Enhanced Analytics -->
-    <script src="/lispspeechclinic/js/enhanced-analytics.js?v=20260822"></script>
-    <script src="/lispspeechclinic/js/login-modal.js?v=20260822"></script>
-    <script src="/lispspeechclinic/js/nav.js?v=20260822"></script>
+    <script src="/lispspeechclinic/js/enhanced-analytics.js?v=20260825"></script>
+    <script src="/lispspeechclinic/js/login-modal.js?v=20260825"></script>
+    <script src="/lispspeechclinic/js/nav.js?v=20260825"></script>
 
 
 

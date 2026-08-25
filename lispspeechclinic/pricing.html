@@ -16,8 +16,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css?v=20260822">
-    <link rel="stylesheet" href="/lispspeechclinic/css/nav.css?v=20260822">
+    <link rel="stylesheet" href="/lispspeechclinic/css/login-modal.css?v=20260825">
+    <link rel="stylesheet" href="/lispspeechclinic/css/nav.css?v=20260825">
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
@@ -49,7 +49,6 @@
             align-items: center;
             padding: 80px 24px 24px;
             min-height: 100vh;
-            justify-content: center;
         }
 
         .pricing-header {
@@ -87,6 +86,40 @@
         }
         @media (max-width: 640px) {
             .shield-icon { width: 18px; height: 18px; }
+        }
+        .testimonial-strip {
+            max-width: 1120px; width: 100%; margin: 18px auto 0; padding: 12px 18px;
+            background: #fff; border: 1px solid #E2E8F0;
+            border-radius: 3px; box-shadow: 0 6px 18px rgba(0,0,0,0.18); text-align: left;
+            display: flex; align-items: center; gap: 18px;
+        }
+        .testimonial-strip blockquote {
+            margin: 0; flex: 1; min-width: 0;
+            font-size: 13.5px; line-height: 1.55; color: #2D3748; font-weight: 400;
+        }
+        .review-head {
+            display: flex; align-items: center; gap: 10px;
+            flex: 0 0 auto; padding-right: 18px; border-right: 1px solid #E2E8F0;
+        }
+        .review-avatar {
+            width: 34px; height: 34px; border-radius: 50%; flex: 0 0 34px;
+            object-fit: cover; object-position: center 30%; display: block;
+        }
+        .review-id { display: flex; flex-direction: column; min-width: 0; }
+        .review-name { font-size: 13.5px; font-weight: 700; color: #1A202C; line-height: 1.3; }
+        .review-meta { font-size: 11.5px; font-weight: 500; color: #718096; line-height: 1.3; }
+        .review-verified {
+            align-self: flex-start; margin-top: 4px;
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 11px; font-weight: 700; color: #1E56D6; background: #EFF4FF;
+            border: 1px solid #C9D9FF; border-radius: 3px; padding: 3px 8px; white-space: nowrap;
+        }
+        .review-verified img { width: 13px; height: 13px; display: block; }
+
+        @media (max-width: 860px) {
+            .testimonial-strip { display: block; max-width: 560px; padding: 14px 16px; }
+            .testimonial-strip blockquote { margin-top: 10px; }
+            .review-head { padding-right: 0; border-right: none; }
         }
 
         .pricing-grid {
@@ -386,7 +419,7 @@
     <!-- END POSTHOG ANALYTICS CODE -->
 
     <!-- Load PostHog Event Tracking -->
-    <script src="/lispspeechclinic/js/posthog-tracking.js?v=20260822"></script>
+    <script src="/lispspeechclinic/js/posthog-tracking.js?v=20260825"></script>
 </head>
 <body>
     <!-- NAV_PLACEHOLDER -->
@@ -402,77 +435,7 @@
 
         <section class="pricing-grid">
 
-            <!-- Card 1: 3-month / Momentum -->
-            <div class="card-wrap">
-                <article class="pricing-card">
-                    <div class="plan-eyebrow">The Core Correction Window</div>
-                    <div class="plan-title">Momentum Program</div>
-                    <p class="plan-desc">Unlock 3 Months Of Progressive Training. Giving Your Brain &amp; Tongue The Time Needed To Break Old Habits &amp; Automate Lisp-free Speech.</p>
-                    <div class="price-split">
-                        <div class="price-col">
-                            <div class="price-row">
-                                <span class="price-currency">$</span>
-                                <span class="price-amount">249</span>
-                            </div>
-                            <span class="price-note">one-time payment</span>
-                        </div>
-                        <div class="price-vline"></div>
-                        <div class="price-col">
-                            <div class="duration-row">
-                                <span class="duration-amount">3</span>
-                                <span class="duration-unit">months</span>
-                            </div>
-                            <span class="price-note">just $83 / month</span>
-                        </div>
-                    </div>
-                    <div class="divider"></div>
-                    <ul class="features">
-                        <li class="bold"><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Everything In Foundation Program.</span></li>
-                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>The 3 Month Habit Rewire: The Critical Timeframe Needed To Lock-in Your New, Lisp-free Speech.</span></li>
-                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Achieve Perfect, Lisp-free Speech At The Syllable Level (Sa, See, Is).</span></li>
-                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Achieve Perfect, Lisp-free Speech At Word Level (yes, so, and because).</span></li>
-                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Speak in full, Connected Sentences Without Losing Your Lisp-free Accuracy.</span></li>
-                    </ul>
-                    <button class="cta" type="button" onclick="location.href='https://checkout.dodopayments.com/buy/pdt_0NfsBcql0S0RwfIVqQMgh?quantity=1&redirect_url=https://lsc.topspeech.health'">Start 3-month program</button>
-                </article>
-            </div>
-
-            <!-- Card 2: 6-month / Mastery (highlighted) -->
-            <div class="card-wrap">
-                <article class="pricing-card highlight">
-                    <div class="plan-eyebrow">The Complete Protocol</div>
-                    <div class="plan-title">Mastery Program</div>
-                    <p class="plan-desc">Recommended Track. Covers Full 3 Month Sequential Curriculum, And Unlocks An Extra 1 Month Of Dedicated Maintenance Track To Ensure Your Lisp Never Returns.</p>
-                    <div class="price-split">
-                        <div class="price-col">
-                            <div class="price-row">
-                                <span class="price-currency">$</span>
-                                <span class="price-amount">448</span>
-                            </div>
-                            <span class="price-note">one-time payment</span>
-                        </div>
-                        <div class="price-vline"></div>
-                        <div class="price-col">
-                            <div class="duration-row">
-                                <span class="duration-amount">6</span>
-                                <span class="duration-unit">months</span>
-                            </div>
-                            <span class="price-note">just $75 / month</span>
-                        </div>
-                    </div>
-                    <div class="divider"></div>
-                    <ul class="features">
-                        <li class="bold"><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Everything In Foundation + Momentum Programs.</span></li>
-                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Tools To Perfect Crystal-Clear Articulation During Longer Conversations &amp; Stories While Learning To Seamlessly Self-Correct On The Fly.</span></li>
-                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Perfect Your New Speech Skills Out In The Wild: Structured Role-Play, Simulate Real-World Scenarios. You'll Drop The Mental Gymnastics And Start Speaking Naturally.</span></li>
-                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Tools To Make Your Lisp-Free Speech 100% Automatic—Even Under Pressure.</span></li>
-                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Maintenance &amp; Relapse-Prevention Track.</span></li>
-                    </ul>
-                    <button class="cta" type="button" onclick="location.href='https://checkout.dodopayments.com/buy/pdt_0NfsBcHAFwBTjsHXCrZhn?quantity=1&redirect_url=https://lsc.topspeech.health'">Start 6-month program</button>
-                </article>
-            </div>
-
-            <!-- Card 3: 1-month / Foundation -->
+            <!-- Card 1: 1-month / Foundation -->
             <div class="card-wrap">
                 <article class="pricing-card">
                     <div class="plan-eyebrow">Phase 1: Weeks 1–4</div>
@@ -507,7 +470,90 @@
                 </article>
             </div>
 
+            <!-- Card 2: 3-month / Momentum -->
+            <div class="card-wrap">
+                <article class="pricing-card">
+                    <div class="plan-eyebrow">The Core Correction Window</div>
+                    <div class="plan-title">Momentum Program</div>
+                    <p class="plan-desc">Unlock 3 Months Of Progressive Training. Giving Your Brain &amp; Tongue The Time Needed To Break Old Habits &amp; Automate Lisp-free Speech.</p>
+                    <div class="price-split">
+                        <div class="price-col">
+                            <div class="price-row">
+                                <span class="price-currency">$</span>
+                                <span class="price-amount">249</span>
+                            </div>
+                            <span class="price-note">one-time payment</span>
+                        </div>
+                        <div class="price-vline"></div>
+                        <div class="price-col">
+                            <div class="duration-row">
+                                <span class="duration-amount">3</span>
+                                <span class="duration-unit">months</span>
+                            </div>
+                            <span class="price-note">just $83 / month</span>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <ul class="features">
+                        <li class="bold"><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Everything In Foundation Program.</span></li>
+                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>The 3 Month Habit Rewire: The Critical Timeframe Needed To Lock-in Your New, Lisp-free Speech.</span></li>
+                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Achieve Perfect, Lisp-free Speech At The Syllable Level (Sa, See, Is).</span></li>
+                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Achieve Perfect, Lisp-free Speech At Word Level (yes, so, and because).</span></li>
+                        <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Speak in full, Connected Sentences Without Losing Your Lisp-free Accuracy.</span></li>
+                    </ul>
+                    <button class="cta" type="button" onclick="location.href='https://checkout.dodopayments.com/buy/pdt_0NfsBcql0S0RwfIVqQMgh?quantity=1&redirect_url=https://lsc.topspeech.health'">Start 3-month program</button>
+                </article>
+            </div>
+
+            <!-- Card 3: 6-month / Mastery (highlighted) -->
+            <div class="card-wrap">
+                <article class="pricing-card highlight">
+                    <div class="plan-eyebrow">The Complete Protocol</div>
+                    <div class="plan-title">Mastery Program</div>
+                    <p class="plan-desc">Recommended Track. Covers Full 3 Month Sequential Curriculum, And Unlocks An Extra 1 Month Of Dedicated Maintenance Track To Ensure Your Lisp Never Returns.</p>
+                    <div class="price-split">
+                        <div class="price-col">
+                            <div class="price-row">
+                                <span class="price-currency">$</span>
+                                <span class="price-amount">448</span>
+                            </div>
+                            <span class="price-note">one-time payment</span>
+                        </div>
+                        <div class="price-vline"></div>
+                        <div class="price-col">
+                            <div class="duration-row">
+                                <span class="duration-amount">6</span>
+                                <span class="duration-unit">months</span>
+                            </div>
+                            <span class="price-note">just $75 / month</span>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <ul class="features">
+                        <li class="bold"><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Everything In Foundation + Momentum Programs.</span></li>
+                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Tools To Perfect Crystal-Clear Articulation During Longer Conversations &amp; Stories While Learning To Seamlessly Self-Correct On The Fly.</span></li>
+                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Perfect Your New Speech Skills Out In The Wild: Structured Role-Play, Simulate Real-World Scenarios. You'll Drop The Mental Gymnastics And Start Speaking Naturally.</span></li>
+                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Tools To Make Your Lisp-Free Speech 100% Automatic—Even Under Pressure.</span></li>
+                        <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Maintenance &amp; Relapse-Prevention Track.</span></li>
+                    </ul>
+                    <button class="cta" type="button" onclick="location.href='https://checkout.dodopayments.com/buy/pdt_0NfsBcHAFwBTjsHXCrZhn?quantity=1&redirect_url=https://lsc.topspeech.health'">Start 6-month program</button>
+                </article>
+            </div>
+
+
         </section>
+
+        <figure class="testimonial-strip">
+            <div class="review-head">
+              <img class="review-avatar" src="/lispspeechclinic/images/review-tanishka.jpg?v=20260825" alt="Tanishka N." width="34" height="34">
+              <span class="review-id">
+                <span class="review-name">Tanishka N.</span>
+                <span class="review-meta">United Kingdom &middot; via WhatsApp &middot; Aug 2026</span>
+                <span class="review-verified"><img src="/lispspeechclinic/images/checklist.png?v=20260825" alt="" width="13" height="13">Verified assessment</span>
+              </span>
+            </div>
+            <blockquote>&ldquo;Even the biweekly assessments on their own are very helpful and identify crucial points which greatly assist in trying to fix your lisp yourself. I think it's a great idea to join this program as it genuinely seems that they are trying to help and will help you achieve your speech goals.&rdquo;</blockquote>
+        </figure>
 
         <section class="trust-strip">
             <div class="trust-pill">
@@ -599,8 +645,8 @@
     </script>
 
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="/lispspeechclinic/js/login-modal.js?v=20260822"></script>
-    <script src="/lispspeechclinic/js/enhanced-analytics.js?v=20260822"></script>
-    <script src="/lispspeechclinic/js/nav.js?v=20260822"></script>
+    <script src="/lispspeechclinic/js/login-modal.js?v=20260825"></script>
+    <script src="/lispspeechclinic/js/enhanced-analytics.js?v=20260825"></script>
+    <script src="/lispspeechclinic/js/nav.js?v=20260825"></script>
 </body>
 </html>

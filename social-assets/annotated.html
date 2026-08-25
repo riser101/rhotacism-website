@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --paper:#F3ECE1;
+    --paper2:#EDE4D6;
+    --ink:#26231F;
+    --muted:#6C645A;
+    --clay:#CC785C;
+    --clay-ink:#B4613F;
+    --card:#FBF8F3;
+    --line:#D8CDBD;
+  }
+  html,body{ background:var(--paper); }
+  .canvas{
+    position:relative;
+    width:1200px; height:1600px;
+    background:
+      radial-gradient(1100px 700px at 50% -10%, #FBF6EE 0%, rgba(251,246,238,0) 60%),
+      linear-gradient(180deg,#F5EFE4 0%,#EFE6D8 100%);
+    font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;
+    color:var(--ink);
+    overflow:hidden;
+  }
+  /* header */
+  .eyebrow{
+    position:absolute; top:70px; left:0; width:100%;
+    text-align:center; letter-spacing:.32em; font-size:19px;
+    font-weight:700; color:var(--clay-ink);
+  }
+  .eyebrow .dot{ color:var(--clay); }
+  h1{
+    position:absolute; top:104px; left:80px; width:1040px;
+    text-align:center;
+    font-family:"Charter","Iowan Old Style","Georgia",serif;
+    font-weight:700; font-size:60px; line-height:1.06; color:var(--ink);
+    letter-spacing:-.5px;
+  }
+  h1 em{ font-style:italic; color:var(--clay-ink); }
+  .sub{
+    position:absolute; top:236px; left:190px; width:820px;
+    text-align:center; font-size:22px; line-height:1.45; color:var(--muted);
+  }
+  /* phone */
+  .phone{
+    position:absolute; left:340px; top:322px;
+    width:520px; height:960px;
+    background:#fff; border-radius:26px;
+    box-shadow:0 40px 90px rgba(60,40,25,.22), 0 8px 22px rgba(60,40,25,.12);
+    padding:10px;
+  }
+  .phone img{ width:100%; height:100%; object-fit:cover; object-position:top center; border-radius:18px; display:block; }
+  /* svg connectors sit above everything visually but below cards' text */
+  svg.wires{ position:absolute; inset:0; width:1200px; height:1600px; pointer-events:none; }
+  .anchor{ fill:var(--clay); }
+  .anchor-ring{ fill:none; stroke:var(--clay); stroke-width:2.5; opacity:.55; }
+  .wire{ stroke:var(--clay); stroke-width:2.5; fill:none; opacity:.85; }
+  /* callout cards */
+  .call{
+    position:absolute; width:280px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    box-shadow:0 14px 30px rgba(60,40,25,.10);
+    padding:18px 20px 20px;
+  }
+  .call .tag{
+    display:inline-block; font-size:12px; font-weight:800; letter-spacing:.12em;
+    color:#fff; background:var(--clay); padding:5px 11px; border-radius:999px; margin-bottom:11px;
+  }
+  .call p{ font-size:19px; line-height:1.34; font-weight:600; color:var(--ink); }
+  .call p b{ color:var(--clay-ink); }
+  .cL{ left:44px; }
+  .cR{ right:44px; }
+  /* footer cta */
+  .cta{
+    position:absolute; left:0; bottom:60px; width:100%; text-align:center;
+  }
+  .cta .big{
+    font-family:"Charter","Georgia",serif; font-size:30px; font-weight:700; color:var(--ink);
+  }
+  .cta .pill{
+    display:inline-block; margin-top:16px; background:var(--ink); color:#FBF6EE;
+    font-size:20px; font-weight:700; letter-spacing:.01em;
+    padding:14px 28px; border-radius:999px;
+  }
+  .cta .pill span{ color:var(--clay); }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <div class="eyebrow">LISP SPEECH CLINIC <span class="dot">&bull;</span> AI-ASSISTED SPEECH ANALYSIS</div>
+  <h1>The clarity of a clinical<br>speech eval, in <em>two minutes</em>.</h1>
+  <div class="sub">Say a few words into your phone. Get back a real lisp report &mdash; severity score, exact error type, and notes on every single word.</div>
+
+  <div class="phone"><img src="report.jpg" alt="Lisp Assessment Report"></div>
+
+  <!-- callout cards -->
+  <div class="call cL" style="top:430px;">
+    <span class="tag">INSTANT SCORE</span>
+    <p>A real clinical severity number <b>(GRI 46/100)</b> in under a minute &mdash; the metric SLPs actually track.</p>
+  </div>
+
+  <div class="call cL" style="top:690px;">
+    <span class="tag">PINPOINT ACCURATE</span>
+    <p>Names the <b>exact error type</b> &mdash; interdental, lateral, dentalized &mdash; not just &ldquo;you have a lisp.&rdquo;</p>
+  </div>
+
+  <div class="call cR" style="top:430px;">
+    <span class="tag">27 WORDS ANALYZED</span>
+    <p>Plain-English coaching notes on <b>every single word</b> you say, sound by sound.</p>
+  </div>
+
+  <div class="call cR" style="top:690px;">
+    <span class="tag">CLINIC-GRADE</span>
+    <p>A shareable, board-certified-protocol report &mdash; <b>not a guessing game.</b></p>
+  </div>
+
+  <!-- connector wires + anchors -->
+  <svg class="wires" viewBox="0 0 1200 1600">
+    <!-- L top -> GRI score (~392,506) from card right edge (324,478) -->
+    <path class="wire" d="M324,478 C360,492 372,500 392,506"/>
+    <circle class="anchor" cx="392" cy="506" r="6"/>
+    <circle class="anchor-ring" cx="392" cy="506" r="12"/>
+
+    <!-- L bottom -> interdental column (~486,650) from card right edge (324,752) -->
+    <path class="wire" d="M324,752 C400,730 440,690 486,650"/>
+    <circle class="anchor" cx="486" cy="650" r="6"/>
+    <circle class="anchor-ring" cx="486" cy="650" r="12"/>
+
+    <!-- R top -> observation column (~712,560) from card left edge (876,478) -->
+    <path class="wire" d="M876,478 C800,500 760,532 712,560"/>
+    <circle class="anchor" cx="712" cy="560" r="6"/>
+    <circle class="anchor-ring" cx="712" cy="560" r="12"/>
+
+    <!-- R bottom -> lower report region (~700,900) from card left edge (876,752) -->
+    <path class="wire" d="M876,752 C800,790 760,850 712,900"/>
+    <circle class="anchor" cx="712" cy="900" r="6"/>
+    <circle class="anchor-ring" cx="712" cy="900" r="12"/>
+  </svg>
+
+  <div class="cta">
+    <div class="big">Take the free assessment.</div>
+    <div class="pill">topspeech.health<span>/lispspeechclinic</span></div>
+  </div>
+</div>
+</body>
+</html>

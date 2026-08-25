@@ -566,6 +566,13 @@ body.user-logged-in .login-nav {
     /* Hover effect removed */
 }
 
+.login-nav-button.user-login-button {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 12px 8px;
+}
+
 /* Mobile adjustments for profile dropdown */
 @media (max-width: 768px) {
     .profile-circle {
