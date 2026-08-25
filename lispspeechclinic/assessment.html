@@ -1731,30 +1731,8 @@
             padding-top: 32px;
         }
         /* Testimonial: shown in-flow below the CTA at every width (matches the
-           card's 600px cap on tablet/desktop); the photo-panel overlay note is
-           hidden while the pricing view is up so the review isn't duplicated. */
+           card's 600px cap on tablet/desktop). */
         #step4 .ob-panel-left.showing-pricing .testimonial-strip { max-width: 600px; }
-        #step4 .ob-panel-left.showing-pricing ~ .ob-panel-right .ob-photo-testimonial { display: none; }
-        /* White review note "clipped" onto the step-4 photo — same card styling
-           as the pricing.html testimonial (white, 3px edges, photo avatar, blue
-           verified chip), with a slight tilt + tape strip to sell the note look. */
-        .ob-photo-testimonial {
-            position: absolute; left: 26px; top: 96px; right: auto; bottom: auto; z-index: 2;
-            max-width: 380px;
-            background: #fff; border: 1px solid #E2E8F0;
-            border-radius: 3px; padding: 14px 16px; margin: 0;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.28);
-            transform: scale(0.8); transform-origin: top left;
-        }
-        .ob-photo-testimonial::before {
-            content: ''; position: absolute; top: -13px; left: 16px;
-            width: 28px; height: 28px;
-            background: url('/lispspeechclinic/images/paperclip.png?v=20260825') no-repeat center / contain;
-            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.25));
-        }
-        .ob-photo-testimonial blockquote {
-            margin: 10px 0 0; font-size: 13.5px; line-height: 1.55; color: #1F2937; font-weight: 400;
-        }
         .asmt-pricing-view {
             flex: 1 1 auto;
             min-height: 0;
@@ -3403,17 +3381,6 @@
                 </div>
                 <aside class="ob-panel-right" aria-hidden="true">
                   <img src="/lispspeechclinic/sign-in-page-image.jpg" alt="" class="ob-hero-img">
-                  <figure class="ob-photo-testimonial">
-                    <div class="review-head">
-                      <img class="review-avatar" src="/lispspeechclinic/images/review-tanishka.jpg?v=20260825" alt="Tanishka N." width="34" height="34">
-                      <span class="review-id">
-                        <span class="review-name">Tanishka N.</span>
-                        <span class="review-meta">United Kingdom &middot; via WhatsApp &middot; Aug 2026</span>
-                        <span class="review-verified"><img src="/lispspeechclinic/images/checklist.png?v=20260825" alt="" width="13" height="13">Verified assessment</span>
-                      </span>
-                    </div>
-                    <blockquote>&ldquo;Even the biweekly assessments on their own are very helpful and identifies crucial points which greatly assist in trying to fix your lisp yourself. I think it's a great idea to join this program as it genuinely seems that they are trying to help and will help you achieve your speech goals.&rdquo;</blockquote>
-                  </figure>
                   <div class="ob-photo-badge">
                     <div class="ob-badge-left">
                       <p class="ob-photo-badge-name">Anonymous · Teen on family iPhone · Florida</p>
