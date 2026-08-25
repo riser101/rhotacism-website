@@ -3844,6 +3844,7 @@
         const SILENCE_THRESHOLD = 0.06;
         const SPEECH_THRESHOLD = 0.08;
         const MIN_SPEECH_DURATION = 400;
+        const FB_MIN_VOICED_MS = 150;   // amplitude fallback: min voiced span to commit (VAD needs ~3 frames ≈ 100ms)
         const SILENCE_DURATION = 600;
         const WORD_TIMEOUT = 5000;
         let lastSpeechTime = 0;
@@ -3883,6 +3884,7 @@
 
         function initWordRecording() {
             if (retakeGateBlocks()) return;
+            prewarmVadAssets();
             currentWordIndex = 0;
             wordRecordings = [];
             wordRecordingsB64 = {};
@@ -4225,11 +4227,50 @@
             } catch (_) { return false; }
         }
 
+        // Timeout: no speech after 5s. First two times, discard the silent
+        // capture and auto-restart the same word (no tap needed); third
+        // consecutive silence falls back to the manual retry state. Re-armed by
+        // the amplitude fallback when it rejects a click/pop as non-speech.
+        function armSilenceTimeout() {
+            clearTimeout(silenceTimer);
+            silenceTimer = setTimeout(() => {
+                if (isRecording && !speechDetected) {
+                    if (silentRetryCount < 2 && !document.hidden) {
+                        silentRetryCount++;
+                        const retryIdx = currentWordIndex;
+                        stopWordRecording(true); // discard
+                        autoChainTimer = setTimeout(() => {
+                            autoChainTimer = null;
+                            if (isRecording || wordTimedOut || allWordsRecorded) return;
+                            if (currentStepNum !== 1 || currentWordIndex !== retryIdx) return;
+                            startWordRecording();
+                        }, 250);
+                    } else {
+                        wordTimedOut = true;
+                        stopWordRecording(true); // discard
+                    }
+                }
+            }, WORD_TIMEOUT);
+        }
+
+        let isStartingRecording = false; // guards the tap→VAD-ready window (no double-start)
+
         // Start recording one word with audio analysis
         async function startWordRecording() {
+            if (isStartingRecording || isRecording) return;
+            isStartingRecording = true;
             try {
                 if (autoChainTimer) { clearTimeout(autoChainTimer); autoChainTimer = null; }
+                // Mic AND Silero must be live before the take starts — Silero is
+                // the sole speech detector (see ensureVadReady). Warm path resolves
+                // instantly; a first build (assets prewarmed at login) is ~100-300ms,
+                // so surface a brief preparing state on the button.
+                const prepBtn = document.getElementById('recordBtn');
+                const prepLbl = document.getElementById('recordLabel');
+                if (prepBtn) prepBtn.disabled = true;
+                if (prepLbl) prepLbl.textContent = 'GETTING READY…';
                 await ensureMicStream();
+                await ensureVadReady(audioStream);
                 // Fullband Opus @ 256k mono: preserves the 5-14kHz sibilant band
                 // intact (transparent for single voice). Default MediaRecorder used a
                 // low bitrate that, combined with AEC, gutted high-frequency content.
@@ -4272,33 +4313,16 @@
                 updateRecordButton();
                 startVuMeter();
                 startWordTimer();
-                startVad(audioStream);
+                startVadForWord();
 
-                // Timeout: no speech after 5s. First two times, discard the silent
-                // capture and auto-restart the same word (no tap needed); third
-                // consecutive silence falls back to the manual retry state.
-                silenceTimer = setTimeout(() => {
-                    if (isRecording && !speechDetected) {
-                        if (silentRetryCount < 2 && !document.hidden) {
-                            silentRetryCount++;
-                            const retryIdx = currentWordIndex;
-                            stopWordRecording(true); // discard
-                            autoChainTimer = setTimeout(() => {
-                                autoChainTimer = null;
-                                if (isRecording || wordTimedOut || allWordsRecorded) return;
-                                if (currentStepNum !== 1 || currentWordIndex !== retryIdx) return;
-                                startWordRecording();
-                            }, 250);
-                        } else {
-                            wordTimedOut = true;
-                            stopWordRecording(true); // discard
-                        }
-                    }
-                }, WORD_TIMEOUT);
+                armSilenceTimeout();
 
             } catch (err) {
                 console.error('Microphone error:', err);
+                updateRecordButton();
                 alert('Unable to access microphone. Please check permissions.');
+            } finally {
+                isStartingRecording = false;
             }
         }
 
@@ -4354,11 +4378,11 @@
                     if (lvl > maxLevel) maxLevel = lvl;
                 }
 
-                // Amplitude fallback: armed until the VAD confirms speech for THIS
-                // word (not merely until the VAD instance exists). A short word can
-                // be fully spoken before the VAD model is live — the fallback must
-                // still auto-stop it, else nothing ever will.
-                if (!vadSawSpeech) {
+                // Amplitude fallback: armed ONLY when Silero couldn't come up in
+                // time (CDN blocked / offline / slow first build) — in normal
+                // operation the take doesn't start until the VAD is live and
+                // Silero is the sole detector (see ensureVadReady).
+                if (vadFallbackActive) {
                     if (maxLevel > SPEECH_THRESHOLD) {
                         if (!speechDetected) {
                             speechDetected = true;
@@ -4373,11 +4397,24 @@
                     if (fbType !== 'passage') {
                         const fbSilence = fbType === 'sentence' ? 1400 : SILENCE_DURATION;
                         if (speechDetected && lastSpeechTime > 0 && (Date.now() - lastSpeechTime) > fbSilence) {
-                            const speechDuration = lastSpeechTime - speechStartTime;
-                            if (speechDuration >= MIN_SPEECH_DURATION) {
+                            // Voiced span only (silence gap excluded). Requiring
+                            // MIN_SPEECH_DURATION (400ms) here deadlocked word 1: a
+                            // crisp "Sun" clears the threshold for ~200-350ms while the
+                            // VAD model is still loading, the commit was refused, and
+                            // speechDetected=true had already disarmed the 5s no-speech
+                            // auto-retry — nothing ended the take until the word was
+                            // said again. The VAD path itself only needs ~3 voiced
+                            // frames (~100ms); match that, not 400ms.
+                            if (lastSpeechTime - speechStartTime >= FB_MIN_VOICED_MS) {
                                 stopWordRecording();
                                 return;
                             }
+                            // Shorter than any word (click/pop): reset detection and
+                            // re-arm the no-speech timeout so the take can't hang.
+                            speechDetected = false;
+                            speechStartTime = 0;
+                            lastSpeechTime = 0;
+                            armSilenceTimeout();
                         }
                     }
                 }
@@ -4431,21 +4468,40 @@
 
         // Silero VAD v5 — detects human speech only, ignores fans/static/clicks.
         // The instance is built ONCE per silence-tolerance profile and reused via
-        // pause()/start() across words. Building per word (old behavior) opened an
-        // init window in which a short word could be fully spoken before the model
-        // was live — VAD then never saw a speech start, the amplitude fallback had
-        // already disarmed, and the recording never auto-stopped (the Mac
-        // "say every word twice" bug). Rebuilds happen only on probe-type
-        // transitions (words → sentences → passage), where speech is long enough
-        // to outlast the rebuild.
+        // pause()/start() across words. startWordRecording AWAITS ensureVadReady
+        // before the take begins, so the model is live before the user is told to
+        // speak and Silero is the SOLE detector. The amplitude path in
+        // startVuMeter arms only when the model can't come up in time
+        // (CDN blocked / offline / build slower than VAD_READY_TIMEOUT_MS).
         const VAD_ASSET_BASE = 'https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/';
         const ORT_WASM_BASE  = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/';
+        // Prewarm the VAD's remote assets (ONNX model + audio worklet + WASM
+        // binary, several MB) into the HTTP cache before the first recording, so
+        // the first tap only pays session init (~100-300ms, covered by the
+        // amplitude fallback) instead of a cold CDN download. Building the real
+        // MicVAD needs the mic stream (permission prompt), so at login we can
+        // only warm the downloads. Fired on first interaction with the login
+        // step and again on capture-step entry (the Google redirect flow unloads
+        // the page, cancelling click-time fetches).
+        let vadAssetsPrewarmed = false;
+        function prewarmVadAssets() {
+            if (vadAssetsPrewarmed) return;
+            vadAssetsPrewarmed = true;
+            [
+                VAD_ASSET_BASE + 'silero_vad_v5.onnx',
+                VAD_ASSET_BASE + 'vad.worklet.bundle.min.js',
+                ORT_WASM_BASE + 'ort-wasm-simd.wasm',
+            ].forEach(u => { try { fetch(u, { cache: 'force-cache' }).catch(() => {}); } catch (_) {} });
+        }
+        document.getElementById('step2')?.addEventListener('pointerdown', prewarmVadAssets, { once: true, capture: true });
+
         let vadInstance = null;
         let vadRedemption = 0;      // redemptionFrames the live instance was built with
         let vadStream = null;       // the MediaStream the live instance was built on
         let vadInitPromise = null;  // in-flight MicVAD.new — serialized, never overlapping
         let vadArmed = false;       // current recording wants VAD events
         let vadSawSpeech = false;   // VAD confirmed speech for the CURRENT word
+        let vadFallbackActive = false; // amplitude fallback armed — only when Silero failed/timed out
 
         // Sentences are spoken with natural breaks between phrases. Each VAD
         // frame ≈ 32ms; words tolerate ~384ms silence (12 frames), read sentences
@@ -4498,37 +4554,53 @@
             });
         }
 
-        async function startVad(stream) {
-            // Set synchronously so the amplitude fallback is correctly armed for
-            // this word before any awaits.
+        // How long a tap will wait for the model before arming the amplitude
+        // fallback for that word (slow network / cold cache).
+        const VAD_READY_TIMEOUT_MS = 3500;
+
+        // Resolve with a live MicVAD for the current probe profile + stream, or
+        // arm the amplitude fallback. Bounded: never blocks a tap longer than
+        // VAD_READY_TIMEOUT_MS — an abandoned build finishes in the background
+        // and is picked up (or discarded if stale) when it lands.
+        async function ensureVadReady(stream) {
+            const wait = p => Promise.race([p, new Promise(r => setTimeout(r, VAD_READY_TIMEOUT_MS))]);
+            if (!window.vad || !window.vad.MicVAD) { vadFallbackActive = true; return false; }
+            // Wait out any in-flight build (bounded) before inspecting state.
+            if (vadInitPromise) await wait(vadInitPromise);
+            if (vadInitPromise) { vadFallbackActive = true; return false; } // still building
+            const redemption = currentVadRedemption();
+            // Rebuild when the silence tolerance changes (probe-type transition)
+            // or the mic stream was re-acquired (releaseMic → re-enter capture) —
+            // an instance bound to a dead stream hears nothing.
+            if (vadInstance && (vadRedemption !== redemption || vadStream !== stream)) {
+                try { vadInstance.pause(); vadInstance.destroy && vadInstance.destroy(); } catch (_) {}
+                vadInstance = null;
+            }
+            if (!vadInstance) {
+                vadRedemption = redemption;
+                vadStream = stream;
+                vadInitPromise = buildVad(stream, redemption)
+                    .then(inst => {
+                        // A timeout-abandoned build can land after the profile or
+                        // stream moved on — keep only a still-matching instance.
+                        if (vadRedemption === redemption && vadStream === stream) vadInstance = inst;
+                        else { try { inst.destroy ? inst.destroy() : inst.pause(); } catch (_) {} }
+                    })
+                    .catch(e => { console.warn('VAD init failed, amplitude fallback armed:', e); })
+                    .finally(() => { vadInitPromise = null; });
+                await wait(vadInitPromise);
+            }
+            vadFallbackActive = !vadInstance;
+            return !!vadInstance;
+        }
+
+        // Arm + resume detection for the take that just started.
+        function startVadForWord() {
             vadSawSpeech = false;
             vadArmed = true;
-            try {
-                if (!window.vad || !window.vad.MicVAD) return;
-                while (vadInitPromise) await vadInitPromise;
-                const redemption = currentVadRedemption();
-                // Rebuild when the silence tolerance changes (probe-type transition)
-                // or the mic stream was re-acquired (releaseMic → re-enter capture) —
-                // an instance bound to a dead stream hears nothing.
-                if (vadInstance && (vadRedemption !== redemption || vadStream !== stream)) {
-                    try { vadInstance.pause(); vadInstance.destroy && vadInstance.destroy(); } catch (_) {}
-                    vadInstance = null;
-                }
-                if (!vadInstance) {
-                    vadRedemption = redemption;
-                    vadStream = stream;
-                    vadInitPromise = buildVad(stream, redemption);
-                    try { vadInstance = await vadInitPromise; }
-                    finally { vadInitPromise = null; }
-                }
-                // Recording may have ended while the model loaded — leave the
-                // instance paused; the amplitude fallback covered this word.
-                if (!vadArmed) return;
+            if (vadInstance) {
                 vadInstance.start();
                 console.log('[VAD] listening — human voice only (ignores noise amplitude)');
-            } catch (e) {
-                console.warn('VAD init failed, falling back to amplitude detection:', e);
-                vadInstance = null;
             }
         }
         function stopVad() {
@@ -4539,6 +4611,7 @@
         }
         function destroyVad() {
             stopVad();
+            vadStream = null; // stale in-flight builds self-destruct on land
             if (vadInstance) {
                 try { vadInstance.destroy ? vadInstance.destroy() : vadInstance.pause(); } catch (_) {}
                 vadInstance = null;
