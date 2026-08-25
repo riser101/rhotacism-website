@@ -675,6 +675,13 @@
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
+    /* The article column is a flex item; without min-width:0 its min-content
+       (nowrap meta row) pushes the section past the viewport. */
+    .resource-section-articles { min-width: 0; }
+    .resource-article-meta { flex-wrap: wrap; }
+    .resource-article-meta-right { flex-wrap: wrap; }
+    .resource-section-image { width: 42%; }
+
     footer {
         padding: 30px 0 !important;
     }

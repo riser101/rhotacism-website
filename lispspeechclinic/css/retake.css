@@ -52,7 +52,7 @@ a:hover { color: #FFA05C; }
 /* ══════════════════════════ DESKTOP ══════════════════════════ */
 .rt-desktop { display: none; }
 
-@media (min-width: 761px) {
+@media (min-width: 1025px) {
   .rt-desktop {
     display: flex; align-items: center; justify-content: center;
     min-height: 100dvh; background: #050505; padding: 48px;
@@ -102,8 +102,15 @@ a:hover { color: #FFA05C; }
   .rt-done-title { font-family: 'Quicksand', sans-serif; font-size: 22px; font-weight: 700; margin: 0; color: #fff; }
 }
 
+/* Small-laptop band: the two-column layout needs ~1360px at full spec, so
+   trim the divider gutters and left column until there's room. */
+@media (min-width: 1025px) and (max-width: 1366px) {
+  .rt-left { width: min(576px, 38vw); }
+  .rt-divider { margin: 0 clamp(36px, 9vw - 60px, 96px); }
+}
+
 /* ══════════════════════════ MOBILE (minimal sheet) ══════════════════════════ */
-@media (max-width: 760px) {
+@media (max-width: 1024px) {
   .rt-mobile {
     min-height: 100dvh; width: 100%; background: #000; color: #fff; box-sizing: border-box;
     display: flex; flex-direction: column; font-family: 'Inter', system-ui, sans-serif;
