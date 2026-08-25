@@ -95,7 +95,7 @@
         }
         .testimonial-strip blockquote {
             margin: 0; flex: 1; min-width: 0;
-            font-size: 13.5px; line-height: 1.55; color: #2D3748; font-weight: 400;
+            font-size: 13.5px; line-height: 1.55; color: #1F2937; font-weight: 400;
         }
         .review-head {
             display: flex; align-items: center; gap: 10px;
@@ -120,6 +120,13 @@
             .testimonial-strip { display: block; max-width: 560px; padding: 14px 16px; }
             .testimonial-strip blockquote { margin-top: 10px; }
             .review-head { padding-right: 0; border-right: none; }
+        }
+
+        .plans-screen {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .pricing-grid {
@@ -163,12 +170,13 @@
             background: rgba(255,255,255,0.04);
             backdrop-filter: blur(28px);
             -webkit-backdrop-filter: blur(28px);
-            border: 1px solid rgba(255,255,255,0.10);
+            border: 2px solid rgba(255,255,255,0.10);
             border-radius: 18px;
-            padding: 22px 22px 20px;
+            padding: 21px 21px 19px;
             box-shadow: 0 20px 64px 8px rgba(0,0,0,0.14);
             cursor: pointer;
-            transition: transform .25s cubic-bezier(0.4,0,0.2,1), box-shadow .25s;
+            opacity: 0.8;
+            transition: transform .25s cubic-bezier(0.4,0,0.2,1), box-shadow .25s, border-color .25s, opacity .25s;
             display: flex;
             flex-direction: column;
             flex: 1;
@@ -178,7 +186,12 @@
             box-shadow: 0 32px 90px -10px rgba(0,0,0,0.28), 0 16px 60px 10px rgba(0,0,0,0.16);
             transform: translateY(-6px);
         }
-        .pricing-card:hover { transform: translateY(-6px); }
+        .pricing-card:hover { transform: translateY(-6px); opacity: 1; }
+        .pricing-card.active {
+            border-color: #0291F7;
+            opacity: 1;
+            box-shadow: 0 0 0 4px rgba(2,145,247,0.14), 0 32px 90px -10px rgba(0,0,0,0.28);
+        }
 
         .plan-eyebrow {
             font-size: 11.5px;
@@ -311,38 +324,30 @@
             background: transparent;
         }
 
-        .cta {
-            margin-top: 16px;
+        .global-cta-wrap {
             width: 100%;
-            padding: 12px 16px;
-            border-radius: 11px;
-            border: 1px solid rgba(255,255,255,0.18);
+            max-width: 1120px;
+            margin-top: 28px;
+            display: flex;
+            justify-content: center;
+        }
+        .cta {
+            width: 100%;
+            max-width: 360px;
+            padding: 15px 18px;
+            border-radius: 12px;
+            border: none;
             cursor: pointer;
             font-family: inherit;
-            font-size: 13.5px;
+            font-size: 15px;
             font-weight: 700;
             letter-spacing: -0.005em;
             color: #fff;
-            background: rgba(255,255,255,0.06);
-            box-shadow: 0 5px 0 0 rgba(255,255,255,0.18);
-            transition: transform .12s ease, box-shadow .12s ease, background .25s;
-        }
-        .cta:hover {
-            background: rgba(255,255,255,0.12);
-        }
-        .cta:active {
-            transform: translateY(5px);
-            box-shadow: 0 0 0 0 rgba(255,255,255,0.18);
-        }
-        .pricing-card.highlight .cta {
-            border: none;
             background: linear-gradient(135deg, #0291F7 0%, #026db9 100%);
             box-shadow: 0 7px 0 0 #013a5f, 0 14px 28px rgba(2,145,247,0.3);
+            transition: transform .12s ease, box-shadow .12s ease, background .25s;
         }
-        .pricing-card.highlight .cta:hover {
-            background: linear-gradient(135deg, #0291F7 0%, #026db9 100%);
-        }
-        .pricing-card.highlight .cta:active {
+        .cta:active {
             transform: translateY(7px);
             box-shadow: 0 0 0 0 #013a5f, 0 14px 28px rgba(2,145,247,0.3);
         }
@@ -352,10 +357,15 @@
             width: 100%;
             max-width: 1120px;
             display: flex;
+            justify-content: center;
+        }
+        .trust-track {
+            display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 8px;
         }
+        .trust-pill.trust-dup { display: none; }
         .trust-pill {
             display: flex;
             align-items: center;
@@ -371,26 +381,215 @@
             white-space: nowrap;
         }
 
+        /* Position indicator for the mobile carousel; hidden on desktop. */
+        .carousel-dots { display: none; }
+
         @media (max-width: 960px) {
             .pricing-grid {
                 grid-template-columns: 1fr;
                 max-width: 560px;
             }
         }
+
+        /* ------------------------------------------------------------------
+           Mobile (<=768px): the stacked cards become a horizontal swipe track.
+           One card per screen with the neighbours peeking; the snapped card is
+           the selected one, so the sticky CTA names what the buyer is looking
+           at.
+
+           Sizes are fluid, not fixed: every value below is
+           clamp(<smallest phone>, <n>svh, <desktop size>), so the scale is
+           pinned to the compact end at 375x667 and grows with the viewport —
+           a 430x932 phone gets close to full-size type, a 375x667 one gets the
+           tightest scale that still fits a whole card above the CTA. Wording is
+           unchanged at every size.
+
+           svh (small viewport height) is the worst case, with the URL bar
+           showing; the plain-vh line before each is the fallback for browsers
+           without svh.
+           ------------------------------------------------------------------ */
+        @media (max-width: 768px) {
+            body { padding-bottom: 96px; }
+
+            /* The first screen is exactly one viewport: header + trust + card.
+               The review and footer therefore begin below the fold. */
+            .pricing-page { --top-pad: 80px; }
+            .plans-screen {
+                min-height: calc(100vh - var(--top-pad));
+                min-height: calc(100svh - var(--top-pad));
+                /* Reserve the floating CTA's zone below the track, so the card
+                   (and its border) always ends above the button. */
+                padding-bottom: calc(74px + env(safe-area-inset-bottom));
+            }
+
+            /* Header: buy back vertical space for the card. */
+            .pricing-header h1 { font-size: clamp(22px, 3.3vh, 30px); margin-bottom: 7px; }
+            .pricing-header h1 { font-size: clamp(22px, 3.3svh, 30px); }
+            .pricing-header p { font-size: clamp(12px, 1.8vh, 15px); line-height: 1.35; }
+            .pricing-header p { font-size: clamp(12px, 1.8svh, 15px); }
+            .shield-icon { width: 15px; height: 15px; }
+            .trust-strip { margin-top: 10px; }
+            .trust-track { gap: 5px; }
+            .trust-pill { padding: clamp(5px, 0.75vh, 9px) clamp(9px, 1.35vh, 12px); font-size: clamp(10.5px, 1.57vh, 12px); gap: 5px; }
+            .trust-pill { padding: clamp(5px, 0.75svh, 9px) clamp(9px, 1.35svh, 12px); font-size: clamp(10.5px, 1.57svh, 12px); }
+            .trust-pill svg { width: 12px; height: 12px; }
+
+            /* The track claims whatever height is left, and the cards stretch
+               into it — no dead gap between the card and the button. */
+            .pricing-grid {
+                display: flex;
+                flex: 1 1 auto;
+                min-height: 0;
+                max-width: none;
+                margin-top: 6px;
+                gap: 12px;
+                padding: 3px 0;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior-x: contain;
+                scrollbar-width: none;
+            }
+            .pricing-grid::-webkit-scrollbar { display: none; }
+
+            /* Full-width slides — no neighbour peeking; the dots below the
+               track signal there are more cards either side. */
+            .card-wrap {
+                flex: 0 0 100%;
+                min-height: 0;
+                scroll-snap-align: center;
+            }
+            .pricing-card {
+                height: 100%;
+                overflow-y: auto;
+                overscroll-behavior-y: contain;
+                scrollbar-width: none;
+            }
+            .pricing-card::-webkit-scrollbar { display: none; }
+
+            /* No lift inside a snap track — it clips against the track edges. */
+            .pricing-card,
+            .pricing-card:hover,
+            .pricing-card.highlight { transform: none; }
+
+            /* Card: same content, scale interpolated between the 375x667 floor
+               and the original desktop sizes. (The CTA zone is reserved by
+               .plans-screen padding now, not inside the card.) */
+            .pricing-card { padding: clamp(12px, 1.8vh, 22px) clamp(13px, 1.95vh, 22px); border-radius: clamp(14px, 2.1vh, 18px); }
+            .pricing-card { padding: clamp(12px, 1.8svh, 22px) clamp(13px, 1.95svh, 22px); border-radius: clamp(14px, 2.1svh, 18px); }
+
+            .plan-eyebrow { font-size: clamp(9.5px, 1.42vh, 11.5px); margin-bottom: clamp(3px, 0.45vh, 6px); }
+            .plan-eyebrow { font-size: clamp(9.5px, 1.42svh, 11.5px); margin-bottom: clamp(3px, 0.45svh, 6px); }
+            .plan-title { font-size: clamp(16px, 2.4vh, 19px); margin-bottom: clamp(3px, 0.45vh, 6px); }
+            .plan-title { font-size: clamp(16px, 2.4svh, 19px); margin-bottom: clamp(3px, 0.45svh, 6px); }
+            .plan-desc { font-size: clamp(11px, 1.65vh, 12.5px); line-height: 1.32; margin-bottom: clamp(7px, 1.05vh, 14px); }
+            .plan-desc { font-size: clamp(11px, 1.65svh, 12.5px); margin-bottom: clamp(7px, 1.05svh, 14px); }
+
+            .price-split { gap: clamp(12px, 1.8vh, 18px); margin-bottom: clamp(3px, 0.45vh, 6px); }
+            .price-split { gap: clamp(12px, 1.8svh, 18px); margin-bottom: clamp(3px, 0.45svh, 6px); }
+            .price-currency { font-size: clamp(13px, 1.95vh, 17px); transform: translateY(-8px); }
+            .price-currency { font-size: clamp(13px, 1.95svh, 17px); }
+            .price-amount, .duration-amount { font-size: clamp(29px, 4.35vh, 44px); }
+            .price-amount, .duration-amount { font-size: clamp(29px, 4.35svh, 44px); }
+            .duration-unit { font-size: clamp(12px, 1.8vh, 16px); }
+            .duration-unit { font-size: clamp(12px, 1.8svh, 16px); }
+            .price-note { font-size: clamp(9px, 1.35vh, 12px); margin-top: clamp(2px, 0.3vh, 6px); letter-spacing: 0.02em; }
+            .price-note { font-size: clamp(9px, 1.35svh, 12px); margin-top: clamp(2px, 0.3svh, 6px); }
+
+            .divider { margin: clamp(8px, 1.2vh, 14px) 0 clamp(7px, 1.05vh, 12px); }
+            .divider { margin: clamp(8px, 1.2svh, 14px) 0 clamp(7px, 1.05svh, 12px); }
+            .features { gap: clamp(4px, 0.6vh, 7px); }
+            .features { gap: clamp(4px, 0.6svh, 7px); }
+            .features li { font-size: clamp(11px, 1.65vh, 12.5px); line-height: clamp(14px, 2.1vh, 17px); gap: clamp(6px, 0.9vh, 8px); }
+            .features li { font-size: clamp(11px, 1.65svh, 12.5px); line-height: clamp(14px, 2.1svh, 17px); gap: clamp(6px, 0.9svh, 8px); }
+            .check { flex: 0 0 clamp(12px, 1.8vh, 16px); width: clamp(12px, 1.8vh, 16px); height: clamp(12px, 1.8vh, 16px); margin-top: 1px; }
+            .check { flex: 0 0 clamp(12px, 1.8svh, 16px); width: clamp(12px, 1.8svh, 16px); height: clamp(12px, 1.8svh, 16px); }
+            .features li svg { width: clamp(10px, 1.5vh, 14px); height: clamp(10px, 1.5vh, 14px); }
+            .features li svg { width: clamp(10px, 1.5svh, 14px); height: clamp(10px, 1.5svh, 14px); }
+
+            /* The CTA floats over the card rather than sitting in a bar, so the
+               card owns the full screen. The wrapper ignores pointer events so
+               only the button itself is clickable. */
+            .global-cta-wrap {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                max-width: none;
+                z-index: 50;
+                margin-top: 0;
+                padding: 0 18px calc(16px + env(safe-area-inset-bottom));
+                background: none;
+                border-top: none;
+                pointer-events: none;
+            }
+            .global-cta-wrap .cta {
+                max-width: none;
+                pointer-events: auto;
+                border-radius: 14px;
+                box-shadow: 0 7px 0 0 #013a5f, 0 12px 34px rgba(0,0,0,0.55), 0 0 0 6px rgba(26,26,26,0.35);
+            }
+
+            .carousel-dots {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 6px;
+                margin-top: 10px;
+                pointer-events: none;
+            }
+            .carousel-dots span {
+                width: 6px;
+                height: 6px;
+                border-radius: 999px;
+                background: rgba(255,255,255,0.28);
+                transition: background .25s, width .25s;
+            }
+            .carousel-dots span.active { width: 18px; background: #0291F7; }
+        }
+
         @media (max-width: 640px) {
-            .pricing-page { padding: 88px 16px 60px; }
-            .pricing-header p { font-size: 15px; }
-            .pricing-grid { margin-top: 36px; gap: 16px; }
-            .pricing-card { min-height: auto; padding: 24px 20px 20px; }
-            .price-amount { font-size: 50px; }
-            .features li { font-size: 14px; }
-            .trust-strip {
+            .pricing-page { --top-pad: clamp(70px, 10.5vh, 88px); }
+            .pricing-page { --top-pad: clamp(70px, 10.5svh, 88px); }
+            .pricing-page { padding: var(--top-pad) 16px 16px; }
+            .pricing-card { min-height: auto; }
+            .trust-track {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                max-width: 320px;
+                max-width: 300px;
                 padding: 0 4px;
             }
-            .trust-pill { padding: 9px 12px; font-size: 12px; }
+        }
+
+        /* iPhone 13 (390px) and narrower: the four trust pills collapse into a
+           single line that auto-slides right-to-left (slow logo-marquee, à la
+           the Duolingo strip on mobbin.com/pricing). Pills are duplicated in
+           the markup (.trust-dup) so the loop is seamless. */
+        @keyframes trust-marquee {
+            from { transform: translateX(0); }
+            /* Two identical halves + uniform 8px gap => one period = 50% + 4px. */
+            to { transform: translateX(calc(-50% - 4px)); }
+        }
+        @media (max-width: 390px) {
+            .trust-strip {
+                overflow: hidden;
+                justify-content: flex-start;
+                -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
+                mask-image: linear-gradient(90deg, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
+            }
+            .trust-track {
+                display: flex;
+                flex-wrap: nowrap;
+                width: max-content;
+                max-width: none;
+                padding: 0;
+                gap: 8px;
+                animation: trust-marquee 28s linear infinite;
+            }
+            .trust-pill.trust-dup { display: flex; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .trust-track { animation: none; }
         }
 
         .login-nav, .mobile-get-started { display: none !important; }
@@ -425,6 +624,9 @@
     <!-- NAV_PLACEHOLDER -->
 
     <main class="pricing-page">
+      <!-- On mobile this fills exactly one viewport, so the card can take the
+           whole screen and the review below it starts off-screen. -->
+      <div class="plans-screen">
         <section class="pricing-header">
             <h1>Fix Your Lisp In 20 Weeks. Guaranteed.</h1>
             <p>
@@ -433,11 +635,50 @@
             </p>
         </section>
 
+        <section class="trust-strip">
+          <div class="trust-track">
+            <div class="trust-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3L4 6V12C4 16.5 7.5 20.7 12 22C16.5 20.7 20 16.5 20 12V6L12 3Z" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                HIPAA-compliant
+            </div>
+            <div class="trust-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#111" stroke-width="1.8"/><path d="M8 12L11 15L16 9" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Clinical Oversight
+            </div>
+            <div class="trust-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 12C7 9.2 9.2 7 12 7C14.8 7 17 9.2 17 12" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M3 12H5M19 12H21M12 3V5" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="14" r="3" stroke="#111" stroke-width="1.8"/></svg>
+                Evidence based
+            </div>
+            <div class="trust-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="9" r="3" stroke="#111" stroke-width="1.8"/><circle cx="17" cy="10" r="2.5" stroke="#111" stroke-width="1.8"/><path d="M3 19C3 16 5.7 14 9 14C12.3 14 15 16 15 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M15 19C15 17 16.5 15.5 19 15.5C21 15.5 22 17 22 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/></svg>
+                Trusted in 94+ Countries
+            </div>
+            <!-- Duplicates for the <=390px marquee loop; hidden elsewhere. -->
+            <div class="trust-pill trust-dup" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3L4 6V12C4 16.5 7.5 20.7 12 22C16.5 20.7 20 16.5 20 12V6L12 3Z" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                HIPAA-compliant
+            </div>
+            <div class="trust-pill trust-dup" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#111" stroke-width="1.8"/><path d="M8 12L11 15L16 9" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Clinical Oversight
+            </div>
+            <div class="trust-pill trust-dup" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 12C7 9.2 9.2 7 12 7C14.8 7 17 9.2 17 12" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M3 12H5M19 12H21M12 3V5" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="14" r="3" stroke="#111" stroke-width="1.8"/></svg>
+                Evidence based
+            </div>
+            <div class="trust-pill trust-dup" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="9" r="3" stroke="#111" stroke-width="1.8"/><circle cx="17" cy="10" r="2.5" stroke="#111" stroke-width="1.8"/><path d="M3 19C3 16 5.7 14 9 14C12.3 14 15 16 15 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M15 19C15 17 16.5 15.5 19 15.5C21 15.5 22 17 22 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/></svg>
+                Trusted in 94+ Countries
+            </div>
+          </div>
+        </section>
+
         <section class="pricing-grid">
 
             <!-- Card 1: 1-month / Foundation -->
             <div class="card-wrap">
-                <article class="pricing-card">
+                <article class="pricing-card" data-cta="Start 1-month program"
+                         data-checkout="https://checkout.dodopayments.com/buy/pdt_0NfsBdExMhutyEZI9jb69?quantity=1&amp;redirect_url=https://lsc.topspeech.health">
                     <div class="plan-eyebrow">Phase 1: Weeks 1–4</div>
                     <div class="plan-title">Foundation Program</div>
                     <p class="plan-desc">Every Transformation Starts At Day One. Unlock 1 Month Of Foundational Speech Exercises.</p>
@@ -466,13 +707,13 @@
                         <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Catch and Correct Speech Mistakes Instantly with Quick Feedback Check Tool.</span></li>
                         <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Build a Bulletproof Daily Practice Habit with Intelligent Reminders.</span></li>
                     </ul>
-                    <button class="cta" type="button" onclick="location.href='https://checkout.dodopayments.com/buy/pdt_0NfsBdExMhutyEZI9jb69?quantity=1&redirect_url=https://lsc.topspeech.health'">Start 1-month program</button>
                 </article>
             </div>
 
             <!-- Card 2: 3-month / Momentum -->
             <div class="card-wrap">
-                <article class="pricing-card">
+                <article class="pricing-card" data-cta="Start 3-month program"
+                         data-checkout="https://checkout.dodopayments.com/buy/pdt_0NfsBcql0S0RwfIVqQMgh?quantity=1&amp;redirect_url=https://lsc.topspeech.health">
                     <div class="plan-eyebrow">The Core Correction Window</div>
                     <div class="plan-title">Momentum Program</div>
                     <p class="plan-desc">Unlock 3 Months Of Progressive Training. Giving Your Brain &amp; Tongue The Time Needed To Break Old Habits &amp; Automate Lisp-free Speech.</p>
@@ -501,13 +742,13 @@
                         <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Achieve Perfect, Lisp-free Speech At Word Level (yes, so, and because).</span></li>
                         <li><span class="check"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5.2L4 7.5L8.5 2.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Speak in full, Connected Sentences Without Losing Your Lisp-free Accuracy.</span></li>
                     </ul>
-                    <button class="cta" type="button" onclick="location.href='https://checkout.dodopayments.com/buy/pdt_0NfsBcql0S0RwfIVqQMgh?quantity=1&redirect_url=https://lsc.topspeech.health'">Start 3-month program</button>
                 </article>
             </div>
 
             <!-- Card 3: 6-month / Mastery (highlighted) -->
             <div class="card-wrap">
-                <article class="pricing-card highlight">
+                <article class="pricing-card highlight" data-cta="Start 6-month program" data-default
+                         data-checkout="https://checkout.dodopayments.com/buy/pdt_0NfsBcHAFwBTjsHXCrZhn?quantity=1&amp;redirect_url=https://lsc.topspeech.health">
                     <div class="plan-eyebrow">The Complete Protocol</div>
                     <div class="plan-title">Mastery Program</div>
                     <p class="plan-desc">Recommended Track. Covers Full 3 Month Sequential Curriculum, And Unlocks An Extra 1 Month Of Dedicated Maintenance Track To Ensure Your Lisp Never Returns.</p>
@@ -536,12 +777,18 @@
                         <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Tools To Make Your Lisp-Free Speech 100% Automatic—Even Under Pressure.</span></li>
                         <li><span class="check"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5L6 11L12.5 4" stroke="#0291F7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Maintenance &amp; Relapse-Prevention Track.</span></li>
                     </ul>
-                    <button class="cta" type="button" onclick="location.href='https://checkout.dodopayments.com/buy/pdt_0NfsBcHAFwBTjsHXCrZhn?quantity=1&redirect_url=https://lsc.topspeech.health'">Start 6-month program</button>
                 </article>
             </div>
 
 
         </section>
+
+        <div class="carousel-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      </div>
+
+        <div class="global-cta-wrap">
+            <button id="global-cta" class="cta" type="button">Start 6-month program</button>
+        </div>
 
         <figure class="testimonial-strip">
             <div class="review-head">
@@ -554,25 +801,6 @@
             </div>
             <blockquote>&ldquo;Even the biweekly assessments on their own are very helpful and identify crucial points which greatly assist in trying to fix your lisp yourself. I think it's a great idea to join this program as it genuinely seems that they are trying to help and will help you achieve your speech goals.&rdquo;</blockquote>
         </figure>
-
-        <section class="trust-strip">
-            <div class="trust-pill">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3L4 6V12C4 16.5 7.5 20.7 12 22C16.5 20.7 20 16.5 20 12V6L12 3Z" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                HIPAA-compliant
-            </div>
-            <div class="trust-pill">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#111" stroke-width="1.8"/><path d="M8 12L11 15L16 9" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Clinical Oversight
-            </div>
-            <div class="trust-pill">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 12C7 9.2 9.2 7 12 7C14.8 7 17 9.2 17 12" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M3 12H5M19 12H21M12 3V5" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="14" r="3" stroke="#111" stroke-width="1.8"/></svg>
-                Evidence based
-            </div>
-            <div class="trust-pill">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="9" r="3" stroke="#111" stroke-width="1.8"/><circle cx="17" cy="10" r="2.5" stroke="#111" stroke-width="1.8"/><path d="M3 19C3 16 5.7 14 9 14C12.3 14 15 16 15 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/><path d="M15 19C15 17 16.5 15.5 19 15.5C21 15.5 22 17 22 19" stroke="#111" stroke-width="1.8" stroke-linecap="round"/></svg>
-                Trusted in 94+ Countries
-            </div>
-        </section>
     </main>
 
     <div class="footer-separator-wrap">
@@ -584,11 +812,11 @@
     <!-- Pricing A/B experiment (PostHog flag: pricing-tier-test) ----------------
          Default HTML above = CONTROL prices. When PostHog buckets the visitor into
          `test`, swap the three plan prices, per-month sub-notes, and the Dodo
-         product id in each button's checkout URL. Flag not loaded / control => no-op
+         product id in each card's checkout URL. Flag not loaded / control => no-op
          (safe before PostHog resolves and on localhost where PostHog is disabled). -->
     <script>
         (function () {
-            // Keyed by the CONTROL product id in each button's checkout URL.
+            // Keyed by the CONTROL product id in each card's checkout URL.
             var TEST = {
                 'pdt_0NfsBdExMhutyEZI9jb69': { id: 'pdt_0NirP81xjUDwOIJzVguz7', price: '19', sub: 'of full access' },      // Foundation 1mo  $99 -> $19
                 'pdt_0NfsBcql0S0RwfIVqQMgh': { id: 'pdt_0NirPYjMyH0ig1B3ZBLj8', price: '49', sub: 'just $16 / month' },    // Momentum 3mo   $249 -> $49
@@ -596,16 +824,14 @@
             };
 
             function applyTest() {
-                document.querySelectorAll('.pricing-grid .cta[onclick*="dodopayments"]').forEach(function (btn) {
-                    var onclick = btn.getAttribute('onclick');
-                    var m = onclick.match(/buy\/(pdt_[A-Za-z0-9]+)/);
+                document.querySelectorAll('.pricing-card[data-checkout]').forEach(function (card) {
+                    var url = card.getAttribute('data-checkout');
+                    var m = url.match(/buy\/(pdt_[A-Za-z0-9]+)/);
                     if (!m) return;
                     var cfg = TEST[m[1]];
                     if (!cfg) return;
                     // Preserve the rest of the URL (redirect_url etc.), just swap the id.
-                    btn.setAttribute('onclick', onclick.replace(m[1], cfg.id));
-                    var card = btn.closest('.pricing-card');
-                    if (!card) return;
+                    card.setAttribute('data-checkout', url.replace(m[1], cfg.id));
                     var amt = card.querySelector('.price-amount');
                     if (amt) amt.textContent = cfg.price;
                     var notes = card.querySelectorAll('.price-note');
@@ -624,22 +850,97 @@
         })();
     </script>
 
-    <!-- Track Dodo checkout clicks (sendBeacon survives the navigation) -->
+    <!-- Track Dodo checkout clicks (sendBeacon survives the navigation).
+         Registered BEFORE the navigating handler below so it runs first. -->
     <script>
         (function () {
-            document.querySelectorAll('.pricing-grid .cta[onclick*="dodopayments"]').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    if (!(window.posthog && posthog.capture)) return;
-                    var onclick = btn.getAttribute('onclick') || '';
-                    var m = onclick.match(/buy\/(pdt_[A-Za-z0-9]+)/);
-                    var card = btn.closest('.pricing-card');
-                    var title = card && card.querySelector('.plan-title');
-                    posthog.capture('pricing_checkout_click', {
-                        product_id: m ? m[1] : null,
-                        plan: title ? title.textContent.trim() : null,
-                        surface: 'pricing_page'
-                    }, { transport: 'sendBeacon' });
+            var btn = document.getElementById('global-cta');
+            if (!btn) return;
+            btn.addEventListener('click', function () {
+                if (!(window.posthog && posthog.capture)) return;
+                var card = document.querySelector('.pricing-card.active');
+                if (!card) return;
+                var m = (card.getAttribute('data-checkout') || '').match(/buy\/(pdt_[A-Za-z0-9]+)/);
+                var title = card.querySelector('.plan-title');
+                posthog.capture('pricing_checkout_click', {
+                    product_id: m ? m[1] : null,
+                    plan: title ? title.textContent.trim() : null,
+                    surface: 'pricing_page'
+                }, { transport: 'sendBeacon' });
+            });
+        })();
+    </script>
+
+    <!-- Plan selection: cards are the radio group, one global CTA checks out.
+         Desktop = click to select. Mobile (<=768px) = the grid is a scroll-snap
+         carousel, so the snapped card selects itself; no carousel library. -->
+    <script>
+        (function () {
+            var track = document.querySelector('.pricing-grid');
+            var wraps = Array.prototype.slice.call(document.querySelectorAll('.card-wrap'));
+            var cards = Array.prototype.slice.call(document.querySelectorAll('.pricing-card[data-checkout]'));
+            var btn = document.getElementById('global-cta');
+            if (!track || !cards.length || !btn) return;
+
+            function isCarousel() {
+                return window.matchMedia('(max-width: 768px)').matches;
+            }
+
+            var dots = Array.prototype.slice.call(document.querySelectorAll('.carousel-dots span'));
+
+            function select(card) {
+                if (!card) return;
+                cards.forEach(function (c) { c.classList.toggle('active', c === card); });
+                dots.forEach(function (d, i) { d.classList.toggle('active', cards[i] === card); });
+                btn.textContent = card.getAttribute('data-cta') || btn.textContent;
+            }
+
+            // Which card sits closest to the middle of the track? Measured in
+            // viewport coords so it doesn't depend on the offsetParent chain.
+            function centreOf(el) {
+                var r = el.getBoundingClientRect();
+                return r.left + r.width / 2;
+            }
+            function centred() {
+                var mid = centreOf(track);
+                var best = null, bestDist = Infinity;
+                wraps.forEach(function (w, i) {
+                    var d = Math.abs(centreOf(w) - mid);
+                    if (d < bestDist) { bestDist = d; best = cards[i]; }
                 });
+                return best;
+            }
+
+            var raf;
+            track.addEventListener('scroll', function () {
+                if (!isCarousel()) return;
+                if (raf) cancelAnimationFrame(raf);
+                raf = requestAnimationFrame(function () { select(centred()); });
+            }, { passive: true });
+
+            cards.forEach(function (card, i) {
+                card.addEventListener('click', function () {
+                    select(card);
+                    // Tapping a peeking neighbour should bring it fully into view.
+                    if (isCarousel() && wraps[i] && wraps[i].scrollIntoView) {
+                        wraps[i].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                    }
+                });
+            });
+
+            var initial = document.querySelector('.pricing-card[data-default]') || cards[0];
+            select(initial);
+
+            // Open on the default plan without an animated scroll on load.
+            if (isCarousel()) {
+                var i = cards.indexOf(initial);
+                if (wraps[i]) track.scrollLeft += centreOf(wraps[i]) - centreOf(track);
+            }
+
+            btn.addEventListener('click', function () {
+                var card = document.querySelector('.pricing-card.active');
+                var url = card && card.getAttribute('data-checkout');
+                if (url) location.href = url;
             });
         })();
     </script>
