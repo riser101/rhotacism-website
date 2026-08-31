@@ -1668,7 +1668,7 @@
         }
         .asmt-results-cta {
             flex-shrink: 0;
-            margin: 20px auto 0; width: 100%; max-width: 460px;
+            margin: 20px auto 0; width: 100%; /* spans the report column (mock: CTA matches table width) */
             background: #222;
             color: #fff; border: none; border-radius: 12px;
             padding: 14px 20px; min-height: 52px; font: 600 15px 'Inter', sans-serif;
@@ -1683,6 +1683,46 @@
             font: 400 13px 'Inter', sans-serif;
             color: #888;
             letter-spacing: 0.2px;
+        }
+        /* Book-a-call card — quiet consult offer under the primary CTA
+           (results + inline pricing views). Desktop: single row; ≤640px:
+           heads+copy row with a full-width button underneath. */
+        .book-call-card {
+            flex-shrink: 0;
+            display: flex; align-items: center; gap: 14px;
+            margin: 16px auto 0; width: 100%;
+            background: #f8fafc; border: 1px solid #dbe6f3; border-radius: 12px;
+            padding: 12px 16px; box-sizing: border-box; text-align: left;
+        }
+        .book-call-heads { flex: none; display: flex; align-items: center; }
+        .book-call-heads img {
+            width: 44px; height: 44px; border-radius: 50%; object-fit: cover;
+            box-shadow: 0 0 0 3px #f8fafc; position: relative; z-index: 1; display: block;
+        }
+        .book-call-heads img:nth-child(1) { z-index: 3; }
+        .book-call-heads img:nth-child(2) { z-index: 2; }
+        .book-call-heads img + img { margin-left: -14px; }
+        .book-call-copy { flex: 1; min-width: 0; }
+        .book-call-title { font: 800 14px/1.25 'Inter', sans-serif; color: #0f172a; }
+        .book-call-sub { margin-top: 2px; font: 400 12.5px/1.3 'Inter', sans-serif; color: #64748b; }
+        .book-call-btn {
+            flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            height: 38px; padding: 0 16px; border-radius: 10px;
+            background: #fff; border: 1.5px solid #1a8cff;
+            font: 800 13.5px 'Inter', sans-serif; color: #1a8cff;
+            white-space: nowrap; cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .book-call-btn:hover { background: #f0f7ff; }
+        .book-call-btn svg { flex: none; }
+        /* Inline pricing view: card tracks the testimonial strip's width caps. */
+        .asmt-pricing-view .book-call-card { max-width: 680px; margin: 14px auto 0; }
+        #step4 .ob-panel-left.showing-pricing .book-call-card { max-width: 600px; }
+        @media (max-width: 640px) {
+            .book-call-card { flex-wrap: wrap; gap: 12px; padding: 14px 16px; }
+            .book-call-heads img { width: 40px; height: 40px; }
+            .book-call-heads img + img { margin-left: -13px; }
+            .book-call-btn { flex-basis: 100%; height: 42px; font-size: 14px; }
         }
         .cell-play-btn {
             display: inline-flex; align-items: center; gap: 3px; margin-top: 2px;
@@ -1701,6 +1741,51 @@
             position: -webkit-sticky; position: sticky; top: 0; z-index: 10;
         }
         .asmt-results .analysis-table-wrapper thead th { background: #E07830; }
+        /* ===== Report space usage (quick iteration) =====
+           1) ≤640px: the 6-column table becomes per-word cards — word (with its
+              play chips) on the first line, the remaining cells flowing inline
+              beneath. No horizontal scroll, ~5x more rows per screen.
+           2) Desktop results step: the photo panel is dropped (like the pricing
+              step) so the report gets the full width, centred at a readable cap. */
+        /* Severity chips (Severe / Moderate / WNL) — set by sevChipHTML(). */
+        .sev-chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.2px; white-space: nowrap; }
+        .sev-severe { background: #FEE2E2; color: #B91C1C; }
+        .sev-moderate { background: #FEF3C7; color: #B45309; }
+        .sev-wnl { background: #DCFCE7; color: #15803D; }
+        @media (max-width: 640px) {
+            #asmtResults .analysis-table-wrapper table,
+            #asmtResults .analysis-table-wrapper tbody { display: block; width: 100%; }
+            #asmtResults .analysis-table-wrapper thead { display: none; }
+            #asmtResults .analysis-table-wrapper tr {
+                display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 12px;
+                padding: 10px 2px;
+            }
+            #asmtResults .analysis-table-wrapper td.analysis-td {
+                display: inline; padding: 0 !important; border: none;
+                font-size: 13px;
+            }
+            #asmtResults .analysis-table-wrapper td.analysis-td:first-child {
+                flex: 0 0 100%; font-size: 15px;
+            }
+            /* Position column (initial/medial/final) is noise on a phone. */
+            #asmtResults .cat-words td:nth-child(2) { display: none; }
+            /* Word + ▶Target + ▶Yours share one line (wrappers are stacked divs on desktop). */
+            #asmtResults .cat-words td.analysis-td:first-child > div {
+                display: inline-block; margin: 0 10px 0 0 !important; vertical-align: middle;
+            }
+            /* Cap the open accordion so Continue stays reachable below it. */
+            #asmtResults .cat-body { max-height: 55vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+            /* Edge-to-edge: panel gutters go to 0; cards go full-bleed, text keeps its own. */
+            #step4 .ob-split .ob-panel-left.showing-results { padding: 88px 0 10px; }
+            #asmtResults .cat-card { border-left: none !important; border-right: none !important; border-radius: 0 !important; }
+            #asmtResults .asmt-results-title, #asmtResults .asmt-results-sub { padding-left: 16px; padding-right: 16px; }
+            #asmtResults .severity-legend { padding: 0 16px; }
+            #asmtResults .asmt-share-parent { margin-left: 16px; margin-right: 16px; }
+            #asmtResults .asmt-results-subnote, #asmtResults .asmt-results-retake { display: none !important; }
+        }
+        #step4 .ob-split:has(.ob-panel-left.showing-results) { grid-template-columns: 1fr; }
+        #step4 .ob-split:has(.ob-panel-left.showing-results) .ob-panel-right { display: none; }
+        #step4 .ob-panel-left.showing-results .asmt-results { width: 100%; max-width: 960px; margin-left: auto; margin-right: auto; }
 
         /* ===== Inline pricing (light theme — matches the white assessment panel) =====
            Same senior pricing markup, recoloured for a white background: dark text,
@@ -2192,6 +2277,7 @@
             .obw-sub { font-size: 12px; }
             .obw-cta { padding: 13px 18px; min-height: 48px; font-size: 14px; }
             .asmt-results-cta { padding: 13px 18px; min-height: 48px; font-size: 14px; width: auto; margin: 20px 18px 0; }
+            #asmtResults .book-call-card { width: auto; margin: 14px 18px 0; }
             .obw-opt { padding: 12px 14px; min-height: 48px; }
         }
         .assessment-step {
@@ -3154,10 +3240,19 @@
                       <p class="asmt-share-status" id="shareParentStatus"></p>
                     </div>
                     <button type="button" class="asmt-results-cta" onclick="goToPricing()">Continue →</button>
-                    <p class="asmt-results-subnote" id="asmtPlansSubnote">Plans start from $75/month. Cancel anytime.</p>
-                    <!-- Returning users view this report as often as they like; retaking
-                         the assessment (a fresh recording + score) is the paid $19 flow. -->
-                    <button type="button" class="asmt-results-retake" onclick="window.location.href='/lispspeechclinic/retake.html'" style="display:block;margin:14px auto 0;background:none;border:none;color:rgba(255,255,255,0.55);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;">Retake assessment</button>
+                    <p class="asmt-results-subnote" id="asmtPlansSubnote">From $75/month &middot; Cancel anytime</p>
+                    <div class="book-call-card">
+                      <div class="book-call-heads">
+                        <img src="/lispspeechclinic/images/coach-3.jpg?v=20260831" alt="" width="44" height="44">
+                        <img src="/lispspeechclinic/images/coach-sufi.jpg?v=20260831" alt="" width="44" height="44">
+                        <img src="/lispspeechclinic/images/coach-jack.jpg?v=20260831" alt="" width="44" height="44">
+                      </div>
+                      <div class="book-call-copy">
+                        <div class="book-call-title">Not sure? Walk through your report with our speech coach</div>
+                        <div class="book-call-sub">Free 10-min call &middot; no commitment</div>
+                      </div>
+                      <button type="button" class="book-call-btn" onclick="openBookCall('results')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="2.5"></rect><path d="M15.5 10.5l6-3v9l-6-3z"></path></svg>Book a call</button>
+                    </div>
                   </div>
                   <!-- Inline pricing (mirrors pricing.html exactly — shown in the left panel on Continue) -->
                   <div class="asmt-pricing-view" id="asmtPricing" style="display:none;">
@@ -3322,6 +3417,19 @@
 
                         <div class="global-cta-wrap">
                             <button id="asmtGlobalCta" class="cta" type="button">Start 6-month program</button>
+                        </div>
+
+                        <div class="book-call-card">
+                          <div class="book-call-heads">
+                            <img src="/lispspeechclinic/images/coach-3.jpg?v=20260831" alt="" width="44" height="44">
+                            <img src="/lispspeechclinic/images/coach-sufi.jpg?v=20260831" alt="" width="44" height="44">
+                        <img src="/lispspeechclinic/images/coach-jack.jpg?v=20260831" alt="" width="44" height="44">
+                          </div>
+                          <div class="book-call-copy">
+                            <div class="book-call-title">Not ready to commit $448?</div>
+                            <div class="book-call-sub">Book a free 10-min consult with our speech coach</div>
+                          </div>
+                          <button type="button" class="book-call-btn" onclick="openBookCall('pricing')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="2.5"></rect><path d="M15.5 10.5l6-3v9l-6-3z"></path></svg>Book a call</button>
                         </div>
 
                         <figure class="testimonial-strip">
@@ -3851,6 +3959,32 @@
         let wordTimedOut = false;
         let autoChainTimer = null;   // pending hands-free start of the next probe
         let silentRetryCount = 0;    // consecutive silent timeouts on the current word
+        // Silence gate (see onWordRecordingStopped): once a blob comes back silent
+        // while the VAD heard speech, record the RAW getUserMedia track for the rest
+        // of the session instead of the WebAudio tap (iOS starves the tap's context).
+        let preferRawCapture = false;
+        let audioProbeCtx = null;    // lazy decode context for blobHasAudio
+
+        // True when the blob contains any real signal. Digital silence (the starved-
+        // tap failure) decodes to exact zeros; quiet-but-real speech peaks well above
+        // this threshold (measured prod quiet word: rms 0.0072). Undecodable blobs
+        // count as audible — the gate must never loop on a decoder quirk.
+        async function blobHasAudio(blob) {
+            try {
+                if (!blob || blob.size < 200) return false;
+                if (!audioProbeCtx) audioProbeCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const buf = await audioProbeCtx.decodeAudioData(await blob.arrayBuffer());
+                const data = buf.getChannelData(0);
+                let peak = 0;
+                for (let i = 0; i < data.length; i += 16) {
+                    const v = Math.abs(data[i]);
+                    if (v > peak) peak = v;
+                }
+                return peak > 0.002;
+            } catch (e) {
+                return true;
+            }
+        }
         let recordingFinalised = false; // this word's blob has been built (once only)
         const pendingB64 = [];       // in-flight blob→base64 conversions (awaited at finish)
 
@@ -4184,7 +4318,10 @@
             // it from the bucket are mono-only.
             recorderTap.channelCount = 1;
             recorderTap.channelCountMode = 'explicit';
-            source.connect(recorderTap);
+            // QA: ?silentTap=1 leaves the tap unconnected so it renders zeros while
+            // the analyser + VAD still hear the mic — reproduces the iOS starved-tap
+            // failure (see silence gate in onWordRecordingStopped) for the test suite.
+            if (!new URLSearchParams(location.search).has('silentTap')) source.connect(recorderTap);
             recorderStream = recorderTap.stream;
 
             // Record the ACTUAL capture sample rate for diagnostics. AEC-off should
@@ -4275,9 +4412,12 @@
                 // intact (transparent for single voice). Default MediaRecorder used a
                 // low bitrate that, combined with AEC, gutted high-frequency content.
                 // Record the WebAudio tap (see ensureMicStream) — the raw track goes
-                // silent for MediaRecorder on some Android builds. audioStream is only
-                // a fallback for the impossible case where the tap wasn't built.
-                const captureStream = recorderStream || audioStream;
+                // silent for MediaRecorder on some Android builds. On iOS the TAP is
+                // the dead one (mic input routes to a single AudioContext; Silero's
+                // wins and the tap renders zeros) — the silence gate in
+                // onWordRecordingStopped detects that and flips preferRawCapture so
+                // the rest of the session records the raw getUserMedia track.
+                const captureStream = preferRawCapture ? audioStream : (recorderStream || audioStream);
                 mediaRecorder = supportsFullbandOpus()
                     ? new MediaRecorder(captureStream, { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: 256000 })
                     : new MediaRecorder(captureStream);
@@ -4647,6 +4787,43 @@
                 return;
             }
 
+            // Silence gate: the VAD (its own AudioContext) heard speech but the blob
+            // is digital silence → the recorder tap is starved. Seen in prod on iOS
+            // (2026-08-27: 24/24 clips at RMS −inf while Silero accepted every take —
+            // iOS routes mic input to one AudioContext and the tap lost). First trip
+            // flips this session to recording the raw getUserMedia track and silently
+            // re-records the word; if the raw track is silent too, surface the normal
+            // retry UI instead of looping.
+            if (!(await blobHasAudio(blob))) {
+                audioChunks = [];
+                for (let i = 0; i < VU_BAR_COUNT; i++) {
+                    const bar = document.getElementById('vuBar' + i);
+                    if (bar) bar.style.height = '6px';
+                }
+                if (!preferRawCapture) {
+                    preferRawCapture = true;
+                    console.warn('[capture] blob silent but VAD heard speech — switching to raw-track capture, retrying word');
+                    const retryIdx = currentWordIndex;
+                    updateRecordButton();
+                    clearTimeout(autoChainTimer);
+                    // 900ms, NOT the 250ms of the silent-timeout retry: this word HAD
+                    // speech, so the VAD's trailing speech-end (redemption ≈384ms after
+                    // the voice stops) can land after the retake starts and kill it at
+                    // ~0s (header-only blob). Wait out the tail before re-recording.
+                    autoChainTimer = setTimeout(() => {
+                        autoChainTimer = null;
+                        if (isRecording || wordTimedOut || allWordsRecorded) return;
+                        if (currentStepNum !== 1 || currentWordIndex !== retryIdx) return;
+                        startWordRecording();
+                    }, 900);
+                } else {
+                    console.warn('[capture] raw track silent too — mic delivers no audio to MediaRecorder');
+                    wordTimedOut = true;
+                    updateRecordButton();
+                }
+                return;
+            }
+
             const capturedIdx = currentWordIndex;
             const capturedWord = TEST_WORDS[capturedIdx];
             const capturedType = (TEST_WORD_META[capturedIdx] || {}).type;
@@ -4901,7 +5078,16 @@
         // sibilant band (incl. the >8kHz energy it cannot hear). Best-effort — {}
         // on failure. Words/sentences align from their known transcript; the
         // free-form passage is transcribed by MFA (Cloud STT) first, then aligns.
+        // DISABLED 2026-08-26: MFA+Praat acoustics switched OFF. Proven (A/B on real
+        // clips) to cause false "Severe Interdental" verdicts: absolute CoG/HF norms
+        // on uncalibrated consumer mics measure the microphone, not the mouth, and
+        // the prompt let them overrule Gemini's clean ear. Ear-only judgment was
+        // validated accurate, and skipping MFA removes its ~100-170s fixed latency
+        // from the report. Backend keeps a dormant s/sh-ratio path (annotateRelativeCog)
+        // if acoustics ever return. Flip to true to restore MFA+Praat.
+        const ACOUSTICS_ENABLED = false;
         async function computeAcoustics(probes) {
+            if (!ACOUSTICS_ENABLED) return {};
             const alignProbes = probes.filter(p => p.type === 'word' || p.type === 'sentence' || p.type === 'passage');
             const windowsByWord = await fetchSibilantWindows(alignProbes);
             return await fetchPraatMetrics(alignProbes, windowsByWord);
@@ -5700,14 +5886,15 @@
         function catCardHTML(opts) {
             var extraClass = opts.pendingTitle ? ' cat-pending' : '';
             var dataAttr = opts.pendingTitle ? ' data-pending-title="' + opts.pendingTitle + '"' : '';
+            var isOpen = !!opts.open;
             var h = '<div class="cat-card' + extraClass + '"' + dataAttr + ' style="border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #fff;">';
-            h += '<button type="button" class="cat-header" aria-expanded="false" onclick="toggleCategory(\'' + opts.bodyId + '\', this)" '
+            h += '<button type="button" class="cat-header" aria-expanded="' + isOpen + '" onclick="toggleCategory(\'' + opts.bodyId + '\', this)" '
                 + 'style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px 18px; background: #F8FAFC; border: none; cursor: pointer; text-align: left;">';
             h += '<span style="flex: 1; min-width: 0; font-weight: 600; font-size: 15px; color: #1A202C;">' + opts.title + '</span>';
             h += '<span style="font-size: 12px; color: #64748B; white-space: nowrap;">' + (opts.countLabel || '') + '</span>';
-            h += '<span class="cat-chevron" style="display: inline-flex; align-items: center; flex: 0 0 auto; transition: transform 0.2s; color: #94A3B8;">' + CAT_CHEVRON_SVG + '</span>';
+            h += '<span class="cat-chevron" style="display: inline-flex; align-items: center; flex: 0 0 auto; transition: transform 0.2s; color: #94A3B8;' + (isOpen ? ' transform: rotate(180deg);' : '') + '">' + CAT_CHEVRON_SVG + '</span>';
             h += '</button>';
-            h += '<div id="' + opts.bodyId + '" class="cat-body ' + (opts.bodyClass || '') + '" style="display: none; padding: 0 14px 8px;">' + opts.inner + '</div>';
+            h += '<div id="' + opts.bodyId + '" class="cat-body ' + (opts.bodyClass || '') + '" style="display: ' + (isOpen ? 'block' : 'none') + '; padding: 0 14px 8px;">' + opts.inner + '</div>';
             h += '</div>';
             return h;
         }
@@ -5731,7 +5918,8 @@
                     inner = convertMarkdownToHTML(wordCatMarkdown(cat.rows));
                 }
                 var catTitle = (cat.title || '').replace(/^\s*Tier\s*\d+\s*[—–-]\s*/i, '');
-                html += catCardHTML({ bodyId: 'catBody-' + idx, title: catTitle, countLabel: countLabel, bodyClass: bodyClass, inner: inner });
+                // First category starts expanded so the report is immediately visible.
+                html += catCardHTML({ bodyId: 'catBody-' + idx, title: catTitle, countLabel: countLabel, bodyClass: bodyClass, inner: inner, open: idx === 0 });
             });
             // Partial (words-only) result: render the deferred sections as NORMAL
             // collapsed cards for any section not yet present. The "still analysing" (or
@@ -5801,6 +5989,10 @@
         function stopActiveAudio() {
             if (rsltActiveAudio) { rsltActiveAudio.pause(); rsltActiveAudio.currentTime = 0; rsltActiveAudio = null; }
             if (rsltActiveBtn) { rsltActiveBtn.classList.remove('playing'); rsltActiveBtn.innerHTML = rsltPlayIcon + rsltActiveBtn.dataset.label; rsltActiveBtn = null; }
+        }
+        function sevChipHTML(label) {
+            var cls = label === 'Severe' ? 'sev-severe' : label === 'Moderate' ? 'sev-moderate' : 'sev-wnl';
+            return '<span class="sev-chip ' + cls + '">' + label + '</span>';
         }
         function createPlayButton(src, label) {
             var btn = document.createElement('button');
@@ -5892,7 +6084,7 @@
                 var qRaw = qualityCell.textContent.trim();
                 if (qRaw) {
                     var score = parseInt(qRaw);
-                    if (!isNaN(score)) qualityCell.textContent = score < 35 ? 'Severe' : score < 70 ? 'Moderate' : 'WNL';
+                    if (!isNaN(score)) qualityCell.innerHTML = sevChipHTML(score < 35 ? 'Severe' : score < 70 ? 'Moderate' : 'WNL');
                 }
             });
             if (matchedCount > 0 && accurateCount === matchedCount) hideGenericSections();
@@ -5921,8 +6113,12 @@
             rows.forEach(function(tr) {
                 var tds = tr.querySelectorAll('td');
                 if (tds.length < 2) return;
-                var sentenceCell = tds[0], recordingCell = tds[1], judgmentCell = tds[2], slippedCell = tds[4];
+                var sentenceCell = tds[0], recordingCell = tds[1], judgmentCell = tds[2], sevCell = tds[3], slippedCell = tds[4];
                 markJudgmentCell(judgmentCell);
+                if (sevCell) {
+                    var sv = sevCell.textContent.trim();
+                    if (sv === 'Severe' || sv === 'Moderate' || sv === 'WNL') sevCell.innerHTML = sevChipHTML(sv);
+                }
                 if (judgmentCell && normalizeSentence(sentenceCell.textContent)) {
                     matchedCount++;
                     if (judgmentCell.textContent.trim().toLowerCase() === 'accurate') accurateCount++;
@@ -6185,18 +6381,21 @@
             enhanceSentenceRows();
             maybeShowShareParent(); // re-append the share bar (re-render detached it)
 
-            // Restore open accordions by matching title.
+            // Restore open/closed state by matching title. Both directions matter: the
+            // fresh render opens the first card by default, so a card the user closed
+            // must be re-closed, not just skipped.
             container.querySelectorAll('.cat-card').forEach(function(card) {
                 var titleEl = card.querySelector('.cat-header span');
                 var t = titleEl ? titleEl.textContent.trim() : '';
-                if (!openByTitle[t]) return;
+                if (!Object.prototype.hasOwnProperty.call(openByTitle, t)) return;
                 var body = card.querySelector('.cat-body');
                 var btn = card.querySelector('.cat-header');
                 if (!body || !btn) return;
-                body.style.display = 'block';
-                btn.setAttribute('aria-expanded', 'true');
+                var open = !!openByTitle[t];
+                body.style.display = open ? 'block' : 'none';
+                btn.setAttribute('aria-expanded', open ? 'true' : 'false');
                 var chev = btn.querySelector('.cat-chevron');
-                if (chev) chev.style.transform = 'rotate(180deg)';
+                if (chev) chev.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
             });
         }
 
@@ -6258,6 +6457,61 @@
             };
             tick();
         }
+
+        // =============================================
+        // BOOK-A-CALL — Calendly popup on the consult cards (results + pricing
+        // views). Widget assets load lazily on first click. A completed booking
+        // fires `call_booked`, which drives the PostHog confirmation-email
+        // workflow (same email infra as the campaign sends).
+        // =============================================
+        var CALENDLY_EVENT_URL = 'https://calendly.com/sufi-topspeech/consult';
+        var _calendlyLoading = null;
+        function loadCalendly() {
+            if (window.Calendly) return Promise.resolve();
+            if (_calendlyLoading) return _calendlyLoading;
+            _calendlyLoading = new Promise(function (resolve, reject) {
+                var css = document.createElement('link');
+                css.rel = 'stylesheet'; css.href = 'https://assets.calendly.com/assets/external/widget.css';
+                document.head.appendChild(css);
+                var s = document.createElement('script');
+                s.src = 'https://assets.calendly.com/assets/external/widget.js';
+                s.onload = resolve; s.onerror = function () { _calendlyLoading = null; reject(new Error('calendly load failed')); };
+                document.head.appendChild(s);
+            });
+            return _calendlyLoading;
+        }
+        async function openBookCall(surface) {
+            try { posthog.capture('book_call_click', { surface: surface }, { transport: 'sendBeacon' }); } catch (e) {}
+            try { gtag('event', 'book_call_click', { event_category: 'conversion', event_label: surface }); } catch (e) {}
+            var ident = {};
+            try { ident = window.getLispIdentityPayload ? window.getLispIdentityPayload() : {}; } catch (e) {}
+            var name = (localStorage.getItem('lispUserFirstName') || localStorage.getItem('assessmentUserName') || '').trim();
+            var email = ident.email || localStorage.getItem('assessmentUserEmail') || '';
+            try {
+                await loadCalendly();
+                window.Calendly.initPopupWidget({
+                    url: CALENDLY_EVENT_URL + '?hide_gdpr_banner=1',
+                    prefill: { name: name, email: email }
+                });
+            } catch (err) {
+                window.open(CALENDLY_EVENT_URL, '_blank'); // widget blocked/offline — plain tab beats a dead button
+            }
+        }
+        window.addEventListener('message', function (e) {
+            if (typeof e.origin !== 'string' || !/https:\/\/([a-z0-9-]+\.)?calendly\.com$/.test(e.origin)) return;
+            if (!e.data || e.data.event !== 'calendly.event_scheduled') return;
+            var ident = {};
+            try { ident = window.getLispIdentityPayload ? window.getLispIdentityPayload() : {}; } catch (e2) {}
+            var p = e.data.payload || {};
+            try {
+                posthog.capture('call_booked', {
+                    calendly_event_uri: (p.event && p.event.uri) || '',
+                    calendly_invitee_uri: (p.invitee && p.invitee.uri) || '',
+                    email: ident.email || localStorage.getItem('assessmentUserEmail') || ''
+                }, { transport: 'sendBeacon' });
+            } catch (e3) {}
+            try { gtag('event', 'call_booked', { event_category: 'conversion' }); } catch (e4) {}
+        });
 
         function goToPricing() {
             try { gtag('event', 'results_cta_click', { event_category: 'conversion', event_label: 'inline_results_to_pricing' }); } catch (e) {}
@@ -7711,6 +7965,11 @@
                 cards.forEach(function (c) { c.classList.toggle('active', c === card); });
                 dots.forEach(function (d, i) { d.classList.toggle('active', cards[i] === card); });
                 btn.textContent = card.getAttribute('data-cta') || btn.textContent;
+                // Book-a-call card mirrors the selected plan's price (symbol follows
+                // the localized display currency when one is active).
+                var amt = card.querySelector('.price-amount');
+                var bcTitle = document.querySelector('#asmtPricing .book-call-card .book-call-title');
+                if (amt && bcTitle) bcTitle.textContent = 'Not ready to commit ' + (window.lispCurrencySym || '$') + amt.textContent.trim() + '?';
             }
 
             // Which card sits closest to the middle of the track? Measured in
@@ -7766,6 +8025,68 @@
         })();
     </script>
 
+    <!-- Localized display pricing --------------------------------------------
+         Uses the same /api/geo signal as the phone step (Vercel edge GeoIP).
+         DISPLAY ONLY: fixed clean per-currency price points (not live FX).
+         Dodo's checkout localizes the charge itself at its own rate, so the
+         final amount can differ a few % from the displayed figure. Covered
+         geos below; everyone else stays USD. -->
+    <script>
+        (function () {
+            // [Foundation, Momentum, Mastery] one-time prices; mo = per-month
+            // equivalent notes (index 1 = /3mo, index 2 = /6mo), floored so we
+            // never overstate the saving.
+            var CCY = {
+                GBP: { sym: '£',  p: [79, 199, 349],        mo: [null, 66, 58]     },
+                EUR: { sym: '€',  p: [89, 229, 409],        mo: [null, 76, 68]     },
+                CAD: { sym: 'C$', p: [135, 339, 599],       mo: [null, 113, 99]    },
+                AUD: { sym: 'A$', p: [149, 379, 679],       mo: [null, 126, 113]   },
+                INR: { sym: '₹',  p: [8700, 21900, 39400],  mo: [null, 7300, 6550] },
+                PHP: { sym: '₱',  p: [5700, 14200, 25500],  mo: [null, 4700, 4250] },
+                IDR: { sym: 'Rp', p: [1599000, 3999000, 7299000], mo: [null, 1330000, 1215000] },
+                CNY: { sym: '¥',  p: [699, 1749, 3199],     mo: [null, 583, 533]   },
+                BRL: { sym: 'R$', p: [549, 1349, 2449],     mo: [null, 449, 408]   },
+                PKR: { sym: '₨',  p: [27900, 69900, 125900], mo: [null, 23300, 20900] }
+            };
+            var C2C = { GB: 'GBP', CA: 'CAD', IN: 'INR', AU: 'AUD', PH: 'PHP',
+                        ID: 'IDR', CN: 'CNY', BR: 'BRL', PK: 'PKR',
+                        DE: 'EUR', FR: 'EUR', ES: 'EUR', IT: 'EUR', NL: 'EUR', IE: 'EUR',
+                        AT: 'EUR', BE: 'EUR', PT: 'EUR', FI: 'EUR', GR: 'EUR' };
+            function fmt(n) { return n.toLocaleString('en-US'); }
+            function apply(ccy) {
+                var cfg = CCY[ccy];
+                if (!cfg) return;
+                window.lispCurrencySym = cfg.sym;
+                var cards = document.querySelectorAll('.asmt-pricing-view .pricing-card[data-product]');
+                cards.forEach(function (card, i) {
+                    var cur = card.querySelector('.price-currency');
+                    var amt = card.querySelector('.price-amount');
+                    if (cur) cur.textContent = cfg.sym;
+                    if (amt) amt.textContent = fmt(cfg.p[i]);
+                    if (cfg.mo[i]) {
+                        var notes = card.querySelectorAll('.price-note');
+                        if (notes[1]) notes[1].textContent = 'just ' + cfg.sym + fmt(cfg.mo[i]) + ' / month';
+                    }
+                });
+                var sub = document.getElementById('asmtPlansSubnote');
+                if (sub) sub.textContent = 'From ' + cfg.sym + fmt(cfg.mo[2]) + '/month · Cancel anytime';
+                // The active card's USD price may already be painted into the book-call title.
+                var act = document.querySelector('.asmt-pricing-view .pricing-card.active .price-amount');
+                var bcTitle = document.querySelector('#asmtPricing .book-call-card .book-call-title');
+                if (act && bcTitle) bcTitle.textContent = 'Not ready to commit ' + cfg.sym + act.textContent.trim() + '?';
+            }
+            window.__applyLocalPricing = apply; // QA/test hook
+            var cached = null;
+            try { cached = sessionStorage.getItem('lispGeoCountry'); } catch (e) {}
+            if (cached !== null) { apply(C2C[cached] || ''); return; }
+            fetch('/api/geo').then(function (r) { return r.json(); }).then(function (d) {
+                var cc = (d.country || '').toUpperCase();
+                try { sessionStorage.setItem('lispGeoCountry', cc); } catch (e) {}
+                apply(C2C[cc] || '');
+            }).catch(function () { /* geo unavailable — stay USD */ });
+        })();
+    </script>
+
     <!-- Pricing A/B experiment (PostHog flag: pricing-tier-test) ----------------
          Default HTML above renders the CONTROL prices. When PostHog buckets the
          buyer into `test`, this swaps the three plan prices, per-month sub-notes,
@@ -7780,7 +8101,7 @@
                 'pdt_0NfsBcql0S0RwfIVqQMgh': { id: 'pdt_0NirPYjMyH0ig1B3ZBLj8', price: '49', sub: 'just $16 / month' },    // Momentum 3mo   $249 -> $49
                 'pdt_0NfsBcHAFwBTjsHXCrZhn': { id: 'pdt_0NirPh9lXK9f5frHLunhe', price: '79', sub: 'just $13 / month' }     // Mastery 6mo    $448 -> $79
             };
-            var TEST_SUBNOTE = 'Plans start from $13/month. Cancel anytime.';
+            var TEST_SUBNOTE = 'From $13/month · Cancel anytime';
 
             function applyTest() {
                 document.querySelectorAll('.asmt-pricing-view .pricing-card[data-product]').forEach(function (card) {
@@ -7794,6 +8115,10 @@
                 });
                 var sub = document.getElementById('asmtPlansSubnote');
                 if (sub) sub.textContent = TEST_SUBNOTE;
+                // Keep the book-a-call card's price in sync with the re-priced active card.
+                var act = document.querySelector('.asmt-pricing-view .pricing-card.active .price-amount');
+                var bcTitle = document.querySelector('#asmtPricing .book-call-card .book-call-title');
+                if (act && bcTitle) bcTitle.textContent = 'Not ready to commit ' + (window.lispCurrencySym || '$') + act.textContent.trim() + '?';
             }
 
             function resolve() {
