@@ -1114,11 +1114,52 @@ async function postLeadAlert(payload) {
 const LEAD_STATUS_PROP = 'assessment_status';
 const LEAD_PRODUCT_PROP = 'assessment_product';
 
+async function hubspotGet(path) {
+  const resp = await fetch('https://api.hubapi.com' + path, {
+    headers: { Authorization: `Bearer ${HUBSPOT_TOKEN}` }
+  });
+  const text = await resp.text();
+  let json = null;
+  try { json = JSON.parse(text); } catch (e) { /* non-JSON error body */ }
+  return { ok: resp.ok, status: resp.status, text, json };
+}
+
+// The portal's own onboarding-created "Speech challenge type" property
+// (options Rhotacism/Lisp/Stutter). Its internal name/option values are
+// portal-defined, so introspect once instead of guessing; when found, every
+// lead upsert also fills it. Needs crm.schemas.contacts.read; absent scope →
+// silently skipped.
+let _challengeProp = null;  // { name, values: { lisp, rhotacism } } | false
+async function resolveChallengeProp() {
+  if (_challengeProp !== null) return _challengeProp;
+  _challengeProp = false;
+  try {
+    const r = await hubspotGet('/crm/v3/properties/contacts');
+    const props = (r.ok && r.json && r.json.results) || [];
+    const p = props.find(x => /speech\s*challenge\s*type/i.test(x.label || '') || x.name === 'speech_challenge_type');
+    if (p) {
+      const find = re => { const o = (p.options || []).find(o => re.test(o.label || '') || re.test(o.value || '')); return o && o.value; };
+      const values = { lisp: find(/lisp/i), rhotacism: find(/rhotacism/i) };
+      if (values.lisp || values.rhotacism) _challengeProp = { name: p.name, values };
+      console.log('speech-challenge property resolved:', JSON.stringify(_challengeProp));
+    }
+  } catch (e) {
+    console.warn('speech-challenge property introspection failed:', e.message);
+  }
+  return _challengeProp;
+}
+
+function challengeProps(product) {
+  const c = _challengeProp;
+  return (c && c.values[product]) ? { [c.name]: c.values[product] } : {};
+}
+
 // Create the two custom properties once per instance. Needs the app scope
 // crm.schemas.contacts.write; a 403 just means statuses ride in notes until
 // the scope is added. 409 = already exist.
 let _hsPropsEnsured = false;
 async function ensureHubspotProperties() {
+  await resolveChallengeProp();
   if (_hsPropsEnsured || !HUBSPOT_TOKEN) return;
   _hsPropsEnsured = true;
   const defs = [
@@ -1181,14 +1222,19 @@ async function sendSignupLead(user, ent) {
     await ensureHubspotProperties();
     const completedBefore = ent && ent.allowed === false;
     const status = completedBefore ? 'completed' : 'signed_in';
-    const up = await upsertLeadContact(email, {
+    const props = {
       email,
       firstname: String((user && user.name) || '').trim().split(' ')[0] || '',
       phone: String((user && user.phone) || '').trim(),
       lifecyclestage: 'lead',
       [LEAD_STATUS_PROP]: status,
-      [LEAD_PRODUCT_PROP]: 'lisp'
-    });
+      [LEAD_PRODUCT_PROP]: 'lisp',
+      ...challengeProps('lisp')
+    };
+    // Vercel edge GeoIP forwarded by the client (standard Country property).
+    const country = String((user && user.country) || '').trim().toUpperCase();
+    if (/^[A-Z]{2}$/.test(country)) props.country = country;
+    const up = await upsertLeadContact(email, props);
     if (!up.ok) { console.warn('signup lead upsert failed (retries next sign-in):', up.status, up.text.slice(0, 200)); return; }
     const contactId = leadContactId(up);
     if (contactId) {
@@ -1279,6 +1325,7 @@ async function sendLeadAlert(user, survey, report, speakerContext) {
       return;
     }
 
+    await ensureHubspotProperties();
     const s = survey || {};
     const phone = (u.phone || '').trim();
     const payload = {
@@ -1289,7 +1336,8 @@ async function sendLeadAlert(user, survey, report, speakerContext) {
         phone: phone ? `${(u.countryCode || '').trim()} ${phone}`.trim() : '',
         lifecyclestage: 'lead',
         [LEAD_STATUS_PROP]: 'completed',
-        [LEAD_PRODUCT_PROP]: 'lisp'
+        [LEAD_PRODUCT_PROP]: 'lisp',
+        ...challengeProps('lisp')
       },
       noteBody: buildLeadNoteBody(user, survey, report, speakerContext),
       // Raw material for the PDF; parked with the payload so a sweep re-drive
@@ -1298,7 +1346,6 @@ async function sendLeadAlert(user, survey, report, speakerContext) {
       date: new Date().toISOString(),
       sessionId: u.sessionId || ''
     };
-    await ensureHubspotProperties();
     const { ok, body } = await postLeadAlert(payload);
     if (!ok) {
       // Part 2 runs exactly once per assessment, so there is no later attempt to
@@ -1450,7 +1497,8 @@ functions.http('analyzeLispSpeech', async (req, res) => {
             authUserId: ((req.query.authUserId) || '').toString().trim(),
             email: ((req.query.email) || '').toString().trim(),
             phone: ((req.query.phone) || '').toString().trim(),
-            name: ((req.query.name) || '').toString().trim()
+            name: ((req.query.name) || '').toString().trim(),
+            country: ((req.query.country) || '').toString().trim()
           };
           const ent = await lookupEntitlement(identity);
           // Sign-in IS the lead: push to HubSpot now, not at completion.

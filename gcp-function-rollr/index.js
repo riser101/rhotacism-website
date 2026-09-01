@@ -45,6 +45,36 @@ const functions = require('@google-cloud/functions-framework');
     return { ok: resp.ok, status: resp.status, text, json };
   }
 
+  async function hubspotGet(path) {
+    const resp = await fetch('https://api.hubapi.com' + path, {
+      headers: { Authorization: `Bearer ${HUBSPOT_TOKEN}` }
+    });
+    const text = await resp.text();
+    let json = null;
+    try { json = JSON.parse(text); } catch (e) { /* non-JSON error body */ }
+    return { ok: resp.ok, status: resp.status, text, json };
+  }
+
+  // Portal's onboarding-created "Speech challenge type" property — introspect
+  // its internal name/option values once (crm.schemas.contacts.read; absent
+  // scope → silently skipped) so leads also fill the property sales already
+  // sees on the record.
+  let _challengeProp = null;  // { name, value } | false
+  async function rhotacismChallengeProp() {
+    if (_challengeProp !== null) return _challengeProp;
+    _challengeProp = false;
+    try {
+      const r = await hubspotGet('/crm/v3/properties/contacts');
+      const props = (r.ok && r.json && r.json.results) || [];
+      const p = props.find(x => /speech\s*challenge\s*type/i.test(x.label || '') || x.name === 'speech_challenge_type');
+      const o = p && (p.options || []).find(o => /rhotacism/i.test(o.label || '') || /rhotacism/i.test(o.value || ''));
+      if (p && o) _challengeProp = { name: p.name, value: o.value };
+    } catch (e) {
+      console.warn('speech-challenge introspection failed:', e.message);
+    }
+    return _challengeProp;
+  }
+
   async function upsertLeadContact(email, properties) {
     const id = String(email).toLowerCase();
     let up = await hubspotPost('/crm/v3/objects/contacts/batch/upsert', {
@@ -71,20 +101,25 @@ const functions = require('@google-cloud/functions-framework');
 
   // Shared handler for web-test beacons and the auth trigger.
   // event 'signin' is marker-deduped; 'completed' always flips the status.
-  async function pushRhotacismLead({ email, name, event, source }) {
+  async function pushRhotacismLead({ email, name, event, source, country }) {
     const e = String(email || '').trim().toLowerCase();
     if (!e || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) || !HUBSPOT_TOKEN) return { skipped: true };
     const ref = admin.firestore().collection('hubspot-leads').doc(e);
     const existing = await ref.get();
     if (event === 'signin' && existing.exists) return { skipped: true };
     const status = event === 'completed' ? 'completed' : 'signed_in';
-    const up = await upsertLeadContact(e, {
+    const challenge = await rhotacismChallengeProp();
+    const props = {
       email: e,
       firstname: String(name || '').trim().split(' ')[0] || '',
       lifecyclestage: 'lead',
       [LEAD_STATUS_PROP]: status,
       [LEAD_PRODUCT_PROP]: 'rhotacism'
-    });
+    };
+    if (challenge) props[challenge.name] = challenge.value;
+    const cc = String(country || '').trim().toUpperCase();
+    if (/^[A-Z]{2}$/.test(cc)) props.country = cc;
+    const up = await upsertLeadContact(e, props);
     if (!up.ok) {
       console.warn('rhotacism lead upsert failed:', up.status, up.text.slice(0, 200));
       return { error: true };
@@ -249,7 +284,7 @@ const functions = require('@google-cloud/functions-framework');
         const out = await pushRhotacismLead({
           email: req.body.email, name: req.body.name,
           event: req.body.event === 'completed' ? 'completed' : 'signin',
-          source: 'web'
+          source: 'web', country: req.body.country
         });
         return res.status(200).json(out);
       } catch (err) {

@@ -3311,12 +3311,23 @@
                     try { ua = JSON.parse(localStorage.getItem('userAuth') || 'null'); } catch (e) {}
                     ua = ua || window.obLoggedInUser || {};
                     if (!ua.email) return;
-                    fetch('https://us-central1-rollr-academy.cloudfunctions.net/sendResetEmail', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'hubspotLead', event: event, email: ua.email, name: ua.name || '' }),
-                        keepalive: true
-                    }).catch(function () {});
+                    var send = function (country) {
+                        fetch('https://us-central1-rollr-academy.cloudfunctions.net/sendResetEmail', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'hubspotLead', event: event, email: ua.email, name: ua.name || '', country: country || '' }),
+                            keepalive: true
+                        }).catch(function () {});
+                    };
+                    // Country from Vercel edge GeoIP (same signal the lisp funnel uses).
+                    var cached = null;
+                    try { cached = sessionStorage.getItem('lispGeoCountry'); } catch (e) {}
+                    if (cached !== null) return send(cached);
+                    fetch('/api/geo').then(function (r) { return r.json(); }).then(function (d) {
+                        var cc = (d.country || '').toUpperCase();
+                        try { sessionStorage.setItem('lispGeoCountry', cc); } catch (e) {}
+                        send(cc);
+                    }).catch(function () { send(''); });
                 } catch (e) { /* lead beacon must never break the flow */ }
             };
 

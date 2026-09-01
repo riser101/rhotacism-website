@@ -7670,13 +7670,18 @@
                     var p = new URLSearchParams(location.search);
                     var unlocked = retakeTestMode() || p.get('retake') === '1' || localStorage.getItem('lispRetakePaid') === '1';
                     if (unlocked) return false;
+                    var geoCountry = '';
+                    try { geoCountry = sessionStorage.getItem('lispGeoCountry') || ''; } catch (e) {}
                     var qs = new URLSearchParams({
                         check: 'entitlement',
                         authUserId: (user && user.uid) || '',
                         email: (user && user.email) || '',
                         // Send the display name so the server can capture Apple's
                         // one-shot name; it echoes back the stored (authoritative) name.
-                        name: name || ''
+                        name: name || '',
+                        // Vercel edge GeoIP (cached by the pricing localizer) → the
+                        // HubSpot lead's Country property.
+                        country: geoCountry
                     });
                     var r = await fetch(GCP_ANALYZE_URL + '?' + qs.toString(), { method: 'GET' });
                     if (!r.ok) return false;
