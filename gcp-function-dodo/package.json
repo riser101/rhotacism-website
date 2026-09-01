@@ -1,0 +1,15 @@
+{
+  "name": "dodo-webhook",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "functions-framework --target=dodoWebhook"
+  },
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.4.0",
+    "dotenv": "^16.4.5",
+    "firebase-admin": "^12.6.0",
+    "nodemailer": "^6.9.14",
+    "standardwebhooks": "^1.0.0"
+  }
+}

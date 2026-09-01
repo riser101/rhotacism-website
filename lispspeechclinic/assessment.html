@@ -6691,6 +6691,17 @@
                 await dodoMountSession();
                 try { gtag('event', 'inline_checkout_open', { event_category: 'conversion', event_label: productId }); } catch (e) {}
                 try { posthog.capture('inline_checkout_open', { product_id: productId, plan: DODO_PLAN_NAMES[productId] || null }, { transport: 'sendBeacon' }); } catch (e) {}
+                // Buy-intent beacon → HubSpot: flips the lead to checkout_opened
+                // and pings the exec (server dedupes to once per 6h).
+                try {
+                    var beaconEmail = localStorage.getItem('assessmentUserEmail') || (JSON.parse(localStorage.getItem('userAuth') || '{}') || {}).email || '';
+                    if (beaconEmail) fetch(GCP_ANALYZE_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ beacon: 'checkout_open', email: beaconEmail, test: retakeTestMode() }),
+                        keepalive: true
+                    }).catch(function () {});
+                } catch (e) {}
             } catch (err) {
                 console.error('[inline-checkout] failed:', err);
                 try { posthog.capture('inline_checkout_error', { product_id: productId, message: String(err && err.message || err).slice(0, 200) }, { transport: 'sendBeacon' }); } catch (e) {}

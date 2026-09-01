@@ -11,6 +11,7 @@
         "oauth",
         "crm.objects.contacts.read",
         "crm.objects.contacts.write",
+        "crm.objects.owners.read",
         "crm.schemas.contacts.read",
         "crm.schemas.contacts.write",
         "files"

@@ -114,7 +114,8 @@ const functions = require('@google-cloud/functions-framework');
       firstname: String(name || '').trim().split(' ')[0] || '',
       lifecyclestage: 'lead',
       [LEAD_STATUS_PROP]: status,
-      [LEAD_PRODUCT_PROP]: 'rhotacism'
+      [LEAD_PRODUCT_PROP]: 'rhotacism',
+      [event === 'completed' ? 'assessment_completed_at' : 'signed_in_at']: String(Date.now())
     };
     if (challenge) props[challenge.name] = challenge.value;
     const cc = String(country || '').trim().toUpperCase();

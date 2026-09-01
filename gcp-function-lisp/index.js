@@ -871,6 +871,10 @@ function buildLeadNoteBody(user, survey, report, speakerContext) {
     (sum.lispDetected
       ? `, lisp detected on ${sum.lispWordCount} probe${sum.lispWordCount === 1 ? '' : 's'}`
       : ', no lisp detected') + '</p>');
+  const opener = buildOpener(user, survey, r);
+  const wa = waLink(u, opener);
+  parts.push('<p><strong>First touch</strong><br>' + escHtml(opener) +
+    (wa ? `<br><a href="${escHtml(wa)}">▶ Open WhatsApp with this message pre-typed</a>` : '') + '</p>');
   parts.push('<p><strong>Survey</strong><br>' + [
     `Name: ${escHtml(s.first_name) || '—'}`,
     `Email: ${escHtml(u.email) || '—'}`,
@@ -1092,7 +1096,7 @@ async function postLeadAlert(payload) {
             // 202 = HubSpot-defined note→contact association.
             associations: [{ to: { id: contactId }, types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 202 }] }]
           });
-          if (note.ok) return { ok: true, body: `contact ${contactId}${fileId ? ` pdf ${fileId}` : ''}` };
+          if (note.ok) return { ok: true, contactId, body: `contact ${contactId}${fileId ? ` pdf ${fileId}` : ''}` };
           last = `note ${note.status} ${note.text.slice(0, 300)}`;
         }
       }
@@ -1168,18 +1172,98 @@ async function ensureHubspotProperties() {
       options: [
         { label: 'Signed in — not completed', value: 'signed_in' },
         { label: 'Recorded words — report unfinished', value: 'recorded_words' },
+        { label: 'Opened checkout — not paid', value: 'checkout_opened' },
         { label: 'Completed', value: 'completed' }
       ] },
     { name: LEAD_PRODUCT_PROP, label: 'Assessment product', type: 'enumeration', fieldType: 'select',
       groupName: 'contactinformation',
-      options: [{ label: 'Lisp', value: 'lisp' }, { label: 'Rhotacism', value: 'rhotacism' }] }
+      options: [{ label: 'Lisp', value: 'lisp' }, { label: 'Rhotacism', value: 'rhotacism' }] },
+    { name: 'signed_in_at', label: 'Assessment signed in at', type: 'datetime', fieldType: 'date',
+      groupName: 'contactinformation' },
+    { name: 'assessment_completed_at', label: 'Assessment completed at', type: 'datetime', fieldType: 'date',
+      groupName: 'contactinformation' }
   ];
   for (const d of defs) {
     const r = await hubspotPost('/crm/v3/properties/contacts', d);
-    if (!r.ok && r.status !== 409) {
+    if (!r.ok && r.status === 409 && d.options) {
+      // Property exists from an earlier deploy — make sure newer enum options
+      // (e.g. checkout_opened) are present.
+      await fetch('https://api.hubapi.com/crm/v3/properties/contacts/' + d.name, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${HUBSPOT_TOKEN}` },
+        body: JSON.stringify({ options: d.options })
+      }).catch(() => {});
+    } else if (!r.ok && r.status !== 409) {
       console.warn(`HubSpot property ${d.name} not created (${r.status}):`, r.text.slice(0, 200));
     }
   }
+}
+
+// The sales exec's owner id — resolved once so tasks land assigned (assigned
+// tasks push to the HubSpot mobile app; unassigned ones just sit in the index).
+// Needs crm.objects.owners.read; failure → unassigned tasks, never a lost lead.
+const HUBSPOT_OWNER_EMAIL = process.env.HUBSPOT_OWNER_EMAIL || 'founder@topspeech.health';
+let _ownerId = null;
+async function resolveOwnerId() {
+  if (_ownerId !== null) return _ownerId;
+  _ownerId = '';
+  try {
+    const r = await hubspotGet('/crm/v3/owners/?limit=100');
+    const owners = (r.ok && r.json && r.json.results) || [];
+    const match = owners.find(o => (o.email || '').toLowerCase() === HUBSPOT_OWNER_EMAIL.toLowerCase()) || owners[0];
+    if (match) _ownerId = String(match.id);
+  } catch (e) { /* unassigned tasks */ }
+  return _ownerId;
+}
+
+// Due-NOW call task on the contact — the exec's phone pings via the HubSpot
+// mobile app. This is the speed-to-lead engine on the free plan (no workflows).
+async function createLeadTask(contactId, subject, body) {
+  try {
+    if (!contactId || !HUBSPOT_TOKEN) return;
+    const ownerId = await resolveOwnerId();
+    const props = {
+      hs_timestamp: new Date().toISOString(),
+      hs_task_subject: subject.slice(0, 250),
+      hs_task_body: String(body || '').slice(0, 5000),
+      hs_task_status: 'NOT_STARTED',
+      hs_task_priority: 'HIGH',
+      hs_task_type: 'CALL'
+    };
+    if (ownerId) props.hubspot_owner_id = ownerId;
+    const r = await hubspotPost('/crm/v3/objects/tasks', {
+      properties: props,
+      // 204 = HubSpot-defined task→contact association.
+      associations: [{ to: { id: contactId }, types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 204 }] }]
+    });
+    if (!r.ok) console.warn('lead task create failed:', r.status, r.text.slice(0, 200));
+  } catch (e) {
+    console.error('lead task error:', e.message);
+  }
+}
+
+// One-tap WhatsApp deep link with the opener pre-typed. Empty when no phone.
+function waLink(user, opener) {
+  const digits = `${(user && user.countryCode) || ''}${(user && user.phone) || ''}`.replace(/\D/g, '');
+  if (digits.length < 8) return '';
+  return `https://wa.me/${digits}?text=${encodeURIComponent(opener)}`;
+}
+
+// Two-line first-touch script from the actual findings — zero think-time
+// between the task ping and making contact.
+function buildOpener(user, survey, report) {
+  const first = String((survey && survey.first_name) || '').trim().split(' ')[0] || 'there';
+  const sum = (report && report.summary) || {};
+  let pattern = '';
+  const counts = {};
+  ((report && report.categories) || []).forEach(c => (c.rows || []).forEach(r => {
+    if (r.judgment && !/^accurate$/i.test(r.judgment)) counts[r.judgment] = (counts[r.judgment] || 0) + 1;
+  }));
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+  if (top) pattern = top[0].toLowerCase();
+  return sum.lispDetected && pattern
+    ? `Hi ${first} — I just reviewed your /s/ assessment. The ${pattern} pattern we detected is very fixable: most people clear it in 8–10 weeks with daily practice. Do you have 5 minutes to walk through your report?`
+    : `Hi ${first} — I just reviewed your /s/ assessment results. Do you have 5 minutes to walk through your report and what they mean?`;
 }
 
 // Upsert by email; on a 400 (e.g. custom properties not created yet) retry
@@ -1229,6 +1313,7 @@ async function sendSignupLead(user, ent) {
       lifecyclestage: 'lead',
       [LEAD_STATUS_PROP]: status,
       [LEAD_PRODUCT_PROP]: 'lisp',
+      signed_in_at: String(Date.now()),
       ...challengeProps('lisp')
     };
     // Vercel edge GeoIP forwarded by the client (standard Country property).
@@ -1337,6 +1422,7 @@ async function sendLeadAlert(user, survey, report, speakerContext) {
         lifecyclestage: 'lead',
         [LEAD_STATUS_PROP]: 'completed',
         [LEAD_PRODUCT_PROP]: 'lisp',
+        assessment_completed_at: String(Date.now()),
         ...challengeProps('lisp')
       },
       noteBody: buildLeadNoteBody(user, survey, report, speakerContext),
@@ -1346,7 +1432,7 @@ async function sendLeadAlert(user, survey, report, speakerContext) {
       date: new Date().toISOString(),
       sessionId: u.sessionId || ''
     };
-    const { ok, body } = await postLeadAlert(payload);
+    const { ok, body, contactId } = await postLeadAlert(payload);
     if (!ok) {
       // Part 2 runs exactly once per assessment, so there is no later attempt to
       // fall back on — park the lead and let the scheduled sweep finish the job.
@@ -1355,6 +1441,16 @@ async function sendLeadAlert(user, survey, report, speakerContext) {
       return;
     }
     await setLeadAlerted(u.uid, u.sessionId);
+    // Speed-to-lead: ping the exec's phone while the lead is still looking at
+    // their result. Task body = the first-touch script + one-tap WhatsApp.
+    {
+      const opener = buildOpener(u, s, report);
+      const wa = waLink(u, opener);
+      const gri = report && report.gri;
+      await createLeadTask(contactId,
+        `Call ${(s.first_name || u.email).toString().split(' ')[0]} — just completed lisp assessment${gri != null ? ` (GRI ${gri})` : ''}`,
+        opener + (wa ? `\n\nWhatsApp one-tap: ${wa}` : ''));
+    }
     // Marker so a later sign-in doesn't re-push this person as a fresh
     // "signed_in" lead over their completed status.
     try {
@@ -1538,6 +1634,34 @@ functions.http('analyzeLispSpeech', async (req, res) => {
     try {
       if (!req.headers['content-type']?.includes('application/json')) {
         return res.status(400).json({ error: 'Expected application/json' });
+      }
+
+      // Buy-intent beacon: the browser reports an opened checkout. The hottest
+      // call an exec can make is within minutes of an abandoned checkout, so
+      // this flips status AND pings the exec's phone via a due-now task
+      // (deduped to once per 6h — checkout modals reopen a lot).
+      if (req.body && req.body.beacon === 'checkout_open') {
+        try {
+          const email = String((req.body.user && req.body.user.email) || req.body.email || '').trim().toLowerCase();
+          if (email && HUBSPOT_TOKEN && req.body.test !== true) {
+            await ensureHubspotProperties();
+            const up = await upsertLeadContact(email, { email, [LEAD_STATUS_PROP]: 'checkout_opened', [LEAD_PRODUCT_PROP]: 'lisp' });
+            const contactId = leadContactId(up);
+            let notify = true;
+            if (firestore) {
+              const ref = firestore.collection('hubspot-leads').doc(email);
+              const d = (await ref.get()).data() || {};
+              if (Date.now() - (Date.parse(d.checkoutNotifiedAt || '') || 0) < 6 * 3600 * 1000) notify = false;
+              else await ref.set({ checkoutNotifiedAt: new Date().toISOString() }, { merge: true });
+            }
+            if (contactId && notify) {
+              await attachLeadNote(contactId, '<p>🔥 Opened the $79 checkout — has not paid. Call/WhatsApp now.</p>');
+              await createLeadTask(contactId, `🔥 ${email} opened checkout — call now if no payment`,
+                'Opened the $79 checkout. If no payment lands in the next few minutes, this is the highest-intent call of the day.');
+            }
+          }
+        } catch (e) { console.error('checkout beacon error:', e.message); }
+        return res.status(200).json({ ok: true });
       }
 
       const { words, voiceType, mode } = req.body || {};
