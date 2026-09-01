@@ -1,0 +1,20 @@
+{
+  "name": "stripe-webhook",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "functions-framework --target=stripeWebhook --port=8080",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@google-cloud/functions-framework": "^5.0.2",
+    "firebase-admin": "^13.10.0",
+    "nodemailer": "^8.0.7",
+    "stripe": "^22.1.1"
+  }
+}

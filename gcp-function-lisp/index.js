@@ -78,6 +78,7 @@ function formatSegment(s) {
     s.energy_ratio_low != null ? `E(0.5-4/total)=${num(s.energy_ratio_low)}` : null,
     s.duration_ms != null ? `dur=${Math.round(s.duration_ms)}ms` : null,
     s.rms != null ? `rms=${num(s.rms, 4)}` : null,
+    s.rel_to_sh != null ? `s/sh=${num(s.rel_to_sh)}` : null,
   ].filter(Boolean).join(', ');
 }
 
@@ -87,29 +88,71 @@ function formatSegment(s) {
 function formatAcoustics(a) {
   if (!a || typeof a !== 'object') return '';
   if (a.error) return `[acoustics unavailable: ${a.error}]`;
-  const segs = Array.isArray(a.segments) ? a.segments : [];
+  // rms floor: a window measured at noise-floor level (very quiet capture) yields
+  // CoG/energy ratios that mathematically mimic an interdental lisp. Drop those
+  // measurements entirely so Gemini judges that clip by ear alone.
+  const MIN_RMS = 0.004;
+  const usable = (s) => s && (s.rms == null || Number(s.rms) >= MIN_RMS);
+  let segs = Array.isArray(a.segments) ? a.segments : [];
   if (segs.length > 1) {
+    const kept = segs.filter(usable);
+    if (!kept.length) return '[acoustics unavailable: signal too quiet to measure reliably]';
     // Sentence: one line per sibilant, tagged with its phone + time.
-    return '\n' + segs.map((s) =>
+    return '\n' + kept.map((s) =>
       `  · ${s.label || 's'}@${num0(s.start)}s: ${formatSegment(s)}`
     ).join('\n');
   }
-  return formatSegment(segs[0] || a);
+  const seg = segs[0] || a;
+  if (!usable(seg)) return '[acoustics unavailable: signal too quiet to measure reliably]';
+  return formatSegment(seg);
 }
 function num0(x) { return x == null ? '?' : Number(x).toFixed(2); }
+
+// Within-speaker calibration: absolute CoG norms are meaningless across
+// uncalibrated consumer mics (clean speakers measure anywhere from ~4.7 to
+// ~11 kHz), but the RATIO of each /s,z/ CoG to the same session's SH/CH/JH
+// CoG cancels the mic's transfer function. Normal /s/ sits clearly above the
+// same speaker's "sh"; an interdental /s/ collapses to ~1.0x or below.
+// Mutates the probes' acoustics segments in place (adds rel_to_sh).
+function annotateRelativeCog(probes) {
+  const MIN_RMS = 0.004;
+  const allSegs = [];
+  (probes || []).forEach(p => {
+    const a = p && p.acoustics;
+    if (!a || typeof a !== 'object' || a.error) return;
+    const segs = Array.isArray(a.segments) && a.segments.length ? a.segments : [a];
+    segs.forEach(seg => { if (seg && typeof seg === 'object') allSegs.push(seg); });
+  });
+  const cogOf = (seg) => Number(seg.center_of_gravity ?? seg.centroid_hz) || 0;
+  const usable = (seg) => cogOf(seg) > 0 && (seg.rms == null || Number(seg.rms) >= MIN_RMS);
+  const anchors = allSegs.filter(seg => /^(SH|ZH|CH|JH)$/i.test(String(seg.label || '')) && usable(seg))
+    .map(cogOf).sort((a, b) => a - b);
+  if (!anchors.length) return;
+  const anchor = anchors[Math.floor(anchors.length / 2)]; // median
+  allSegs.forEach(seg => {
+    if (/^(S|Z)$/i.test(String(seg.label || '')) && usable(seg)) {
+      seg.rel_to_sh = Math.round((cogOf(seg) / anchor) * 100) / 100;
+    }
+  });
+}
 
 // Interpretation guide injected once into the word prompt so Gemini knows how to
 // weigh the Praat numbers — especially the high-frequency band beyond its hearing.
 const ACOUSTIC_GUIDE = `## Acoustic measurements (Praat, computed on the 48 kHz recording)
-Each clip below is preceded by a [Praat acoustics] line. The recording captures the full spectrum up to 24 kHz, but your audio hearing rolls off around 8 kHz. These numbers cover the sibilant energy above that limit (peak frequency is searched in the 3–14 kHz range where /s/ energy lives). Treat them as ground-truth for the high-frequency evidence and weigh them against what you hear.
-- CoG (centre of gravity): normal /s/ ≈ 6.5–8.5 kHz (male), ≈ 7.5–10 kHz (female). An interdental (th-like) /s/ drops to ≈ 3.5–5.5 kHz.
-- kurtosis: a low/flat value means a diffuse, smeared spectrum → lateral (slushy) lisp. A sharp peak (higher kurtosis) is normal. Best single discriminator for lateral.
-- E(8-14/3-8): high-frequency energy balance you cannot hear. A low value with an otherwise normal CoG points to a frontal production.
-- E(0.5-4/total): elevated low-frequency energy = turbulence leaking low, a lateral marker.
-- dur/rms: quality gate — if duration is very short or rms very low, the sibilant was weak; trust your ear over the numbers.
-When ear and numbers disagree, favour the acoustic evidence for the high-frequency band and say what you heard in plain language.`;
+Each clip below is preceded by a [Praat acoustics] line. The recording captures the full spectrum up to 24 kHz, but your audio hearing rolls off around 8 kHz; the numbers describe the sibilant energy above that limit (peak searched in the 3–14 kHz range).
+IMPORTANT — these numbers come from uncalibrated consumer microphones at unknown angle and distance. Mic frequency response and off-axis placement alone shift CoG and high-band energy by several kHz, so absolute frequency norms are NOT reliable. Your trained ear is the PRIMARY evidence: judge each clip by listening first. Use the numbers only to CORROBORATE or refine a distortion you already hear — never to overturn a clip that sounds clean. Never transcribe a substitution (e.g. "th") that you did not actually hear in the audio.
+Reference patterns (directional cues, not thresholds):
+- CoG: an interdental (th-like) /s/ sits markedly LOWER than that same speaker's other sibilants. Self-calibrated check: a normal /s/ centres ABOVE the same speaker's "sh"; absolute values vary by mic.
+- s/sh (shown on /s,z/ lines when this session recorded a "sh"/"ch"/"j" reference): the speaker's OWN "sh" on the SAME mic is the reference, so this ratio cancels the microphone out — it is the most reliable number here. Normal /s/: ratio clearly above 1 (≈1.3+). A ratio near or below 1.0 on MOST /s/ words corroborates a frontal/interdental pattern; a single low word (especially word-final, or voiced /z/ which reads lower) is usually a measurement artifact, not a lisp.
+- kurtosis: low/flat = diffuse, smeared spectrum → lateral (slushy) cue. A sharp peak is normal.
+- E(8-14/3-8): a low value can mean frontal production — or simply mic high-frequency roll-off. Corroborating cue only.
+- E(0.5-4/total): elevated low-frequency energy = turbulence leaking low, a lateral cue.
+- dur/rms: reliability gate — if dur < 60 ms or rms < 0.01 the window was too weak to measure; IGNORE the numbers for that clip and judge purely by ear.`;
 
 function buildLispPrompt(words, speakerContext) {
+  // Acoustics are optional (client ships ear-only since 2026-08-26); only inject
+  // the Praat interpretation guide when at least one clip actually carries numbers.
+  const hasAcoustics = (words || []).some(w => w && w.acoustics && typeof w.acoustics === 'object' && !w.acoustics.error);
   const wordList = words.map((w, i) => `${i + 1}. ${w.word}${w.position ? ' (' + w.position + ')' : ''}`).join(', ');
   const country = speakerContext.country || 'Unspecified';
   const region = speakerContext.region || 'Unspecified';
@@ -124,10 +167,8 @@ Speaker context (use this to interpret accent and acoustic norms):
 
 Account for regional accent and voice type. Some dialects produce a softer /s/ — do NOT penalise that if it matches the dialect's expected production.
 
-You are provided with per-word audio clips in order. Judge as an experienced clinician: listen BY EAR and cross-check the acoustic measurements below. For each /s/ and /z/, listen for: crisp and well-placed vs. slipping toward "th" (interdental), slushy/sideways airflow (lateral), muffled/dentalized, or whistling. Trust your trained ear, corrected by the numbers for the high-frequency band you cannot hear.
-
-${ACOUSTIC_GUIDE}
-
+You are provided with per-word audio clips in order. Judge as an experienced clinician: listen BY EAR${hasAcoustics ? ' and cross-check the acoustic measurements below' : ''}. For each /s/ and /z/, listen for: crisp and well-placed vs. slipping toward "th" (interdental), slushy/sideways airflow (lateral), muffled/dentalized, or whistling. Trust your trained ear${hasAcoustics ? '; use the numbers below only as corroborating evidence, never to overturn what you clearly hear' : ''}.
+${hasAcoustics ? '\n' + ACOUSTIC_GUIDE + '\n' : ''}
 ## Output format
 Return a single markdown table with exactly ${words.length} rows (one per word, in the listed order) and these columns:
 | Word | Position | Heard | Judgment | Quality | Observation |
@@ -315,6 +356,7 @@ function buildAudioParts(prompt, words) {
 }
 
 async function analyzeWithGemini(words, speakerContext) {
+  annotateRelativeCog(words);
   const prompt = buildLispPrompt(words, speakerContext);
   return callGemini(buildAudioParts(prompt, words));
 }
@@ -347,7 +389,7 @@ ${sentencePrompt}
     // it in as ground-truth for the >8 kHz band Gemini cannot hear.
     const acLines = passageProbes.map(p => formatAcoustics(p.acoustics)).filter(Boolean);
     if (acLines.length) {
-      part3 += `\n\n[Praat acoustics] Aggregate high-frequency sibilant measurements for the spontaneous clip(s): ${acLines.join(' | ')}. Treat these as ground-truth for the >8 kHz sibilant energy you cannot hear and weigh them against what you hear. Do NOT mention any numbers in your output.`;
+      part3 += `\n\n[Praat acoustics] Aggregate high-frequency sibilant measurements for the spontaneous clip(s): ${acLines.join(' | ')}. They come from uncalibrated consumer microphones — use them only to corroborate a distortion you already hear, never to overturn clean-sounding speech. Do NOT mention any numbers in your output.`;
     }
     prompt += `
 ================ PART 3 — SPONTANEOUS SAMPLE (clip${nP > 1 ? 's' : ''} ${nW + nS + 1}–${nW + nS + nP}) ================
@@ -363,6 +405,7 @@ Do NOT number the table rows. Put ONLY the bare word/sentence in the first colum
 }
 
 async function analyzeCombinedWithGemini(wordProbes, sentenceProbes, passageProbes, speakerContext) {
+  annotateRelativeCog([...wordProbes, ...sentenceProbes, ...passageProbes]);
   const prompt = buildCombinedPrompt(wordProbes, sentenceProbes, passageProbes, speakerContext);
   // Clip order must match the prompt: words, then sentences, then spontaneous.
   const ordered = [...wordProbes, ...sentenceProbes, ...passageProbes];
@@ -391,7 +434,7 @@ ${sentencePrompt}
     // sibilant evidence Gemini cannot hear. Kept identical so results match.
     const acLines = passageProbes.map(p => formatAcoustics(p.acoustics)).filter(Boolean);
     if (acLines.length) {
-      part2 += `\n\n[Praat acoustics] Aggregate high-frequency sibilant measurements for the spontaneous clip(s): ${acLines.join(' | ')}. Treat these as ground-truth for the >8 kHz sibilant energy you cannot hear and weigh them against what you hear. Do NOT mention any numbers in your output.`;
+      part2 += `\n\n[Praat acoustics] Aggregate high-frequency sibilant measurements for the spontaneous clip(s): ${acLines.join(' | ')}. They come from uncalibrated consumer microphones — use them only to corroborate a distortion you already hear, never to overturn clean-sounding speech. Do NOT mention any numbers in your output.`;
     }
     prompt += `
 ================ PART 2 — SPONTANEOUS SAMPLE (clip${nP > 1 ? 's' : ''} ${nS + 1}–${nS + nP}) ================
@@ -407,6 +450,7 @@ Do NOT number the table rows. Put ONLY the bare sentence in the first column (e.
 }
 
 async function analyzeConnectedWithGemini(sentenceProbes, passageProbes, speakerContext) {
+  annotateRelativeCog([...sentenceProbes, ...passageProbes]);
   const prompt = buildConnectedPrompt(sentenceProbes, passageProbes, speakerContext);
   // Clip order must match the prompt: sentences, then spontaneous.
   const ordered = [...sentenceProbes, ...passageProbes];
@@ -781,119 +825,503 @@ async function recordPersonAssessment(user, personId, tier, data) {
 // paidCredits idempotently. See resolvePersonId — the identity model is shared.
 
 // ============================================================================
-// LEAD ALERT — hand the finished lead to the tsh-lead-alert Cloud Run service
-// (cloud-functions/tsh-sales-automation), which drafts the founder's outreach
-// and pushes it to Telegram.
+// HUBSPOT LEAD SYNC — replaces the tsh-lead-alert Telegram briefing service.
+// The finished lead is upserted as a HubSpot contact (lifecycle stage "lead")
+// and the full report + every survey answer lands as a Note on the contact, so
+// a sales exec opens the record and sees exactly what the lead saw.
 //
-// This REPLACES the old trigger: the browser wrote a row to a Google Sheet via
-// FormEasy and an Apps Script timer polled it every minute. That row was a
-// no-cors fetch from the tab — closed tab, ad blocker, or FormEasy's row-
-// clobbering race silently lost the lead, and the poller added ~11 min of
-// latency. Firing from here instead means the alert is as durable as the
-// Firestore write directly above it, and lands within seconds.
-//
-// Body shape is byte-identical to what the Apps Script used to POST, so the
-// Python service (webhook.py → classify.py) needs no changes.
+// Fires in the same request as report completion (right after the Firestore
+// write), so a lead is in HubSpot seconds after their results render. Same
+// durability model as the old transport: retried in-request, parked on the
+// user's doc on failure, re-driven by the Cloud Scheduler sweep
+// (?sweep=leads&key=<LEAD_ALERT_SECRET>).
 // ============================================================================
-const LEAD_ALERT_URL = process.env.LEAD_ALERT_URL || 'https://tsh-lead-alert-9267895976.us-central1.run.app';
-const LEAD_ALERT_SECRET = process.env.LEAD_ALERT_SECRET || '';
+const LEAD_ALERT_SECRET = process.env.LEAD_ALERT_SECRET || '';  // sweep-route auth only
+const HUBSPOT_TOKEN = process.env.HUBSPOT_TOKEN || '';
 
-// Cloud Run requires a Google-signed ID token whose audience is the service URL.
-// The Apps Script hand-rolled this from a service-account key; on Cloud Run the
-// runtime SA is picked up by ADC, so the library does it. Cached by the client.
-let _leadAlertClient = null;
-async function leadAlertIdToken() {
-  if (!_leadAlertClient) {
-    const { GoogleAuth } = require('google-auth-library');
-    _leadAlertClient = await new GoogleAuth().getIdTokenClient(LEAD_ALERT_URL);
-  }
-  const headers = await _leadAlertClient.getRequestHeaders(LEAD_ALERT_URL);
-  return headers.Authorization || headers.authorization || '';
+async function hubspotPost(path, body) {
+  const resp = await fetch('https://api.hubapi.com' + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${HUBSPOT_TOKEN}` },
+    body: JSON.stringify(body)
+  });
+  const text = await resp.text();
+  let json = null;
+  try { json = JSON.parse(text); } catch (e) { /* non-JSON error body */ }
+  return { ok: resp.ok, status: resp.status, text, json };
 }
 
-// The pipe-delimited string classify.py regex-parses (comfort|age|found_on|phone)
-// and is_completed() looks for the marker in. Same format the survey step wrote
-// to the Sheet — see submitFinalAssessment() in assessment.html.
-function buildLeadMessage(user, survey) {
-  const s = survey || {}, u = user || {};
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// The sales briefing that becomes the HubSpot note: headline verdict, every
+// survey answer, then the per-probe report exactly as scored (word/sentence,
+// judgment, quality, observation). hs_note_body allows simple HTML only, so
+// this sticks to <p>/<strong>/<br>.
+function buildLeadNoteBody(user, survey, report, speakerContext) {
+  const u = user || {}, s = survey || {}, r = report || {}, sc = speakerContext || {};
+  const sum = r.summary || {};
   const phone = (u.phone || '').trim();
   const fullPhone = phone ? `${(u.countryCode || '').trim()} ${phone}`.trim() : '';
-  return [
-    '✅ User completed assessment',
-    `comfort=${s.trouble_words_response || '—'}`,
-    `age=${s.age_group || '—'}`,
-    `found_on=${s.found_on || '—'}`,
-    `phone=${fullPhone || '—'}`
-  ].join(' | ');
+  const geo = [sc.region, sc.country].filter(x => x && x !== 'Unspecified').join(', ');
+  const parts = [];
+  parts.push('<p><strong>Free lisp assessment completed</strong> — GRI ' +
+    (r.gri != null ? r.gri : '—') + '/100' +
+    (sum.lispDetected
+      ? `, lisp detected on ${sum.lispWordCount} probe${sum.lispWordCount === 1 ? '' : 's'}`
+      : ', no lisp detected') + '</p>');
+  parts.push('<p><strong>Survey</strong><br>' + [
+    `Name: ${escHtml(s.first_name) || '—'}`,
+    `Email: ${escHtml(u.email) || '—'}`,
+    `Phone: ${escHtml(fullPhone) || '—'}`,
+    `Age group: ${escHtml(s.age_group) || '—'}`,
+    `Trouble with /s/ words: ${escHtml(s.trouble_words_response) || '—'}`,
+    `Found us on: ${escHtml(s.found_on) || '—'}`,
+    `Voice type: ${escHtml(sc.voiceType && sc.voiceType !== 'unspecified' ? sc.voiceType : '') || '—'}`,
+    `Location: ${escHtml(geo) || '—'}`
+  ].join('<br>') + '</p>');
+  (r.categories || []).forEach(cat => {
+    if (cat.type === 'spontaneous') {
+      const sp = cat.spontaneous || {};
+      const notes = Array.isArray(sp.notes) ? sp.notes : (sp.notes ? [sp.notes] : []);
+      parts.push(`<p><strong>${escHtml(cat.title)}</strong><br>${escHtml(sp.summary || '')}` +
+        (notes.length ? '<br>• ' + notes.map(escHtml).join('<br>• ') : '') + '</p>');
+      return;
+    }
+    const rows = (cat.rows || []).map(row => {
+      const label = row.word || row.sentence || '';
+      const extra = row.observation || row.mistakes || '';
+      return `• ${escHtml(label)} — ${escHtml(row.judgment || '')} (${row.quality != null ? row.quality : '—'})` +
+        (extra ? ` — ${escHtml(extra)}` : '');
+    });
+    parts.push(`<p><strong>${escHtml(cat.title)}${cat.avg != null ? ` — avg ${cat.avg}` : ''}</strong><br>${rows.join('<br>')}</p>`);
+  });
+  return parts.join('');
 }
 
-// Guard against double-briefing. The Apps Script deduped via its `lastSig`
-// high-water mark; with the trigger moved here, a client retry of part 2 (or a
-// resumed session re-running the analysis) would otherwise send a second
-// identical Telegram briefing. Marker lives on the user's own doc.
+// Guard against double-briefing. Keyed on the assessment's own sessionId rather
+// than "has this uid ever been briefed": the old marker was written once per user
+// and cleared nowhere in the codebase, so every returning user — including anyone
+// who paid $19 for a retake — was silently skipped forever. A part-2 retry within
+// the same run reuses the sessionId, so that case is still deduped.
 // Checked BEFORE sending; the marker is written only AFTER a successful send
 // (see sendLeadAlert). Writing it up-front would bury the lead permanently on any
-// transient failure — sendLeadAlert swallows errors, so nothing would notice.
-async function alreadyAlerted(uid) {
+// transient failure.
+async function alreadyAlerted(uid, sessionId) {
   if (!firestore || !uid) return false;  // can't dedupe → send, don't drop the lead
   try {
     const snap = await firestore.collection('lisp-users').doc(String(uid)).get();
-    return !!(snap.exists && snap.data().leadAlertSentAt);
+    if (!snap.exists) return false;
+    const d = snap.data() || {};
+    // Legacy marker carries no session. Honour it only for a run that has no
+    // sessionId either, so pre-existing users aren't locked out of a retake.
+    if (!sessionId) return !!d.leadAlertSentAt;
+    return d.leadAlertSentFor === sessionId;
   } catch (e) {
     console.error('leadAlert dedupe check failed (sending anyway):', e.message);
     return false;
   }
 }
 
-async function setLeadAlerted(uid) {
+async function setLeadAlerted(uid, sessionId) {
   if (!firestore || !uid) return;
   try {
     await firestore.collection('lisp-users').doc(String(uid))
-      .set({ leadAlertSentAt: new Date().toISOString() }, { merge: true });
+      .set({
+        leadAlertSentAt: new Date().toISOString(),
+        leadAlertSentFor: sessionId || '',
+        // Clear the parking slot so the sweep stops re-driving this lead.
+        leadAlertPending: admin.firestore.FieldValue.delete()
+      }, { merge: true });
   } catch (e) {
     console.error('leadAlert marker write failed (lead may be briefed twice):', e.message);
   }
 }
 
-// Fire the briefing. NEVER throws: this runs after the analysis is already
-// persisted, so a Telegram/Gemini failure downstream must not turn a successful
+// Park an undeliverable lead on the user's doc so sweepPendingLeadAlerts() can
+// re-drive it later. The full payload (survey + report) is stored so the sweep
+// can rebuild the note and PDF without the original request.
+async function parkLeadAlert(uid, payload, error) {
+  if (!firestore || !uid) {
+    console.error('❌ lead has nowhere to park (no uid) — WILL be lost:', payload.email);
+    return;
+  }
+  try {
+    const rest = JSON.parse(JSON.stringify(payload));
+    await firestore.collection('lisp-users').doc(String(uid)).set({
+      leadAlertPending: {
+        payload: rest, attempts: 0,
+        lastError: String(error).slice(0, 500),
+        at: new Date().toISOString()
+      }
+    }, { merge: true });
+    console.log('📥 lead parked for retry:', rest.email);
+  } catch (e) {
+    console.error('leadAlert parking failed (lead WILL be lost):', e.message);
+  }
+}
+
+// The shareable PDF of the report — what the sales exec forwards to the lead.
+// Rendered by the gcp-function-lisp-report Cloud Run service (WeasyPrint —
+// the exact clinical design of the product report, extracted from the retired
+// tsh-sales-automation service). IAM-authed: we send a Google-signed ID token,
+// same pattern the old tsh transport used. Returns null on any failure —
+// the lead must land in HubSpot even if the PDF can't be built (loud-logged;
+// the note still carries the full report text).
+const REPORT_PDF_URL = process.env.REPORT_PDF_URL || '';
+let _reportPdfClient = null;
+async function reportPdfIdToken() {
+  try {
+    if (!_reportPdfClient) {
+      const { GoogleAuth } = require('google-auth-library');
+      _reportPdfClient = await new GoogleAuth().getIdTokenClient(REPORT_PDF_URL);
+    }
+    const headers = await _reportPdfClient.getRequestHeaders(REPORT_PDF_URL);
+    return headers.Authorization || headers.authorization || '';
+  } catch (e) {
+    // Local dev against a bare flask instance has no metadata server — send
+    // unauthenticated and let the service decide.
+    return '';
+  }
+}
+
+async function buildReportPdf(user, survey, report) {
+  if (!REPORT_PDF_URL) { console.warn('REPORT_PDF_URL unset — lead note will have no PDF'); return null; }
+  try {
+    const u = user || {}, s = survey || {}, r = report || {};
+    const headers = { 'Content-Type': 'application/json' };
+    const auth = await reportPdfIdToken();
+    if (auth) headers.Authorization = auth;
+    const resp = await fetch(REPORT_PDF_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        name: (s.first_name || '').trim() || String(u.email || '').split('@')[0] || 'Patient',
+        date: new Date().toISOString().slice(0, 10),
+        gri: r.gri,
+        categories: r.categories || [],
+        result: r.result || '',
+        age_group: s.age_group || '',
+        uid: u.uid || ''
+      })
+    });
+    if (!resp.ok) {
+      console.error('report PDF render failed:', resp.status, (await resp.text()).slice(0, 300));
+      return null;
+    }
+    return Buffer.from(await resp.arrayBuffer());
+  } catch (e) {
+    console.error('PDF build failed — lead note will have no PDF:', e.message);
+    return null;
+  }
+}
+
+// Files API upload (multipart — Node 22 global FormData/Blob). Deterministic
+// filename + overwrite:true make re-drives replace the file instead of piling
+// up copies, so parked-lead retries never grow free-plan storage.
+// PUBLIC_NOT_INDEXABLE = unguessable stable URL, hidden from search engines —
+// the exec can paste the link or attach the file when contacting the lead.
+async function hubspotUploadPdf(pdfBuffer, fileName) {
+  const fd = new FormData();
+  fd.append('file', new Blob([pdfBuffer], { type: 'application/pdf' }), fileName);
+  fd.append('options', JSON.stringify({ access: 'PUBLIC_NOT_INDEXABLE', overwrite: true }));
+  fd.append('folderPath', '/lisp-assessment-reports');
+  const resp = await fetch('https://api.hubapi.com/files/v3/files', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${HUBSPOT_TOKEN}` },
+    body: fd
+  });
+  const text = await resp.text();
+  let json = null;
+  try { json = JSON.parse(text); } catch (e) { /* non-JSON error body */ }
+  return { ok: resp.ok, status: resp.status, text, json };
+}
+
+// Three HubSpot calls per lead — upsert contact, upload PDF, attach note —
+// retried as a unit on transport errors and 5xx. Well inside free-plan API
+// limits (100 req/10s, 250k/day) at any plausible assessment volume. The
+// upsert is idempotent and the fileId is cached across attempts, so only the
+// note can double on an ambiguous retry — same window the old transport had.
+const LEAD_ALERT_ATTEMPTS = 3;
+async function postLeadAlert(payload) {
+  let last = '';
+  // When the render service is configured, the PDF is REQUIRED: a failed
+  // render fails the attempt so the lead parks and the sweep re-drives it
+  // with the PDF once the service recovers. With REPORT_PDF_URL unset
+  // (pre-rollout), leads deliver note-only rather than piling up.
+  const wantPdf = !!(payload.report && REPORT_PDF_URL);
+  const pdfName = `lisp-report-${String(payload.sessionId || payload.email).replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
+  let pdf = null, fileId = null;
+  for (let i = 0; i < LEAD_ALERT_ATTEMPTS; i++) {
+    try {
+      if (payload.report && !pdf) pdf = await buildReportPdf(payload.user, payload.survey, payload.report);
+      if (wantPdf && !pdf) { throw new Error('report PDF render failed'); }
+      let up = await hubspotPost('/crm/v3/objects/contacts/batch/upsert', {
+        inputs: [{ idProperty: 'email', id: String(payload.email).toLowerCase(), properties: payload.contactProps }]
+      });
+      if (!up.ok && up.status === 400) {
+        // Property validation failure (e.g. a portal that deleted the default
+        // "lead" lifecycle stage) — the contact must land anyway. Retry with
+        // the minimal guaranteed-valid property set.
+        const p = payload.contactProps || {};
+        up = await hubspotPost('/crm/v3/objects/contacts/batch/upsert', {
+          inputs: [{ idProperty: 'email', id: String(payload.email).toLowerCase(),
+                     properties: { email: p.email, firstname: p.firstname, phone: p.phone } }]
+        });
+      }
+      if (!up.ok) {
+        last = `upsert ${up.status} ${up.text.slice(0, 300)}`;
+      } else {
+        const contactId = up.json && up.json.results && up.json.results[0] && up.json.results[0].id;
+        if (!contactId) {
+          last = 'upsert ok but no contact id: ' + up.text.slice(0, 300);
+        } else {
+          if (pdf && !fileId) {
+            const uploaded = await hubspotUploadPdf(pdf, pdfName);
+            if (uploaded.ok && uploaded.json && uploaded.json.id) fileId = String(uploaded.json.id);
+            else { last = `file ${uploaded.status} ${uploaded.text.slice(0, 300)}`; throw new Error(last); }
+          }
+          const noteProps = {
+            hs_timestamp: payload.date || new Date().toISOString(),
+            hs_note_body: String(payload.noteBody || '').slice(0, 60000)
+          };
+          if (fileId) noteProps.hs_attachment_ids = fileId;
+          const note = await hubspotPost('/crm/v3/objects/notes', {
+            properties: noteProps,
+            // 202 = HubSpot-defined note→contact association.
+            associations: [{ to: { id: contactId }, types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 202 }] }]
+          });
+          if (note.ok) return { ok: true, body: `contact ${contactId}${fileId ? ` pdf ${fileId}` : ''}` };
+          last = `note ${note.status} ${note.text.slice(0, 300)}`;
+        }
+      }
+    } catch (e) {
+      last = e.message;
+    }
+    if (i < LEAD_ALERT_ATTEMPTS - 1) await new Promise(r => setTimeout(r, 2000 * (i + 1)));
+  }
+  return { ok: false, body: last };
+}
+
+// ============================================================================
+// FUNNEL LEADS — a signed-in visitor is a lead BEFORE they finish anything.
+// Firestore `hubspot-leads/{email}` is the cross-product dedupe marker (also
+// read by the rollr-academy auth trigger to attribute app signups).
+// assessment_status / assessment_product are custom contact properties
+// (2 of the free plan's 10) so sales can filter "signed in, never finished".
+// ============================================================================
+const LEAD_STATUS_PROP = 'assessment_status';
+const LEAD_PRODUCT_PROP = 'assessment_product';
+
+// Create the two custom properties once per instance. Needs the app scope
+// crm.schemas.contacts.write; a 403 just means statuses ride in notes until
+// the scope is added. 409 = already exist.
+let _hsPropsEnsured = false;
+async function ensureHubspotProperties() {
+  if (_hsPropsEnsured || !HUBSPOT_TOKEN) return;
+  _hsPropsEnsured = true;
+  const defs = [
+    { name: LEAD_STATUS_PROP, label: 'Assessment status', type: 'enumeration', fieldType: 'select',
+      groupName: 'contactinformation',
+      options: [
+        { label: 'Signed in — not completed', value: 'signed_in' },
+        { label: 'Recorded words — report unfinished', value: 'recorded_words' },
+        { label: 'Completed', value: 'completed' }
+      ] },
+    { name: LEAD_PRODUCT_PROP, label: 'Assessment product', type: 'enumeration', fieldType: 'select',
+      groupName: 'contactinformation',
+      options: [{ label: 'Lisp', value: 'lisp' }, { label: 'Rhotacism', value: 'rhotacism' }] }
+  ];
+  for (const d of defs) {
+    const r = await hubspotPost('/crm/v3/properties/contacts', d);
+    if (!r.ok && r.status !== 409) {
+      console.warn(`HubSpot property ${d.name} not created (${r.status}):`, r.text.slice(0, 200));
+    }
+  }
+}
+
+// Upsert by email; on a 400 (e.g. custom properties not created yet) retry
+// with the minimal guaranteed-valid set so the contact always lands.
+async function upsertLeadContact(email, properties) {
+  const id = String(email).toLowerCase();
+  let up = await hubspotPost('/crm/v3/objects/contacts/batch/upsert', {
+    inputs: [{ idProperty: 'email', id, properties }]
+  });
+  if (!up.ok && up.status === 400) {
+    up = await hubspotPost('/crm/v3/objects/contacts/batch/upsert', {
+      inputs: [{ idProperty: 'email', id,
+                 properties: { email: properties.email, firstname: properties.firstname, phone: properties.phone } }]
+    });
+  }
+  return up;
+}
+
+function leadContactId(up) {
+  return up.json && up.json.results && up.json.results[0] && String(up.json.results[0].id || '');
+}
+
+async function attachLeadNote(contactId, html) {
+  return hubspotPost('/crm/v3/objects/notes', {
+    properties: { hs_timestamp: new Date().toISOString(), hs_note_body: html },
+    associations: [{ to: { id: contactId }, types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 202 }] }]
+  });
+}
+
+// Fires from the post-login entitlement check — the first server-visible
+// funnel step. A returning identity that already consumed its free run
+// (ent.allowed === false) is pushed as completed, which organically backfills
+// pre-HubSpot leads. Marker-deduped; a failed push retries on next sign-in.
+async function sendSignupLead(user, ent) {
+  try {
+    const email = String((user && user.email) || '').trim().toLowerCase();
+    if (!email || !HUBSPOT_TOKEN || !firestore) return;
+    const ref = firestore.collection('hubspot-leads').doc(email);
+    if ((await ref.get()).exists) return;
+    await ensureHubspotProperties();
+    const completedBefore = ent && ent.allowed === false;
+    const status = completedBefore ? 'completed' : 'signed_in';
+    const up = await upsertLeadContact(email, {
+      email,
+      firstname: String((user && user.name) || '').trim().split(' ')[0] || '',
+      phone: String((user && user.phone) || '').trim(),
+      lifecyclestage: 'lead',
+      [LEAD_STATUS_PROP]: status,
+      [LEAD_PRODUCT_PROP]: 'lisp'
+    });
+    if (!up.ok) { console.warn('signup lead upsert failed (retries next sign-in):', up.status, up.text.slice(0, 200)); return; }
+    const contactId = leadContactId(up);
+    if (contactId) {
+      await attachLeadNote(contactId, completedBefore
+        ? '<p>Signed in to the free lisp assessment — this identity already used its free run earlier (pre-CRM lead, backfilled as completed).</p>'
+        : '<p>🔶 Signed in to the free lisp assessment — full assessment <strong>NOT completed</strong> yet.</p>');
+    }
+    await ref.set({ product: 'lisp', source: 'web', status, signupLeadAt: new Date().toISOString() });
+    console.log('🟠 signup lead pushed:', email, status);
+  } catch (e) {
+    console.error('signup lead error:', e.message);
+  }
+}
+
+// Cheap status flip (1 upsert) at funnel checkpoints. Self-swallowing.
+async function setLeadStatus(user, status) {
+  try {
+    const email = String((user && user.email) || '').trim().toLowerCase();
+    if (!email || !HUBSPOT_TOKEN) return;
+    await ensureHubspotProperties();
+    await upsertLeadContact(email, { email, [LEAD_STATUS_PROP]: status, [LEAD_PRODUCT_PROP]: 'lisp' });
+  } catch (e) {
+    console.error('lead status update failed:', e.message);
+  }
+}
+
+// Back-compat: leads parked by the old tsh-lead-alert transport carry
+// {name,email,message}; synthesize the HubSpot shape so the sweep can still
+// deliver them.
+function normalizeParkedLead(p) {
+  if (p.contactProps && p.noteBody) return p;
+  return {
+    email: p.email,
+    contactProps: { email: String(p.email || '').toLowerCase(), firstname: p.name || '', lifecyclestage: 'lead' },
+    noteBody: '<p>' + escHtml(p.message || 'Free lisp assessment completed') + '</p>',
+    date: p.date || new Date().toISOString(),
+    sessionId: p.sessionId || ''
+  };
+}
+
+// Re-drive every parked lead. This is what makes HubSpot delivery eventually
+// guaranteed rather than best-effort: a HubSpot outage now delays a lead
+// instead of losing it. Driven by Cloud Scheduler against
+// GET ?sweep=leads&key=<LEAD_ALERT_SECRET>.
+async function sweepPendingLeadAlerts() {
+  if (!firestore) return { error: 'no firestore' };
+  if (!HUBSPOT_TOKEN) return { error: 'HUBSPOT_TOKEN unset' };
+  // orderBy on the nested field returns only docs that actually carry it.
+  const snap = await firestore.collection('lisp-users')
+    .orderBy('leadAlertPending.at').limit(25).get();
+  let sent = 0, failed = 0;
+  const stuck = [];
+  for (const doc of snap.docs) {
+    const pending = (doc.data() || {}).leadAlertPending;
+    if (!pending || !pending.payload) continue;
+    const { ok, body } = await postLeadAlert(normalizeParkedLead(pending.payload));
+    if (ok) {
+      await setLeadAlerted(doc.id, pending.payload.sessionId || '');
+      sent++;
+      console.log('📨 parked lead delivered on retry:', pending.payload.email);
+    } else {
+      failed++;
+      const attempts = (pending.attempts || 0) + 1;
+      // Never give up on a lead, but make a chronically stuck one loud.
+      if (attempts % 10 === 0) stuck.push({ email: pending.payload.email, attempts, lastError: String(body).slice(0, 200) });
+      await doc.ref.set({
+        leadAlertPending: { ...pending, attempts, lastError: String(body).slice(0, 500) }
+      }, { merge: true });
+    }
+  }
+  if (stuck.length) console.error('⚠️ leads still undelivered after many retries:', JSON.stringify(stuck));
+  return { scanned: snap.size, sent, failed, stuck };
+}
+
+// Deliver the lead to HubSpot. NEVER throws: this runs after the analysis is
+// already persisted, so a HubSpot failure downstream must not turn a successful
 // part-2 response into a 500 — that would make the browser call
 // markDeferredSectionsFailed() and show "couldn't finish" on a report that
 // actually completed.
-async function sendLeadAlert(user, survey) {
+async function sendLeadAlert(user, survey, report, speakerContext) {
   try {
     const u = user || {};
-    if (!u.email) { console.warn('No email — skipping lead alert'); return; }
-    if (!LEAD_ALERT_SECRET) { console.warn('LEAD_ALERT_SECRET unset — skipping lead alert'); return; }
+    if (!u.email) { console.warn('No email — skipping HubSpot lead'); return; }
+    if (!HUBSPOT_TOKEN) { console.warn('HUBSPOT_TOKEN unset — skipping HubSpot lead'); return; }
 
-    if (await alreadyAlerted(u.uid)) {
-      console.log('🔁 lead already briefed — skipping', u.email);
+    if (await alreadyAlerted(u.uid, u.sessionId)) {
+      console.log('🔁 lead already delivered for this session — skipping', u.email);
       return;
     }
 
-    const resp = await fetch(`${LEAD_ALERT_URL}/webhook`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: await leadAlertIdToken() },
-      body: JSON.stringify({
-        secret: LEAD_ALERT_SECRET,
-        name: (survey && survey.first_name) || '',
-        email: u.email,
-        message: buildLeadMessage(u, survey),
-        date: new Date().toISOString()
-      })
-    });
-    const body = await resp.text();
-    if (!resp.ok) {
-      // Nothing was marked, so the next part-2 run for this uid retries.
-      console.error('❌ lead alert failed:', resp.status, body);
+    const s = survey || {};
+    const phone = (u.phone || '').trim();
+    const payload = {
+      email: u.email,
+      contactProps: {
+        email: String(u.email).toLowerCase(),
+        firstname: (s.first_name || '').trim(),
+        phone: phone ? `${(u.countryCode || '').trim()} ${phone}`.trim() : '',
+        lifecyclestage: 'lead',
+        [LEAD_STATUS_PROP]: 'completed',
+        [LEAD_PRODUCT_PROP]: 'lisp'
+      },
+      noteBody: buildLeadNoteBody(user, survey, report, speakerContext),
+      // Raw material for the PDF; parked with the payload so a sweep re-drive
+      // can rebuild it.
+      user: u, survey: s, report: report || null, speakerContext: speakerContext || null,
+      date: new Date().toISOString(),
+      sessionId: u.sessionId || ''
+    };
+    await ensureHubspotProperties();
+    const { ok, body } = await postLeadAlert(payload);
+    if (!ok) {
+      // Part 2 runs exactly once per assessment, so there is no later attempt to
+      // fall back on — park the lead and let the scheduled sweep finish the job.
+      console.error(`❌ lead alert failed after ${LEAD_ALERT_ATTEMPTS} attempts:`, body);
+      await parkLeadAlert(u.uid, { ...payload, sessionId: u.sessionId || '' }, body);
       return;
     }
-    await setLeadAlerted(u.uid);
+    await setLeadAlerted(u.uid, u.sessionId);
+    // Marker so a later sign-in doesn't re-push this person as a fresh
+    // "signed_in" lead over their completed status.
+    try {
+      if (firestore) await firestore.collection('hubspot-leads').doc(String(u.email).toLowerCase())
+        .set({ product: 'lisp', status: 'completed', completedAt: new Date().toISOString() }, { merge: true });
+    } catch (e) { /* marker only */ }
     console.log('📨 lead alert sent for', u.email, '→', body.slice(0, 200));
   } catch (err) {
     console.error('❌ lead alert error:', err);
   }
 }
+
+// Test-only surface for local smoke scripts — not used by the service itself.
+module.exports._leadSync = { buildReportPdf, buildLeadNoteBody, normalizeParkedLead, postLeadAlert };
 
 // A word counts as a lisp hit when its judgment is a distortion type (matches the
 // results page Judgment column); Accurate/Unclear/Omitted are NOT hits.
@@ -1008,15 +1436,26 @@ functions.http('analyzeLispSpeech', async (req, res) => {
     // instead of falsely showing "couldn't finish". Returns { status, latestAssessment? }.
     if (req.method === 'GET') {
       try {
+        // Scheduled retry sweep for parked lead alerts (Cloud Scheduler).
+        if (req.query && req.query.sweep === 'leads') {
+          if (!LEAD_ALERT_SECRET || req.query.key !== LEAD_ALERT_SECRET) {
+            return res.status(401).json({ error: 'unauthorized' });
+          }
+          return res.status(200).json(await sweepPendingLeadAlerts());
+        }
         // Post-login gate: has this identity already used its free assessment?
         // ?check=entitlement&email=&authUserId=&phone= → { allowed, tier }.
         if (req.query && req.query.check === 'entitlement') {
-          const ent = await lookupEntitlement({
+          const identity = {
             authUserId: ((req.query.authUserId) || '').toString().trim(),
             email: ((req.query.email) || '').toString().trim(),
             phone: ((req.query.phone) || '').toString().trim(),
             name: ((req.query.name) || '').toString().trim()
-          });
+          };
+          const ent = await lookupEntitlement(identity);
+          // Sign-in IS the lead: push to HubSpot now, not at completion.
+          // Awaited so Cloud Run doesn't throttle it away after the response.
+          await sendSignupLead(identity, ent);
           return res.status(200).json(ent);
         }
         const uid = ((req.query && req.query.uid) || '').toString().trim();
@@ -1125,6 +1564,14 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         await sendPosthogAssessmentCompleted(req.body && req.body.user, req.body && req.body.survey, lispSummary);
         // Consume the assessment (combined delivers part 1 in one shot).
         await recordPersonAssessment(req.body && req.body.user, personId, entTier, { gri, partial: false });
+        // Combined delivers a complete assessment in one shot, so the lead is
+        // final here too. This branch had no briefing at all — any traffic that
+        // took it vanished. Deduped by sessionId against the split flow.
+        // QA runs (?test=1 / replay suite) are never leads — keeps the CRM clean.
+        if (!(req.body && req.body.test === true)) {
+          await sendLeadAlert(req.body && req.body.user, req.body && req.body.survey,
+            { gri, categories, result, summary: lispSummary }, speakerContext);
+        }
 
         return res.status(200).json({ words: wordRows, rows: sentenceParsed.rows, spontaneous, gri, mode: 'combined', usage });
       }
@@ -1153,10 +1600,14 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         // Full record — clears the partial flag set by the mode:'words' persist write.
         await writeLispUserRecord(req.body && req.body.user, { gri, categories, result });
         // PostHog fires HERE (part-2 completion) with sentence-level detections included.
-        await sendPosthogAssessmentCompleted(req.body && req.body.user, req.body && req.body.survey, deriveLispSummary(categories, gri));
-        // Telegram lead briefing. The record above is what the alert service reads
-        // back, so this must come after it. Self-swallowing — see sendLeadAlert.
-        await sendLeadAlert(req.body && req.body.user, req.body && req.body.survey);
+        const lispSummary = deriveLispSummary(categories, gri);
+        await sendPosthogAssessmentCompleted(req.body && req.body.user, req.body && req.body.survey, lispSummary);
+        // HubSpot lead sync: contact + report note + PDF. Self-swallowing — see
+        // sendLeadAlert. QA runs (?test=1 / replay suite) are never leads.
+        if (!(req.body && req.body.test === true)) {
+          await sendLeadAlert(req.body && req.body.user, req.body && req.body.survey,
+            { gri, categories, result, summary: lispSummary }, speakerContext);
+        }
 
         return res.status(200).json({ rows: sentenceParsed.rows, spontaneous, gri, mode: 'connected', usage });
       }
@@ -1199,6 +1650,11 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         const wq2 = wordRows.map(r => r.quality || 0);
         const wgri2 = wq2.length ? Math.round(wq2.reduce((a, b) => a + b, 0) / wq2.length) : null;
         await recordPersonAssessment(req.body && req.body.user, personId, entTier, { gri: wgri2, partial: true });
+      }
+
+      // Funnel checkpoint: words recorded, report not yet finished.
+      if (!(req.body && req.body.test === true)) {
+        await setLeadStatus(req.body && req.body.user, 'recorded_words');
       }
 
       res.status(200).json({ ...parsed, words: wordRows, mode: 'words', usage });

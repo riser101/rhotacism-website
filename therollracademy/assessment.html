@@ -2896,6 +2896,8 @@
             clearTimeout(step4Timeout);
             for (let i = 1; i <= 4; i++) markDone('loading' + i);
 
+            // Full test finished → flip the HubSpot lead to completed.
+            try { window.hubspotLeadBeacon && window.hubspotLeadBeacon('completed'); } catch (e) {}
             // Redirect to results
             setTimeout(() => { window.location.href = 'assessment-results.html'; }, 10);
         }
@@ -3300,6 +3302,24 @@
                 return map[code] || (err && err.message) || 'Sign in failed.';
             }
 
+            // HubSpot lead beacon: a sign-in IS a lead ('signin'), and finishing
+            // the test flips it ('completed'). Server side dedupes and labels the
+            // product; keepalive survives the results-page navigation.
+            window.hubspotLeadBeacon = function (event) {
+                try {
+                    var ua = null;
+                    try { ua = JSON.parse(localStorage.getItem('userAuth') || 'null'); } catch (e) {}
+                    ua = ua || window.obLoggedInUser || {};
+                    if (!ua.email) return;
+                    fetch('https://us-central1-rollr-academy.cloudfunctions.net/sendResetEmail', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'hubspotLead', event: event, email: ua.email, name: ua.name || '' }),
+                        keepalive: true
+                    }).catch(function () {});
+                } catch (e) { /* lead beacon must never break the flow */ }
+            };
+
             function obAfterSignIn(user, provider) {
                 window.obLoggedInUser = { email: user.email, uid: user.uid, provider };
                 // Capture the real display name from Google/Apple. Apple only returns it
@@ -3309,6 +3329,7 @@
                 try { prev = JSON.parse(localStorage.getItem('userAuth') || '{}') || {}; } catch (e) {}
                 var name = displayName || (prev && prev.name) || '';
                 try { localStorage.setItem('userAuth', JSON.stringify({ email: user.email, id: user.uid, provider, name: name })); } catch (e) {}
+                window.hubspotLeadBeacon('signin');
                 nextStep();
             }
 

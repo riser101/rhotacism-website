@@ -1,0 +1,9 @@
+flask==3.0.3
+gunicorn==22.0.0
+weasyprint==69.0
+pydyf==0.12.1
+pillow==11.2.1
+tinycss2==1.5.1
+cssselect2==0.9.0
+pyphen==0.17.2
+fonttools==4.63.0

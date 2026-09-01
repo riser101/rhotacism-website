@@ -5186,7 +5186,8 @@
                 voiceType: userGender,
                 user: lispIdentityPayload(),
                 survey: lispSurveyPayload(),
-                part1: { words: wordRows || [] }
+                part1: { words: wordRows || [] },
+                test: retakeTestMode() // QA runs must not become HubSpot leads
             };
             const res = await postToBackend(payload);
             return { sentenceRows: res.rows || [], spontaneous: res.spontaneous || null };

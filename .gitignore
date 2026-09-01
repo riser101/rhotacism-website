@@ -1,6 +1,7 @@
 .vercel
 node_modules/
 .env
+hubspot.config.yml
 .DS_Store
 thestutteracademy/
 thelispacademy/

@@ -1,0 +1,29 @@
+{
+  "uid": "lisp_lead_sync",
+  "type": "app",
+  "config": {
+    "description": "Server-side lead sync from the free lisp assessment: upserts the contact, attaches the clinical report note + PDF.",
+    "name": "Lisp Lead Sync",
+    "distribution": "private",
+    "auth": {
+      "type": "static",
+      "requiredScopes": [
+        "oauth",
+        "crm.objects.contacts.read",
+        "crm.objects.contacts.write",
+        "crm.schemas.contacts.write",
+        "files"
+      ],
+      "optionalScopes": [],
+      "conditionallyRequiredScopes": []
+    },
+    "permittedUrls": {
+      "fetch": ["https://api.hubapi.com"],
+      "iframe": [],
+      "img": []
+    },
+    "support": {
+      "supportEmail": "founder@topspeech.health"
+    }
+  }
+}
