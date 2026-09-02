@@ -120,6 +120,12 @@
         window.obFirebasePasswordReset = async function(email) {
             await sendPasswordResetEmail(auth, email);
         };
+        // Cache the signed-in user's ID token so the completion beacon can attach
+        // a verified identity synchronously (the results redirect races async calls).
+        window.obIdToken = '';
+        onAuthStateChanged(auth, (u) => {
+            if (u && !u.isAnonymous) u.getIdToken().then((t) => { window.obIdToken = t; }).catch(() => {});
+        });
         window.obFirebaseSendEmailLink = async function(email) {
             const continueUrl = window.location.origin + '/therollracademy/assessment.html#login';
             const resp = await fetch('https://us-central1-rollr-academy.cloudfunctions.net/sendResetEmail', {
@@ -3329,6 +3335,23 @@
                                 found_on: reason?.value === 'other' ? ((document.getElementById('otherReason') || {}).value || '') : (reason?.value || ''),
                                 phone: ph.trim() ? cc + ' ' + ph.trim() : ''
                             };
+                        } catch (e) {}
+                        // Persist the scored web test into the app's users table
+                        // (rollr-academy) so web + app history share one record —
+                        // keyed by verified Firebase identity, merged by email if
+                        // the app is installed later.
+                        try {
+                            fetch('https://us-central1-rollr-academy.cloudfunctions.net/sendResetEmail', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    action: 'saveWebAssessment', idToken: window.obIdToken || '',
+                                    email: ua.email, name: ua.name || '',
+                                    gri: ar ? ar.gri : null, words: (ar && ar.words) || [],
+                                    survey: extra.survey || null
+                                }),
+                                keepalive: true
+                            }).catch(function () {});
                         } catch (e) {}
                     }
                     var send = function (country) {

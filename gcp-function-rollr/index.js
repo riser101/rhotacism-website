@@ -355,6 +355,71 @@ const functions = require('@google-cloud/functions-framework');
       }
     }
 
+    // Branch: persist the scored rhotacism WEB test into the app's users table
+    // (users/{uid}.webAssessment — deliberately a different field from the
+    // app's baselineAssessment, with source:'web', so the two are always
+    // distinguishable). Identity: the page's Firebase ID token (same auth
+    // project as the app, so same account = same uid = one merged record).
+    // Anonymous/stale tokens are unverified → only the email-keyed copy in
+    // web-assessments/{email} lands, and rollrBaselineLead merges it into the
+    // app doc when that user later installs the app.
+    // POST { action:'saveWebAssessment', idToken, email?, name?, gri, words:[...], survey? }
+    if (req.body && req.body.action === 'saveWebAssessment') {
+      try {
+        const b = req.body;
+        let uid = '', tokenEmail = '';
+        try {
+          const decoded = await admin.auth().verifyIdToken(String(b.idToken || ''));
+          if (!decoded.firebase || decoded.firebase.sign_in_provider !== 'anonymous') {
+            uid = decoded.uid;
+            tokenEmail = String(decoded.email || '').toLowerCase();
+          }
+        } catch (e) { /* unverified — email-keyed record still lands */ }
+        const email = tokenEmail || String(b.email || '').trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'No identity' });
+        const gri = Number(b.gri);
+        const words = (Array.isArray(b.words) ? b.words : []).slice(0, 40);
+        if (!words.length && !Number.isFinite(gri)) return res.status(400).json({ error: 'No results' });
+        const wordResults = {};
+        for (const w of words) {
+          const key = String((w || {}).word || '').slice(0, 60);
+          if (!key) continue;
+          wordResults[key] = {
+            heard: String((w || {}).heard || '').slice(0, 120),
+            judgment: String((w || {}).judgment || '').slice(0, 60),
+            quality: Number((w || {}).quality) || 0,
+            observation: String((w || {}).observation || '').slice(0, 300)
+          };
+        }
+        const sv = (b.survey && typeof b.survey === 'object') ? b.survey : {};
+        const rec = {
+          source: 'web',
+          griScore: Number.isFinite(gri) ? Math.max(0, Math.min(100, Math.round(gri))) : null,
+          wordResults,
+          survey: {
+            age_group: String(sv.age_group || '').slice(0, 60),
+            trouble_words: String(sv.trouble_words || '').slice(0, 120),
+            found_on: String(sv.found_on || '').slice(0, 120),
+            phone: String(sv.phone || '').slice(0, 40)
+          },
+          email,
+          name: String(b.name || '').slice(0, 80),
+          webUid: uid || null,
+          emailVerified: !!tokenEmail,
+          createdAt: new Date().toISOString()
+        };
+        await admin.firestore().collection('web-assessments').doc(email).set(rec);
+        if (uid) {
+          await admin.firestore().collection('users').doc(uid).set({ email, webAssessment: rec }, { merge: true });
+        }
+        console.log('💾 web assessment saved:', email, uid ? `uid=${uid}` : '(email-keyed only)');
+        return res.status(200).json({ ok: true });
+      } catch (err) {
+        console.error('saveWebAssessment error:', err.message);
+        return res.status(200).json({ error: true });  // never break the test flow
+      }
+    }
+
     // Branch: HubSpot lead beacon from the rhotacism web test.
     // POST { action:'hubspotLead', event:'signin'|'completed', email, name? }.
     // Unauthenticated by design (same trust level as action:'signin' above);
@@ -678,6 +743,12 @@ const functions = require('@google-cloud/functions-framework');
       const after = change.value && change.value.fields ? fsMap(change.value.fields) : null;
       if (!after) return;  // doc deleted
       const before = change.oldValue && change.oldValue.fields ? fsMap(change.oldValue.fields) : {};
+      // users/{uid} docs created by the WEB test carry only email/webAssessment
+      // — not an app install; never stamp app props (platform/trial/downloaded)
+      // for them. Any app-written field marks the doc as an app record.
+      const isAppDoc = !!(after.platform || after.signupPlatform || after.baselineAssessment
+        || after.subscriptionProductId || after.revenuecatAppUserId);
+      if (!isAppDoc) return;
       const base = after.baselineAssessment;
       const prev = before.baselineAssessment;
       const baselineChanged = !!(base && base.wordResults && (!prev || String(prev.createdAt) !== String(base.createdAt)));
@@ -705,6 +776,19 @@ const functions = require('@google-cloud/functions-framework');
         } catch (e) { /* auth record gone */ }
       }
       if (!email) return;
+
+      // Email-fallback merge: a web test taken before the app install (or under
+      // a since-recreated auth account) lives in web-assessments/{email} — copy
+      // it onto the app record once, keeping it distinct from baselineAssessment.
+      if (uid && !after.webAssessment) {
+        try {
+          const wa = await admin.firestore().collection('web-assessments').doc(email).get();
+          if (wa.exists) {
+            await admin.firestore().collection('users').doc(uid).set({ webAssessment: wa.data() }, { merge: true });
+            console.log('🔗 merged web assessment into app record:', email, uid);
+          }
+        } catch (e) { console.warn('web-assessment merge failed:', e.message); }
+      }
 
       await ensureAppProperties();
       const appProps = { app_platform: platform, app_trial_status: trial, app_downloaded: 'yes' };
