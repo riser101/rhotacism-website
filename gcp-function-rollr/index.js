@@ -97,6 +97,25 @@ const functions = require('@google-cloud/functions-framework');
   const escLead = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  // App-context contact properties (409 = already exist).
+  let _appPropsEnsured = false;
+  async function ensureAppProperties() {
+    if (_appPropsEnsured || !HUBSPOT_TOKEN) return;
+    _appPropsEnsured = true;
+    const defs = [
+      { name: 'app_platform', label: 'App platform', type: 'enumeration', fieldType: 'select',
+        groupName: 'contactinformation',
+        options: [{ label: 'iOS', value: 'ios' }, { label: 'Android', value: 'android' }] },
+      { name: 'app_trial_status', label: 'App trial', type: 'enumeration', fieldType: 'select',
+        groupName: 'contactinformation',
+        options: [{ label: 'Started', value: 'started' }, { label: 'Not started', value: 'not_started' }] }
+    ];
+    for (const d of defs) {
+      const r = await hubspotPost('/crm/v3/properties/contacts', d);
+      if (!r.ok && r.status !== 409) console.warn(`HubSpot property ${d.name} not created (${r.status}):`, r.text.slice(0, 150));
+    }
+  }
+
   // Rich completion note: GRI + survey answers + the scored word table — parity
   // with the lisp lead briefing (minus the PDF).
   function rhotacismNoteBody(survey, results, source) {
@@ -146,7 +165,7 @@ const functions = require('@google-cloud/functions-framework');
 
   // Shared handler for web-test beacons and the auth trigger.
   // event 'signin' is marker-deduped; 'completed' always flips the status.
-  async function pushRhotacismLead({ email, name, event, source, country, survey, results }) {
+  async function pushRhotacismLead({ email, name, event, source, country, survey, results, extraProps }) {
     const e = String(email || '').trim().toLowerCase();
     if (!e || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) || !HUBSPOT_TOKEN) return { skipped: true };
     const ref = admin.firestore().collection('hubspot-leads').doc(e);
@@ -167,6 +186,7 @@ const functions = require('@google-cloud/functions-framework');
     if (/^[A-Z]{2}$/.test(cc)) props.country = cc;
     const phone = String((survey && survey.phone) || '').trim();
     if (phone) props.phone = phone;
+    Object.assign(props, extraProps || {});
     const ownerId = await resolveOwnerId();
     if (ownerId) props.hubspot_owner_id = ownerId;
     const up = await upsertLeadContact(e, props);
@@ -646,12 +666,23 @@ const functions = require('@google-cloud/functions-framework');
   exports.rollrBaselineLead = async (change, context) => {
     try {
       const after = change.value && change.value.fields ? fsMap(change.value.fields) : null;
-      const base = after && after.baselineAssessment;
-      if (!base || !base.wordResults) return;
-      // Fire only when the baseline first appears or is re-taken.
+      if (!after) return;  // doc deleted
       const before = change.oldValue && change.oldValue.fields ? fsMap(change.oldValue.fields) : {};
+      const base = after.baselineAssessment;
       const prev = before.baselineAssessment;
-      if (prev && String(prev.createdAt) === String(base.createdAt)) return;
+      const baselineChanged = !!(base && base.wordResults && (!prev || String(prev.createdAt) !== String(base.createdAt)));
+      // `platform` = last client that wrote; legacy docs have none = iOS.
+      const platform = after.platform === 'android' ? 'android' : 'ios';
+      const prevPlatform = before.platform === 'android' ? 'android' : 'ios';
+      // Trial started = RevenueCat wrote an active entitlement's product id.
+      const trial = after.subscriptionProductId ? 'started' : 'not_started';
+      const prevTrial = before.subscriptionProductId ? 'started' : 'not_started';
+      const platformChanged = !Object.keys(before).length || platform !== prevPlatform;
+      const trialChanged = trial !== prevTrial;
+      // The app writes users/{uid} constantly (streak syncs) — only act on the
+      // three signals HubSpot cares about.
+      if (!baselineChanged && !platformChanged && !trialChanged) return;
+
       const res = (context && context.resource) || (change.value && change.value.name) || '';
       const uid = String(res).split('/users/')[1] || '';
       let email = String(after.email || '').trim().toLowerCase();
@@ -664,18 +695,39 @@ const functions = require('@google-cloud/functions-framework');
         } catch (e) { /* auth record gone */ }
       }
       if (!email) return;
-      // Already completed via another flow — don't double-note.
+
+      await ensureAppProperties();
+      const appProps = { app_platform: platform, app_trial_status: trial };
       const marker = await admin.firestore().collection('hubspot-leads').doc(email).get();
-      if (marker.exists && (marker.data() || {}).status === 'completed') return;
-      const words = Object.entries(base.wordResults).map(([word, w]) => ({
-        word,
-        heard: (w || {}).heard, judgment: (w || {}).judgment,
-        quality: (w || {}).quality, observation: (w || {}).observation
-      }));
-      await pushRhotacismLead({
-        email, name, event: 'completed', source: 'app',
-        results: { gri: base.griScore, words }
-      });
+      const alreadyCompleted = marker.exists && (marker.data() || {}).status === 'completed';
+
+      if (baselineChanged && !alreadyCompleted) {
+        const words = Object.entries(base.wordResults).map(([word, w]) => ({
+          word,
+          heard: (w || {}).heard, judgment: (w || {}).judgment,
+          quality: (w || {}).quality, observation: (w || {}).observation
+        }));
+        await pushRhotacismLead({
+          email, name, event: 'completed', source: 'app',
+          results: { gri: base.griScore, words },
+          extraProps: appProps
+        });
+        return;
+      }
+
+      // Platform/trial-only update. Don't create contacts for cosmetic platform
+      // writes — but a trial start is a hot signal and always lands.
+      if (!marker.exists && trial !== 'started') return;
+      const props = { email, ...appProps };
+      if (!marker.exists) Object.assign(props, { lifecyclestage: 'lead', [LEAD_PRODUCT_PROP]: 'rhotacism' });
+      const ownerId = await resolveOwnerId();
+      if (ownerId) props.hubspot_owner_id = ownerId;
+      const up = await upsertLeadContact(email, props);
+      if (!up.ok) { console.warn('app props upsert failed:', up.status, up.text.slice(0, 200)); return; }
+      if (trialChanged && trial === 'started') {
+        await attachLeadNote(up, `<p>🔥 Started the app free trial (${escLead(after.subscriptionProductId)}) on ${platform === 'android' ? 'Android' : 'iOS'}.</p>`);
+        console.log('🔥 app trial started:', email, platform);
+      }
     } catch (e) {
       console.error('rollrBaselineLead error:', e.message);
     }
