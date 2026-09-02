@@ -9,7 +9,10 @@ const functions = require('@google-cloud/functions-framework');
   // sendResetEmail/stripeWebhook MUST pass --set-env-vars with
   // STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SMTP_USER, SMTP_PASS (and
   // HUBSPOT_TOKEN for the lead sync) or those paths break at runtime.
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+  // Lazy/tolerant: newer stripe versions throw on an empty key at construction,
+  // which crashed functions deployed without STRIPE_SECRET_KEY (rollrAuthLead,
+  // rollrBaselineLead) at module load. Only stripeWebhook needs it.
+  const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
   const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 
   const SMTP_USER = process.env.SMTP_USER || 'team@topspeech.health';
@@ -75,6 +78,48 @@ const functions = require('@google-cloud/functions-framework');
     return _challengeProp;
   }
 
+  // The exec's owner id — assigned contacts fire the "Contact assigned to you"
+  // mobile push (the free-plan new-lead alert). Cache only successful resolves.
+  const HUBSPOT_OWNER_EMAIL = process.env.HUBSPOT_OWNER_EMAIL || 'founder@topspeech.health';
+  let _ownerId = '';
+  async function resolveOwnerId() {
+    if (_ownerId) return _ownerId;
+    try {
+      const r = await hubspotGet('/crm/v3/owners/?limit=100');
+      if (!r.ok) console.warn('owner resolve failed (leads land unassigned):', r.status, r.text.slice(0, 200));
+      const owners = (r.ok && r.json && r.json.results) || [];
+      const match = owners.find(o => (o.email || '').toLowerCase() === HUBSPOT_OWNER_EMAIL.toLowerCase()) || owners[0];
+      if (match) _ownerId = String(match.id);
+    } catch (e) { console.warn('owner resolve error:', e.message); }
+    return _ownerId;
+  }
+
+  const escLead = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  // Rich completion note: GRI + survey answers + the scored word table — parity
+  // with the lisp lead briefing (minus the PDF).
+  function rhotacismNoteBody(survey, results, source) {
+    const s = survey || {}, r = results || {};
+    let html = `<p>✅ Completed the free rhotacism assessment (${source === 'app' ? 'Rollr app baseline' : 'web test'}).</p>`;
+    const gri = Number(r.gri);
+    if (Number.isFinite(gri)) html += `<p><strong>GRI: ${Math.round(gri)}/100</strong></p>`;
+    const sv = [
+      s.age_group && `Age group: ${escLead(s.age_group)}`,
+      s.trouble_words && `Trouble words: ${escLead(s.trouble_words)}`,
+      s.found_on && `Found via: ${escLead(s.found_on)}`,
+      s.phone && `Phone: ${escLead(s.phone)}`
+    ].filter(Boolean);
+    if (sv.length) html += '<p>' + sv.join(' · ') + '</p>';
+    const words = Array.isArray(r.words) ? r.words.slice(0, 15) : [];
+    if (words.length) {
+      html += '<table><tr><th>Word</th><th>Heard</th><th>Judgment</th><th>Quality</th><th>Observation</th></tr>'
+        + words.map(w => `<tr><td>${escLead(w.word)}</td><td>${escLead(w.heard)}</td><td>${escLead(w.judgment)}</td><td>${escLead(w.quality)}</td><td>${escLead(w.observation)}</td></tr>`).join('')
+        + '</table>';
+    }
+    return html;
+  }
+
   async function upsertLeadContact(email, properties) {
     const id = String(email).toLowerCase();
     let up = await hubspotPost('/crm/v3/objects/contacts/batch/upsert', {
@@ -101,7 +146,7 @@ const functions = require('@google-cloud/functions-framework');
 
   // Shared handler for web-test beacons and the auth trigger.
   // event 'signin' is marker-deduped; 'completed' always flips the status.
-  async function pushRhotacismLead({ email, name, event, source, country }) {
+  async function pushRhotacismLead({ email, name, event, source, country, survey, results }) {
     const e = String(email || '').trim().toLowerCase();
     if (!e || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) || !HUBSPOT_TOKEN) return { skipped: true };
     const ref = admin.firestore().collection('hubspot-leads').doc(e);
@@ -120,13 +165,17 @@ const functions = require('@google-cloud/functions-framework');
     if (challenge) props[challenge.name] = challenge.value;
     const cc = String(country || '').trim().toUpperCase();
     if (/^[A-Z]{2}$/.test(cc)) props.country = cc;
+    const phone = String((survey && survey.phone) || '').trim();
+    if (phone) props.phone = phone;
+    const ownerId = await resolveOwnerId();
+    if (ownerId) props.hubspot_owner_id = ownerId;
     const up = await upsertLeadContact(e, props);
     if (!up.ok) {
       console.warn('rhotacism lead upsert failed:', up.status, up.text.slice(0, 200));
       return { error: true };
     }
     await attachLeadNote(up, event === 'completed'
-      ? '<p>✅ Completed the free rhotacism assessment (web test).</p>'
+      ? rhotacismNoteBody(survey, results, source)
       : `<p>🔶 Signed in to the free rhotacism assessment (${source === 'app' ? 'Rollr app' : 'web test'}) — full assessment <strong>NOT completed</strong> yet.</p>`);
     await ref.set({ product: 'rhotacism', source: source || 'web', status,
                     [event === 'completed' ? 'completedAt' : 'signupLeadAt']: new Date().toISOString() },
@@ -285,7 +334,8 @@ const functions = require('@google-cloud/functions-framework');
         const out = await pushRhotacismLead({
           email: req.body.email, name: req.body.name,
           event: req.body.event === 'completed' ? 'completed' : 'signin',
-          source: 'web', country: req.body.country
+          source: 'web', country: req.body.country,
+          survey: req.body.survey || null, results: req.body.results || null
         });
         return res.status(200).json(out);
       } catch (err) {
@@ -562,5 +612,71 @@ const functions = require('@google-cloud/functions-framework');
       await pushRhotacismLead({ email, name: (user && user.displayName) || '', event: 'signin', source: 'app' });
     } catch (e) {
       console.error('rollrAuthLead error:', e.message);
+    }
+  };
+
+  // ── App baseline completion → HubSpot ─────────────────────────────
+  // Gen1 Firestore trigger on users/{uid}: when the Rollr app writes the
+  // baselineAssessment (griScore + wordResults), flip the lead to completed
+  // with the full scored report in the note — the server-side DB is the
+  // source of truth, so no app release is needed. The web test never writes
+  // users/{uid}, so this path is app-only; the marker check still skips
+  // anyone already completed elsewhere.
+  // Deploy:
+  //   gcloud functions deploy rollrBaselineLead --no-gen2 --runtime=nodejs20 \
+  //     --region=us-central1 --project=rollr-academy --source=. \
+  //     --entry-point=rollrBaselineLead \
+  //     --trigger-event=providers/cloud.firestore/eventTypes/document.write \
+  //     --trigger-resource="projects/rollr-academy/databases/(default)/documents/users/{uid}" \
+  //     --timeout=60s --set-env-vars HUBSPOT_TOKEN=<token>
+  // Gen1 Firestore events carry protobuf-style typed fields — tiny decoder:
+  function fsVal(v) {
+    if (!v) return null;
+    if (v.stringValue !== undefined) return v.stringValue;
+    if (v.integerValue !== undefined) return Number(v.integerValue);
+    if (v.doubleValue !== undefined) return v.doubleValue;
+    if (v.booleanValue !== undefined) return v.booleanValue;
+    if (v.timestampValue !== undefined) return v.timestampValue;
+    if (v.mapValue) return fsMap(v.mapValue.fields || {});
+    if (v.arrayValue) return (v.arrayValue.values || []).map(fsVal);
+    return null;
+  }
+  function fsMap(fields) { const o = {}; for (const k of Object.keys(fields || {})) o[k] = fsVal(fields[k]); return o; }
+
+  exports.rollrBaselineLead = async (change, context) => {
+    try {
+      const after = change.value && change.value.fields ? fsMap(change.value.fields) : null;
+      const base = after && after.baselineAssessment;
+      if (!base || !base.wordResults) return;
+      // Fire only when the baseline first appears or is re-taken.
+      const before = change.oldValue && change.oldValue.fields ? fsMap(change.oldValue.fields) : {};
+      const prev = before.baselineAssessment;
+      if (prev && String(prev.createdAt) === String(base.createdAt)) return;
+      const res = (context && context.resource) || (change.value && change.value.name) || '';
+      const uid = String(res).split('/users/')[1] || '';
+      let email = String(after.email || '').trim().toLowerCase();
+      let name = String(after.name || after.displayName || '').trim();
+      if ((!email || !name) && uid) {
+        try {
+          const u = await admin.auth().getUser(uid);
+          email = email || String(u.email || '').toLowerCase();
+          name = name || String(u.displayName || '').trim();
+        } catch (e) { /* auth record gone */ }
+      }
+      if (!email) return;
+      // Already completed via another flow — don't double-note.
+      const marker = await admin.firestore().collection('hubspot-leads').doc(email).get();
+      if (marker.exists && (marker.data() || {}).status === 'completed') return;
+      const words = Object.entries(base.wordResults).map(([word, w]) => ({
+        word,
+        heard: (w || {}).heard, judgment: (w || {}).judgment,
+        quality: (w || {}).quality, observation: (w || {}).observation
+      }));
+      await pushRhotacismLead({
+        email, name, event: 'completed', source: 'app',
+        results: { gri: base.griScore, words }
+      });
+    } catch (e) {
+      console.error('rollrBaselineLead error:', e.message);
     }
   };

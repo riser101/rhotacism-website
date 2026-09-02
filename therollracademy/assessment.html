@@ -3311,11 +3311,31 @@
                     try { ua = JSON.parse(localStorage.getItem('userAuth') || 'null'); } catch (e) {}
                     ua = ua || window.obLoggedInUser || {};
                     if (!ua.email) return;
+                    // On completion, ship the survey answers + scored results so the
+                    // HubSpot note carries the full sales context (parity with lisp).
+                    var extra = {};
+                    if (event === 'completed') {
+                        try {
+                            var ar = JSON.parse(localStorage.getItem('analysisResult') || 'null');
+                            if (ar) extra.results = { gri: ar.gri, words: (ar.words || []).slice(0, 15) };
+                        } catch (e) {}
+                        try {
+                            var reason = document.querySelector('input[name="visitReason"]:checked');
+                            var ph = (document.getElementById('phoneNumber') || {}).value || '';
+                            var cc = (document.getElementById('countryCode') || {}).value || '';
+                            extra.survey = {
+                                age_group: document.querySelector('input[name="ageGroup"]:checked')?.value || '',
+                                trouble_words: document.querySelector('input[name="troubleWords"]:checked')?.value || '',
+                                found_on: reason?.value === 'other' ? ((document.getElementById('otherReason') || {}).value || '') : (reason?.value || ''),
+                                phone: ph.trim() ? cc + ' ' + ph.trim() : ''
+                            };
+                        } catch (e) {}
+                    }
                     var send = function (country) {
                         fetch('https://us-central1-rollr-academy.cloudfunctions.net/sendResetEmail', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'hubspotLead', event: event, email: ua.email, name: ua.name || '', country: country || '' }),
+                            body: JSON.stringify(Object.assign({ action: 'hubspotLead', event: event, email: ua.email, name: ua.name || '', country: country || '' }, extra)),
                             keepalive: true
                         }).catch(function () {});
                     };

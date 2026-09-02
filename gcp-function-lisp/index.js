@@ -974,18 +974,24 @@ async function parkLeadAlert(uid, payload, error) {
 // the lead must land in HubSpot even if the PDF can't be built (loud-logged;
 // the note still carries the full report text).
 const REPORT_PDF_URL = process.env.REPORT_PDF_URL || '';
-let _reportPdfClient = null;
+// Mint the ID token from the Cloud Run metadata server directly. ADC on this
+// service is the rollr-academy Firestore SA key (GOOGLE_APPLICATION_CREDENTIALS),
+// which has no run.invoker on the report service — google-auth-library minted
+// the token as THAT principal, so every render came back 403 and the completed
+// lead parked. The metadata server always signs as the service's own runtime
+// SA, which is the one granted invoker on lisp-report-pdf.
 async function reportPdfIdToken() {
   try {
-    if (!_reportPdfClient) {
-      const { GoogleAuth } = require('google-auth-library');
-      _reportPdfClient = await new GoogleAuth().getIdTokenClient(REPORT_PDF_URL);
-    }
-    const headers = await _reportPdfClient.getRequestHeaders(REPORT_PDF_URL);
-    return headers.Authorization || headers.authorization || '';
+    const r = await fetch('http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=' + encodeURIComponent(REPORT_PDF_URL), {
+      headers: { 'Metadata-Flavor': 'Google' }
+    });
+    if (!r.ok) throw new Error(`metadata server ${r.status}`);
+    const token = (await r.text()).trim();
+    return token ? `Bearer ${token}` : '';
   } catch (e) {
     // Local dev against a bare flask instance has no metadata server — send
     // unauthenticated and let the service decide.
+    console.warn('report PDF ID token unavailable (sending unauthenticated):', e.message);
     return '';
   }
 }
@@ -1203,16 +1209,19 @@ async function ensureHubspotProperties() {
 // tasks push to the HubSpot mobile app; unassigned ones just sit in the index).
 // Needs crm.objects.owners.read; failure → unassigned tasks, never a lost lead.
 const HUBSPOT_OWNER_EMAIL = process.env.HUBSPOT_OWNER_EMAIL || 'founder@topspeech.health';
-let _ownerId = null;
+let _ownerId = '';
 async function resolveOwnerId() {
-  if (_ownerId !== null) return _ownerId;
-  _ownerId = '';
+  // Cache only a SUCCESSFUL resolve — a 403 (scope missing) must retry on the
+  // next lead, not stick until the instance recycles.
+  if (_ownerId) return _ownerId;
   try {
     const r = await hubspotGet('/crm/v3/owners/?limit=100');
+    if (!r.ok) console.warn('owner resolve failed (leads land unassigned):', r.status, r.text.slice(0, 700));
     const owners = (r.ok && r.json && r.json.results) || [];
     const match = owners.find(o => (o.email || '').toLowerCase() === HUBSPOT_OWNER_EMAIL.toLowerCase()) || owners[0];
     if (match) _ownerId = String(match.id);
-  } catch (e) { /* unassigned tasks */ }
+    else console.warn('owner resolve: no owner matched', HUBSPOT_OWNER_EMAIL, '— got', owners.length, 'owners; raw:', r.text.slice(0, 300));
+  } catch (e) { console.warn('owner resolve error (leads land unassigned):', e.message); }
   return _ownerId;
 }
 
@@ -1228,7 +1237,11 @@ async function createLeadTask(contactId, subject, body) {
       hs_task_body: String(body || '').slice(0, 5000),
       hs_task_status: 'NOT_STARTED',
       hs_task_priority: 'HIGH',
-      hs_task_type: 'CALL'
+      hs_task_type: 'CALL',
+      // The mobile app only pushes CRM tasks via "Task reminder" (there is no
+      // "sales task assigned to you" push) — a near-immediate reminder IS the
+      // speed-to-lead phone ping.
+      hs_task_reminders: String(Date.now() + 60 * 1000)
     };
     if (ownerId) props.hubspot_owner_id = ownerId;
     const r = await hubspotPost('/crm/v3/objects/tasks', {
@@ -1316,6 +1329,13 @@ async function sendSignupLead(user, ent) {
       signed_in_at: String(Date.now()),
       ...challengeProps('lisp')
     };
+    // Assign the contact to the exec: "record assigned to you" is the only
+    // free-plan HubSpot mobile push that fires on a NEW lead (tasks only come
+    // later, at completion/checkout).
+    {
+      const ownerId = await resolveOwnerId();
+      if (ownerId) props.hubspot_owner_id = ownerId;
+    }
     // Vercel edge GeoIP forwarded by the client (standard Country property).
     const country = String((user && user.country) || '').trim().toUpperCase();
     if (/^[A-Z]{2}$/.test(country)) props.country = country;
@@ -1375,9 +1395,21 @@ async function sweepPendingLeadAlerts() {
   for (const doc of snap.docs) {
     const pending = (doc.data() || {}).leadAlertPending;
     if (!pending || !pending.payload) continue;
-    const { ok, body } = await postLeadAlert(normalizeParkedLead(pending.payload));
+    const { ok, body, contactId } = await postLeadAlert(normalizeParkedLead(pending.payload));
     if (ok) {
       await setLeadAlerted(doc.id, pending.payload.sessionId || '');
+      // Speed-to-lead task, same as the live path — without this, re-driven
+      // completions never pinged the exec's phone. Old-style parked payloads
+      // ({name,email,message}) carry no user/survey; skip the task for those.
+      const p = pending.payload;
+      if (p.user || p.survey) {
+        const opener = buildOpener(p.user || {}, p.survey || {}, p.report);
+        const wa = waLink(p.user || {}, opener);
+        const gri = p.report && p.report.gri;
+        await createLeadTask(contactId,
+          `Call ${((p.survey && p.survey.first_name) || p.email).toString().split(' ')[0]} — just completed lisp assessment${gri != null ? ` (GRI ${gri})` : ''}`,
+          opener + (wa ? `\n\nWhatsApp one-tap: ${wa}` : ''));
+      }
       sent++;
       console.log('📨 parked lead delivered on retry:', pending.payload.email);
     } else {
@@ -1411,6 +1443,7 @@ async function sendLeadAlert(user, survey, report, speakerContext) {
     }
 
     await ensureHubspotProperties();
+    const ownerId = await resolveOwnerId();
     const s = survey || {};
     const phone = (u.phone || '').trim();
     const payload = {
@@ -1423,6 +1456,7 @@ async function sendLeadAlert(user, survey, report, speakerContext) {
         [LEAD_STATUS_PROP]: 'completed',
         [LEAD_PRODUCT_PROP]: 'lisp',
         assessment_completed_at: String(Date.now()),
+        ...(ownerId ? { hubspot_owner_id: ownerId } : {}),
         ...challengeProps('lisp')
       },
       noteBody: buildLeadNoteBody(user, survey, report, speakerContext),
