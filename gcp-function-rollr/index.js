@@ -108,7 +108,10 @@ const functions = require('@google-cloud/functions-framework');
         options: [{ label: 'iOS', value: 'ios' }, { label: 'Android', value: 'android' }] },
       { name: 'app_trial_status', label: 'App trial', type: 'enumeration', fieldType: 'select',
         groupName: 'contactinformation',
-        options: [{ label: 'Started', value: 'started' }, { label: 'Not started', value: 'not_started' }] }
+        options: [{ label: 'Started', value: 'started' }, { label: 'Not started', value: 'not_started' }] },
+      { name: 'app_downloaded', label: 'App downloaded', type: 'enumeration', fieldType: 'select',
+        groupName: 'contactinformation',
+        options: [{ label: 'Yes', value: 'yes' }, { label: 'No', value: 'no' }] }
     ];
     for (const d of defs) {
       const r = await hubspotPost('/crm/v3/properties/contacts', d);
@@ -187,6 +190,12 @@ const functions = require('@google-cloud/functions-framework');
     const phone = String((survey && survey.phone) || '').trim();
     if (phone) props.phone = phone;
     Object.assign(props, extraProps || {});
+    // Rhotacism-only: has this lead downloaded the app? App-sourced events are
+    // proof; web events say "no" unless the marker recorded an app sighting
+    // (never downgrade a yes).
+    await ensureAppProperties();
+    if (source === 'app') props.app_downloaded = 'yes';
+    else if (!(existing.exists && (existing.data() || {}).appDownloaded)) props.app_downloaded = 'no';
     const ownerId = await resolveOwnerId();
     if (ownerId) props.hubspot_owner_id = ownerId;
     const up = await upsertLeadContact(e, props);
@@ -198,6 +207,7 @@ const functions = require('@google-cloud/functions-framework');
       ? rhotacismNoteBody(survey, results, source)
       : `<p>🔶 Signed in to the free rhotacism assessment (${source === 'app' ? 'Rollr app' : 'web test'}) — full assessment <strong>NOT completed</strong> yet.</p>`);
     await ref.set({ product: 'rhotacism', source: source || 'web', status,
+                    ...(source === 'app' ? { appDownloaded: true } : {}),
                     [event === 'completed' ? 'completedAt' : 'signupLeadAt']: new Date().toISOString() },
                   { merge: true });
     console.log('🟠 rhotacism lead pushed:', e, status, source || 'web');
@@ -697,7 +707,7 @@ const functions = require('@google-cloud/functions-framework');
       if (!email) return;
 
       await ensureAppProperties();
-      const appProps = { app_platform: platform, app_trial_status: trial };
+      const appProps = { app_platform: platform, app_trial_status: trial, app_downloaded: 'yes' };
       const marker = await admin.firestore().collection('hubspot-leads').doc(email).get();
       const alreadyCompleted = marker.exists && (marker.data() || {}).status === 'completed';
 
@@ -724,6 +734,9 @@ const functions = require('@google-cloud/functions-framework');
       if (ownerId) props.hubspot_owner_id = ownerId;
       const up = await upsertLeadContact(email, props);
       if (!up.ok) { console.warn('app props upsert failed:', up.status, up.text.slice(0, 200)); return; }
+      // Remember the app sighting so a later web-test push can't downgrade
+      // app_downloaded back to "no".
+      await admin.firestore().collection('hubspot-leads').doc(email).set({ appDownloaded: true }, { merge: true });
       if (trialChanged && trial === 'started') {
         await attachLeadNote(up, `<p>🔥 Started the app free trial (${escLead(after.subscriptionProductId)}) on ${platform === 'android' ? 'Android' : 'iOS'}.</p>`);
         console.log('🔥 app trial started:', email, platform);
