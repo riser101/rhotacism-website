@@ -2922,6 +2922,15 @@
             localStorage.setItem('assessmentUserName', name);
             submitToFormEasy('assessment_step1', { email: email, message: 'User started R-sound assessment' });
             gtag('event', 'email_capture', { event_category: 'conversion', event_label: 'assessment_step1' });
+            // Returning users skip the sign-in step, so obAfterSignIn never fires for
+            // them — identify here too (idempotent) so every taker gets an email.
+            try {
+                if (email && window.posthog) {
+                    var phDid = window.posthog.get_distinct_id && window.posthog.get_distinct_id();
+                    if (phDid && typeof window.posthog.identify === 'function') window.posthog.identify(phDid, { email: email, first_name: name || undefined });
+                    else if (typeof window.posthog.setPersonProperties === 'function') window.posthog.setPersonProperties({ email: email, first_name: name || undefined });
+                }
+            } catch (e) {}
         }
 
         async function submitToFormEasy(source, extraData) {
@@ -3383,6 +3392,16 @@
                 try { prev = JSON.parse(localStorage.getItem('userAuth') || '{}') || {}; } catch (e) {}
                 var name = displayName || (prev && prev.name) || '';
                 try { localStorage.setItem('userAuth', JSON.stringify({ email: user.email, id: user.uid, provider, name: name })); } catch (e) {}
+                // Tie the PostHog person to the email so session replays are findable
+                // by email (parity with the lisp funnel). Keep the existing distinct_id
+                // so the anonymous pre-signin events stay on the same person.
+                try {
+                    if (window.posthog) {
+                        var phDid = window.posthog.get_distinct_id && window.posthog.get_distinct_id();
+                        if (phDid && typeof window.posthog.identify === 'function') window.posthog.identify(phDid, { email: user.email, first_name: name || undefined });
+                        else if (typeof window.posthog.setPersonProperties === 'function') window.posthog.setPersonProperties({ email: user.email, first_name: name || undefined });
+                    }
+                } catch (e) {}
                 window.hubspotLeadBeacon('signin');
                 nextStep();
             }
