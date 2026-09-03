@@ -6529,6 +6529,7 @@
             // Now that the view has real layout, snap the mobile carousel to the
             // selected (default) plan.
             try { window.asmtPricingCentreSelected && window.asmtPricingCentreSelected(); } catch (e) {}
+            try { window.lispPricingTelemetry && window.lispPricingTelemetry.open(); } catch (e) {}
         }
 
         // =============================================
@@ -6665,6 +6666,7 @@
                     surface: 'assessment_inline'
                 }, { transport: 'sendBeacon' });
             } catch (e) {}
+            try { window.lispPricingTelemetry && window.lispPricingTelemetry.checkoutOpen(productId); } catch (e) {}
             var pageEl = document.querySelector('#asmtPricing .pricing-page');
             var footEl = document.querySelector('#asmtPricing .footer-separator-wrap');
             var wrap = document.getElementById('dodoCheckoutWrap');
@@ -6705,6 +6707,7 @@
             } catch (err) {
                 console.error('[inline-checkout] failed:', err);
                 try { posthog.capture('inline_checkout_error', { product_id: productId, message: String(err && err.message || err).slice(0, 200) }, { transport: 'sendBeacon' }); } catch (e) {}
+                try { window.lispPricingTelemetry && window.lispPricingTelemetry.checkoutClose('error'); } catch (e) {}
                 if (pageEl) pageEl.style.display = '';
                 if (footEl) footEl.style.display = '';
                 if (wrap) wrap.style.display = 'none';
@@ -6806,6 +6809,7 @@
             dodoSuccessHandled = true;
             try { gtag('event', 'inline_checkout_success', { event_category: 'conversion', event_label: dodoCurrentProduct }); } catch (e) {}
             try { posthog.capture('inline_checkout_success', { product_id: dodoCurrentProduct, plan: DODO_PLAN_NAMES[dodoCurrentProduct] || null }, { transport: 'sendBeacon' }); } catch (e) {}
+            try { window.lispPricingTelemetry && window.lispPricingTelemetry.checkoutSuccess(); } catch (e) {}
             renderCheckoutSuccess('<p style="font:500 14px \'Inter\',sans-serif; color:#4A5568; margin:0; line-height:1.5;">Setting up your program… taking you to your app.</p>');
             var token = await claimLoginToken(dodoSessionId);
             if (token) {
@@ -6823,6 +6827,7 @@
         }
 
         function closeInlineCheckout() {
+            try { window.lispPricingTelemetry && window.lispPricingTelemetry.checkoutClose('back'); } catch (e) {}
             try { var sdk = getDodoSdk(); if (sdk && sdk.Checkout) sdk.Checkout.close(); } catch (e) {}
             var host = document.getElementById('dodo-inline-checkout');
             if (host) host.innerHTML = '';
@@ -7977,8 +7982,9 @@
 
             var dots = Array.prototype.slice.call(document.querySelectorAll('.asmt-pricing-view .carousel-dots span'));
 
-            function select(card) {
+            function select(card, method) {
                 if (!card) return;
+                try { window.lispPricingTelemetry && window.lispPricingTelemetry.planSelected(card, method); } catch (e) {}
                 cards.forEach(function (c) { c.classList.toggle('active', c === card); });
                 dots.forEach(function (d, i) { d.classList.toggle('active', cards[i] === card); });
                 btn.textContent = card.getAttribute('data-cta') || btn.textContent;
@@ -8009,12 +8015,12 @@
             track.addEventListener('scroll', function () {
                 if (!isCarousel()) return;
                 if (raf) cancelAnimationFrame(raf);
-                raf = requestAnimationFrame(function () { select(centred()); });
+                raf = requestAnimationFrame(function () { select(centred(), 'swipe'); });
             }, { passive: true });
 
             cards.forEach(function (card, i) {
                 card.addEventListener('click', function () {
-                    select(card);
+                    select(card, 'tap');
                     // Tapping a peeking neighbour should bring it fully into view.
                     if (isCarousel() && wraps[i] && wraps[i].scrollIntoView) {
                         wraps[i].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
@@ -8040,6 +8046,144 @@
                 if (card) openInlineCheckout(card.getAttribute('data-product'), btn);
             });
         })();
+    </script>
+
+    <!-- Pricing-view telemetry (PostHog only). Answers "what happens in the
+         ~8s people spend on the inline pricing view": scroll depth, which plans
+         get hovered/selected, how long before they leave, and checkout abandons
+         with elapsed seconds. Hooked from goToPricing / openInlineCheckout /
+         closeInlineCheckout / onInlineCheckoutSuccess and the carousel select()
+         above. Events:
+           pricing_view_scroll  {depth_percent 25|50|75|100, secs_since_open}
+           pricing_plan_hover   {product_id, plan, secs_since_open}         (fine pointer only)
+           pricing_plan_select  {product_id, plan, method tap|swipe, secs_since_open}
+           pricing_view_leave   {reason hidden|unload, secs_on_pricing, max_depth_percent,
+                                 plans_hovered, plans_selected, plan_clicked}
+           checkout_abandon     {reason back|hidden|unload, product_id, plan,
+                                 secs_in_checkout, secs_since_pricing_open, discount_applied}
+           checkout_resumed     {product_id, plan, secs_hidden}
+         'hidden' = tab/app switch and may resume (see checkout_resumed);
+         'unload' = pagehide. -->
+    <script>
+    (function () {
+        var view = document.getElementById('asmtPricing');
+        if (!view) return;
+        var openedAt = 0, maxDepth = 0, depthFired = {}, hovered = {}, selected = {};
+        var lastCard = null, planClicked = false, leaveSent = false;
+        var ck = { openedAt: 0, product: null, done: false, hiddenAt: 0, abandonSent: false };
+
+        function secs(t) { return t ? Math.round((Date.now() - t) / 100) / 10 : null; }
+        function cap(name, props, beacon) {
+            try { window.posthog.capture(name, props, beacon ? { transport: 'sendBeacon' } : undefined); } catch (e) {}
+        }
+        function planName(id) {
+            try { return (typeof DODO_PLAN_NAMES !== 'undefined' && DODO_PLAN_NAMES[id]) || null; } catch (e) { return null; }
+        }
+        function planProps(id) { return { product_id: id || null, plan: planName(id) }; }
+        function merge(a, b) { for (var k in b) a[k] = b[k]; return a; }
+        function count(o) { return Object.keys(o).length; }
+
+        // #asmtPricing is the scroll container (overflow-y:auto), not the window.
+        function depth() {
+            var max = view.scrollHeight - view.clientHeight;
+            if (max <= 0) return 100;
+            return Math.min(100, Math.round(view.scrollTop / max * 100));
+        }
+        function onScroll() {
+            if (!openedAt) return;
+            var d = depth();
+            if (d > maxDepth) maxDepth = d;
+            [25, 50, 75, 100].forEach(function (t) {
+                if (d >= t && !depthFired[t]) {
+                    depthFired[t] = true;
+                    cap('pricing_view_scroll', { depth_percent: t, secs_since_open: secs(openedAt) });
+                }
+            });
+        }
+        view.addEventListener('scroll', onScroll, { passive: true });
+
+        var cards = Array.prototype.slice.call(document.querySelectorAll('.asmt-pricing-view .pricing-card[data-product]'));
+        var finePointer = !!(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches);
+        if (finePointer) cards.forEach(function (card) {
+            card.addEventListener('mouseenter', function () {
+                if (!openedAt) return;
+                var id = card.getAttribute('data-product');
+                if (hovered[id]) return;
+                hovered[id] = true;
+                cap('pricing_plan_hover', merge({ secs_since_open: secs(openedAt) }, planProps(id)));
+            });
+        });
+
+        function abandonProps(reason) {
+            var p = merge({
+                reason: reason,
+                secs_in_checkout: secs(ck.openedAt),
+                secs_since_pricing_open: secs(openedAt),
+                discount_applied: false
+            }, planProps(ck.product));
+            try { p.discount_applied = !!dodoCurrentDiscount; } catch (e) {}
+            return p;
+        }
+        function leaveProps(reason) {
+            return {
+                reason: reason,
+                secs_on_pricing: secs(openedAt),
+                max_depth_percent: maxDepth,
+                plans_hovered: count(hovered),
+                plans_selected: count(selected),
+                plan_clicked: planClicked
+            };
+        }
+        function leave(reason) {
+            if (!openedAt) return;
+            if (ck.openedAt && !ck.done && !ck.abandonSent) {
+                cap('checkout_abandon', abandonProps(reason), true);
+                if (reason === 'back') { ck.openedAt = 0; return; }
+                ck.abandonSent = true;
+                if (reason === 'hidden') ck.hiddenAt = Date.now();
+            }
+            if (reason === 'back' || leaveSent) return;
+            leaveSent = true;
+            cap('pricing_view_leave', leaveProps(reason), true);
+        }
+        window.addEventListener('pagehide', function () { leave('unload'); });
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'hidden') { leave('hidden'); return; }
+            if (!openedAt) return;
+            // Back from a tab/app switch: let a later real leave fire again.
+            leaveSent = false;
+            if (ck.openedAt && !ck.done && ck.abandonSent) {
+                cap('checkout_resumed', merge({ secs_hidden: secs(ck.hiddenAt) }, planProps(ck.product)));
+                ck.abandonSent = false;
+                ck.hiddenAt = 0;
+            }
+        });
+
+        window.lispPricingTelemetry = {
+            open: function () {
+                if (openedAt) return;
+                openedAt = Date.now();
+                lastCard = document.querySelector('.asmt-pricing-view .pricing-card.active');
+                // Content that fits without scrolling counts as fully seen.
+                requestAnimationFrame(onScroll);
+            },
+            planSelected: function (card, method) {
+                if (!openedAt || !card || card === lastCard) return;
+                lastCard = card;
+                var id = card.getAttribute('data-product');
+                selected[id] = true;
+                cap('pricing_plan_select', merge({ method: method || 'unknown', secs_since_open: secs(openedAt) }, planProps(id)));
+            },
+            checkoutOpen: function (productId) {
+                planClicked = true;
+                ck = { openedAt: Date.now(), product: productId, done: false, hiddenAt: 0, abandonSent: false };
+            },
+            checkoutClose: function (reason) {
+                if (reason === 'back') leave('back'); else ck.openedAt = 0;
+            },
+            checkoutSuccess: function () { ck.done = true; leaveSent = true; }
+        };
+    })();
     </script>
 
     <!-- Localized display pricing --------------------------------------------
