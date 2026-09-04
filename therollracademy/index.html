@@ -24,6 +24,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&#x26;family=Inter:wght@300;400;500;600;700&#x26;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/therollracademy/css/login-modal.css?v=20260825">
+    <link rel="stylesheet" href="/therollracademy/css/progress-recordings.css?v=20260905">
 
     <!-- WebSite Schema for Brand Name -->
     <script type="application/ld+json">
@@ -1645,6 +1646,78 @@ padding: 1px 3px !important;
             </div>
         </div>
     </section>
+
+    <!-- Progress recordings: "Hear the R Come In, Week by Week." (css/progress-recordings.css + js/progress-recordings.js) -->
+    <section class="pr" id="progress-recordings" aria-labelledby="pr-title">
+        <div class="pr-inner">
+            <div class="pr-kicker">ONE ROLLR MEMBER · BIWEEKLY PROGRESS RECORDINGS</div>
+            <h2 class="pr-title" id="pr-title">See Your Speech Impediment Go Away, Week by Week.</h2>
+            <p class="pr-lede">One member, three target words — recorded every two weeks for twelve weeks. Every clip is scored by our algorithm and reviewed by a speech therapist. Unedited.</p>
+
+            <div class="pr-tabs" id="prTabs" role="tablist" aria-label="Target word"></div>
+
+            <div class="pr-panel">
+                <div class="pr-meta">
+                    <div class="pr-chip"><span class="pr-avatar">C</span><span>Participant: Courtney</span><i></i><span>Daily Practice: 15 mins</span><i></i><span>Target word: <span id="prTargetWord">“red”</span></span></div>
+                </div>
+                <div class="pr-controls">
+                    <div class="pr-left">
+                        <button type="button" class="pr-mute" id="prMute" aria-label="Unmute recordings">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><g class="ic-muted"><path d="m23 9-6 6"/><path d="m17 9 6 6"/></g><g class="ic-on" hidden><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></g></svg>
+                        </button>
+                        <div class="pr-progress">
+                            <div class="pr-mute-label" id="prMuteLabel">Muted · tap to hear</div>
+                            <div class="pr-segs" id="prSegs"></div>
+                        </div>
+                    </div>
+                    <div class="pr-right">
+                        <div class="pr-wave" id="prWave" aria-hidden="true"></div>
+                        <div class="pr-time" id="prTime">0:00 / 0:03</div>
+                        <button type="button" class="pr-play" id="prPlay" aria-label="Play recordings from baseline">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path class="ic-play" d="M7 4.5v15l12-7.5z"/><g class="ic-pause" hidden><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></g></svg>
+                            <span id="prPlayLabel">Play</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pr-stage">
+                    <div class="pr-card" id="prCard">
+                        <div class="pr-card-head">
+                            <div class="pr-card-title" id="prCardTitle">Baseline · 25 Jan 2026</div>
+                            <div class="pr-compare" id="prCompare" role="group" aria-label="Compare to baseline" hidden>
+                                <button type="button" id="prCmpBase" aria-pressed="false">Baseline</button>
+                                <button type="button" id="prCmpWeek" class="on week" aria-pressed="true">Week 2</button>
+                            </div>
+                            <div class="pr-badge"><span id="prGri">GRI 18</span><span class="up" id="prGriDelta" hidden>+0</span></div>
+                        </div>
+                        <div class="pr-heard"><span class="lead">Heard as</span><span class="big">“<span id="prHeardFirst">w</span><span id="prHeardRest">ed</span>”</span></div>
+                        <div class="pr-rho">
+                            <div class="pr-rho-row"><span>Rhoticity</span><span class="val"><span class="pr-pill" id="prRhoDelta" hidden>+0% from baseline</span><span class="pct" id="prRho">4%</span></span></div>
+                            <div class="pr-bar"><i id="prRhoBar"></i></div>
+                        </div>
+                        <p class="pr-note" id="prNote"></p>
+                    </div>
+                    <div class="pr-pointer" id="prPointer"></div>
+                </div>
+
+                <div class="pr-track">
+                    <div class="pr-rail"></div>
+                    <div class="pr-rail-fill" id="prFill"></div>
+                    <div class="pr-rail-more" aria-hidden="true"></div>
+                    <div class="pr-nodes" id="prNodes"></div>
+                </div>
+                <div class="pr-labels" id="prLabels"></div>
+            </div>
+
+            <div class="pr-cta">
+                <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" rel="noopener" class="pr-cta-btn" onclick="if (window.gtag) gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'progress_recordings_cta' });">
+                    <svg width="26" height="32" viewBox="0 0 24 28" fill="#fff" aria-hidden="true"><path d="M17.05 14.9c.03 3.2 2.8 4.26 2.84 4.28-.02.06-.45 1.53-1.48 3.05-.9 1.31-1.83 2.62-3.3 2.65-1.44.03-1.9-.85-3.55-.85-1.64 0-2.16.82-3.52.88-1.41.05-2.49-1.42-3.4-2.72-1.98-2.86-3.5-8.09-1.46-11.62 1.01-1.75 2.82-2.86 4.79-2.89 1.39-.03 2.7.93 3.55.93.84 0 2.44-1.15 4.11-.98.7.03 2.67.25 3.93 1.92-.1.06-2.35 1.37-2.33 4.1M14.4 4.2c.75-.9 1.25-2.15 1.11-3.4-1.1.05-2.44.74-3.21 1.63-.7.79-1.29 2.06-1.13 3.28 1.23.1 2.48-.62 3.23-1.51"/></svg>
+                    Start Your Free 3-Day Trial
+                </a>
+                <p>Your own baseline recording happens in the app. Free for 3 days, cancel anytime.</p>
+            </div>
+        </div>
+    </section>
     
     <!-- SLP advisory board section hidden for now
 
@@ -2548,6 +2621,7 @@ padding: 1px 3px !important;
     <!-- Enhanced Analytics -->
     <script src="/therollracademy/js/enhanced-analytics.js?v=20260825"></script>
     <script src="/therollracademy/js/nav.js?v=20260825"></script>
+    <script src="/therollracademy/js/progress-recordings.js?v=20260905"></script>
 
     <!-- Chatwoot Live Chat -->
     <script>
