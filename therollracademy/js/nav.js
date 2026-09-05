@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load login-modal.js script first
     const loginModalScript = document.createElement('script');
-    loginModalScript.src = basePath + '/js/login-modal.js?v=20260907';
+    loginModalScript.src = basePath + '/js/login-modal.js?v=20260908';
     loginModalScript.onload = function() {
         // Check if navigation already exists in DOM (static HTML for SEO)
         const existingNav = document.getElementById('mainNavbar');
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
             initializeNavigation();
         } else {
             // Fallback: Load navigation dynamically if not in DOM
-            fetch(basePath + '/includes/nav.html?v=20260907')
+            fetch(basePath + '/includes/nav.html?v=20260908')
                 .then(response => response.text())
                 .then(html => {
                     document.body.insertAdjacentHTML('afterbegin', html);
@@ -58,10 +58,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load Google Sign-In initialization script
     const googleSignInScript = document.createElement('script');
-    googleSignInScript.src = basePath + '/js/google-signin-init.js?v=20260907';
+    googleSignInScript.src = basePath + '/js/google-signin-init.js?v=20260908';
     googleSignInScript.onload = function() {
         // After google-signin-init.js is loaded, load the modal HTML
-        fetch(basePath + '/includes/login-modal.html?v=20260907')
+        fetch(basePath + '/includes/login-modal.html?v=20260908')
             .then(response => response.text())
             .then(html => {
                 // Insert login modal at the end of body
@@ -162,10 +162,10 @@ function routeStoreCtas() {
                 ['width', 'height', 'class', 'style', 'aria-hidden'].forEach(function(attr) {
                     if (appleIcon.hasAttribute(attr)) play.setAttribute(attr, appleIcon.getAttribute(attr));
                 });
-                play.setAttribute('viewBox', '0 0 20 22');
-                play.setAttribute('fill', 'currentColor');
+                // Official Google Play icon: the coloured triangle artwork from Google's badge SVG
+                play.setAttribute('viewBox', '17.56 12.64 40.76 45.57');
                 play.setAttribute('data-store-icon', 'google-play');
-                play.innerHTML = '<path d="M1.3 1.1 12.4 11 1.3 20.9C1.1 20.6 1 20.3 1 19.9V2.1c0-.4.1-.7.3-1zm12.3 10.7 2.9 2.6-4.1 2.4-2.7-2.4 3.9-2.6zm0-1.6L9.7 7.6l2.7-2.4 4.1 2.4-2.9 2.6zM17.6 8.9l1.7 1c.7.4.7 1.8 0 2.2l-1.7 1-3-2.1 3-2.1z"></path>';
+                play.innerHTML = '<path fill="#ea4335" d="M36.6,34.41l-18.86,20.02s0,0,0,.01c.58,2.17,2.56,3.77,4.92,3.77.94,0,1.83-.26,2.58-.7l.06-.04,21.23-12.25-9.94-10.82Z"></path><path fill="#fbbc04" d="M55.68,31h-.02s-9.17-5.33-9.17-5.33l-10.33,9.19,10.36,10.36,9.12-5.26c1.6-.86,2.68-2.55,2.68-4.49s-1.07-3.61-2.65-4.47h0Z"></path><path fill="#4285f4" d="M17.73,16.44c-.11.42-.17.86-.17,1.31v35.38c0,.45.06.89.17,1.31l19.51-19.51-19.51-18.49Z"></path><path fill="#34a853" d="M36.74,35.43l9.76-9.76-21.21-12.3c-.77-.46-1.67-.73-2.63-.73-2.36,0-4.34,1.6-4.92,3.78h0s19,19,19,19h0Z"></path>';
                 appleIcon.replaceWith(play);
             }
         });
