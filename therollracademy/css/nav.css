@@ -162,20 +162,57 @@ transition: left 0.6s;
     /* Hover effect removed */
 }
 
-.desktop-download-btn {
-    display: inline-block;
-    transition: all 0.3s ease;
-    will-change: transform;
+/* Desktop "Scan to download" button (design: Rollr Academy Homepage, nav badge).
+   Sized to the 44px Get Started button; .nav-menu a rules are overridden below. */
+.nav-menu a.desktop-download-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 44px;          /* same height as the Get Started button */
+    margin: 6.25px 0;      /* keeps the li at 56.5px so the navbar stays 67px */
+    padding: 0 18px;
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+    background: #000000;
+    color: #ffffff;
+    text-align: left;
+    text-decoration: none;
+    text-shadow: none;
+    letter-spacing: 0;
+    white-space: nowrap;
     position: relative;
     z-index: 10;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
-.desktop-download-btn:hover {
-    /* Hover effect removed */
+.nav-menu a.desktop-download-btn:hover {
+    background: #ffffff;
+    color: #000000;
+}
+
+.desktop-download-btn svg {
+    flex-shrink: 0;
+    width: 22px;
+    height: 27px;
+}
+
+.desktop-download-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.desktop-download-small {
+    font-size: 11px;
+    font-weight: 500;
+    opacity: 0.85;
+}
+
+.desktop-download-big {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
 }
 
 .mobile-download-btn {
@@ -749,6 +786,23 @@ body.user-logged-in .login-nav {
     display: block;
     width: 220px;
     height: 220px;
+}
+.qr-modal-stores {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+}
+.qr-modal-stores a {
+    line-height: 0;
+    transition: opacity 0.3s ease;
+}
+.qr-modal-stores a:hover { opacity: 0.85; }
+.qr-modal-stores img {
+    height: 44px;
+    display: block;
 }
 .qr-modal-foot {
     font-size: 17px;

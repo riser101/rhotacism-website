@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load login-modal.js script first
     const loginModalScript = document.createElement('script');
-    loginModalScript.src = basePath + '/js/login-modal.js?v=20260905';
+    loginModalScript.src = basePath + '/js/login-modal.js?v=20260906';
     loginModalScript.onload = function() {
         // Check if navigation already exists in DOM (static HTML for SEO)
         const existingNav = document.getElementById('mainNavbar');
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
             initializeNavigation();
         } else {
             // Fallback: Load navigation dynamically if not in DOM
-            fetch(basePath + '/includes/nav.html?v=20260905')
+            fetch(basePath + '/includes/nav.html?v=20260906')
                 .then(response => response.text())
                 .then(html => {
                     document.body.insertAdjacentHTML('afterbegin', html);
@@ -58,10 +58,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load Google Sign-In initialization script
     const googleSignInScript = document.createElement('script');
-    googleSignInScript.src = basePath + '/js/google-signin-init.js?v=20260905';
+    googleSignInScript.src = basePath + '/js/google-signin-init.js?v=20260906';
     googleSignInScript.onload = function() {
         // After google-signin-init.js is loaded, load the modal HTML
-        fetch(basePath + '/includes/login-modal.html?v=20260905')
+        fetch(basePath + '/includes/login-modal.html?v=20260906')
             .then(response => response.text())
             .then(html => {
                 // Insert login modal at the end of body
@@ -130,10 +130,49 @@ window.closeQrModal = function() {
     document.body.style.overflow = '';
 };
 
+// Every other App Store CTA on a page (trial buttons, post-assessment badge, etc.):
+//  - Android: point at Google Play and swap a badge image if present
+//  - desktop: open the QR modal instead of a dead-end App Store web page
+//  - iOS: unchanged
+// Links marked data-store="apple" (footer + QR-modal badges) always stay direct.
+function routeStoreCtas() {
+    const playStoreUrl = 'https://play.google.com/store/apps/details?id=com.rollr.academy';
+    const playBadgeSrc = '/therollracademy/GetItOnGooglePlay_Badge_Web_color_English.svg';
+    const selector = 'a[href*="apps.apple.com"]:not([data-store="apple"]):not(.desktop-download-btn):not(.mobile-download-btn)';
+    const labelOf = function(link) {
+        const m = /event_label:\s*'([^']*)'/.exec(link.getAttribute('onclick') || '');
+        return m ? m[1] : 'page_cta';
+    };
+    if (isAndroidDevice()) {
+        document.querySelectorAll(selector).forEach(function(link) {
+            const label = labelOf(link);
+            link.href = playStoreUrl;
+            link.setAttribute('rel', 'noopener');
+            link.onclick = function() {
+                if (window.gtag) gtag('event', 'play_store_click', { event_category: 'conversion', event_label: label });
+            };
+            const img = link.querySelector('img[src*="App_Store"]');
+            if (img) {
+                img.src = playBadgeSrc;
+                img.alt = 'Get it on Google Play';
+            }
+        });
+        return;
+    }
+    if (isIOSDevice()) return;
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest(selector);
+        if (!link || !document.getElementById('qrModalOverlay')) return;
+        e.preventDefault();
+        window.openQrModal();
+    });
+}
+
 // Navigation functionality
 function initializeNavigation() {
     // Store download: iOS opens the App Store, Android opens Google Play, desktop shows the QR modal
     applyAndroidStoreBadges();
+    routeStoreCtas();
     document.querySelectorAll('.desktop-download-btn, .mobile-download-btn').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             if (isIOSDevice() || isAndroidDevice()) return; // let the link open the store

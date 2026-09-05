@@ -47,8 +47,9 @@
             <li class="login-nav">
                 <button class="login-nav-button" onclick="openLoginModal()">Get Started</button>
             </li>
-            <li><a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="desktop-download-btn" data-download-label="nav_menu" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'nav_menu' });">
-                    <img src="/therollracademy/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" id="navAppStoreBadge1" alt="Download on the App Store" style="height: 46px; vertical-align: middle;">
+            <li><a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="desktop-download-btn" data-download-label="nav_menu" aria-label="Get the app on your phone" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'nav_menu' });">
+                    <svg width="24" height="30" viewBox="0 0 24 30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.2" y="1.6" width="15.6" height="26.8" rx="3.4"></rect><path d="M10.2 4.4h3.6"></path><path d="M12 10.4v8.4M8.7 15.4l3.3 3.4 3.3-3.4"></path><path d="M8.4 23.4h7.2"></path></svg>
+                    <span class="desktop-download-text"><span class="desktop-download-small">Mobile Practice Portal</span><span class="desktop-download-big">Scan to download</span></span>
                 </a></li>
             <li class="profile-dropdown">
                 <div class="profile-circle" onclick="toggleProfileDropdown()">
@@ -63,7 +64,7 @@
         <!-- Mobile Navigation -->
         <div class="mobile-nav">
             <button class="mobile-get-started" onclick="openLoginModal()">Get Started</button>
-            <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="mobile-download-btn" data-download-label="mobile_nav" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'mobile_nav' }); posthog.capture('mobile_nav_download', { section: 'mobile_navigation' });">
+            <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="mobile-download-btn" data-download-label="mobile_nav" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'mobile_nav' }); if (window.posthog && typeof posthog.capture === 'function') posthog.capture('mobile_nav_download', { section: 'mobile_navigation' });">
                 <img src="/therollracademy/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" id="navAppStoreBadge2" alt="Download on the App Store" style="height: 36px; vertical-align: middle;">
             </a>
             <!-- Mobile hamburger menu for Company dropdown -->
@@ -112,6 +113,14 @@
         <p class="qr-modal-sub">Personalized exercises. Track your progress. See results in as little as 2 weeks.</p>
         <div class="qr-modal-card">
             <img src="/therollracademy/qr-app-download.png" alt="QR code to download The Rollr Academy app for iOS or Android" class="qr-modal-img">
+        </div>
+        <div class="qr-modal-stores">
+            <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" rel="noopener" data-store="apple" onclick="if (window.gtag) gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'qr_modal' });">
+                <img src="/therollracademy/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store">
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=com.rollr.academy" target="_blank" rel="noopener" onclick="if (window.gtag) gtag('event', 'play_store_click', { event_category: 'conversion', event_label: 'qr_modal' });">
+                <img src="/therollracademy/GetItOnGooglePlay_Badge_Web_color_English.svg" alt="Get it on Google Play">
+            </a>
         </div>
         <p class="qr-modal-foot">Scan to download the app for iOS or Android</p>
     </div>
