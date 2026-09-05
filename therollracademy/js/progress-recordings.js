@@ -60,6 +60,13 @@
 
   var state = { idx: 0, playing: false, t: 0, muted: true, started: false, finished: false, cmp: false, word: 0 };
   var audio = {}, timer = null, tick = 0, wasPlaying = false, listened = false, holdAfter = false, viewed = false, completed = {};
+  /* deep link ?pr=<word>[.<slot>] (email / shared links): land on that word and slot, with sound when the browser allows it */
+  var deep = null;
+  try {
+    var dm = /[?&]pr=([a-z]+)(?:\.(\d))?(?:&|$)/.exec(location.search);
+    if (dm) WORDS.forEach(function (w, i) { if (w.dir === dm[1]) deep = { word: i, idx: Math.min(N - 1, +(dm[2] || 0)), raw: dm[1] + '.' + (dm[2] || 0) }; });
+  } catch (e) {}
+  if (deep) state.word = deep.word;
 
   /* ---------- build DOM ---------- */
   var ICON = {
@@ -120,8 +127,19 @@
   }
   function playAudio(i) {
     var a = getAudio(i), w = state.word;
+    function live() { return state.playing && state.word === w && playIdx() === i; }
     var p = a.play();
-    if (p && p.catch) p.catch(function () { if (state.playing && state.word === w && playIdx() === i) simulate(i); });
+    if (!p || !p.then) return;
+    p.then(function () { if (!state.muted && !listened) { listened = true; track('progress_recordings_listen', { word: WORDS[state.word].word, clip: WEEKS[playIdx()].label }); } })
+     .catch(function () {
+       if (!live()) return;
+       if (!state.muted) { // sound blocked by the autoplay policy (e.g. arriving from a link): fall back to muted playback
+         state.muted = true; a.muted = true; render();
+         var q = a.play(); if (q && q.catch) q.catch(function () { if (live()) simulate(i); });
+         return;
+       }
+       simulate(i);
+     });
   }
   function stopAll() {
     clearInterval(timer); timer = null;
@@ -307,8 +325,11 @@
     new IntersectionObserver(function (entries) {
       var en = entries[0];
       if (en.isIntersecting) {
-        if (!viewed) { viewed = true; track('progress_recordings_view'); }
-        if (!state.started) { if (!reduce && !document.hidden) start(0); }
+        if (!viewed) { viewed = true; track('progress_recordings_view', deep ? { deep_link: deep.raw } : {}); }
+        if (!state.started) {
+          if (deep) { if (!document.hidden) { state.muted = false; start(deep.idx); } }
+          else if (!reduce && !document.hidden) start(0);
+        }
         else if (wasPlaying && !document.hidden) { wasPlaying = false; resume(); }
       } else if (state.playing) { wasPlaying = true; pause(); }
     }, { threshold: 0.35 }).observe(el.panel);
