@@ -47,7 +47,7 @@
             <li class="login-nav">
                 <button class="login-nav-button" onclick="openLoginModal()">Get Started</button>
             </li>
-            <li><a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="desktop-download-btn" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'nav_menu' });">
+            <li><a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="desktop-download-btn" data-download-label="nav_menu" style="display: inline-block;" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'nav_menu' });">
                     <img src="/therollracademy/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" id="navAppStoreBadge1" alt="Download on the App Store" style="height: 46px; vertical-align: middle;">
                 </a></li>
             <li class="profile-dropdown">
@@ -63,7 +63,7 @@
         <!-- Mobile Navigation -->
         <div class="mobile-nav">
             <button class="mobile-get-started" onclick="openLoginModal()">Get Started</button>
-            <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="mobile-download-btn" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'mobile_nav' }); posthog.capture('mobile_nav_download', { section: 'mobile_navigation' });">
+            <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" class="mobile-download-btn" data-download-label="mobile_nav" onclick="gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'mobile_nav' }); posthog.capture('mobile_nav_download', { section: 'mobile_navigation' });">
                 <img src="/therollracademy/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" id="navAppStoreBadge2" alt="Download on the App Store" style="height: 36px; vertical-align: middle;">
             </a>
             <!-- Mobile hamburger menu for Company dropdown -->
@@ -103,15 +103,16 @@
     </div>
 </nav>
 
-<!-- App Store QR modal (web only; iOS/iPadOS launches the App Store directly) -->
+<!-- App download QR modal (desktop only; iOS opens the App Store and Android opens Google Play directly).
+     The QR encodes https://topspeech.health/app, which routes by device — see vercel.json + get-app.html. -->
 <div class="qr-modal-overlay" id="qrModalOverlay" aria-hidden="true" hidden>
     <button class="qr-modal-back" onclick="closeQrModal()" aria-label="Back">←</button>
     <div class="qr-modal-content">
         <h2 class="qr-modal-title">Scan the QR code with your phone to download instantly.</h2>
         <p class="qr-modal-sub">Personalized exercises. Track your progress. See results in as little as 2 weeks.</p>
         <div class="qr-modal-card">
-            <img src="/therollracademy/qr-code.png" alt="Download The Rollr Academy app" class="qr-modal-img">
+            <img src="/therollracademy/qr-app-download.png" alt="QR code to download The Rollr Academy app for iOS or Android" class="qr-modal-img">
         </div>
-        <p class="qr-modal-foot">Opens directly in the App Store · Free to download</p>
+        <p class="qr-modal-foot">Scan to download the app for iOS or Android</p>
     </div>
 </div>

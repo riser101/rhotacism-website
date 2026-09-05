@@ -21,13 +21,15 @@
         // Capturing it again here double-counted every pageview and halved every
         // view-to-click conversion rate. Do not re-add.
 
-        // Track App Store link clicks. Uses sendBeacon so the event survives the
+        // Track App Store / Google Play link clicks. Uses sendBeacon so the event survives the
         // navigation without delaying it — the browser guarantees delivery even as
         // the page unloads. Replaces the (unreliable) inline onclick captures.
         document.addEventListener('click', function(e) {
-            const link = e.target.closest('a[href*="apps.apple.com"]');
+            const link = e.target.closest('a[href*="apps.apple.com"], a[href*="play.google.com"]');
             if (!link) return;
-            posthog.capture('app_store_click', {
+            const isPlay = link.href.indexOf('play.google.com') !== -1;
+            posthog.capture(isPlay ? 'play_store_click' : 'app_store_click', {
+                store: isPlay ? 'google_play' : 'app_store',
                 href: link.href,
                 section: link.closest('section')?.id || link.closest('section')?.className || 'unknown',
                 link_text: link.innerText.trim(),

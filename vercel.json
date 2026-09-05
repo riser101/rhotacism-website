@@ -3,6 +3,18 @@
   "outputDirectory": ".",
   "redirects": [
     {
+      "source": "/app",
+      "destination": "https://play.google.com/store/apps/details?id=com.rollr.academy&referrer=utm_source%3Dtopspeech%26utm_medium%3Dqr",
+      "permanent": false,
+      "has": [{"type": "header", "key": "user-agent", "value": ".*Android.*"}]
+    },
+    {
+      "source": "/app",
+      "destination": "https://apps.apple.com/id/app/rollrapp/id6751569088",
+      "permanent": false,
+      "has": [{"type": "header", "key": "user-agent", "value": ".*(iPhone|iPad|iPod).*"}]
+    },
+    {
       "source": "/:path*",
       "destination": "https://topspeech.health/:path*",
       "permanent": true,
@@ -185,6 +197,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/app",
+      "destination": "/therollracademy/get-app.html"
+    },
     {
       "source": "/__/auth/:path*",
       "destination": "https://rollr-academy.firebaseapp.com/__/auth/:path*"

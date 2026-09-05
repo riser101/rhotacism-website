@@ -183,3 +183,39 @@ Notes:
 - The stamp must match across all sites and inside `nav.js` (which versions the
   `fetch()`ed `nav.html` / `login-modal.html` and the injected
   `login-modal.js` / `google-signin-init.js`).
+
+## App download routing (`/app`) and the nav QR code
+
+`https://topspeech.health/app` is the single device-aware download link; the QR
+code in the nav download modal encodes it. Firebase Dynamic Links was shut down
+(Aug 2025), so routing is self-hosted:
+
+- `vercel.json` → two `redirects` on `/app` gated on the `user-agent` header:
+  Android → Play listing (`com.rollr.academy`, with a `referrer=utm_…` for Play
+  Console attribution), iPhone/iPad/iPod → App Store. Both are temporary (302)
+  so browsers re-evaluate per device. Verify after deploy:
+  ```bash
+  curl -sI -A "Mozilla/5.0 (Linux; Android 14) Chrome/120 Mobile" https://topspeech.health/app | grep -i location
+  curl -sI -A "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)" https://topspeech.health/app | grep -i location
+  ```
+- Everything else (desktop, iPadOS-as-Mac) falls through to a `rewrite` →
+  `therollracademy/get-app.html`: a no-index page with both badges plus a
+  client-side UA fallback redirect.
+- QR image: `therollracademy/qr-app-download.png`. Images are served
+  `immutable` for a year, so **use a new filename** if the QR ever changes.
+  Regenerate with OpenCV:
+  ```python
+  import cv2, numpy as np
+  p = cv2.QRCodeEncoder_Params(); p.correction_level = cv2.QRCodeEncoder_CORRECT_LEVEL_H
+  m = cv2.QRCodeEncoder.create(p).encode('https://topspeech.health/app')
+  n, s, q = m.shape[0], 24, 4
+  img = np.full(((n + 2*q)*s,)*2, 255, np.uint8)
+  img[q*s:q*s+n*s, q*s:q*s+n*s] = cv2.resize(m, (n*s, n*s), interpolation=cv2.INTER_NEAREST)
+  cv2.imwrite('therollracademy/qr-app-download.png', img)
+  ```
+- Google Play badge: `therollracademy/GetItOnGooglePlay_Badge_Web_color_English.svg`,
+  taken unmodified from Google's official "Google Play Badge guidelines" zip
+  (https://play.google.com/intl/en_us/badges/). `js/nav.js` swaps the nav App
+  Store badge for it on Android (`isAndroidDevice()`); the footer shows both
+  badges on every page. PostHog captures `play_store_click` for Play links
+  (mirrors `app_store_click`).

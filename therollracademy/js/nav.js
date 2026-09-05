@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load login-modal.js script first
     const loginModalScript = document.createElement('script');
-    loginModalScript.src = basePath + '/js/login-modal.js?v=20260825';
+    loginModalScript.src = basePath + '/js/login-modal.js?v=20260905';
     loginModalScript.onload = function() {
         // Check if navigation already exists in DOM (static HTML for SEO)
         const existingNav = document.getElementById('mainNavbar');
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
             initializeNavigation();
         } else {
             // Fallback: Load navigation dynamically if not in DOM
-            fetch(basePath + '/includes/nav.html?v=20260825')
+            fetch(basePath + '/includes/nav.html?v=20260905')
                 .then(response => response.text())
                 .then(html => {
                     document.body.insertAdjacentHTML('afterbegin', html);
@@ -58,10 +58,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load Google Sign-In initialization script
     const googleSignInScript = document.createElement('script');
-    googleSignInScript.src = basePath + '/js/google-signin-init.js?v=20260825';
+    googleSignInScript.src = basePath + '/js/google-signin-init.js?v=20260905';
     googleSignInScript.onload = function() {
         // After google-signin-init.js is loaded, load the modal HTML
-        fetch(basePath + '/includes/login-modal.html?v=20260825')
+        fetch(basePath + '/includes/login-modal.html?v=20260905')
             .then(response => response.text())
             .then(html => {
                 // Insert login modal at the end of body
@@ -81,6 +81,35 @@ function isIOSDevice() {
     const iOS = /iPad|iPhone|iPod/.test(ua);
     const iPadOS = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
     return iOS || iPadOS;
+}
+
+// Detect Android (legacy Windows Phone UAs spoof "Android"; exclude them)
+function isAndroidDevice() {
+    const ua = navigator.userAgent || '';
+    return /Android/i.test(ua) && !/Windows Phone/i.test(ua);
+}
+
+// On Android, swap the nav "Download on the App Store" badge for Google's official
+// "Get it on Google Play" badge and point it at the Play listing.
+function applyAndroidStoreBadges() {
+    if (!isAndroidDevice()) return;
+    const playStoreUrl = 'https://play.google.com/store/apps/details?id=com.rollr.academy';
+    const playBadgeSrc = '/therollracademy/GetItOnGooglePlay_Badge_Web_color_English.svg';
+    document.querySelectorAll('.desktop-download-btn, .mobile-download-btn').forEach(function(btn) {
+        const label = btn.getAttribute('data-download-label') || 'nav';
+        btn.href = playStoreUrl;
+        btn.setAttribute('rel', 'noopener');
+        // Replaces the inline App Store onclick; PostHog play_store_click is captured by posthog-tracking.js
+        btn.onclick = function() {
+            if (window.gtag) gtag('event', 'play_store_click', { event_category: 'conversion', event_label: label });
+            if (label === 'mobile_nav' && window.posthog && typeof posthog.capture === 'function') posthog.capture('mobile_nav_download', { section: 'mobile_navigation', store: 'google_play' });
+        };
+        const img = btn.querySelector('img');
+        if (img) {
+            img.src = playBadgeSrc;
+            img.alt = 'Get it on Google Play';
+        }
+    });
 }
 
 // App Store QR modal controls
@@ -103,10 +132,11 @@ window.closeQrModal = function() {
 
 // Navigation functionality
 function initializeNavigation() {
-    // App Store download: show QR on web, launch App Store on iOS/iPadOS
+    // Store download: iOS opens the App Store, Android opens Google Play, desktop shows the QR modal
+    applyAndroidStoreBadges();
     document.querySelectorAll('.desktop-download-btn, .mobile-download-btn').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
-            if (isIOSDevice()) return; // let the link open the App Store
+            if (isIOSDevice() || isAndroidDevice()) return; // let the link open the store
             e.preventDefault();
             window.openQrModal();
         });
