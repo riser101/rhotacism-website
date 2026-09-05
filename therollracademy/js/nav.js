@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load login-modal.js script first
     const loginModalScript = document.createElement('script');
-    loginModalScript.src = basePath + '/js/login-modal.js?v=20260906';
+    loginModalScript.src = basePath + '/js/login-modal.js?v=20260907';
     loginModalScript.onload = function() {
         // Check if navigation already exists in DOM (static HTML for SEO)
         const existingNav = document.getElementById('mainNavbar');
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
             initializeNavigation();
         } else {
             // Fallback: Load navigation dynamically if not in DOM
-            fetch(basePath + '/includes/nav.html?v=20260906')
+            fetch(basePath + '/includes/nav.html?v=20260907')
                 .then(response => response.text())
                 .then(html => {
                     document.body.insertAdjacentHTML('afterbegin', html);
@@ -58,10 +58,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load Google Sign-In initialization script
     const googleSignInScript = document.createElement('script');
-    googleSignInScript.src = basePath + '/js/google-signin-init.js?v=20260906';
+    googleSignInScript.src = basePath + '/js/google-signin-init.js?v=20260907';
     googleSignInScript.onload = function() {
         // After google-signin-init.js is loaded, load the modal HTML
-        fetch(basePath + '/includes/login-modal.html?v=20260906')
+        fetch(basePath + '/includes/login-modal.html?v=20260907')
             .then(response => response.text())
             .then(html => {
                 // Insert login modal at the end of body
@@ -155,6 +155,18 @@ function routeStoreCtas() {
             if (img) {
                 img.src = playBadgeSrc;
                 img.alt = 'Get it on Google Play';
+            }
+            const appleIcon = link.querySelector('svg[data-store-icon="apple"]');
+            if (appleIcon) {
+                const play = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                ['width', 'height', 'class', 'style', 'aria-hidden'].forEach(function(attr) {
+                    if (appleIcon.hasAttribute(attr)) play.setAttribute(attr, appleIcon.getAttribute(attr));
+                });
+                play.setAttribute('viewBox', '0 0 20 22');
+                play.setAttribute('fill', 'currentColor');
+                play.setAttribute('data-store-icon', 'google-play');
+                play.innerHTML = '<path d="M1.3 1.1 12.4 11 1.3 20.9C1.1 20.6 1 20.3 1 19.9V2.1c0-.4.1-.7.3-1zm12.3 10.7 2.9 2.6-4.1 2.4-2.7-2.4 3.9-2.6zm0-1.6L9.7 7.6l2.7-2.4 4.1 2.4-2.9 2.6zM17.6 8.9l1.7 1c.7.4.7 1.8 0 2.2l-1.7 1-3-2.1 3-2.1z"></path>';
+                appleIcon.replaceWith(play);
             }
         });
         return;
