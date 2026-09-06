@@ -1208,7 +1208,7 @@ async function ensureHubspotProperties() {
 // The sales exec's owner id — resolved once so tasks land assigned (assigned
 // tasks push to the HubSpot mobile app; unassigned ones just sit in the index).
 // Needs crm.objects.owners.read; failure → unassigned tasks, never a lost lead.
-const HUBSPOT_OWNER_EMAIL = process.env.HUBSPOT_OWNER_EMAIL || 'founder@topspeech.health';
+const HUBSPOT_OWNER_EMAIL = process.env.HUBSPOT_OWNER_EMAIL || 'sara@topspeech.health';
 let _ownerId = '';
 async function resolveOwnerId() {
   // Cache only a SUCCESSFUL resolve — a 403 (scope missing) must retry on the

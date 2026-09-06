@@ -80,7 +80,7 @@ const functions = require('@google-cloud/functions-framework');
 
   // The exec's owner id — assigned contacts fire the "Contact assigned to you"
   // mobile push (the free-plan new-lead alert). Cache only successful resolves.
-  const HUBSPOT_OWNER_EMAIL = process.env.HUBSPOT_OWNER_EMAIL || 'founder@topspeech.health';
+  const HUBSPOT_OWNER_EMAIL = process.env.HUBSPOT_OWNER_EMAIL || 'sara@topspeech.health';
   let _ownerId = '';
   async function resolveOwnerId() {
     if (_ownerId) return _ownerId;
