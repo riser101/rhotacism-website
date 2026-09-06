@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta name="apple-itunes-app" content="app-id=6751569088">
+    <link rel="manifest" href="/therollracademy/site.webmanifest">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your R-Sound Analysis Results - The Rollr Academy</title>
@@ -969,6 +970,10 @@
         function loadAnalysisFromStorage() {
             try {
                 const storedResult = localStorage.getItem('analysisResult');
+                try { // PostHog funnel: results actually seen
+                    const r = storedResult ? JSON.parse(storedResult) : null;
+                    if (window.posthog && typeof posthog.capture === 'function') posthog.capture('web_assessment_results_view', { product: 'rhotacism', gri: r ? r.gri : null, has_result: !!(r && r.words && r.words.length) });
+                } catch (e) {}
                 if (storedResult) {
                     displayAnalysisResults(JSON.parse(storedResult));
                 } else {
@@ -1420,7 +1425,7 @@
     <!-- Enhanced Analytics -->
     <script src="/therollracademy/js/enhanced-analytics.js?v=20260908"></script>
     <script src="/therollracademy/js/login-modal.js?v=20260908"></script>
-    <script src="/therollracademy/js/nav.js?v=20260908"></script>
+    <script src="/therollracademy/js/nav.js?v=20260913"></script>
 
     <!-- Footer Placeholder -->
     <!-- FOOTER_PLACEHOLDER -->

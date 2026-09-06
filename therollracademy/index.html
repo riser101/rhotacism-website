@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta name="apple-itunes-app" content="app-id=6751569088">
+    <link rel="manifest" href="/therollracademy/site.webmanifest">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Top Speech Health - Fix Rhotacism in Adults: Online R Sound Speech Program | The Rollr Academy</title>
@@ -24,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&#x26;family=Inter:wght@300;400;500;600;700&#x26;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/therollracademy/css/login-modal.css?v=20260908">
-    <link rel="stylesheet" href="/therollracademy/css/progress-recordings.css?v=20260908">
+    <link rel="stylesheet" href="/therollracademy/css/progress-recordings.css?v=20260910">
 
     <!-- WebSite Schema for Brand Name -->
     <script type="application/ld+json">
@@ -1553,6 +1554,12 @@ padding: 1px 3px !important;
 
     <style>
         /* Hero assessment button - white w/ black text, orange on hover (style from lisp home) */
+        /* Phone hero: store CTA + "web assessment" fallback line (toggled by the script after the hero) */
+        .hero-cta-container [hidden] { display: none !important; }
+        .hero-app-cta svg { margin-right: 10px; flex-shrink: 0; }
+        .hero-alt-cta { margin: 14px 0 0; font-size: 14px; color: #ffffff; opacity: .88; }
+        .hero-alt-cta a { color: #ffffff; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
         .assessment-hero-btn.hero-main-cta {
             background: #ffffff;
             color: #000000;
@@ -1631,7 +1638,9 @@ padding: 1px 3px !important;
 
                 <div class="hero-cta-container">
                     <div class="cta-buttons" style="width: 100%;">
-                        <a href="assessment.html" class="btn btn-primary hero-main-cta assessment-hero-btn" style="flex: 2.4; padding: 15px 16px !important; min-height: auto !important; font-size: 18px;" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'hero_cta' }); posthog.capture('assessment_started_from_home', { section: 'hero_cta' });">Take Free 2-Mins Clinical Assessment</a>
+                        <!-- Phones: the app is the product, so the store is the primary CTA (iOS → App Store; Android → Google Play via nav.js routeStoreCtas). Desktop keeps the web assessment. Toggled by the script after this section. -->
+                        <a href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" rel="noopener" id="heroAppCta" class="btn btn-primary hero-main-cta assessment-hero-btn hero-app-cta" hidden style="flex: 2.4; padding: 15px 16px !important; min-height: auto !important; font-size: 18px;" onclick="if (window.gtag) gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'hero_cta' });"><svg data-store-icon="apple" width="20" height="24" viewBox="0 0 24 28" fill="currentColor" aria-hidden="true"><path d="M17.05 14.9c.03 3.2 2.8 4.26 2.84 4.28-.02.06-.45 1.53-1.48 3.05-.9 1.31-1.83 2.62-3.3 2.65-1.44.03-1.9-.85-3.55-.85-1.64 0-2.16.82-3.52.88-1.41.05-2.49-1.42-3.4-2.72-1.98-2.86-3.5-8.09-1.46-11.62 1.01-1.75 2.82-2.86 4.79-2.89 1.39-.03 2.7.93 3.55.93.84 0 2.44-1.15 4.11-.98.7.03 2.67.25 3.93 1.92-.1.06-2.35 1.37-2.33 4.1M14.4 4.2c.75-.9 1.25-2.15 1.11-3.4-1.1.05-2.44.74-3.21 1.63-.7.79-1.29 2.06-1.13 3.28 1.23.1 2.48-.62 3.23-1.51"/></svg>Get the App · Free 3-Day Trial</a>
+                        <a href="assessment.html" id="heroWebCta" class="btn btn-primary hero-main-cta assessment-hero-btn" style="flex: 2.4; padding: 15px 16px !important; min-height: auto !important; font-size: 18px;" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'hero_cta' }); posthog.capture('assessment_started_from_home', { section: 'hero_cta' });">Take Free 2-Mins Clinical Assessment</a>
                         <div class="nav-toggle">
                             <span></span>
                             <span></span>
@@ -1639,6 +1648,7 @@ padding: 1px 3px !important;
                         </div>  
                     </div>
                     <p class="urgency-text">✓ No appointments needed | ✓ Practice anytime, anywhere | ✓ Confidence boost in 2 Weeks</p>
+                    <p class="hero-alt-cta" id="heroAltCta" hidden>Not ready to install? <a href="assessment.html" onclick="gtag('event', 'start_assessment', { event_category: 'conversion', event_label: 'hero_alt' }); posthog.capture('assessment_started_from_home', { section: 'hero_alt' });">Take the free 2-min web assessment →</a></p>
                 </div>
             </div>
             <div class="hero-image-wrapper">
@@ -1646,6 +1656,19 @@ padding: 1px 3px !important;
             </div>
         </div>
     </section>
+
+    <script>
+    /* Hero CTA by device: phones get the store (the product is the app), desktop keeps the web assessment. */
+    (function () {
+        var ua = navigator.userAgent || '';
+        var ios = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+        var android = /Android/i.test(ua) && !/Windows Phone/i.test(ua);
+        if (!ios && !android) return;
+        var app = document.getElementById('heroAppCta'), web = document.getElementById('heroWebCta'), alt = document.getElementById('heroAltCta');
+        if (!app || !web) return;
+        app.hidden = false; web.hidden = true; if (alt) alt.hidden = false;
+    })();
+    </script>
 
     <!-- Progress recordings: "Hear the R Come In, Week by Week." (css/progress-recordings.css + js/progress-recordings.js) -->
     <section class="pr" id="progress-recordings" aria-labelledby="pr-title">
@@ -1657,6 +1680,9 @@ padding: 1px 3px !important;
             <div class="pr-tabs" id="prTabs" role="tablist" aria-label="Target word"></div>
 
             <div class="pr-panel">
+                <button type="button" class="pr-overlay" id="prOverlay" aria-label="Play Courtney's recordings with sound">
+                    <span class="pr-overlay-btn"><span class="pr-overlay-play"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M8 4.5v15l12-7.5z"/></svg></span><span class="pr-overlay-text">Hear Courtney's R come in<small>15 s · sound on</small></span></span>
+                </button>
                 <div class="pr-meta">
                     <div class="pr-chip"><span class="pr-avatar">C</span><span>Participant: Courtney</span><i></i><span>Daily Practice: 15 mins</span><i></i><span>Target word: <span id="prTargetWord">“red”</span></span></div>
                 </div>
@@ -1696,6 +1722,7 @@ padding: 1px 3px !important;
                             <div class="pr-bar"><i id="prRhoBar"></i></div>
                         </div>
                         <p class="pr-note" id="prNote"></p>
+                        <a class="pr-card-cta" id="prCardCta" href="https://apps.apple.com/id/app/rollrapp/id6751569088" target="_blank" rel="noopener" hidden onclick="if (window.gtag) gtag('event', 'app_store_click', { event_category: 'conversion', event_label: 'progress_recordings_card' });"><svg data-store-icon="apple" width="16" height="20" viewBox="0 0 24 28" fill="currentColor" aria-hidden="true"><path d="M17.05 14.9c.03 3.2 2.8 4.26 2.84 4.28-.02.06-.45 1.53-1.48 3.05-.9 1.31-1.83 2.62-3.3 2.65-1.44.03-1.9-.85-3.55-.85-1.64 0-2.16.82-3.52.88-1.41.05-2.49-1.42-3.4-2.72-1.98-2.86-3.5-8.09-1.46-11.62 1.01-1.75 2.82-2.86 4.79-2.89 1.39-.03 2.7.93 3.55.93.84 0 2.44-1.15 4.11-.98.7.03 2.67.25 3.93 1.92-.1.06-2.35 1.37-2.33 4.1M14.4 4.2c.75-.9 1.25-2.15 1.11-3.4-1.1.05-2.44.74-3.21 1.63-.7.79-1.29 2.06-1.13 3.28 1.23.1 2.48-.62 3.23-1.51"/></svg><span>Record your baseline · Free trial</span></a>
                     </div>
                     <div class="pr-pointer" id="prPointer"></div>
                 </div>
@@ -2620,8 +2647,8 @@ padding: 1px 3px !important;
 
     <!-- Enhanced Analytics -->
     <script src="/therollracademy/js/enhanced-analytics.js?v=20260908"></script>
-    <script src="/therollracademy/js/nav.js?v=20260908"></script>
-    <script src="/therollracademy/js/progress-recordings.js?v=20260909"></script>
+    <script src="/therollracademy/js/nav.js?v=20260913"></script>
+    <script src="/therollracademy/js/progress-recordings.js?v=20260910"></script>
 
     <!-- Chatwoot Live Chat -->
     <script>

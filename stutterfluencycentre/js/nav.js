@@ -18,6 +18,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.text())
                 .then(html => {
                     document.body.insertAdjacentHTML('afterbegin', html);
+                    // The include ends with the promo bar's <link>/<script> tags; tags inserted via
+                    // insertAdjacentHTML never load/execute, so wire them up explicitly here.
+                    html.replace(/<link[^>]+href="([^"]*promo-bar\.css[^"]*)"/, function (_, href) {
+                        var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l); return _;
+                    });
+                    html.replace(/<script[^>]+src="([^"]*promo-bar\.js[^"]*)"/, function (_, src) {
+                        var sc = document.createElement('script'); sc.src = src; document.body.appendChild(sc); return _;
+                    });
 
                     const navAppStoreBadge1 = document.getElementById('navAppStoreBadge1');
                     const navAppStoreBadge2 = document.getElementById('navAppStoreBadge2');

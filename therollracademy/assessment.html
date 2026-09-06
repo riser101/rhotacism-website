@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta name="apple-itunes-app" content="app-id=6751569088">
+    <link rel="manifest" href="/therollracademy/site.webmanifest">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Free R-Sound Assessment - The Rollr Academy</title>
@@ -2114,6 +2115,22 @@
         let userGender = 'male';
         let analysisPromise = null;    // Tracks the backend API call
 
+        // PostHog funnel instrumentation (web_assessment_* events). Step order is
+        // signin → recording → survey → processing → results page. Every event
+        // carries product + seconds since page load so drop-off is queryable.
+        const ASMT_STEP_NAMES = { 2: 'signin', 1: 'recording', 3: 'survey', 4: 'processing' };
+        const asmtT0 = Date.now();
+        function asmtTrack(name, props, opts) {
+            try {
+                if (window.posthog && typeof window.posthog.capture === 'function') {
+                    window.posthog.capture(name, Object.assign({ product: 'rhotacism', elapsed_s: Math.round((Date.now() - asmtT0) / 1000) }, props || {}), opts);
+                }
+            } catch (e) {}
+        }
+        function asmtTrackStep() {
+            asmtTrack('web_assessment_step_view', { step: ASMT_STEP_NAMES[currentStepNum] || String(currentStepNum), step_index: orderIdx });
+        }
+
         // =============================================
         // MIC FEEDBACK CHIMES (wav samples)
         // =============================================
@@ -2173,6 +2190,7 @@
                     currentStepNum = STEP_ORDER[orderIdx];
                     document.getElementById('step' + currentStepNum).classList.add('active');
                     updateProgress();
+                    asmtTrackStep();
                     if (currentStepNum === 1) { initWordRecording(); moveRecordingTo('recordingHost'); }
                     if (currentStepNum === 3 && typeof window.initStep3Wizard === 'function') window.initStep3Wizard();
                     if (currentStepNum === FINAL_SCREEN_STEP) startProcessing();
@@ -2450,15 +2468,21 @@
                 }
                 return;
             }
-            audioStream = await navigator.mediaDevices.getUserMedia({
-                audio: {
-                    echoCancellation: true,   // cancel chime bleed via system AEC
-                    noiseSuppression: false,
-                    autoGainControl: false,
-                    sampleRate: 48000,
-                    channelCount: 1
-                }
-            });
+            try {
+                audioStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,   // cancel chime bleed via system AEC
+                        noiseSuppression: false,
+                        autoGainControl: false,
+                        sampleRate: 48000,
+                        channelCount: 1
+                    }
+                });
+            } catch (err) {
+                asmtTrack('web_assessment_mic', { status: 'denied', error: (err && err.name) || String(err) });
+                throw err;
+            }
+            if (!window.__asmtMicTracked) { window.__asmtMicTracked = true; asmtTrack('web_assessment_mic', { status: 'granted' }); } // once per page: parallel taps during the permission prompt each resolve getUserMedia
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const source = audioContext.createMediaStreamSource(audioStream);
             analyserNode = audioContext.createAnalyser();
@@ -2699,6 +2723,7 @@
             // post-recording RMS shows silence. Prompt user to re-record.
             if (!speechDetected) {
                 wordTimedOut = true;
+                asmtTrack('web_assessment_word_timeout', { word: TEST_WORDS[currentWordIndex], index: currentWordIndex });
                 audioChunks = [];
                 for (let i = 0; i < VU_BAR_COUNT; i++) {
                     const bar = document.getElementById('vuBar' + i);
@@ -2709,6 +2734,7 @@
             }
 
             wordRecordings.push(blob);
+            asmtTrack('web_assessment_word_recorded', { word: TEST_WORDS[currentWordIndex], index: currentWordIndex, bytes: blob.size });
             triggerHaptic(40); // word capture — matches iOS heavy impact
             syncRecordingContinueButton();
 
@@ -2737,6 +2763,7 @@
             } else {
                 // All words recorded — release mic (capture done)
                 allWordsRecorded = true;
+                asmtTrack('web_assessment_recording_complete', { words: wordRecordings.length });
                 releaseMic();
                 syncRecordingContinueButton();
                 updateRecordButton();
@@ -2805,6 +2832,7 @@
 
         // Send combined audio to GCP backend for analysis
         async function sendAudioToBackend() {
+            const asmtAnalysisT0 = Date.now();
             try {
                 const [f3Data, wordEntries] = await Promise.all([
                     extractFormantData(),
@@ -2839,10 +2867,12 @@
                 if (!rawText) throw new Error('Empty backend response');
 
                 const parsed = parseAnalysisResponse(rawText);
+                asmtTrack('web_assessment_analysis', { status: 'ok', gri: parsed && parsed.gri, words_scored: parsed && parsed.words ? parsed.words.length : 0, duration_ms: Date.now() - asmtAnalysisT0 });
                 console.log('Backend analysis complete:', parsed);
                 localStorage.setItem('analysisResult', JSON.stringify(parsed));
             } catch (err) {
                 console.error('Analysis error:', err);
+                asmtTrack('web_assessment_analysis', { status: 'error', error: String((err && err.message) || err).slice(0, 200), duration_ms: Date.now() - asmtAnalysisT0 });
                 localStorage.setItem('analysisResult', JSON.stringify({
                     result: 'Analysis temporarily unavailable.', gri: 0, words: []
                 }));
@@ -2907,6 +2937,10 @@
 
             // Full test finished → flip the HubSpot lead to completed.
             try { window.hubspotLeadBeacon && window.hubspotLeadBeacon('completed'); } catch (e) {}
+            // Funnel end (sendBeacon: the redirect below would otherwise drop it)
+            let asmtRes = null;
+            try { asmtRes = JSON.parse(localStorage.getItem('analysisResult') || 'null'); } catch (e) {}
+            asmtTrack('web_assessment_completed', { gri: asmtRes ? asmtRes.gri : null, analysis_ok: !!(asmtRes && asmtRes.words && asmtRes.words.length) }, { transport: 'sendBeacon', send_instantly: true });
             // Redirect to results
             setTimeout(() => { window.location.href = 'assessment-results.html'; }, 10);
         }
@@ -3033,6 +3067,7 @@
             }
             maybeJumpToLogin();
             window.addEventListener('hashchange', maybeJumpToLogin);
+            asmtTrackStep(); // first step shown on load (signin, or #login)
 
             // ===== Step3 Wizard (comfort + age + source + phone) =====
             const WIZ_TOTAL = 4;
@@ -3242,6 +3277,7 @@
                 const phone = (wizState.phone || '').trim();
                 const cc = (wizState.cc || '+1').trim();
                 const fullPhone = phone ? `${cc} ${phone}` : '';
+                asmtTrack('web_assessment_survey_complete', { trouble: wizState.trouble || '', age: wizState.age || '', source: foundOn || '', has_phone: !!phone });
                 registerEmail(email);
                 // Mirror original per-step FormEasy submissions (comfort/age, then found_on/phone).
                 submitToFormEasy('assessment_step3', {
@@ -3267,6 +3303,7 @@
             if (obwCta) {
                 obwCta.addEventListener('click', () => {
                     if (!wizCanAdvance()) return;
+                    asmtTrack('web_assessment_survey_step', { step: wizState.step, name: ['trouble', 'age', 'source', 'phone'][wizState.step - 1] });
                     if (wizState.step === WIZ_TOTAL) {
                         wizFinish();
                         nextStep();
@@ -3392,6 +3429,7 @@
 
             function obAfterSignIn(user, provider) {
                 window.obLoggedInUser = { email: user.email, uid: user.uid, provider };
+                asmtTrack('web_assessment_signin', { method: provider });
                 // Capture the real display name from Google/Apple. Apple only returns it
                 // on the FIRST authorization, so never overwrite a saved name with a blank.
                 var displayName = (user && user.displayName) ? String(user.displayName).trim() : '';
@@ -3525,7 +3563,7 @@
     <!-- Enhanced Analytics -->
     <script src="/therollracademy/js/enhanced-analytics.js?v=20260908"></script>
     <script src="/therollracademy/js/login-modal.js?v=20260908"></script>
-    <script src="/therollracademy/js/nav.js?v=20260908"></script>
+    <script src="/therollracademy/js/nav.js?v=20260913"></script>
 
     <!-- Footer Placeholder -->
     <!-- FOOTER_PLACEHOLDER -->
