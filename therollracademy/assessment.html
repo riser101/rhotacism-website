@@ -76,6 +76,9 @@
                 const mime = (blob && blob.type ? blob.type.split(';')[0] : 'audio/webm');
                 const ext = mime.includes('mp4') ? 'mp4' : mime.includes('wav') ? 'wav' : 'webm';
                 const filePath = `recordings/${userId}/${timestamp}_${wordIndex}_${word}.${ext}`;
+                // Remember where this take landed so the web-assessment record can
+                // point straight at the audio (folder is the PostHog id, not the email).
+                window.__recordingsMeta = { bucket: 'rollr-academy.firebasestorage.app', folder: `recordings/${userId}/`, posthogId: posthogId || '', sessionId: sessionId };
 
                 const storageRef = ref(storage, filePath);
                 const metadata = {
@@ -3357,7 +3360,11 @@
                                     action: 'saveWebAssessment', idToken: window.obIdToken || '',
                                     email: ua.email, name: ua.name || '',
                                     gri: ar ? ar.gri : null, words: (ar && ar.words) || [],
-                                    survey: extra.survey || null
+                                    survey: extra.survey || null,
+                                    posthogId: (window.__recordingsMeta || {}).posthogId || ((window.posthog && window.posthog.get_distinct_id && window.posthog.get_distinct_id()) || ''),
+                                    sessionId: (window.__recordingsMeta || {}).sessionId || '',
+                                    recordingsBucket: (window.__recordingsMeta || {}).bucket || '',
+                                    recordingsFolder: (window.__recordingsMeta || {}).folder || ''
                                 }),
                                 keepalive: true
                             }).catch(function () {});

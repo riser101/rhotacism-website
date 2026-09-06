@@ -406,6 +406,12 @@ const functions = require('@google-cloud/functions-framework');
           name: String(b.name || '').slice(0, 80),
           webUid: uid || null,
           emailVerified: !!tokenEmail,
+          // Where the takes live: Storage folder is keyed by PostHog distinct_id
+          // (ph_<id>/ or anon_<session>/), so record it here to find audio by email.
+          posthogId: String(b.posthogId || '').slice(0, 120) || null,
+          sessionId: String(b.sessionId || '').slice(0, 60) || null,
+          recordingsBucket: String(b.recordingsBucket || '').slice(0, 120) || null,
+          recordingsFolder: String(b.recordingsFolder || '').slice(0, 200) || null,
           createdAt: new Date().toISOString()
         };
         await admin.firestore().collection('web-assessments').doc(email).set(rec);
