@@ -6674,7 +6674,8 @@
             if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
             try {
                 dodoCurrentProduct = productId;
-                dodoCurrentDiscount = '';
+                // Site-wide sale (see /promo/promo-bar.js): pre-apply the discount code.
+                dodoCurrentDiscount = (window.TSPromo && window.TSPromo.active && window.TSPromo.code) || '';
                 dodoSuccessHandled = false;
                 // Reset the summary UI for a fresh open.
                 var nameEl = document.getElementById('dodoPlanName');
@@ -6682,7 +6683,7 @@
                 var inp = document.getElementById('dodoDiscountInput'); if (inp) inp.value = '';
                 var msg = document.getElementById('dodoDiscountMsg'); if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
                 var tot = document.getElementById('dodoTotals'); if (tot) { tot.style.display = 'none'; tot.innerHTML = ''; }
-                toggleDiscountInput(false); // start collapsed
+                if (dodoCurrentDiscount) setDiscountState('applied', dodoCurrentDiscount); else toggleDiscountInput(false); // start collapsed
 
                 // Swap the plan cards for the checkout host, keep the girl panel.
                 if (pageEl) pageEl.style.display = 'none';
@@ -6690,7 +6691,13 @@
                 if (wrap) wrap.style.display = 'block';
                 document.getElementById('asmtPricing').scrollTop = 0;
 
-                await dodoMountSession();
+                try { await dodoMountSession(); }
+                catch (e) {
+                    // Sale code rejected (expired / not valid for this plan): retry without it.
+                    if (!(dodoCurrentDiscount && e && e.code === 'invalid_discount')) throw e;
+                    dodoCurrentDiscount = ''; toggleDiscountInput(false);
+                    await dodoMountSession();
+                }
                 try { gtag('event', 'inline_checkout_open', { event_category: 'conversion', event_label: productId }); } catch (e) {}
                 try { posthog.capture('inline_checkout_open', { product_id: productId, plan: DODO_PLAN_NAMES[productId] || null }, { transport: 'sendBeacon' }); } catch (e) {}
                 // Buy-intent beacon → HubSpot: flips the lead to checkout_opened

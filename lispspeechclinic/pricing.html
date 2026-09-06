@@ -129,6 +129,26 @@
             align-items: center;
         }
 
+        .promo-note {
+            margin-top: 22px;
+            padding: 9px 14px;
+            border-radius: 999px;
+            background: #0f3d2e;
+            color: #fff;
+            font-size: 13.5px;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.35;
+        }
+        .promo-note code {
+            background: #e6e0ff; color: #3b2a86; font-weight: 800;
+            padding: 2px 7px; border-radius: 4px; letter-spacing: 0.05em; font-family: inherit;
+        }
+        .promo-note + .pricing-grid { margin-top: 14px; }
+        .price-was {
+            font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.55);
+            text-decoration: line-through; margin-left: 6px; align-self: center; transform: translateY(-12px);
+        }
         .pricing-grid {
             width: 100%;
             max-width: 1120px;
@@ -670,6 +690,9 @@
           </div>
         </section>
 
+        <!-- Site-wide sale (config: /promo/promo-bar.js). Shown + filled by the promo script below. -->
+        <div class="promo-note" id="promoNote" hidden></div>
+
         <section class="pricing-grid">
 
             <!-- Card 1: 1-month / Foundation -->
@@ -937,7 +960,61 @@
             btn.addEventListener('click', function () {
                 var card = document.querySelector('.pricing-card.active');
                 var url = card && card.getAttribute('data-checkout');
-                if (url) location.href = url;
+                if (!url) return;
+                var promo = window.TSPromo;
+                var m = url.match(/buy\/(pdt_[A-Za-z0-9]+)/);
+                if (!(promo && promo.active && promo.code && m)) { location.href = url; return; }
+                // Sale is on: static payment links can't carry a discount code, so
+                // create a checkout session server-side with the code pre-applied
+                // (same endpoint the assessment's inline checkout uses) and open
+                // Dodo's hosted page for it. Any failure falls back to the plain link.
+                btn.disabled = true; btn.textContent = 'Opening checkout\u2026';
+                var fallback = function () { location.href = url; };
+                var timer = setTimeout(fallback, 8000);
+                fetch('https://dodowebhook-9267895976.us-central1.run.app/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_id: m[1], discount_code: promo.code, return_url: 'https://lsc.topspeech.health' })
+                }).then(function (r) { return r.ok ? r.json() : null; })
+                  .then(function (d) {
+                      clearTimeout(timer);
+                      if (d && d.checkout_url) location.href = d.checkout_url; else fallback();
+                  })
+                  .catch(function () { clearTimeout(timer); fallback(); });
+            });
+        })();
+    </script>
+
+    <!-- Site-wide sale: show the note + discounted prices when the promo bar's
+         config (window.TSPromo, set by /promo/promo-bar.js in the nav include)
+         says the sale is live. Keeps working if the A/B script rewrites a price. -->
+    <script>
+        (function () {
+            var P = window.TSPromo;
+            if (!(P && P.active && P.code)) return;
+            var note = document.getElementById('promoNote');
+            if (note) {
+                note.innerHTML = '\ud83c\udff7\ufe0f ' + (P.title || 'Sale') + ': <b>' + P.percent + '% off</b> every plan \u2014 code <code>' + P.code + '</code> is applied automatically at checkout';
+                note.hidden = false;
+            }
+            var factor = (100 - P.percent) / 100;
+            document.querySelectorAll('.pricing-card .price-amount').forEach(function (amt) {
+                var was = document.createElement('span');
+                was.className = 'price-was';
+                amt.parentNode.appendChild(was);
+                var lastSet = null;
+                function apply() {
+                    var txt = amt.textContent;
+                    if (txt === lastSet) return; // our own write
+                    var base = parseFloat(txt.replace(/[^0-9.]/g, ''));
+                    if (!isFinite(base)) return;
+                    was.textContent = '$' + base;
+                    lastSet = String(Math.round(base * factor));
+                    amt.textContent = lastSet;
+                }
+                apply();
+                // The pricing A/B script may swap the number after PostHog resolves.
+                new MutationObserver(apply).observe(amt, { childList: true, characterData: true, subtree: true });
             });
         })();
     </script>

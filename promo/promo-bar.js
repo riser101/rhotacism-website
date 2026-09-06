@@ -1,0 +1,156 @@
+/* Top Speech promo bar — single source of truth for the site-wide sale banner.
+   Loaded synchronously from each <product>/includes/nav.html (right after the
+   navbar) so the bar exists before first paint.
+
+   - Renders a fixed banner above the navbar with a live countdown + the code.
+   - Shifts the navbar down and inserts an in-flow spacer so page content isn't
+     covered (see promo-bar.css, --ts-promo-h).
+   - Exposes window.TSPromo = { active, code, percent, ends, id } for checkout
+     code (lisp pricing/inline checkout pre-apply the Dodo discount code).
+   - Auto-retires when PROMO.ends passes. To end early: active:false, bump ?v=.
+
+   Store-side setup this banner relies on (see README-BUILD.md → "Promo bar"):
+     • Dodo (lisp web app): percentage discount code = PROMO.code
+     • App Store (Rollr iOS): custom offer code = PROMO.code (Subscriptions →
+       Offer Codes) — redeemed via the apps.apple.com/redeem deep link below.
+     • Google Play (Rollr Android): no %-off promo codes for subscriptions, so
+       the bar is hidden for Android visitors on Rollr pages until a Play
+       intro-price offer is live (then flip rollrAndroid: true). */
+(function () {
+    var PROMO = {
+        id: 'laborday2026',
+        active: true,
+        code: 'LABORDAY20',
+        percent: 20,
+        ends: '2026-09-10T03:59:59Z',   // Tue Sep 9 2026, 11:59 pm ET
+        title: 'Labor Day Sale',
+        appleAppId: '6751569088',
+        rollrAndroid: false
+    };
+
+    var endMs = Date.parse(PROMO.ends);
+    var live = !!PROMO.active && Date.now() < endMs;
+    window.TSPromo = { active: live, code: live ? PROMO.code : '', percent: PROMO.percent, ends: PROMO.ends, id: PROMO.id, title: PROMO.title };
+    if (!live) return;
+
+    var path = location.pathname || '/';
+    var product = path.indexOf('/lispspeechclinic') === 0 ? 'lisp'
+        : path.indexOf('/stutterfluencycentre') === 0 ? 'stutter' : 'rollr';
+    // Flows where a fixed bar fights the layout: assessment steps, retake
+    // checkout, redirect/utility pages. (TSPromo is still set on these pages so
+    // the inline checkout can pre-apply the code.)
+    if (/\/(inline-)?assessment\.html|\/retake\.html|\/get-app\.html|\/app-verify|\/delete-account|\/go\//.test(path)) return;
+
+    var ua = navigator.userAgent || '';
+    var isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var isAndroid = /Android/i.test(ua);
+    if (product === 'rollr' && isAndroid && !PROMO.rollrAndroid) return;
+    try { if (localStorage.getItem('tsPromoClosed') === PROMO.id) return; } catch (e) {}
+
+    var appleRedeem = 'https://apps.apple.com/redeem?ctx=offercodes&id=' + PROMO.appleAppId + '&code=' + PROMO.code;
+    var pct = PROMO.percent + '% Off';
+    var copy;
+    if (product === 'lisp') {
+        copy = { lead: PROMO.title + ': ' + pct, tail: ' All Programs', pills: ['7-day Money-Back Guarantee', 'Applied automatically at checkout'],
+                 cta: 'See plans', href: '/lispspeechclinic/pricing.html?promo=' + PROMO.code };
+    } else if (product === 'rollr') {
+        copy = { lead: PROMO.title + ': ' + pct, tail: ' The Rollr Academy', pills: ['iPhone app', 'Redeem in the App Store'],
+                 cta: isIOS ? 'Redeem now' : 'Get the app', href: isIOS ? appleRedeem : 'https://apps.apple.com/id/app/rollrapp/id6751569088', qr: !isIOS };
+    } else {
+        copy = { lead: PROMO.title + ': ' + pct, tail: ' Top Speech Programs', pills: ['Lisp Speech Clinic & The Rollr Academy (iPhone)'],
+                 cta: 'See offers', href: '/lispspeechclinic/pricing.html?promo=' + PROMO.code };
+    }
+
+    function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function unit(k, label) { return '<span class="ts-promo__unit"><b data-u="' + k + '">00</b><i>' + label + '</i></span>'; }
+
+    var bar = document.createElement('div');
+    bar.className = 'ts-promo';
+    bar.id = 'tsPromoBar';
+    bar.setAttribute('role', 'region');
+    bar.setAttribute('aria-label', PROMO.title);
+    bar.innerHTML =
+        '<div class="ts-promo__in">' +
+          '<div class="ts-promo__msg">' +
+            '<strong class="ts-promo__lead">' + esc(copy.lead) + '<span class="ts-promo__lead-tail">' + esc(copy.tail) + '</span></strong>' +
+            copy.pills.map(function (p, i) { return '<span class="ts-promo__item ts-promo__item--' + (i + 1) + '"><span class="ts-promo__sep">|</span><span class="ts-promo__pill">' + esc(p) + '</span></span>'; }).join('') +
+            '<span class="ts-promo__item ts-promo__item--code"><span class="ts-promo__sep">|</span><span class="ts-promo__codelabel">Use Code: </span><code class="ts-promo__code" id="tsPromoCode" title="Click to copy">' + esc(PROMO.code) + '</code></span>' +
+          '</div>' +
+          '<div class="ts-promo__right">' +
+            '<div class="ts-promo__timer"><span class="ts-promo__timer-label">Sale ends in:</span>' +
+              '<span class="ts-promo__clock">' + unit('d', 'Days') + '<span class="ts-promo__colon">:</span>' + unit('h', 'Hrs') +
+              '<span class="ts-promo__colon">:</span>' + unit('m', 'Min') + '<span class="ts-promo__colon">:</span>' + unit('s', 'Sec') + '</span>' +
+            '</div>' +
+            '<a class="ts-promo__cta" id="tsPromoCta" href="' + esc(copy.href) + '"' + (copy.href.indexOf('http') === 0 ? ' target="_blank" rel="noopener"' : '') + '>' + esc(copy.cta) + '</a>' +
+          '</div>' +
+          '<button type="button" class="ts-promo__x" id="tsPromoClose" aria-label="Dismiss">&times;</button>' +
+        '</div>';
+
+    var spacer = document.createElement('div');
+    spacer.className = 'ts-promo__spacer';
+    spacer.setAttribute('aria-hidden', 'true');
+
+    var navbar = document.getElementById('mainNavbar');
+    var anchor = navbar || document.body.firstChild;
+    document.body.insertBefore(bar, anchor);
+    document.body.insertBefore(spacer, bar);
+    document.body.classList.add('ts-promo-on');
+
+    function setHeight() {
+        var h = bar.offsetHeight;
+        if (h) document.documentElement.style.setProperty('--ts-promo-h', h + 'px');
+    }
+    setHeight();
+    if (window.ResizeObserver) { new ResizeObserver(setHeight).observe(bar); }
+    else { window.addEventListener('resize', setHeight); }
+    window.addEventListener('load', setHeight);
+
+    function track(name, props) {
+        try { if (window.posthog && posthog.capture) posthog.capture(name, Object.assign({ promo_id: PROMO.id, code: PROMO.code, product: product }, props || {}), { transport: 'sendBeacon' }); } catch (e) {}
+        try { if (window.gtag) gtag('event', name, { event_category: 'promo', event_label: PROMO.id }); } catch (e) {}
+    }
+
+    var els = { d: bar.querySelector('[data-u="d"]'), h: bar.querySelector('[data-u="h"]'), m: bar.querySelector('[data-u="m"]'), s: bar.querySelector('[data-u="s"]') };
+    function pad(n) { return (n < 10 ? '0' : '') + n; }
+    function retire() {
+        clearInterval(timer);
+        if (bar.parentNode) bar.parentNode.removeChild(bar);
+        if (spacer.parentNode) spacer.parentNode.removeChild(spacer);
+        document.body.classList.remove('ts-promo-on');
+        window.TSPromo.active = false; window.TSPromo.code = '';
+    }
+    function tick() {
+        var left = endMs - Date.now();
+        if (left <= 0) { retire(); return; }
+        var s = Math.floor(left / 1000);
+        els.d.textContent = pad(Math.floor(s / 86400));
+        els.h.textContent = pad(Math.floor(s % 86400 / 3600));
+        els.m.textContent = pad(Math.floor(s % 3600 / 60));
+        els.s.textContent = pad(s % 60);
+    }
+    tick();
+    var timer = setInterval(tick, 1000);
+
+    document.getElementById('tsPromoClose').addEventListener('click', function () {
+        try { localStorage.setItem('tsPromoClosed', PROMO.id); } catch (e) {}
+        track('promo_bar_dismiss');
+        retire();
+    });
+
+    var codeEl = document.getElementById('tsPromoCode');
+    codeEl.addEventListener('click', function () {
+        var done = function () {
+            codeEl.classList.add('is-copied'); codeEl.textContent = 'Copied!';
+            setTimeout(function () { codeEl.classList.remove('is-copied'); codeEl.textContent = PROMO.code; }, 1400);
+        };
+        try { navigator.clipboard.writeText(PROMO.code).then(done, done); } catch (e) { done(); }
+        track('promo_bar_copy_code');
+    });
+
+    document.getElementById('tsPromoCta').addEventListener('click', function (e) {
+        track('promo_bar_click', { cta: copy.cta, device: isIOS ? 'ios' : isAndroid ? 'android' : 'desktop' });
+        // Rollr on desktop: the QR modal (scan → App Store) is the download path.
+        if (copy.qr && typeof window.openQrModal === 'function') { e.preventDefault(); window.openQrModal(); }
+    });
+    track('promo_bar_view', { device: isIOS ? 'ios' : isAndroid ? 'android' : 'desktop' });
+})();

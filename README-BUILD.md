@@ -117,19 +117,36 @@ $19 retake credit. The gate is **server-side** in Firestore (project
 phone) — clearing browser storage does **nothing**. Once your email has run the
 free assessment, you're locked to the paywall on every retake.
 
-To take the full free assessment again, delete your person record with the
-one-off script (uses the function's own `firebase-admin` + the same gmail
+To take the full free assessment again, wipe the identity's server state with
+the one-off script (uses the function's own `firebase-admin` + the same gmail
 dot/`+` normalization the backend uses):
 
 ```bash
 cd gcp-function-lisp
 gcloud auth application-default login   # once, if not already authed
 node reset-entitlement.js you@gmail.com another@email.com +15551234567
+node reset-entitlement.js you@gmail.com --dry-run   # list, delete nothing
+node reset-entitlement.js you@gmail.com --auth      # also delete the Auth account
 ```
 
-It resolves each identifier to its `personId`, deletes the `lisp-persons/{id}`
-doc + its `assessments` subcollection (resetting `assessmentCount` to 0 → next
-run is `free`), and clears the identity→person mappings.
+It resolves each identifier to its `personId` and deletes, for a true clean
+slate:
+
+- `lisp-persons/{id}` + its `assessments` subcollection — `assessmentCount` back
+  to 0 (next run is `free`) and any purchased `paidCredits` gone.
+- **every** `lisp-identities` doc pointing at that person, found by reverse
+  lookup — not just the keys you passed. (The aliases the person accumulated,
+  e.g. junk phone numbers typed in the survey, used to linger and keep resolving
+  to a deleted person.)
+- every `lisp-users/{uid}` report record for that identity, matched by uid,
+  `email`, `phone`, and `authUserId`.
+- with `--auth`, the Firebase Auth account itself. Off by default because that
+  project is shared with the Rollr app — deleting it means the next sign-in
+  mints a brand-new UID.
+
+It finishes by printing a browser-console snippet that clears the client-side
+leftovers (`analysisResult`, `lispRetakePaid`, `userAuth`, …); run it after
+signing out so the frontend doesn't restore a cached report.
 
 - Gmail normalization collapses `you+alias@gmail.com` and `y.o.u@gmail.com` to
   the base key, so `+alias` tricks **won't** dodge the gate — reset the base
@@ -140,6 +157,41 @@ run is `free`), and clears the identity→person mappings.
 **Note for Claude/agents working in this repo:** when a user says their email is
 "stuck behind the retake paywall" or they "can't take the full assessment," this
 script is the fix — don't hunt through frontend/localStorage.
+
+---
+
+## Assessment replay regression suite
+
+Replays a real recorded assessment run through the live page + prod backend and
+flags regressions anywhere in the pipeline — recorder init (the "stuck on
+GETTING READY…" class of bug), empty/near-empty captures, Firebase uploads,
+MFA+Praat+Gemini, part-2 delivery, and drift in the final report.
+
+- **Fixtures:** `tests/fixtures/lisp-run-20260827/` — 24 clips from a real
+  desktop-Chrome prod run (fullband Opus 256k): 17 words with a **deliberate
+  lisp on sun/sock/mouse** (+ spoon omitted, slide lateral), 6 clean sentences,
+  1 spontaneous clip, plus `manifest.json` and the baseline report
+  `analysisResult.json` (GRI 70).
+- **How it works** (`tests/replay/assessment-replay.spec.js`): stubs
+  `getUserMedia` with a WebAudio stream, plays the fixture clip whenever the
+  page starts a take, and otherwise lets the real code run — Silero VAD,
+  silence auto-stop, hands-free chaining, uploads, the works. Uses the page's
+  own QA bypasses (`?test=1` + `#skip-login`, identity `tester@local`).
+  Report assertions are tolerance-based (Gemini varies run to run): lisp
+  sentinels must stay flagged, clean sentinels must stay clean, GRI within
+  45–95, structure exact.
+
+```bash
+npm run test:replay                       # local page (uploads → local-testing-v3), prod backend
+REPLAY_BASE_URL=https://rhotacism-website-git-staging-yousuf-syeds-projects.vercel.app \
+  npm run test:replay                     # deployed page; uploads stubbed (ALLOW_UPLOADS=1 to keep)
+```
+
+Takes ~6–10 min and spends real Gemini/MFA compute per run, so it's excluded
+from the default `npm test` CI suite (`testIgnore` in both main configs) — run
+it before promoting recording/analysis changes. Analytics (PostHog/GA) and the
+FormEasy leads sheet are network-blocked during runs; the actual report of each
+run lands in `test-results/replay-report.json`.
 
 ---
 
@@ -154,6 +206,32 @@ script is the fix — don't hunt through frontend/localStorage.
 7. Vercel auto-deploys with changes
 
 ---
+
+## Promo bar (site-wide sale banner)
+
+Single source: `promo/promo-bar.js` (config object `PROMO` at the top) +
+`promo/promo-bar.css`. Each `<product>/includes/nav.html` loads both right
+after the navbar, so every page that carries the nav gets the bar. The script
+renders a fixed bar above the navbar with a live countdown, the discount code
+(click to copy) and a product-aware CTA, shifts the navbar down by the bar
+height (`--ts-promo-h`) and inserts an in-flow spacer so nothing is covered.
+
+- Auto-retires when `PROMO.ends` passes (no deploy needed). To end early set
+  `active: false` and bump the `?v=` on the two `/promo/` references in the
+  three nav includes.
+- Hidden on flow/utility pages (assessment steps, retake, get-app, go/…) but
+  `window.TSPromo` is still set there.
+- Dismiss is remembered per campaign id in `localStorage.tsPromoClosed`.
+- PostHog: `promo_bar_view`, `promo_bar_click`, `promo_bar_copy_code`,
+  `promo_bar_dismiss`.
+
+Where the discount is actually honoured (all keyed on `PROMO.code`):
+
+| Surface | Mechanism |
+| --- | --- |
+| Lisp web app (Dodo) | Percentage discount code in Dodo (create via dashboard or `POST /discounts`, restricted to the six program products, `expires_at` = sale end). `pricing.html` shows struck-through prices and routes the CTA through `dodowebhook /checkout` with `discount_code` (hosted session; static links can't carry a code). The assessment's inline checkout pre-applies the code and falls back to no code if Dodo rejects it. |
+| Rollr iOS (App Store) | Custom **offer code** on the subscription (App Store Connect → app → Subscriptions → subscription → Offer Codes → create offer, then Custom Codes = `PROMO.code`). The bar links iPhone visitors to `https://apps.apple.com/redeem?ctx=offercodes&id=6751569088&code=CODE`; no app change needed (RevenueCat picks the transaction up). |
+| Rollr Android (Google Play) | Play promo codes can't do %-off on subscriptions (they only grant free-trial days). Use an intro-price **offer** on the base plan instead; until one is live the bar is hidden for Android visitors on Rollr pages (`rollrAndroid: false`). |
 
 ## Cache Busting (IMPORTANT)
 
