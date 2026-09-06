@@ -49,7 +49,10 @@
     var isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     var isAndroid = /Android/i.test(ua);
     if (product === 'rollr' && isAndroid && !PROMO.rollrAndroid) return;
-    try { if (localStorage.getItem('tsPromoClosed') === PROMO.id) return; } catch (e) {}
+    // Dismiss only hides the bar for the current tab session — it must come back on
+    // every visit for the whole sale (any older per-campaign localStorage flag is cleared).
+    try { localStorage.removeItem('tsPromoClosed'); } catch (e) {}
+    try { if (sessionStorage.getItem('tsPromoClosed') === PROMO.id) return; } catch (e) {}
 
     var appleRedeem = 'https://apps.apple.com/redeem?ctx=offercodes&id=' + PROMO.appleAppId + '&code=' + PROMO.code;
     var pct = PROMO.percent + '% Off';
@@ -143,7 +146,7 @@
     var timer = setInterval(tick, 1000);
 
     document.getElementById('tsPromoClose').addEventListener('click', function () {
-        try { localStorage.setItem('tsPromoClosed', PROMO.id); } catch (e) {}
+        try { sessionStorage.setItem('tsPromoClosed', PROMO.id); } catch (e) {}
         track('promo_bar_dismiss');
         retire();
     });
