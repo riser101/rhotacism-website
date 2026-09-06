@@ -13,9 +13,13 @@
      • Dodo (lisp web app): percentage discount code = PROMO.code
      • App Store (Rollr iOS): custom offer code = PROMO.code (Subscriptions →
        Offer Codes) — redeemed via the apps.apple.com/redeem deep link below.
-     • Google Play (Rollr Android): no %-off promo codes for subscriptions, so
-       the bar is hidden for Android visitors on Rollr pages until a Play
-       intro-price offer is live (then flip rollrAndroid: true). */
+     • Google Play (Rollr Android): Play has no %-off promo codes for
+       subscriptions, so the discount is a Play *offer* (laborday20 on base
+       plan p3m: 3-day trial + 20% off the first 3 months) that RevenueCat
+       applies automatically for new subscribers — no code needed in-app. The
+       old trial-only offer carries the `rc-ignore-offer` tag for the sale's
+       duration so the SDK picks laborday20. rollrAndroid:false hides the bar
+       for Android visitors on Rollr pages (use when no Play offer is live). */
 (function () {
     var PROMO = {
         id: 'laborday2026',
@@ -25,7 +29,7 @@
         ends: '2026-09-10T03:59:59Z',   // Tue Sep 9 2026, 11:59 pm ET
         title: 'Labor Day Sale',
         appleAppId: '6751569088',
-        rollrAndroid: false
+        rollrAndroid: true
     };
 
     var endMs = Date.parse(PROMO.ends);
@@ -54,8 +58,14 @@
         copy = { lead: PROMO.title + ': ' + pct, tail: ' All Programs', pills: ['7-day Money-Back Guarantee', 'Applied automatically at checkout'],
                  cta: 'See plans', href: '/lispspeechclinic/pricing.html?promo=' + PROMO.code };
     } else if (product === 'rollr') {
-        copy = { lead: PROMO.title + ': ' + pct, tail: ' The Rollr Academy', pills: ['iPhone app', 'Redeem in the App Store'],
-                 cta: isIOS ? 'Redeem now' : 'Get the app', href: isIOS ? appleRedeem : 'https://apps.apple.com/id/app/rollrapp/id6751569088', qr: !isIOS };
+        if (isAndroid) {
+            // Play offer applies itself at checkout — no code to enter.
+            copy = { lead: PROMO.title + ': ' + pct, tail: ' The Rollr Academy', pills: ['Android app', 'Discount applied automatically in the app'],
+                     cta: 'Get 20% off', href: 'https://play.google.com/store/apps/details?id=com.rollr.academy&referrer=utm_source%3Dtopspeech%26utm_medium%3Dpromo_bar%26utm_campaign%3D' + PROMO.id, noCode: true };
+        } else {
+            copy = { lead: PROMO.title + ': ' + pct, tail: ' The Rollr Academy', pills: ['iPhone app', 'Redeem in the App Store'],
+                     cta: isIOS ? 'Redeem now' : 'Get the app', href: isIOS ? appleRedeem : 'https://apps.apple.com/id/app/rollrapp/id6751569088', qr: !isIOS };
+        }
     } else {
         copy = { lead: PROMO.title + ': ' + pct, tail: ' Top Speech Programs', pills: ['Lisp Speech Clinic & The Rollr Academy (iPhone)'],
                  cta: 'See offers', href: '/lispspeechclinic/pricing.html?promo=' + PROMO.code };
@@ -74,7 +84,7 @@
           '<div class="ts-promo__msg">' +
             '<strong class="ts-promo__lead">' + esc(copy.lead) + '<span class="ts-promo__lead-tail">' + esc(copy.tail) + '</span></strong>' +
             copy.pills.map(function (p, i) { return '<span class="ts-promo__item ts-promo__item--' + (i + 1) + '"><span class="ts-promo__sep">|</span><span class="ts-promo__pill">' + esc(p) + '</span></span>'; }).join('') +
-            '<span class="ts-promo__item ts-promo__item--code"><span class="ts-promo__sep">|</span><span class="ts-promo__codelabel">Use Code: </span><code class="ts-promo__code" id="tsPromoCode" title="Click to copy">' + esc(PROMO.code) + '</code></span>' +
+            (copy.noCode ? '' : '<span class="ts-promo__item ts-promo__item--code"><span class="ts-promo__sep">|</span><span class="ts-promo__codelabel">Use Code: </span><code class="ts-promo__code" id="tsPromoCode" title="Click to copy">' + esc(PROMO.code) + '</code></span>') +
           '</div>' +
           '<div class="ts-promo__right">' +
             '<div class="ts-promo__timer"><span class="ts-promo__timer-label">Sale ends in:</span>' +
@@ -138,7 +148,7 @@
     });
 
     var codeEl = document.getElementById('tsPromoCode');
-    codeEl.addEventListener('click', function () {
+    if (codeEl) codeEl.addEventListener('click', function () {
         var done = function () {
             codeEl.classList.add('is-copied'); codeEl.textContent = 'Copied!';
             setTimeout(function () { codeEl.classList.remove('is-copied'); codeEl.textContent = PROMO.code; }, 1400);

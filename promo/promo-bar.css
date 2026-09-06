@@ -54,6 +54,7 @@ body.ts-promo-on .qr-modal-back { top: calc(92px + var(--ts-promo-h, 46px)); }
 /* Keep the bar to one line on laptops: drop the secondary pills first. */
 @media (max-width: 1360px) { .ts-promo__item--2 { display: none; } }
 @media (max-width: 1100px) { .ts-promo__item--1 { display: none; } }
+@media (max-width: 768px)  { .ts-promo__item--1, .ts-promo__item--2 { display: none; } }
 @media (max-width: 900px)  { .ts-promo__lead-tail { display: none; } }
 @media (max-width: 768px) {
     .ts-promo__in { flex-wrap: wrap; padding: 7px 38px 7px 12px; gap: 6px 10px; min-height: 0; }
