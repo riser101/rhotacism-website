@@ -57,17 +57,17 @@
     // No CTA button — the page's own buttons do the selling.
     var copy;
     if (product === 'lisp') {
-        copy = { lead: PROMO.title + ': ' + pct, tail: ' All Programs!', pills: ['7-day Money-Back Guarantee', 'Try Risk-Free Trial'], drop: 0 }; // drop = pill hidden first on narrow laptops
+        copy = { lead: PROMO.title + ': ' + pct, tail: ' All Programs!', pills: ['7-day Money-Back Guarantee', 'Try Risk-Free'], drop: 0 }; // drop = pill hidden first on narrow laptops
     } else if (product === 'rollr') {
         if (isAndroid) {
             // Play offer applies itself at checkout — nothing to enter.
-            copy = { lead: PROMO.title + ': ' + pct, tail: ' The Rollr Academy!', pills: ['Try Risk-Free Trial', '20% off applied automatically in the app'], noCode: true };
+            copy = { lead: PROMO.title + ': ' + pct, tail: ' The Rollr Academy!', pills: ['Try Risk-Free', '20% off applied automatically in the app'], noCode: true };
         } else {
             // iPhone: tapping the code opens the App Store redemption sheet.
-            copy = { lead: PROMO.title + ': ' + pct, tail: ' The Rollr Academy!', pills: ['Try Risk-Free Trial'], codeHref: isIOS ? appleRedeem : '' };
+            copy = { lead: PROMO.title + ': ' + pct, tail: ' The Rollr Academy!', pills: ['Try Risk-Free'], codeHref: isIOS ? appleRedeem : '' };
         }
     } else {
-        copy = { lead: PROMO.title + ': ' + pct, tail: ' Top Speech Programs!', pills: ['Try Risk-Free Trial'] };
+        copy = { lead: PROMO.title + ': ' + pct, tail: ' Top Speech Programs!', pills: ['Try Risk-Free'] };
     }
 
     function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
