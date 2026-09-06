@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
             initializeNavigation();
         } else {
             // Fallback: Load navigation dynamically if not in DOM
-            fetch(basePath + '/includes/nav.html?v=20260911')
+            fetch(basePath + '/includes/nav.html?v=20260912')
                 .then(response => response.text())
                 .then(html => {
                     document.body.insertAdjacentHTML('afterbegin', html);

@@ -53,29 +53,28 @@
 
     var appleRedeem = 'https://apps.apple.com/redeem?ctx=offercodes&id=' + PROMO.appleAppId + '&code=' + PROMO.code;
     var pct = PROMO.percent + '% Off';
+    // Copy mirrors the reference bar: bold lead | plain pills | Use Code chip | countdown.
+    // No CTA button — the page's own buttons do the selling.
     var copy;
     if (product === 'lisp') {
-        copy = { lead: PROMO.title + ': ' + pct, tail: ' All Programs', pills: ['7-day Money-Back Guarantee', 'Applied automatically at checkout'],
-                 cta: 'See plans', href: '/lispspeechclinic/pricing.html?promo=' + PROMO.code };
+        copy = { lead: PROMO.title + ': ' + pct, tail: ' All Programs!', pills: ['7-day Money-Back Guarantee', 'Try Risk-Free Trial'], drop: 0 }; // drop = pill hidden first on narrow laptops
     } else if (product === 'rollr') {
         if (isAndroid) {
-            // Play offer applies itself at checkout — no code to enter.
-            copy = { lead: PROMO.title + ': ' + pct, tail: ' The Rollr Academy', pills: ['Android app', 'Discount applied automatically in the app'],
-                     cta: 'Get 20% off', href: 'https://play.google.com/store/apps/details?id=com.rollr.academy&referrer=utm_source%3Dtopspeech%26utm_medium%3Dpromo_bar%26utm_campaign%3D' + PROMO.id, noCode: true };
+            // Play offer applies itself at checkout — nothing to enter.
+            copy = { lead: PROMO.title + ': ' + pct, tail: ' The Rollr Academy!', pills: ['Try Risk-Free Trial', '20% off applied automatically in the app'], noCode: true };
         } else {
-            copy = { lead: PROMO.title + ': ' + pct, tail: ' The Rollr Academy', pills: ['iPhone app', 'Redeem in the App Store'],
-                     cta: isIOS ? 'Redeem now' : 'Get the app', href: isIOS ? appleRedeem : 'https://apps.apple.com/id/app/rollrapp/id6751569088', qr: !isIOS };
+            // iPhone: tapping the code opens the App Store redemption sheet.
+            copy = { lead: PROMO.title + ': ' + pct, tail: ' The Rollr Academy!', pills: ['Try Risk-Free Trial'], codeHref: isIOS ? appleRedeem : '' };
         }
     } else {
-        copy = { lead: PROMO.title + ': ' + pct, tail: ' Top Speech Programs', pills: ['Lisp Speech Clinic & The Rollr Academy (iPhone)'],
-                 cta: 'See offers', href: '/lispspeechclinic/pricing.html?promo=' + PROMO.code };
+        copy = { lead: PROMO.title + ': ' + pct, tail: ' Top Speech Programs!', pills: ['Try Risk-Free Trial'] };
     }
 
     function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
     function unit(k, label) { return '<span class="ts-promo__unit"><b data-u="' + k + '">00</b><i>' + label + '</i></span>'; }
 
     var bar = document.createElement('div');
-    bar.className = 'ts-promo';
+    bar.className = 'ts-promo' + (copy.noCode ? ' ts-promo--nocode' : '');
     bar.id = 'tsPromoBar';
     bar.setAttribute('role', 'region');
     bar.setAttribute('aria-label', PROMO.title);
@@ -83,15 +82,17 @@
         '<div class="ts-promo__in">' +
           '<div class="ts-promo__msg">' +
             '<strong class="ts-promo__lead">' + esc(copy.lead) + '<span class="ts-promo__lead-tail">' + esc(copy.tail) + '</span></strong>' +
-            copy.pills.map(function (p, i) { return '<span class="ts-promo__item ts-promo__item--' + (i + 1) + '"><span class="ts-promo__sep">|</span><span class="ts-promo__pill">' + esc(p) + '</span></span>'; }).join('') +
-            (copy.noCode ? '' : '<span class="ts-promo__item ts-promo__item--code"><span class="ts-promo__sep">|</span><span class="ts-promo__codelabel">Use Code: </span><code class="ts-promo__code" id="tsPromoCode" title="Click to copy">' + esc(PROMO.code) + '</code></span>') +
+            copy.pills.map(function (p, i) { return '<span class="ts-promo__item ts-promo__item--' + (i + 1) + (copy.drop === i ? ' ts-promo__item--drop' : '') + '"><span class="ts-promo__sep">|</span><span class="ts-promo__pill">' + esc(p) + '</span></span>'; }).join('') +
+            (copy.noCode ? '' : '<span class="ts-promo__item ts-promo__item--code"><span class="ts-promo__sep">|</span><span class="ts-promo__codelabel">Use Code: </span>' +
+                (copy.codeHref
+                    ? '<a class="ts-promo__code" id="tsPromoCode" href="' + esc(copy.codeHref) + '" rel="noopener" title="Redeem in the App Store">' + esc(PROMO.code) + '</a>'
+                    : '<code class="ts-promo__code" id="tsPromoCode" title="Click to copy">' + esc(PROMO.code) + '</code>') + '</span>') +
           '</div>' +
           '<div class="ts-promo__right">' +
             '<div class="ts-promo__timer"><span class="ts-promo__timer-label">Sale ends in:</span>' +
               '<span class="ts-promo__clock">' + unit('d', 'Days') + '<span class="ts-promo__colon">:</span>' + unit('h', 'Hrs') +
               '<span class="ts-promo__colon">:</span>' + unit('m', 'Min') + '<span class="ts-promo__colon">:</span>' + unit('s', 'Sec') + '</span>' +
             '</div>' +
-            '<a class="ts-promo__cta" id="tsPromoCta" href="' + esc(copy.href) + '"' + (copy.href.indexOf('http') === 0 ? ' target="_blank" rel="noopener"' : '') + '>' + esc(copy.cta) + '</a>' +
           '</div>' +
           '<button type="button" class="ts-promo__x" id="tsPromoClose" aria-label="Dismiss">&times;</button>' +
         '</div>';
@@ -148,19 +149,36 @@
     });
 
     var codeEl = document.getElementById('tsPromoCode');
-    if (codeEl) codeEl.addEventListener('click', function () {
-        var done = function () {
-            codeEl.classList.add('is-copied'); codeEl.textContent = 'Copied!';
-            setTimeout(function () { codeEl.classList.remove('is-copied'); codeEl.textContent = PROMO.code; }, 1400);
-        };
-        try { navigator.clipboard.writeText(PROMO.code).then(done, done); } catch (e) { done(); }
-        track('promo_bar_copy_code');
-    });
+    if (codeEl && copy.codeHref) {
+        codeEl.addEventListener('click', function () { track('promo_bar_redeem_click', { device: 'ios' }); });
+    } else if (codeEl) {
+        codeEl.addEventListener('click', function () {
+            var done = function () {
+                codeEl.classList.add('is-copied'); codeEl.textContent = 'Copied!';
+                setTimeout(function () { codeEl.classList.remove('is-copied'); codeEl.textContent = PROMO.code; }, 1400);
+            };
+            try { navigator.clipboard.writeText(PROMO.code).then(done, done); } catch (e) { done(); }
+            track('promo_bar_copy_code');
+        });
+    }
 
-    document.getElementById('tsPromoCta').addEventListener('click', function (e) {
-        track('promo_bar_click', { cta: copy.cta, device: isIOS ? 'ios' : isAndroid ? 'android' : 'desktop' });
-        // Rollr on desktop: the QR modal (scan → App Store) is the download path.
-        if (copy.qr && typeof window.openQrModal === 'function') { e.preventDefault(); window.openQrModal(); }
-    });
+    // iPhone visitors on Rollr pages: the App Store offer code is only honoured
+    // through the redemption URL (the plain product page charges full price), so
+    // during the sale every "Get the app" App Store link on the page points at
+    // the redemption sheet instead — it installs the app and applies the offer.
+    // Runs after nav.js's own store routing (DOMContentLoaded + a tick, and load).
+    if (product === 'rollr' && isIOS) {
+        var rewrite = function () {
+            document.querySelectorAll('a[href*="apps.apple.com"][href*="' + PROMO.appleAppId + '"]').forEach(function (a) {
+                if (a.id === 'tsPromoCode' || a.getAttribute('href') === appleRedeem) return;
+                a.setAttribute('href', appleRedeem);
+                a.setAttribute('data-promo-redeem', PROMO.id);
+            });
+        };
+        document.addEventListener('DOMContentLoaded', function () { setTimeout(rewrite, 0); });
+        window.addEventListener('load', rewrite);
+        rewrite();
+    }
+
     track('promo_bar_view', { device: isIOS ? 'ios' : isAndroid ? 'android' : 'desktop' });
 })();
