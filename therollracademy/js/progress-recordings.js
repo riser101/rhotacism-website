@@ -60,6 +60,9 @@
 
   var state = { idx: 0, playing: false, t: 0, muted: true, started: false, finished: false, cmp: false, word: 0 };
   var audio = {}, timer = null, tick = 0, wasPlaying = false, listened = false, holdAfter = false, viewed = false, completed = {};
+  /* in-card app CTA (shown once a word has played through with sound) */
+  var cardCta = document.getElementById('prCardCta'), ctaShown = false;
+  function showCardCta() { if (ctaShown || !cardCta) return; ctaShown = true; track('progress_recordings_cta_shown', { word: WORDS[state.word].word }); }
   /* deep link ?pr=<word>[.<slot>] (email / shared links): land on that word and slot, with sound when the browser allows it */
   var deep = null;
   try {
@@ -185,7 +188,7 @@
     }
     if (state.idx < N - 1) start(state.idx + 1);
     else {
-      if (!state.muted && !completed[state.word]) { completed[state.word] = true; track('progress_recordings_complete', { word: WORDS[state.word].word }); }
+      if (!state.muted && !completed[state.word]) { completed[state.word] = true; track('progress_recordings_complete', { word: WORDS[state.word].word }); showCardCta(); }
       nextWord();
     }
   }
@@ -293,6 +296,7 @@
 
     /* transport */
     el.muteLabel.textContent = state.muted ? 'Muted · tap to hear' : 'Sound on';
+    if (cardCta) hide(cardCta, !ctaShown);
     el.mute.setAttribute('aria-label', state.muted ? 'Unmute recordings' : 'Mute recordings');
     hide(el.mute.querySelector('.ic-muted'), !state.muted);
     hide(el.mute.querySelector('.ic-on'), state.muted);

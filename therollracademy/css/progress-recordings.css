@@ -132,3 +132,8 @@
   .pr-label span{font-size:10px}
   .pr-label em{display:none}
 }
+/* in-card app CTA — appears once a word has played through with sound */
+.pr-card-cta{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:2px;padding:12px 14px;border-radius:3px;background:#111;color:#fff;text-decoration:none;font-size:14px;font-weight:700;line-height:1.2;box-shadow:0 5px 0 0 #444;transition:background .3s ease,box-shadow .3s ease,transform .12s ease}
+.pr-card-cta:hover{background:#E85700;box-shadow:0 5px 0 0 #a13c00;color:#fff}
+.pr-card-cta:active{transform:translateY(5px);box-shadow:0 0 0 0 #444}
+.pr-card-cta svg{flex-shrink:0}
