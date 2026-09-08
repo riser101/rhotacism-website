@@ -111,7 +111,10 @@ const functions = require('@google-cloud/functions-framework');
         options: [{ label: 'Started', value: 'started' }, { label: 'Not started', value: 'not_started' }] },
       { name: 'app_downloaded', label: 'App downloaded', type: 'enumeration', fieldType: 'select',
         groupName: 'contactinformation',
-        options: [{ label: 'Yes', value: 'yes' }, { label: 'No', value: 'no' }] }
+        options: [{ label: 'Yes', value: 'yes' }, { label: 'No', value: 'no' }] },
+      // Rep tracking link (?src=<rep>) — which sales rep's outreach brought the lead.
+      { name: 'lead_rep', label: 'Lead rep', type: 'string', fieldType: 'text',
+        groupName: 'contactinformation' }
     ];
     for (const d of defs) {
       const r = await hubspotPost('/crm/v3/properties/contacts', d);
@@ -168,12 +171,18 @@ const functions = require('@google-cloud/functions-framework');
 
   // Shared handler for web-test beacons and the auth trigger.
   // event 'signin' is marker-deduped; 'completed' always flips the status.
-  async function pushRhotacismLead({ email, name, event, source, country, survey, results, extraProps }) {
+  async function pushRhotacismLead({ email, name, event, source, country, survey, results, extraProps, src }) {
     const e = String(email || '').trim().toLowerCase();
     if (!e || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) || !HUBSPOT_TOKEN) return { skipped: true };
     const ref = admin.firestore().collection('hubspot-leads').doc(e);
     const existing = await ref.get();
-    if (event === 'signin' && existing.exists) return { skipped: true };
+    // ?src=<rep> tracking link → lead_rep (lowercase slug).
+    const rep = String(src || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 32);
+    if (event === 'signin' && existing.exists) {
+      // Known contact arriving via a rep's tracking link: stamp the rep only.
+      if (rep) { await ensureAppProperties(); await upsertLeadContact(e, { email: e, lead_rep: rep }); }
+      return { skipped: true };
+    }
     const status = event === 'completed' ? 'completed' : 'signed_in';
     const challenge = await rhotacismChallengeProp();
     const props = {
@@ -187,6 +196,7 @@ const functions = require('@google-cloud/functions-framework');
     if (challenge) props[challenge.name] = challenge.value;
     const cc = String(country || '').trim().toUpperCase();
     if (/^[A-Z]{2}$/.test(cc)) props.country = cc;
+    if (rep) props.lead_rep = rep;
     const phone = String((survey && survey.phone) || '').trim();
     if (phone) props.phone = phone;
     Object.assign(props, extraProps || {});
@@ -435,7 +445,7 @@ const functions = require('@google-cloud/functions-framework');
         const out = await pushRhotacismLead({
           email: req.body.email, name: req.body.name,
           event: req.body.event === 'completed' ? 'completed' : 'signin',
-          source: 'web', country: req.body.country,
+          source: 'web', country: req.body.country, src: req.body.src,
           survey: req.body.survey || null, results: req.body.results || null
         });
         return res.status(200).json(out);

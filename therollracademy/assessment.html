@@ -173,6 +173,22 @@
     </script>
 
     <!-- Google tag (gtag.js) -->
+    <!-- Rep tracking: ?src=<rep> on any visit is remembered for 30 days and
+         stamped on the HubSpot lead (contact property lead_rep) at sign-in. -->
+    <script>
+        (function () {
+            try {
+                var src = (new URLSearchParams(location.search).get('src') || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 32);
+                if (src) localStorage.setItem('tsLeadSrc', JSON.stringify({ src: src, at: Date.now() }));
+            } catch (e) {}
+        })();
+        window.tsLeadSrc = function () {
+            try {
+                var o = JSON.parse(localStorage.getItem('tsLeadSrc') || 'null');
+                return (o && o.src && Date.now() - o.at < 30 * 864e5) ? o.src : '';
+            } catch (e) { return ''; }
+        };
+    </script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-584ZMQTPSE"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -3411,7 +3427,7 @@
                         fetch('https://us-central1-rollr-academy.cloudfunctions.net/sendResetEmail', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(Object.assign({ action: 'hubspotLead', event: event, email: ua.email, name: ua.name || '', country: country || '' }, extra)),
+                            body: JSON.stringify(Object.assign({ action: 'hubspotLead', event: event, email: ua.email, name: ua.name || '', country: country || '', src: (window.tsLeadSrc && window.tsLeadSrc()) || '' }, extra)),
                             keepalive: true
                         }).catch(function () {});
                     };

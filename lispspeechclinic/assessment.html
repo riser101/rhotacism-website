@@ -37,6 +37,22 @@
             history.replaceState(null, '', location.pathname + location.search + '#login');
         })();
     </script>
+    <!-- Rep tracking: ?src=<rep> on any visit is remembered for 30 days and
+         stamped on the HubSpot lead (contact property lead_rep) at sign-in. -->
+    <script>
+        (function () {
+            try {
+                var src = (new URLSearchParams(location.search).get('src') || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 32);
+                if (src) localStorage.setItem('tsLeadSrc', JSON.stringify({ src: src, at: Date.now() }));
+            } catch (e) {}
+        })();
+        window.tsLeadSrc = function () {
+            try {
+                var o = JSON.parse(localStorage.getItem('tsLeadSrc') || 'null');
+                return (o && o.src && Date.now() - o.at < 30 * 864e5) ? o.src : '';
+            } catch (e) { return ''; }
+        };
+    </script>
 
     <!-- Firebase SDK (modular, from CDN) -->
     <script type="module">
@@ -7704,7 +7720,9 @@
                         name: name || '',
                         // Vercel edge GeoIP (cached by the pricing localizer) → the
                         // HubSpot lead's Country property.
-                        country: geoCountry
+                        country: geoCountry,
+                        // Rep tracking link (?src=sara) → HubSpot lead_rep.
+                        src: (window.tsLeadSrc && window.tsLeadSrc()) || ''
                     });
                     var r = await fetch(GCP_ANALYZE_URL + '?' + qs.toString(), { method: 'GET' });
                     if (!r.ok) return false;

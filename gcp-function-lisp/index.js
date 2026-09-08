@@ -1123,6 +1123,9 @@ async function postLeadAlert(payload) {
 // ============================================================================
 const LEAD_STATUS_PROP = 'assessment_status';
 const LEAD_PRODUCT_PROP = 'assessment_product';
+const LEAD_REP_PROP = 'lead_rep';
+// ?src=<rep> from the frontend → lowercase slug or ''.
+const leadRepSlug = (v) => String(v || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 32);
 
 async function hubspotGet(path) {
   const resp = await fetch('https://api.hubapi.com' + path, {
@@ -1187,6 +1190,9 @@ async function ensureHubspotProperties() {
     { name: 'signed_in_at', label: 'Assessment signed in at', type: 'datetime', fieldType: 'date',
       groupName: 'contactinformation' },
     { name: 'assessment_completed_at', label: 'Assessment completed at', type: 'datetime', fieldType: 'date',
+      groupName: 'contactinformation' },
+    // Rep tracking link (?src=<rep>) — which sales rep's outreach brought the lead.
+    { name: LEAD_REP_PROP, label: 'Lead rep', type: 'string', fieldType: 'text',
       groupName: 'contactinformation' }
   ];
   for (const d of defs) {
@@ -1315,7 +1321,12 @@ async function sendSignupLead(user, ent) {
     const email = String((user && user.email) || '').trim().toLowerCase();
     if (!email || !HUBSPOT_TOKEN || !firestore) return;
     const ref = firestore.collection('hubspot-leads').doc(email);
-    if ((await ref.get()).exists) return;
+    const rep = leadRepSlug(user && user.src);
+    if ((await ref.get()).exists) {
+      // Known contact arriving via a rep's tracking link: stamp the rep only.
+      if (rep) { await ensureHubspotProperties(); await upsertLeadContact(email, { email, [LEAD_REP_PROP]: rep }); }
+      return;
+    }
     await ensureHubspotProperties();
     const completedBefore = ent && ent.allowed === false;
     const status = completedBefore ? 'completed' : 'signed_in';
@@ -1339,6 +1350,7 @@ async function sendSignupLead(user, ent) {
     // Vercel edge GeoIP forwarded by the client (standard Country property).
     const country = String((user && user.country) || '').trim().toUpperCase();
     if (/^[A-Z]{2}$/.test(country)) props.country = country;
+    if (rep) props[LEAD_REP_PROP] = rep;
     const up = await upsertLeadContact(email, props);
     if (!up.ok) { console.warn('signup lead upsert failed (retries next sign-in):', up.status, up.text.slice(0, 200)); return; }
     const contactId = leadContactId(up);
@@ -1628,7 +1640,8 @@ functions.http('analyzeLispSpeech', async (req, res) => {
             email: ((req.query.email) || '').toString().trim(),
             phone: ((req.query.phone) || '').toString().trim(),
             name: ((req.query.name) || '').toString().trim(),
-            country: ((req.query.country) || '').toString().trim()
+            country: ((req.query.country) || '').toString().trim(),
+            src: ((req.query.src) || '').toString().trim()
           };
           const ent = await lookupEntitlement(identity);
           // Sign-in IS the lead: push to HubSpot now, not at completion.
