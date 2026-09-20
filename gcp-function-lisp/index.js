@@ -2051,6 +2051,43 @@ async function sendPosthogAssessmentCompleted(user, survey, summary) {
 }
 
 // ---------------------------------------------------------------------------
+// Calendly: next real opening for the consult event (results-page card).
+// GET ?calendly=next → { next: ISO-8601 | null, tz, eventType }. Uses the
+// Calendly v2 API with a personal access token (CALENDLY_TOKEN); the event type
+// is resolved from CALENDLY_EVENT_URL's slug once, availability is cached 60 s.
+const CALENDLY_TOKEN = process.env.CALENDLY_TOKEN || '';
+const CALENDLY_EVENT_URL = process.env.CALENDLY_EVENT_URL || 'https://calendly.com/sufi-topspeech/consult';
+const calendlyCache = { at: 0, data: null, eventType: '', tz: '' };
+async function calendlyGet(url) {
+  const r = await fetch(url, { headers: { Authorization: 'Bearer ' + CALENDLY_TOKEN } });
+  if (!r.ok) throw new Error('Calendly ' + r.status + ' ' + (await r.text()).slice(0, 120));
+  return r.json();
+}
+async function calendlyNextOpening() {
+  if (!CALENDLY_TOKEN) return { next: null, reason: 'no_token' };
+  if (calendlyCache.data && Date.now() - calendlyCache.at < 60000) return calendlyCache.data;
+  if (!calendlyCache.eventType) {
+    const me = await calendlyGet('https://api.calendly.com/users/me');
+    const userUri = me.resource && me.resource.uri;
+    calendlyCache.tz = (me.resource && me.resource.timezone) || '';
+    const list = await calendlyGet('https://api.calendly.com/event_types?user=' + encodeURIComponent(userUri) + '&active=true&count=100');
+    const slug = CALENDLY_EVENT_URL.replace(/\/+$/, '').split('/').pop().toLowerCase();
+    const items = list.collection || [];
+    const et = items.find(e => String(e.scheduling_url || '').toLowerCase().replace(/\/+$/, '').endsWith('/' + slug)) || items[0];
+    if (!et) return { next: null, reason: 'no_event_type' };
+    calendlyCache.eventType = et.uri;
+  }
+  // The available-times endpoint accepts at most a 7-day window.
+  const start = new Date(Date.now() + 5 * 60000).toISOString();
+  const end = new Date(Date.now() + 7 * 86400000 - 60000).toISOString();
+  const r = await calendlyGet('https://api.calendly.com/event_type_available_times?event_type=' + encodeURIComponent(calendlyCache.eventType) + '&start_time=' + start + '&end_time=' + end);
+  const first = (r.collection || []).map(x => x.start_time).filter(Boolean).sort()[0] || null;
+  calendlyCache.data = { next: first, tz: calendlyCache.tz, eventType: calendlyCache.eventType, fetchedAt: new Date().toISOString() };
+  calendlyCache.at = Date.now();
+  return calendlyCache.data;
+}
+
+// ---------------------------------------------------------------------------
 // Face-video placement check ("placement classifier v1", 2026-09-20). The client
 // uploads one consented full-face video per session plus per-item marks. For the
 // tokens the acoustics flagged, pull three mouth frames at the /s/ instant and
@@ -2254,6 +2291,10 @@ functions.http('analyzeLispSpeech', async (req, res) => {
     // to lisp-users/{uid} the moment it finishes, so the browser can recover it
     // after a refresh / iOS tab discard (which wipes the in-memory part-2 promise)
     // instead of falsely showing "couldn't finish". Returns { status, latestAssessment? }.
+    if (req.method === 'GET' && req.query && req.query.calendly === 'next') {
+      try { return res.status(200).json(await calendlyNextOpening()); }
+      catch (e) { console.warn('calendly next-opening error:', e.message); return res.status(200).json({ next: null, reason: 'error' }); }
+    }
     if (req.method === 'GET') {
       try {
         // Scheduled retry sweep for parked lead alerts (Cloud Scheduler).

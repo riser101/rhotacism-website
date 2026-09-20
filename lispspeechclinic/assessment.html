@@ -1917,6 +1917,16 @@
         #step4 .ob-split:has(.ob-panel-left.showing-results) { grid-template-columns: 1fr; }
         #step4 .ob-split:has(.ob-panel-left.showing-results) .ob-panel-right { display: none; }
         #step4 .ob-panel-left.showing-results .asmt-results { width: 100%; max-width: 960px; margin-left: auto; margin-right: auto; }
+        /* Wide desktops: use the viewport. Report column grows, rail stays fixed. */
+        @media (min-width: 960px) {
+            .assessment-container:has(#step4.active) { max-width: min(1560px, 100vw - 64px); width: 100%; }
+            #step4 .ob-panel-left.showing-results .asmt-results { max-width: 1480px; padding-right: 388px; }
+            #asmtResults .book-call-card--results { width: 360px; }
+        }
+        @media (min-width: 1280px) {
+            #step4 .ob-panel-left.showing-results .asmt-results { padding-right: 420px; }
+            #asmtResults .book-call-card--results { width: 380px; padding: 22px 22px 18px; }
+        }
 
         /* ===== Inline pricing (light theme — matches the white assessment panel) =====
            Same senior pricing markup, recoloured for a white background: dark text,
@@ -4955,31 +4965,38 @@
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', camBindConsent); else camBindConsent();
 
         // ---- Consult card: "Next opening" line (desktop results card) ----
-        // Estimate from a fixed schedule in the visitor's local time — Mon–Sat,
-        // 09:00–19:00, every 30 min, at least 45 min from now. NOT live calendar
-        // data: replace with Calendly availability when that feed exists.
-        function bookCallNextOpening() {
+        // Live Calendly availability via the backend (GET ?calendly=next), shown
+        // in the visitor's local time. No slot / no token → a neutral line, never
+        // an invented time. Cached in sessionStorage for 5 minutes.
+        function bookCallRenderNext(iso) {
             const el = document.getElementById('bookCallNext');
             if (!el) return;
-            const now = new Date();
-            let t = new Date(now.getTime() + 45 * 60000);
-            t.setSeconds(0, 0);
-            t.setMinutes(t.getMinutes() % 30 === 0 ? t.getMinutes() : t.getMinutes() + (30 - t.getMinutes() % 30));
-            for (let i = 0; i < 14; i++) {
-                const day = t.getDay(), h = t.getHours() + t.getMinutes() / 60;
-                if (day === 0 || h >= 19) { t.setDate(t.getDate() + 1); t.setHours(9, 0, 0, 0); continue; }
-                if (h < 9) { t.setHours(9, 0, 0, 0); }
-                break;
-            }
-            const sameDay = t.toDateString() === now.toDateString();
+            if (!iso) { el.textContent = 'Same-day slots usually available'; el.hidden = false; return; }
+            const t = new Date(iso), now = new Date();
             const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
-            const when = sameDay ? 'today' : t.toDateString() === tomorrow.toDateString() ? 'tomorrow' : t.toLocaleDateString(undefined, { weekday: 'long' });
+            const when = t.toDateString() === now.toDateString() ? 'today'
+                : t.toDateString() === tomorrow.toDateString() ? 'tomorrow'
+                : t.toLocaleDateString(undefined, { weekday: 'long' });
             const time = t.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
             el.textContent = `Next opening ${when}, ${time}`;
             el.hidden = false;
         }
+        async function bookCallNextOpening() {
+            if (!document.getElementById('bookCallNext')) return;
+            try {
+                const cached = JSON.parse(sessionStorage.getItem('lispCalendlyNext') || 'null');
+                if (cached && Date.now() - cached.at < 5 * 60000) { bookCallRenderNext(cached.next); return; }
+            } catch (e) {}
+            let next = null;
+            try {
+                const r = await fetch(GCP_ANALYZE_URL + '?calendly=next', { method: 'GET' });
+                if (r.ok) { const d = await r.json(); next = (d && d.next) || null; }
+            } catch (e) {}
+            try { sessionStorage.setItem('lispCalendlyNext', JSON.stringify({ at: Date.now(), next })); } catch (e) {}
+            bookCallRenderNext(next);
+        }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bookCallNextOpening); else bookCallNextOpening();
-        setInterval(bookCallNextOpening, 60000);
+        setInterval(bookCallNextOpening, 5 * 60000);
 
         // ---- Fit the recording panel to the viewport (strict responsive PWA) ----
         // The design's proportions are kept; when the viewport is shorter than the
