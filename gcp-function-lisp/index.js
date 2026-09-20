@@ -2112,36 +2112,46 @@ Classify the tongue placement for each token:
 Return ONLY a JSON array, one object per token in order: [{"token": 1, "placement": "interdental|dentalized|behind-teeth|lateral-cue|unclear", "confidence": 0.0-1.0, "note": "at most 12 plain words"}]`;
 async function placementCheck(video, wordRows, sentenceProbes) {
   const result = { checked: 0, forward: 0, normal: 0, unclear: 0, lateral: 0, tokens: [], error: null };
-  if (!video || !video.path) return null;
+  if (!video || !video.path) { console.log('🎥 placement check skipped: no video path in request'); return null; }
   const cands = placementCandidates(video, wordRows, sentenceProbes);
+  console.log(`🎥 placement check: video=${video.path} marks=${(video.marks || []).length} flagged-candidates=${cands.length}` + (cands.length ? ' [' + cands.map(c => c.label + '@' + Math.round(c.tMs) + 'ms').join(', ') + ']' : ''));
   if (!cands.length) { result.note = 'no flagged /s/ tokens with a video mark'; return result; }
   const fs = require('fs'), os = require('os'), path = require('path');
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'face-'));
+  const DEBUG_DIR = process.env.PLACEMENT_DEBUG_DIR || '';
+  const dir = DEBUG_DIR ? (fs.mkdirSync(DEBUG_DIR, { recursive: true }), DEBUG_DIR) : fs.mkdtempSync(path.join(os.tmpdir(), 'face-'));
   const t0 = Date.now();
   try {
     const ext = /mp4/.test(String(video.mime || video.path)) ? 'mp4' : 'webm';
     const local = path.join(dir, 'face.' + ext);
     await admin.storage().bucket(FACE_BUCKET).file(String(video.path)).download({ destination: local });
     const parts = [{ text: PLACEMENT_PROMPT }];
+    // One linear decode: pick the frame nearest each wanted instant (t-80, t, t+80 ms)
+    // for every candidate. Output files are numbered in time order, so sort the
+    // wanted instants and map them back.
+    const wants = [];
+    cands.forEach((c, ci) => [-80, 0, 80].forEach(off => wants.push({ ci, t: Math.max(0, c.tMs + off) / 1000 })));
+    wants.sort((a, b) => a.t - b.t);
+    const expr = wants.map(w => `lt(abs(t-${w.t.toFixed(3)})\\,0.02)`).join('+');
+    try {
+      await runFfmpeg(['-y', '-loglevel', 'error', '-err_detect', 'ignore_err', '-i', local, '-vf', `select='${expr}',scale=480:-2`, '-vsync', 'vfr', '-q:v', '5', path.join(dir, 'f%03d.jpg')], 120000);
+    } catch (e) { console.warn('🎥 frame extraction failed:', e.message); }
+    const produced = fs.readdirSync(dir).filter(f => /^f\d{3}\.jpg$/.test(f)).sort();
+    // ffmpeg emits at most one frame per matched instant, in order; align by index.
+    const byCand = new Map();
+    produced.forEach((f, i) => { const w = wants[i]; if (!w) return; const st = fs.statSync(path.join(dir, f)); if (st.size > 2000) { if (!byCand.has(w.ci)) byCand.set(w.ci, []); byCand.get(w.ci).push(fs.readFileSync(path.join(dir, f)).toString('base64')); } });
     let n = 0;
-    for (const c of cands) {
-      const frames = [];
-      for (const off of [-80, 0, 80]) {
-        const t = Math.max(0, c.tMs + off) / 1000;
-        const out = path.join(dir, `f${n}_${off + 80}.jpg`);
-        try {
-          await runFfmpeg(['-y', '-loglevel', 'error', '-ss', t.toFixed(3), '-i', local, '-frames:v', '1', '-vf', 'scale=480:-2', '-q:v', '5', out], 15000);
-          if (fs.existsSync(out) && fs.statSync(out).size > 2000) frames.push(fs.readFileSync(out).toString('base64'));
-        } catch (e) { /* frame missing — token may still have others */ }
-      }
-      if (!frames.length) continue;
+    cands.forEach((c, ci) => {
+      const frames = byCand.get(ci) || [];
+      if (!frames.length) return;
       n++;
       c.token = n;
       parts.push({ text: `\nToken ${n}: /s/ in ${c.label} (acoustic cue: ${c.kind}) — ${frames.length} frame(s)` });
       frames.forEach(b64 => parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64 } }));
-    }
+    });
     if (!n) { result.note = 'no frames could be extracted'; return result; }
     const { rawText } = await callGemini(parts);
+    if (DEBUG_DIR) { try { fs.writeFileSync(path.join(dir, 'vision-reply.txt'), String(rawText || '')); } catch (e) {} }
+    console.log('🎥 vision reply:', String(rawText || '').replace(/\s+/g, ' ').slice(0, 600));
     const m = String(rawText || '').match(/\[[\s\S]*\]/);
     const arr = m ? JSON.parse(m[0]) : [];
     const byToken = new Map(); (Array.isArray(arr) ? arr : []).forEach(x => { if (x && x.token != null) byToken.set(Number(x.token), x); });
@@ -2178,7 +2188,7 @@ async function placementCheck(video, wordRows, sentenceProbes) {
     result.error = e.message;
     return result;
   } finally {
-    try { fs.rmSync(dir, { recursive: true, force: true }); } catch (e) {}
+    if (!DEBUG_DIR) { try { fs.rmSync(dir, { recursive: true, force: true }); } catch (e) {} }
   }
 }
 

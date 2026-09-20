@@ -3914,7 +3914,7 @@
         function probeIsTimed(m) { return !!m && m.type === 'sustained'; }
         function probeNoVadStop(m) { return probeIsFreeform(m) || probeIsTimed(m); }
         function probeIsConnected(m) { return !!m && CONNECTED_TYPES.has(m.type); }
-        function probeIsLong(m) { return !!m && (m.type === 'sentence' || probeIsFreeform(m)); }
+        function probeIsLong(m) { return !!m && (m.type === 'sentence' || probeIsFreeform(m) || (m.type === 'rapid' && /\s/.test(probeDisplay(m)))); }
         function probeDisplay(m) { return (m && (m.display || m.word)) || ''; }
         // Live-instruction copy per item type and phase ('idle' | 'recording' | 'next').
         function probeCopy(m, phase) {
@@ -4758,7 +4758,7 @@
         // and to the backend so frames can be pulled at each /s/. Consent is a
         // checkbox on the recording screen; declining changes nothing.
         const CAM_CONSENT_VERSION = 'face-v2-default-on-2026-09-20';
-        const cam = { state: 'on', consent: true, stream: null, rec: null, chunks: [], t0: 0, marks: [], mime: '', width: 0, height: 0, fps: 0, blob: null, upload: null, path: '', manifest: '' };
+        const cam = { state: 'on', consent: true, finish: null, starting: null, stream: null, rec: null, chunks: [], t0: 0, marks: [], mime: '', width: 0, height: 0, fps: 0, blob: null, upload: null, path: '', manifest: '' };
         // Render the row for one of three states (design artboards): on (guide +
         // "Turn off"), off ("Face video is off" + "Turn on"), blocked (browser
         // denied the camera: "Allow camera" / "Continue audio only").
@@ -4781,7 +4781,11 @@
         }
         function camSetStatus() { camRender(cam.state || 'on'); }
         async function camStart() {
-            if (cam.rec || !cam.consent || !navigator.mediaDevices || !window.MediaRecorder) return;
+            if (cam.rec || cam.starting || !cam.consent || !navigator.mediaDevices || !window.MediaRecorder) return cam.starting;
+            cam.starting = camStartInner().finally(() => { cam.starting = null; });
+            return cam.starting;
+        }
+        async function camStartInner() {
             try {
                 cam.stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } }, audio: false
@@ -4792,13 +4796,14 @@
                 asmtTrack('web_assessment_camera', { status: 'denied', error: (e && e.name) || String(e) });
                 return;
             }
-            if (!cam.consent) { cam.stream.getTracks().forEach(t => t.stop()); cam.stream = null; return; } // turned off while prompting
+            if (!cam.consent || cam.rec) { cam.stream.getTracks().forEach(t => t.stop()); cam.stream = null; return; } // turned off (or already recording) while prompting
             const v = document.getElementById('camPreview'); if (v) v.srcObject = cam.stream;
             const track = cam.stream.getVideoTracks()[0];
             const st = track && track.getSettings ? track.getSettings() : {};
             cam.width = st.width || 0; cam.height = st.height || 0; cam.fps = Math.round(st.frameRate || 0);
             const mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].find(m => MediaRecorder.isTypeSupported(m)) || '';
-            try { cam.rec = mime ? new MediaRecorder(cam.stream, { mimeType: mime, videoBitsPerSecond: 1200000 }) : new MediaRecorder(cam.stream); }
+            const recOpts = { videoBitsPerSecond: 1200000, videoKeyFrameIntervalDuration: 1000 };
+            try { cam.rec = mime ? new MediaRecorder(cam.stream, { mimeType: mime, ...recOpts }) : new MediaRecorder(cam.stream, recOpts); }
             catch (e) { cam.rec = new MediaRecorder(cam.stream); }
             cam.mime = (cam.rec.mimeType || mime || 'video/webm').split(';')[0];
             cam.chunks = []; cam.marks = [];
@@ -4806,17 +4811,26 @@
             cam.rec.start(1000);
             cam.t0 = performance.now();
             camRender('on');
+            camGuideStart();
             asmtTrack('web_assessment_camera', { status: 'granted', width: cam.width, height: cam.height, fps: cam.fps });
         }
         function camMark(idx, phase) {
             if (!cam.rec || cam.rec.state !== 'recording') return;
             const t = Math.round(performance.now() - cam.t0);
-            if (phase === 'start') { const m = metaAt(idx); cam.marks.push({ idx, word: m.word, type: m.type || 'word', start: t, end: null, kept: false }); return; }
-            for (let i = cam.marks.length - 1; i >= 0; i--) { const mk = cam.marks[i]; if (mk.idx === idx && mk.end == null) { mk.end = t; mk.kept = phase === 'commit'; break; } }
+            if (phase === 'start') { const m = metaAt(idx); cam.guide.takeTicks = 0; cam.guide.takeOk = 0; cam.guide.takeCodes = {}; cam.marks.push({ idx, word: m.word, type: m.type || 'word', start: t, end: null, kept: false }); return; }
+            for (let i = cam.marks.length - 1; i >= 0; i--) {
+                const mk = cam.marks[i];
+                if (mk.idx === idx && mk.end == null) {
+                    mk.end = t; mk.kept = phase === 'commit';
+                    if (cam.guide.takeTicks) mk.framing = { okShare: +(cam.guide.takeOk / cam.guide.takeTicks).toFixed(2), codes: cam.guide.takeCodes, last: cam.guide.metrics };
+                    break;
+                }
+            }
         }
         function camStop() {
             return new Promise(resolve => {
                 const rec = cam.rec; cam.rec = null;
+                camGuideStop();
                 const finish = () => {
                     if (cam.chunks.length) cam.blob = new Blob(cam.chunks, { type: cam.mime }); cam.chunks = [];
                     if (cam.stream) { cam.stream.getTracks().forEach(t => t.stop()); cam.stream = null; }
@@ -4850,7 +4864,8 @@
         }
         // Payload for the connected (part-2) call: waits for the upload up to 60 s.
         async function camPayloadAwait() {
-            if (cam.upload) await Promise.race([cam.upload, new Promise(r => setTimeout(r, 60000))]);
+            const pending = cam.finish || cam.upload;
+            if (pending) await Promise.race([pending, new Promise(r => setTimeout(r, 60000))]);
             if (!cam.path) return null;
             return { path: cam.path, manifest: cam.manifest, mime: cam.mime, width: cam.width, height: cam.height, fps: cam.fps,
                      consentVersion: CAM_CONSENT_VERSION, recorderLatencyMs: 150, marks: cam.marks.filter(m => m.kept) };
@@ -4876,6 +4891,83 @@
             dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.hidden = true; });
         }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', camBindConsent); else camBindConsent();
+
+        // ---- Live framing guidance (MediaPipe Face Detector, short-range) ----
+        // Runs ~4×/s on the preview while the camera is on and derives ONE code:
+        // ok | noface | closer | back | center | dark | bright. The code is stored
+        // on cam.guide (+ data-guide on #camRow, + a 'cam-guidance' event) and each
+        // item's mark records how much of the take was 'ok', so the backend can
+        // prefer well-framed tokens. Rendering of the hint is added separately.
+        const CAM_VISION_BASE = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+        const CAM_GUIDE_MODEL = 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
+        cam.guide = { detector: null, loading: null, timer: null, code: 'off', pending: '', pendingSince: 0, metrics: null, canvas: null, takeTicks: 0, takeOk: 0, takeCodes: {} };
+        async function camGuideLoad() {
+            if (cam.guide.detector || cam.guide.loading) return cam.guide.loading;
+            cam.guide.loading = (async () => {
+                const vision = await import(CAM_VISION_BASE + '/vision_bundle.mjs');
+                const files = await vision.FilesetResolver.forVisionTasks(CAM_VISION_BASE + '/wasm');
+                const make = (delegate) => vision.FaceDetector.createFromOptions(files, {
+                    baseOptions: { modelAssetPath: CAM_GUIDE_MODEL, delegate }, runningMode: 'VIDEO', minDetectionConfidence: 0.5
+                });
+                try { cam.guide.detector = await make('GPU'); } catch (e) { cam.guide.detector = await make('CPU'); }
+            })().catch(e => { console.warn('[camera] guidance unavailable:', e && e.message); cam.guide.detector = null; })
+              .finally(() => { cam.guide.loading = null; });
+            return cam.guide.loading;
+        }
+        function camFaceLuminance(v, box) {
+            const c = cam.guide.canvas || (cam.guide.canvas = document.createElement('canvas'));
+            c.width = 32; c.height = 32;
+            const g = c.getContext('2d', { willReadFrequently: true });
+            try { g.drawImage(v, box.originX, box.originY, box.width, box.height, 0, 0, 32, 32); } catch (e) { return null; }
+            const d = g.getImageData(0, 0, 32, 32).data;
+            let sum = 0;
+            for (let i = 0; i < d.length; i += 4) sum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+            return sum / (d.length / 4);
+        }
+        function camGuideSet(code) {
+            if (code === cam.guide.code) return;
+            cam.guide.code = code;
+            const row = document.getElementById('camRow'); if (row) row.dataset.guide = code;
+            try { window.dispatchEvent(new CustomEvent('cam-guidance', { detail: { code, metrics: cam.guide.metrics } })); } catch (e) {}
+        }
+        function camGuideTick() {
+            const v = document.getElementById('camPreview');
+            const det = cam.guide.detector;
+            if (!v || !cam.stream || !det || v.readyState < 2 || !v.videoWidth) return;
+            let code = 'ok', metrics = null;
+            try {
+                const res = det.detectForVideo(v, performance.now());
+                const d = res && res.detections && res.detections[0];
+                if (!d) { code = 'noface'; }
+                else {
+                    const b = d.boundingBox;
+                    const fh = b.height / v.videoHeight;
+                    const cx = (b.originX + b.width / 2) / v.videoWidth, cy = (b.originY + b.height / 2) / v.videoHeight;
+                    const lum = camFaceLuminance(v, b);
+                    metrics = { fh: +fh.toFixed(2), cx: +cx.toFixed(2), cy: +cy.toFixed(2), lum: lum == null ? null : Math.round(lum) };
+                    if (fh < 0.28) code = 'closer';
+                    else if (fh > 0.85) code = 'back';
+                    else if (Math.abs(cx - 0.5) > 0.22 || cy < 0.18 || cy > 0.82) code = 'center';
+                    else if (lum != null && lum < 70) code = 'dark';
+                    else if (lum != null && lum > 225) code = 'bright';
+                }
+            } catch (e) { return; }
+            cam.guide.metrics = metrics;
+            // Debounce: a non-ok code must persist ~600 ms before it is shown; 'ok' clears immediately.
+            const now = performance.now();
+            if (code === 'ok') { cam.guide.pending = ''; camGuideSet('ok'); }
+            else if (code !== cam.guide.pending) { cam.guide.pending = code; cam.guide.pendingSince = now; }
+            else if (now - cam.guide.pendingSince >= 600) camGuideSet(code);
+            if (isRecording) { cam.guide.takeTicks++; if (code === 'ok') cam.guide.takeOk++; cam.guide.takeCodes[code] = (cam.guide.takeCodes[code] || 0) + 1; }
+        }
+        function camGuideStart() {
+            if (cam.guide.timer) return;
+            camGuideLoad().then(() => { if (cam.stream && !cam.guide.timer) cam.guide.timer = setInterval(camGuideTick, 250); });
+        }
+        function camGuideStop() {
+            if (cam.guide.timer) { clearInterval(cam.guide.timer); cam.guide.timer = null; }
+            camGuideSet('off');
+        }
 
         // Guard: not every browser accepts the opus mimeType option (older Safari).
         // Falls back to default MediaRecorder when unsupported.
@@ -5477,7 +5569,7 @@
                 prewarmConnectedAcoustics();
                 // Face video: stop the session recorder and upload in the background
                 // (the part-2 send waits for it, capped — see camPayloadAwait).
-                if (cam.rec || cam.blob) camStop().then(() => camUpload());
+                if (cam.rec || cam.blob) cam.finish = camStop().then(() => camUpload());
                 releaseMic();
                 syncRecordingContinueButton();
                 updateRecordButton();
@@ -8868,6 +8960,9 @@
                 if (act && bcTitle) bcTitle.textContent = 'Not ready to commit ' + cfg.sym + act.textContent.trim() + '?';
             }
             window.__applyLocalPricing = apply; // QA/test hook
+            // ?geo=GB (localhost only) simulates the GeoIP answer for testing.
+            var forced = (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && (location.search.match(/[?&]geo=([A-Za-z]{2})/) || [])[1]) || '';
+            if (forced) { apply(C2C[forced.toUpperCase()] || ''); return; }
             var cached = null;
             try { cached = sessionStorage.getItem('lispGeoCountry'); } catch (e) {}
             if (cached !== null) { apply(C2C[cached] || ''); return; }
