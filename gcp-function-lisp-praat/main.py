@@ -10,6 +10,8 @@ import numpy as np
 import parselmouth
 from parselmouth.praat import call
 
+import windows as W
+
 # Bundled static ffmpeg binary (opus/webm decoders included). Lets this deploy as
 # a plain source function — the Python buildpack has no system ffmpeg. Resolved
 # once at import so per-request cost is just the subprocess.
@@ -114,45 +116,68 @@ def _measure_window(snd, sr, t_start, t_end):
     }
 
 
-def analyze_word(audio_bytes, word, position='', sibilants=None):
-    """Measure sibilant quality on the MFA-supplied time windows.
+def analyze_word(audio_bytes, word, position='', sibilants=None, hints=None):
+    """Locate and measure every sibilant in one clip.
 
-    sibilants: list of {start, end, label} from MFA. Each window is measured on
-    this 48 kHz decode (MFA locates, Praat measures). A word has one window; a
-    sentence has one per /s/. Returns the loudest segment's metrics at top level
-    (backward compat) plus a 'segments' list of every measured window.
+    sibilants: optional [{start, end, label}] windows (legacy MFA path). When
+    absent the windows are found here (windows.find_windows) — no forced
+    alignment. hints: {label: 'S'|'Z'|'SH'|'CH'|'JH'|'X', all_s: bool,
+    expect: bool} from the caller (word list / sentence text), used only to tag
+    windows and to decide whether a relaxed 'weak fricative' pass is warranted.
+    The clip is peak-normalised first so a quiet capture (AGC is off in the
+    browser) measures the same as a loud one; capture.peak_dbfs reports the
+    original level. Returns the loudest segment's metrics at top level
+    (backward compat) plus 'segments' (every window) and 'capture'.
     """
+    hints = hints or {}
     wav_path = None
     try:
-        # Convert browser audio (WebM) to WAV via ffmpeg
         with tempfile.NamedTemporaryFile(suffix='.audio', delete=False) as f_in:
             f_in.write(audio_bytes)
             in_path = f_in.name
-
         wav_path = in_path.replace('.audio', '.wav')
         # 48 kHz WAV (Nyquist 24 kHz) preserves the full 3–14 kHz sibilant band.
-        # 16 kHz here silently clipped everything above 8 kHz — half the /s/ energy.
         subprocess.run([
             FFMPEG_BIN, '-y', '-i', in_path,
-            '-ac', '1', '-ar', '48000', '-acodec', 'pcm_s16le',
+            '-ac', '1', '-ar', '48000',
+            # 4th-order high-pass at 150 Hz: handling rumble / breath pops below
+            # the voice band otherwise drag CoG down and mimic a frontal /s/.
+            '-af', 'highpass=f=150,highpass=f=150',
+            '-acodec', 'pcm_s16le',
             wav_path
         ], capture_output=True, check=True, timeout=30)
         os.unlink(in_path)
 
-        snd = parselmouth.Sound(wav_path)
-        sr = snd.sampling_frequency
-        clip_dur = snd.values.shape[1] / sr
+        raw = parselmouth.Sound(wav_path)
+        sr = int(raw.sampling_frequency)
+        x = raw.values[0].astype(np.float64)
+        clip_dur = len(x) / sr
+        y, peak_dbfs = W.normalise(x)
+        snd = parselmouth.Sound(y, sampling_frequency=sr)
 
-        if not sibilants:
-            return {'word': word, 'position': position, 'error': 'No sibilant windows',
-                    'segments': []}
+        expect = bool(hints.get('expect', True))
+        found, noise_rms, vowel_rms = W.find_windows(y, sr, expect_sibilant=expect, position=position)
+        default_label = str(hints.get('label') or ('S' if hints.get('all_s') else 'X'))
+        capture = {
+            'peak_dbfs': round(float(peak_dbfs), 1),
+            'noise_dbfs': round(20 * float(np.log10(max(noise_rms, 1e-9))) + float(peak_dbfs) + 1.0, 1),
+            'duration_s': round(clip_dur, 2),
+        }
+
+        windows = []
+        if sibilants:
+            for s in sibilants:
+                try:
+                    ts, te = float(s.get('start')), float(s.get('end'))
+                except (TypeError, ValueError):
+                    continue
+                windows.append((ts, te, 'mfa', s.get('label', default_label)))
+        else:
+            for ts, te, kind in found:
+                windows.append((ts, te, kind, default_label))
 
         segments = []
-        for s in sibilants:
-            try:
-                ts, te = float(s.get('start')), float(s.get('end'))
-            except (TypeError, ValueError):
-                continue
+        for ts, te, kind, label in windows:
             ts = max(0.0, min(ts, clip_dur))
             te = max(0.0, min(te, clip_dur))
             if te - ts < 0.005:
@@ -160,18 +185,20 @@ def analyze_word(audio_bytes, word, position='', sibilants=None):
             m = _measure_window(snd, sr, ts, te)
             if m.get('error'):
                 continue
-            m['label'] = s.get('label', '')
+            m.update(W.welch_features(y, sr, ts, te))
+            m.update(W.level_features(y, sr, ts, te, noise_rms, vowel_rms))
+            m['label'] = label
+            m['kind'] = kind
             m['start'] = round(ts, 3)
             m['end'] = round(te, 3)
             segments.append(m)
 
         if not segments:
-            return {'word': word, 'position': position,
+            return {'word': word, 'position': position, 'capture': capture,
                     'error': 'No measurable sibilant', 'segments': []}
 
-        # Primary = loudest segment (best signal for the single-value fields).
         primary = max(segments, key=lambda s: s.get('rms', 0))
-        return {'word': word, 'position': position, **primary, 'segments': segments}
+        return {'word': word, 'position': position, 'capture': capture, **primary, 'segments': segments}
 
     except Exception as e:
         return {'word': word, 'position': position, 'error': str(e), 'segments': []}
@@ -185,9 +212,12 @@ def extract_sibilant_metrics(request):
     """
     POST JSON: { "words": [{ "word": "sun", "position": "initial",
                              "audio_base64": "...",
+                             "label": "S", "all_s": true, "expect": true,
                              "sibilants": [{ "start": 0.41, "end": 0.57 }, ...] }, ...] }
-    'sibilants' are MFA time windows (seconds). Returns a JSON array of per-word
-    Praat metrics; each carries a 'segments' list (one per measured window).
+    'sibilants' (optional, legacy MFA windows in seconds) — when absent the
+    sibilants are located here. 'label'/'all_s'/'expect' are optional hints.
+    Returns a JSON array of per-word Praat metrics; each carries a 'segments'
+    list (one per measured window) and 'capture' {peak_dbfs, noise_dbfs}.
     """
     # CORS
     headers = {
@@ -221,8 +251,9 @@ def extract_sibilant_metrics(request):
                 b64 = b64.split(',', 1)[1]
 
             audio_bytes = base64.b64decode(b64)
+            hints = {k: entry[k] for k in ('label', 'all_s', 'expect') if k in entry}
             result = analyze_word(audio_bytes, word_name, position,
-                                  sibilants=entry.get('sibilants'))
+                                  sibilants=entry.get('sibilants'), hints=hints)
             # Per-clip line so Cloud logs show whether analysis actually produced
             # numbers (and the key values) or fell over on a specific clip.
             if result.get('error'):
@@ -237,12 +268,14 @@ def extract_sibilant_metrics(request):
                     hf = s.get('hf_ratio', 0)
                     verdict = 'OK' if hf >= 0.5 else 'WEAK?' if hf >= 0.25 else 'MIS-CUT?'
                     print(
-                        f"[praat]     {s.get('label', '?'):>3} "
+                        f"[praat]     {s.get('label', '?'):>3}/{s.get('kind', '?')} "
                         f"{s.get('start')}-{s.get('end')}s "
                         f"({int(s.get('duration_ms', 0))}ms) "
                         f"CoG={s.get('center_of_gravity')}Hz "
                         f"kurt={s.get('spectral_kurtosis')} "
-                        f"E_hi={s.get('energy_ratio_hi')} "
+                        f"E_hi={s.get('energy_ratio_hi')} E_lo={s.get('energy_ratio_low')} "
+                        f"snr={s.get('snr_db')}dB sib-vow={s.get('sib_vowel_db')}dB "
+                        f"Q={s.get('welch_q')}@{s.get('welch_peak_hz')} "
                         f"hf={hf} -> {verdict}",
                         flush=True,
                     )
