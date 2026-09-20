@@ -2946,7 +2946,80 @@
         @media (max-width: 1099px) {
             .rec-aside .aside-box.proto-box { order: 4; }
         }
-    </style>
+    
+        /* =====================================================================
+           Recording panel dimensions from the approved Claude Design
+           ("Lisp Assessment Recording.dc.html", 2026-09-20/21): desktop artboard
+           (440 px panel) at ≥769 px, mobile artboard (390 px) below. Shapes and
+           colours stay production; sizes, spacing and type follow the design so
+           the panel — now with the face-video row — fits one viewport.
+           ===================================================================== */
+        @media (min-width: 769px) {
+            .rec-layout { max-width: 440px; }
+            .clinical-header { padding: 22px 20px 0; }
+            .clinical-label { font-size: 10px; letter-spacing: 0.17em; }
+            .clinical-title { font-size: 22px; margin-top: 12px; letter-spacing: -0.01em; }
+            .recording-panel { gap: 0; padding: 0; }
+            .seg-block { margin: 20px 20px 0; padding: 11px 12px 13px; border-radius: 10px; }
+            .seg-header { margin-bottom: 11px; gap: 9px; }
+            .tier-badge { font-size: 9.5px; padding: 4px 6px; letter-spacing: 0.1em; }
+            .seg-phoneme { font-size: 13px; }
+            .seg-position { font-size: 9.5px; letter-spacing: 0.12em; }
+            .seg-counter { font-size: 9.5px; letter-spacing: 0.1em; }
+            .seg-strip { gap: 5px; }
+            .seg-pip { height: 3px; }
+            .word-picker { margin: 18px 20px 0; }
+            .word-picker-words { padding: 14px 0; }
+            .active-pill { height: 53px; margin: 0 14px; width: calc(100% - 28px); padding: 0 14px; }
+            .pill-timer { font-size: 12px; width: 46px; }
+            .pill-spacer { width: 46px; }
+            .pill-word { font-size: 26px; }
+            .pill-word.is-long { font-size: 16px; }
+            .context-word { font-size: 15px; height: 26px; line-height: 26px; }
+            .word-progress { margin: 15px 20px 0; }
+            .word-count-label { font-size: 9.5px; }
+            .word-dot { width: 5px; height: 5px; }
+            .vu-meter { height: 40px; margin: 6px 0 0; gap: 6px; }
+            .vu-bar { width: 4px; min-height: 4px; }
+            .record-btn-area { padding: 8px 0 0; }
+            .record-circle-btn { width: 68px; height: 68px; }
+            .record-circle-inner { width: 58px; height: 58px; }
+            .record-label { margin-top: 13px; font-size: 9.5px; letter-spacing: 0.14em; }
+            .cam-row { margin: 20px 20px 0; }
+        }
+        @media (max-width: 768px) {
+            .clinical-header { padding: 20px 16px 0; }
+            .clinical-label { font-size: 9.5px; letter-spacing: 0.17em; }
+            .clinical-title { font-size: 20px; margin-top: 11px; letter-spacing: -0.01em; }
+            .recording-panel { gap: 0; padding: 0; }
+            .seg-block { margin: 18px 16px 0; padding: 11px 11px 13px; border-radius: 10px; }
+            .seg-header { margin-bottom: 11px; gap: 8px; }
+            .tier-badge { font-size: 9px; padding: 4px 6px; letter-spacing: 0.1em; }
+            .seg-phoneme { font-size: 12.5px; }
+            .seg-position { font-size: 9px; letter-spacing: 0.12em; }
+            .seg-counter { font-size: 9px; letter-spacing: 0.1em; }
+            .seg-strip { gap: 4px; }
+            .seg-pip { height: 3px; }
+            .word-picker { margin: 15px 16px 0; }
+            .word-picker-words { padding: 11px 0; }
+            .active-pill { height: 50px; margin: 0 13px; width: calc(100% - 26px); padding: 0 12px; }
+            .pill-timer { font-size: 11.5px; width: 44px; }
+            .pill-spacer { width: 44px; }
+            .pill-word { font-size: 24px; }
+            .pill-word.is-long { font-size: 15px; }
+            .context-word { font-size: 14.5px; height: 24px; line-height: 24px; }
+            .word-progress { margin: 14px 16px 0; }
+            .word-count-label { font-size: 9px; }
+            .word-dot { width: 5px; height: 5px; }
+            .vu-meter { height: 32px; margin: 4px 0 0; gap: 6px; }
+            .vu-bar { width: 4px; min-height: 4px; }
+            .record-btn-area { padding: 6px 0 0; }
+            .record-circle-btn { width: 66px; height: 66px; }
+            .record-circle-inner { width: 56px; height: 56px; }
+            .record-label { margin-top: 11px; font-size: 9px; letter-spacing: 0.14em; }
+            .cam-row { margin: 16px 16px 0; padding: 12px 0 14px; }
+        }
+</style>
     <link rel="stylesheet" href="css/nav.css?v=20260825">
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/bundle.min.js"></script>
