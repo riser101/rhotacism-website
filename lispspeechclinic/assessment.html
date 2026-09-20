@@ -4500,6 +4500,9 @@
             renderWordPicker();
             renderVuMeter();
             updateRecordButton();
+            // Camera is on by default (approved design): open the preview as soon as the
+            // recording step shows so the live framing hint runs before the first tap.
+            setTimeout(() => { try { if (cam.consent && !cam.rec && !cam.starting) camStart(); } catch (e) {} }, 0);
         }
 
         // Build the VU meter bars
