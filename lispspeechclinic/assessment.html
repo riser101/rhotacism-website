@@ -57,7 +57,7 @@
     <!-- Firebase SDK (modular, from CDN) -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
-        import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js';
+        import { getStorage, ref, uploadBytes, uploadBytesResumable } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js';
         import { getAuth, onAuthStateChanged, signInAnonymously, GoogleAuthProvider, OAuthProvider, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, sendPasswordResetEmail, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
 
         // Same-origin auth: /__/auth/* is proxied to firebaseapp.com by
@@ -163,6 +163,40 @@
             } catch (err) {
                 console.error(`Failed to upload recording for "${word}":`, err);
             }
+        };
+
+        // Optional full-face video of the whole recording step (consented). One
+        // file per session + a JSON manifest with per-item start/end offsets (ms
+        // from video start) so the backend/SLP tools can pull mouth frames at each
+        // /s/. Stored under recordings/lispv3-video with NO expiration (owner
+        // decision 2026-09-20); the bucket has no lifecycle rule. Resumable upload
+        // — a 4-minute 640×480 clip is ~30 MB.
+        window.uploadFaceVideoToFirebase = async function(blob, info) {
+            const userAuth = JSON.parse(localStorage.getItem('userAuth') || 'null');
+            const sessionId = getAssessmentSessionId();
+            const posthogId = getPosthogId();
+            const userId = posthogId ? `ph_${posthogId}` : `anon_${sessionId}`;
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const isLocal = window.location.host.includes('localhost') || window.location.host.includes('127.0.0.1');
+            const prefix = isLocal ? 'recordings/lisp/local-testing-v3-video' : 'recordings/lispv3-video';
+            const ext = (info.mime || '').includes('mp4') ? 'mp4' : 'webm';
+            const base = `${prefix}/${userId}/${timestamp}_${sessionId}_face`;
+            const common = {
+                product: 'lisp', kind: 'face-video', consentVersion: info.consentVersion || '',
+                sessionId, userId, posthogId: posthogId || '',
+                authUserId: userAuth?.id ? String(userAuth.id) : '', userEmail: userAuth?.email || 'unknown',
+                width: String(info.width || ''), height: String(info.height || ''), fps: String(info.fps || ''),
+                durationMs: String(info.durationMs || ''), protocol: info.protocol || '', assessmentDate: new Date().toISOString()
+            };
+            const videoPath = `${base}.${ext}`;
+            const task = uploadBytesResumable(ref(storage, videoPath), blob, { contentType: info.mime || 'video/webm', customMetadata: common });
+            await new Promise((resolve, reject) => task.on('state_changed', null, reject, resolve));
+            const manifest = { ...info, sessionId, userId, video: videoPath, uploadedAt: new Date().toISOString() };
+            const manifestPath = `${base}.json`;
+            await uploadBytes(ref(storage, manifestPath), new Blob([JSON.stringify(manifest)], { type: 'application/json' }),
+                { contentType: 'application/json', customMetadata: { ...common, kind: 'face-video-manifest' } });
+            console.log('Uploaded face video:', videoPath);
+            return { path: videoPath, manifest: manifestPath };
         };
 
         // Identity block sent to the analysis backend so the SERVER writes the
@@ -938,6 +972,19 @@
             text-transform: capitalize;
         }
         .pill-spacer { width: 48px; }
+        .cam-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin: 14px 4px 0; padding-top: 12px; border-top: 1px solid #E2E8F0; }
+        .cam-consent { display: flex; align-items: flex-start; gap: 9px; font-family: 'Inter', sans-serif; font-size: 12.5px; line-height: 1.4; color: #4A5568; cursor: pointer; }
+        .cam-consent input { margin: 3px 0 0; flex: 0 0 auto; }
+        .cam-consent em { font-style: normal; color: #94A3B8; }
+        .cam-side { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        #camPreview { width: 96px; aspect-ratio: 4 / 3; border-radius: 4px; background: #000; transform: scaleX(-1); border: 1px solid #E2E8F0; }
+        .cam-status { font-family: monospace; font-size: 10.5px; color: #718096; }
+        @media (max-width: 640px) { .cam-row { flex-direction: column; } .cam-side { align-items: flex-start; } }
+        .pill-timer.countdown { color: #E2E8F0; }
+        .pill-timer.ending { color: #F87171; }
+        .pill-fast-tag { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); font-family: monospace; font-size: 10px; letter-spacing: .12em; padding: 1px 7px; border: 1px solid #E2E8F0; border-radius: 3px; background: #0F172A; color: #E2E8F0; }
+        .active-pill.is-fast { position: relative; }
+        .pill-hint { font-family: 'Inter', sans-serif; font-size: 13px; color: #64748B; text-align: center; margin: 6px 12px 0; line-height: 1.35; }
 
         /* Word picker divider + dots */
         .word-picker-divider-line {
@@ -2895,7 +2942,7 @@
 
             <!-- Progress Bar -->
             <div class="progress-container">
-                <div class="progress-label">Step <span id="currentStep">1</span> of 4</div>
+                <div class="progress-label">Step <span id="currentStep">1</span> of <span id="totalSteps">4</span></div>
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill" style="width: 25%"></div>
                 </div>
@@ -2969,7 +3016,7 @@
             </div>
 
             <!-- Step 1: Instant Recording (The Hook) -->
-            <div class="assessment-step" id="step1" style="background:transparent;box-shadow:none;padding:0;">
+            <div class="assessment-step active" id="step1" style="background:transparent;box-shadow:none;padding:0;">
                 <div id="recordingHost">
                 <div class="rec-layout">
                     <aside class="rec-aside">
@@ -3067,6 +3114,17 @@
                         <div class="record-label" id="recordLabel"></div>
                         <div class="timeout-hint" id="timeoutHint" style="display:none;">No speech detected — try again</div>
                     </div>
+                    <!-- Optional face video (consent). Off by default; the test runs without it. -->
+                    <div class="cam-row" id="camRow">
+                        <label class="cam-consent">
+                            <input type="checkbox" id="camConsent">
+                            <span>Also record my face while I speak <em>(optional)</em>. Our speech coach uses it to check tongue and lip placement on the s sounds. Kept privately with your recordings.</span>
+                        </label>
+                        <div class="cam-side">
+                            <video id="camPreview" muted playsinline autoplay hidden></video>
+                            <div class="cam-status" id="camStatus" hidden></div>
+                        </div>
+                    </div>
                     </div>
 
                 </div>
@@ -3076,7 +3134,7 @@
             </div>
 
             <!-- Step 2: Login (PWA-style) -->
-            <div class="assessment-step ob-step-wrap active" id="step2">
+            <div class="assessment-step ob-step-wrap" id="step2">
               <div class="ob-split">
                 <div class="ob-panel-left">
                 <div class="ob-card">
@@ -3525,10 +3583,17 @@
         // =============================================
         // STATE
         // =============================================
-        // Flow order (DOM step ids): login → recording → survey → analyzing
-        const STEP_ORDER = [2, 1, 3, 4];
+        // Flow order (DOM step ids): recording → survey → login → analyzing.
+        // Sign-in sits AFTER the work, not before it: on the R assessment, which
+        // runs this same flow, the auth-first screen lost ~71% of everyone who
+        // opened the page (PostHog web_assessment_step_view, Aug–Sep 2026).
+        // Recording uploads key on the PostHog distinct_id, not the Firebase uid,
+        // so capture works fully anonymous. Analysis still runs AFTER sign-in —
+        // see startLispAnalysis in wizFinish — because the backend's paid-retake
+        // gate (402) keys on the identity in lispIdentityPayload().
+        const STEP_ORDER = [1, 3, 2, 4];
         let orderIdx = 0;
-        let currentStepNum = STEP_ORDER[orderIdx]; // 2 = login shows first
+        let currentStepNum = STEP_ORDER[orderIdx]; // 1 = recording shows first
         let step4SubmitPromise = null;
         const TOTAL_STEPS = 4;
         const FINAL_SCREEN_STEP = 4;
@@ -3538,7 +3603,7 @@
         // UI shows tier + word progress only; backend scoring updated later.
         // Each tier groups probes by sound + word position.
         // =============================================
-        const ASSESSMENT_TIERS = [
+        const TIERS_V1 = [
             {
                 id: 1, name: 'Core', short: 'Core Sounds',
                 label: 'Core /s/ & /z/',
@@ -3602,6 +3667,80 @@
             }
         ];
 
+        // Protocol v2 (2026-09-20). Item fields beyond v1: type ('word' default |
+        // 'th' | 'sustained' | 'rapid' | 'sentence' | 'passage' | 'quickfire'),
+        // speed ('fast' re-read of a sentence), maxMs (timed auto-commit),
+        // display (pill text when it differs from `word`), hint (one-line coaching
+        // under the pill). `word` is the key sent to the backend and used for
+        // storage/playback, so it must be unique — hence "(fast)" on re-reads.
+        // Tier order is deliberate: every words-call item (1, 2, 5) precedes the
+        // connected items (3, 4) so the part-1 prewarm fires at the last word.
+        const TIERS_V2 = [
+            {
+                id: 1, name: 'Core', short: 'Core Sounds',
+                label: 'Core /s/ & /z/',
+                words: [
+                    { word: 'sun',     position: 'initial', sound: '/s/' },
+                    { word: 'sock',    position: 'initial', sound: '/s/' },
+                    { word: 'pencil',  position: 'medial',  sound: '/s/' },
+                    { word: 'bus',     position: 'final',   sound: '/s/' },
+                    { word: 'mouse',   position: 'final',   sound: '/s/' },
+                    { word: 'zoo',     position: 'initial', sound: '/z/' },
+                    { word: 'nose',    position: 'final',   sound: '/z/' },
+                    { word: 'spoon',   position: 'cluster', sound: '/sp/' },
+                    { word: 'star',    position: 'cluster', sound: '/st/' },
+                    { word: 'nest',    position: 'cluster', sound: '/st/' }
+                ]
+            },
+            {
+                id: 2, name: 'Extended', short: 'More Sounds',
+                label: 'Extended sibilants',
+                words: [
+                    { word: 'shoe',    position: 'initial', sound: '/ʃ/' },
+                    { word: 'watch',   position: 'final',   sound: '/tʃ/' },
+                    { word: 'jump',    position: 'initial', sound: '/dʒ/' }
+                ]
+            },
+            {
+                id: 5, name: 'Stress', short: 'Stress Set',
+                label: 'Fast & sustained /s/',
+                words: [
+                    { word: 'thumb', position: 'th', sound: '/θ/', type: 'th', hint: 'A normal "th" — say it as you usually would.' },
+                    { word: 'bath',  position: 'th', sound: '/θ/', type: 'th', hint: 'A normal "th" — say it as you usually would.' },
+                    { word: 'sss', position: 'isolated', sound: '/s/', type: 'sustained', maxMs: 3500, display: 'sssssss', hint: 'Take a breath, then hold a long "sss" until the timer runs out.' },
+                    { word: 'zzz', position: 'isolated', sound: '/z/', type: 'sustained', maxMs: 3500, display: 'zzzzzzz', hint: 'Now hold a long "zzz" — like a bee — until the timer runs out.' },
+                    { word: 'Mississippi', position: 'rapid', sound: '/s/', type: 'rapid', maxMs: 8000, display: 'Mississippi × 3', hint: 'Say it three times in a row, as fast as you can.' },
+                    { word: 'Sissy sees six sisters', position: 'rapid', sound: '/s/', type: 'rapid', maxMs: 8000, display: 'Sissy sees six sisters', hint: 'Say it twice, as fast as you can — do not slow down for the s sounds.' }
+                ]
+            },
+            {
+                id: 3, name: 'Connected', short: 'Sentences',
+                label: 'Connected speech',
+                words: [
+                    { word: 'Sam saw seven small sailboats on the sea.',                position: 'connected', sound: 'sentence', type: 'sentence' },
+                    { word: "Susan's sister keeps six pairs of scissors.",               position: 'connected', sound: 'sentence', type: 'sentence' },
+                    { word: 'The zebra at the zoo has stripes and a buzzing nose.',     position: 'connected', sound: 'sentence', type: 'sentence' },
+                    { word: 'She washed the shiny dishes and brushed the fish.',        position: 'connected', sound: 'sentence', type: 'sentence' },
+                    { word: 'Sam saw seven small sailboats on the sea. (fast)',         position: 'connected', sound: 'sentence', type: 'sentence', speed: 'fast', maxMs: 10000, display: 'Sam saw seven small sailboats on the sea.', hint: 'Same sentence — now as FAST as you can, in one breath.' },
+                    { word: "Susan's sister keeps six pairs of scissors. (fast)",        position: 'connected', sound: 'sentence', type: 'sentence', speed: 'fast', maxMs: 10000, display: "Susan's sister keeps six pairs of scissors.", hint: 'Again — as FAST as you can.' }
+                ]
+            },
+            {
+                id: 4, name: 'Spontaneous', short: 'Free Speech',
+                label: 'Spontaneous sample',
+                words: [
+                    { word: 'What did you eat for breakfast today?',      position: 'spontaneous', sound: 'spontaneous', type: 'quickfire', maxMs: 8000, hint: 'Answer out loud straight away — 8 seconds.' },
+                    { word: 'Describe the room you are sitting in.',      position: 'spontaneous', sound: 'spontaneous', type: 'quickfire', maxMs: 8000, hint: 'Keep talking until the timer runs out.' },
+                    { word: 'What would you do with a free Saturday?',    position: 'spontaneous', sound: 'spontaneous', type: 'quickfire', maxMs: 8000, hint: 'No need to plan it — just say it.' },
+                    { word: 'Tell me about your weekend. Speak naturally for about 30 seconds.', position: 'spontaneous', sound: 'spontaneous', type: 'passage', prompt: 'spontaneous', maxMs: 30000 }
+                ]
+            }
+        ];
+        // ?protocol=v1 keeps the original 24-item list (the replay regression's
+        // recorded fixtures are v1 takes). Everything else runs v2.
+        const PROTOCOL = /[?&]protocol=v1(?:&|$)/.test(location.search) ? 'v1' : 'v2';
+        const ASSESSMENT_TIERS = PROTOCOL === 'v1' ? TIERS_V1 : TIERS_V2;
+
         // Flatten tiers → linear probe list (recording loop is index-driven).
         const TEST_WORD_META = ASSESSMENT_TIERS.flatMap(t =>
             t.words.map(w => ({ ...w, tier: t.id, tierName: t.short })));
@@ -3623,12 +3762,61 @@
             return TIER_BOUNDS[TIER_BOUNDS.length - 1];
         }
 
+        // Item-type helpers. Freeform = the user talks until they tap (or the
+        // timer ends): passage + quick-fire answers. Timed = fixed-length hold
+        // (sustained sss/zzz) — no speech-end detection, the timer commits.
+        // Connected = part-2 (sentences/passage/quick-fire) vs part-1 words.
+        const CONNECTED_TYPES = new Set(['sentence', 'passage', 'quickfire']);
+        function metaAt(i) { return TEST_WORD_META[i] || {}; }
+        function probeIsFreeform(m) { return !!m && (m.type === 'passage' || m.type === 'quickfire'); }
+        function probeIsTimed(m) { return !!m && m.type === 'sustained'; }
+        function probeNoVadStop(m) { return probeIsFreeform(m) || probeIsTimed(m); }
+        function probeIsConnected(m) { return !!m && CONNECTED_TYPES.has(m.type); }
+        function probeIsLong(m) { return !!m && (m.type === 'sentence' || probeIsFreeform(m)); }
+        function probeDisplay(m) { return (m && (m.display || m.word)) || ''; }
+        // Live-instruction copy per item type and phase ('idle' | 'recording' | 'next').
+        function probeCopy(m, phase) {
+            const w = `<span class="live-word">'${probeDisplay(m)}'</span>`;
+            const secs = m.maxMs ? Math.round(m.maxMs / 1000) : 0;
+            switch (m.type) {
+                case 'passage':
+                    return phase === 'recording' ? `Keep talking naturally for <span class="live-word">about ${secs || 30} seconds</span>, then tap to finish.`
+                        : phase === 'next' ? `Good. Last step — tap to <span class="live-word">speak freely</span>.`
+                        : `Tap the microphone, then speak freely for <span class="live-word">about ${secs || 30} seconds</span> — tell us about your weekend.`;
+                case 'quickfire':
+                    return phase === 'recording' ? `Answer out loud — <span class="live-word">${secs} seconds</span> on the clock.`
+                        : phase === 'next' ? `Good. Next question — tap and <span class="live-word">answer straight away</span>.`
+                        : `Tap, then answer the question out loud — you have <span class="live-word">${secs} seconds</span>.`;
+                case 'sustained':
+                    return phase === 'recording' ? `Hold ${w} steadily until the timer ends.`
+                        : phase === 'next' ? `Good. Tap, take a breath, and hold ${w}.`
+                        : `Tap, take a breath, and hold ${w} for ${secs} seconds.`;
+                case 'rapid':
+                    return phase === 'recording' ? `Say ${w} — <span class="live-word">fast</span>, no pauses.`
+                        : phase === 'next' ? `Good. Tap to say ${w} as fast as you can.`
+                        : `Tap, then say ${w} as fast as you can.`;
+                case 'th':
+                    return phase === 'recording' ? `Now, say ${w} the way you normally would.`
+                        : phase === 'next' ? `Good. Tap to record ${w}.`
+                        : `Tap microphone to record ${w}.`;
+                default:
+                    if (m.speed === 'fast') {
+                        return phase === 'recording' ? `Read ${w} <span class="live-word">as fast as you can</span>.`
+                            : phase === 'next' ? `Good. Same sentence again — tap and read it <span class="live-word">FAST</span>.`
+                            : `Tap, then read ${w} as fast as you can.`;
+                    }
+                    return phase === 'recording' ? `Now, say ${w} clearly.`
+                        : phase === 'next' ? `Good. Tap to record ${w}.`
+                        : `Tap microphone to record ${w}.`;
+            }
+        }
+
         // =============================================
         // SEGMENT METADATA — 9 segments across 4 tiers.
         // Partitions the linear TEST_WORDS list (sound + position groups).
         // Display only; recording loop stays index-driven.
         // =============================================
-        const SEGMENTS = [
+        const SEGMENTS_V1 = [
             { tier: 1, phoneme: '/s/',      pos: 'INITIAL',      count: 2 },
             { tier: 1, phoneme: '/s/',      pos: 'MEDIAL',       count: 2 },
             { tier: 1, phoneme: '/s/',      pos: 'FINAL',        count: 2 },
@@ -3639,11 +3827,27 @@
             { tier: 3, phoneme: '/s,z/',    pos: 'SENTENCES',    count: 6 },
             { tier: 4, phoneme: '/s,z/',    pos: 'FREE SPEECH',  count: 1 },
         ];
+        const SEGMENTS_V2 = [
+            { tier: 1, phoneme: '/s/',      pos: 'INITIAL',          count: 2 },
+            { tier: 1, phoneme: '/s/',      pos: 'MEDIAL · FINAL',   count: 3 },
+            { tier: 1, phoneme: '/z/',      pos: 'ALL POSITIONS',    count: 2 },
+            { tier: 1, phoneme: '/s/',      pos: 'CLUSTERS',         count: 3 },
+            { tier: 2, phoneme: '/ʃ,tʃ,dʒ/',pos: 'SH · CH · J',      count: 3 },
+            { tier: 5, phoneme: '/θ/',      pos: 'TH REFERENCE',     count: 2 },
+            { tier: 5, phoneme: '/s,z/',    pos: 'HOLD 3 SECONDS',   count: 2 },
+            { tier: 5, phoneme: '/s/',      pos: 'FAST REPEAT',      count: 2 },
+            { tier: 3, phoneme: '/s,z/',    pos: 'SENTENCES',        count: 4 },
+            { tier: 3, phoneme: '/s,z/',    pos: 'SENTENCES · FAST', count: 2 },
+            { tier: 4, phoneme: '/s,z/',    pos: 'QUICK ANSWERS',    count: 3 },
+            { tier: 4, phoneme: '/s,z/',    pos: 'FREE SPEECH',      count: 1 },
+        ];
+        const SEGMENTS = PROTOCOL === 'v1' ? SEGMENTS_V1 : SEGMENTS_V2;
         const SEG_TIER_META = {
             1: { label: 'TIER 1', name: 'Core /s/ and /z/',   cls: 't1', color: '#22D3EE', border: 'rgba(34,211,238,0.4)',  doneCls: 'done-t1', curCls: 'cur-t1' },
             2: { label: 'TIER 2', name: 'Extended sibilants', cls: 't2', color: '#14B8A8', border: 'rgba(20,184,168,0.4)',  doneCls: 'done-t2', curCls: 'cur-t2' },
             3: { label: 'TIER 3', name: 'Connected speech',   cls: 't3', color: '#F59E0B', border: 'rgba(245,158,11,0.4)',  doneCls: 'done-t3', curCls: 'cur-t3' },
             4: { label: 'TIER 4', name: 'Spontaneous speech', cls: 't4', color: '#A855F7', border: 'rgba(168,85,247,0.4)', doneCls: 'done-t4', curCls: 'cur-t4' },
+            5: { label: 'STRESS', name: 'Fast & sustained /s/', cls: 't5', color: '#475569', border: 'rgba(71,85,105,0.4)', doneCls: 'done-t5', curCls: 'cur-t5' },
         };
         // Cumulative bounds; last segment absorbs any count mismatch.
         const SEG_BOUNDS = (() => {
@@ -3835,12 +4039,32 @@
         // =============================================
         // NAVIGATION
         // =============================================
+        // PostHog funnel instrumentation (web_assessment_* events), mirroring the R
+        // assessment so both products land in one event set and are comparable by
+        // the `product` property. Step order is recording → survey → signin →
+        // processing → results; every event carries seconds since page load.
+        const ASMT_STEP_NAMES = { 2: 'signin', 1: 'recording', 3: 'survey', 4: 'processing' };
+        const asmtT0 = Date.now();
+        function asmtTrack(name, props, opts) {
+            try {
+                if (window.posthog && typeof window.posthog.capture === 'function') {
+                    window.posthog.capture(name, Object.assign({ product: 'lisp', elapsed_s: Math.round((Date.now() - asmtT0) / 1000) }, props || {}), opts);
+                }
+            } catch (e) {}
+        }
+        function asmtTrackStep() {
+            asmtTrack('web_assessment_step_view', { step: ASMT_STEP_NAMES[currentStepNum] || String(currentStepNum), step_index: orderIdx });
+        }
+
         function updateProgress() {
-            // Login (orderIdx 0) has no visible number; recording/survey/analyzing → 1..3 of 4
-            const visible = orderIdx === 0 ? 1 : orderIdx;
-            const denom = 4;
+            // Position in the live flow. STEP_ORDER is spliced by the resume/test
+            // routes, so derive both halves from it rather than hardcoding 4.
+            const visible = orderIdx + 1;
+            const denom = STEP_ORDER.length;
             document.getElementById('progressFill').style.width = ((visible / denom) * 100) + '%';
             document.getElementById('currentStep').textContent = visible;
+            const totalEl = document.getElementById('totalSteps');
+            if (totalEl) totalEl.textContent = denom;   // resume/test routes shorten the flow
             updateFooterVisibility();
         }
 
@@ -3875,6 +4099,7 @@
                     currentStepNum = STEP_ORDER[orderIdx];
                     document.getElementById('step' + currentStepNum).classList.add('active');
                     updateProgress();
+                    asmtTrackStep();
                     if (currentStepNum === 1) { initWordRecording(); moveRecordingTo('recordingHost'); }
                     if (currentStepNum === 3 && typeof window.initStep3Wizard === 'function') window.initStep3Wizard();
                     if (currentStepNum === FINAL_SCREEN_STEP) startProcessing();
@@ -3958,6 +4183,15 @@
             const btn = document.getElementById('freeSpeechNoticeBtn');
             if (!overlay || !btn) { startWordRecording(); return; }
             passageNoticeShown = true;
+            // Copy depends on which freeform item comes first (v2: quick-fire).
+            const m = metaAt(currentWordIndex);
+            const h3 = overlay.querySelector('h3'), ps = overlay.querySelectorAll('p');
+            if (m.type === 'quickfire' && h3 && ps.length >= 2) {
+                h3.textContent = 'Heads up — quick answers next';
+                ps[0].innerHTML = 'You will see a <strong>question</strong> and an <strong>8-second timer</strong>. There is nothing to read.';
+                ps[1].innerHTML = 'Answer <strong>out loud, straight away</strong>, in your own words — like someone just asked you across the table. Keep talking until the timer runs out.';
+                btn.textContent = "Got it — I'll answer straight away";
+            }
             overlay.classList.add('visible');
             btn.onclick = () => {
                 overlay.classList.remove('visible');
@@ -3996,12 +4230,20 @@
                     const v = Math.abs(data[i]);
                     if (v > peak) peak = v;
                 }
+                lastTakePeakDbfs = 20 * Math.log10(Math.max(peak, 1e-6));
                 return peak > 0.002;
             } catch (e) {
                 return true;
             }
         }
         let recordingFinalised = false; // this word's blob has been built (once only)
+        // Capture-level gate: AGC is off, so a phone held at arm's length records
+        // at −30 dBFS or lower and the sibilant band sinks toward the noise floor.
+        // The first quiet take among the first three items triggers ONE guided
+        // retake ("move closer"); after that the take is accepted as-is.
+        let lastTakePeakDbfs = null;
+        const QUIET_PEAK_DBFS = -30;
+        const quietRetried = {};
         const pendingB64 = [];       // in-flight blob→base64 conversions (awaited at finish)
 
         // Returning users must pay $19 to retake. Anyone who has completed a free
@@ -4073,30 +4315,33 @@
             wordsEl.innerHTML = '';
 
             // Active pill — long probes (Tier 3 sentences/passage) wrap + shrink
-            const curMeta = TEST_WORD_META[currentWordIndex] || {};
-            const isLong = curMeta.type === 'sentence' || curMeta.type === 'passage';
+            const curMeta = metaAt(currentWordIndex);
+            const isLong = probeIsLong(curMeta);
             const pill = document.createElement('div');
-            pill.className = 'active-pill' + (isLong ? ' is-long' : '');
+            pill.className = 'active-pill' + (isLong ? ' is-long' : '') + (curMeta.speed === 'fast' ? ' is-fast' : '');
             const wordSpan = document.createElement('span');
             wordSpan.className = 'pill-word' + (isLong ? ' is-long' : '');
-            wordSpan.textContent = TEST_WORDS[currentWordIndex];
-            pill.innerHTML = '<span class="pill-timer" id="pillTimer">0:00</span>';
+            wordSpan.textContent = probeDisplay(curMeta);
+            pill.innerHTML = '<span class="pill-timer" id="pillTimer">' + (curMeta.maxMs ? (curMeta.maxMs / 1000).toFixed(0) + 's' : '0:00') + '</span>';
+            if (curMeta.speed === 'fast') { const tag = document.createElement('span'); tag.className = 'pill-fast-tag'; tag.textContent = 'FAST'; pill.appendChild(tag); }
             pill.appendChild(wordSpan);
             const spacer = document.createElement('span');
             spacer.className = 'pill-spacer';
             pill.appendChild(spacer);
             wordsEl.appendChild(pill);
+            // One-line coaching for the non-standard items (hold, repeat, fast, answer).
+            if (curMeta.hint) { const hintEl = document.createElement('div'); hintEl.className = 'pill-hint'; hintEl.textContent = curMeta.hint; wordsEl.appendChild(hintEl); }
 
             // Context preview meta — long sentence/passage previews render smaller
-            const nm1 = TEST_WORD_META[next1] || {};
-            const nm2 = TEST_WORD_META[next2] || {};
-            const long1 = nm1.type === 'sentence' || nm1.type === 'passage';
-            const long2 = nm2.type === 'sentence' || nm2.type === 'passage';
+            const nm1 = metaAt(next1);
+            const nm2 = metaAt(next2);
+            const long1 = probeIsLong(nm1);
+            const long2 = probeIsLong(nm2);
 
             // Next word — preview (truncates via CSS ellipsis for long sentences)
             const nextDiv = document.createElement('div');
             nextDiv.className = 'context-word below' + (long1 ? ' preview-long' : '');
-            nextDiv.textContent = next1 < TEST_WORDS.length ? TEST_WORDS[next1] : '';
+            nextDiv.textContent = next1 < TEST_WORDS.length ? probeDisplay(nm1) + (nm1.speed === 'fast' ? ' (fast)' : '') : '';
             wordsEl.appendChild(nextDiv);
 
             // Divider line
@@ -4107,7 +4352,7 @@
             // Next+2 word
             const next2Div = document.createElement('div');
             next2Div.className = 'context-word far' + (long2 ? ' preview-long' : '');
-            next2Div.textContent = next2 < TEST_WORDS.length ? TEST_WORDS[next2] : '';
+            next2Div.textContent = next2 < TEST_WORDS.length ? probeDisplay(nm2) + (nm2.speed === 'fast' ? ' (fast)' : '') : '';
             wordsEl.appendChild(next2Div);
 
             // Dots
@@ -4141,7 +4386,7 @@
                 const isCurrent = !allWordsRecorded && b.id === cur.id;
                 const dot = document.createElement('div');
                 dot.className = 'tier-step-dot' + (tierDone ? ' done' : '') + (isCurrent ? ' current' : '');
-                dot.textContent = String(b.id);
+                dot.textContent = String(i + 1);
                 stepsEl.appendChild(dot);
                 if (i < TIER_BOUNDS.length - 1) {
                     const line = document.createElement('div');
@@ -4175,8 +4420,10 @@
             const live = document.getElementById('liveInstruction');
             if (live) live.classList.remove('recording', 'done');
 
-            // Free-speech passage uses conversational instructions, not "say 'X'".
-            const isPassageProbe = (TEST_WORD_META[currentWordIndex] || {}).type === 'passage';
+            // Freeform items (passage, quick-fire answers) use conversational
+            // instructions, not "say 'X'"; every other copy comes from probeCopy().
+            const curMeta = metaAt(currentWordIndex);
+            const isPassageProbe = probeIsFreeform(curMeta);
 
             if (allWordsRecorded) {
                 check.style.display = 'block';
@@ -4195,21 +4442,14 @@
                 if (isPassageProbe) label.textContent = 'TAP TO FINISH';
                 if (live) {
                     live.classList.add('recording');
-                    live.innerHTML = isPassageProbe
-                        ? `Keep talking naturally for <span class="live-word">30–60 seconds</span>, then tap to finish.`
-                        : `Now, say <span class="live-word">'${TEST_WORDS[currentWordIndex]}'</span> clearly.`;
+                    live.innerHTML = probeCopy(curMeta, 'recording');
                 }
             } else if (isWaitingForNext) {
                 fwd.style.display = 'block';
-                label.textContent = (TEST_WORD_META[currentWordIndex + 1] || {}).type === 'passage' ? 'TAP TO SPEAK FREELY' : 'TAP FOR NEXT WORD';
+                const nextMeta = metaAt(currentWordIndex + 1);
+                label.textContent = probeIsFreeform(nextMeta) ? 'TAP TO SPEAK FREELY' : 'TAP FOR NEXT WORD';
                 if (live) {
-                    const nextMeta = TEST_WORD_META[currentWordIndex + 1] || {};
-                    const next = TEST_WORDS[currentWordIndex + 1];
-                    live.innerHTML = nextMeta.type === 'passage'
-                        ? `Good. Last step — tap to <span class="live-word">speak freely</span>.`
-                        : next
-                            ? `Good. Tap to record <span class="live-word">'${next}'</span>.`
-                            : "Good. Tap to record next word.";
+                    live.innerHTML = TEST_WORDS[currentWordIndex + 1] ? probeCopy(nextMeta, 'next') : "Good. Tap to record next word.";
                 }
             } else if (wordTimedOut) {
                 mic.style.display = 'block';
@@ -4220,13 +4460,11 @@
             } else if (currentWordIndex === 0 && wordRecordings.length === 0) {
                 mic.style.display = 'block';
                 label.textContent = 'TAP TO START RECORDING';
-                if (live) live.innerHTML = `Tap microphone to record <span class="live-word">'${TEST_WORDS[0]}'</span>.`;
+                if (live) live.innerHTML = probeCopy(metaAt(0), 'idle');
             } else {
                 mic.style.display = 'block';
                 label.textContent = isPassageProbe ? 'TAP TO SPEAK FREELY' : 'TAP TO BEGIN CAPTURE';
-                if (live) live.innerHTML = isPassageProbe
-                    ? `Tap the microphone, then speak freely for <span class="live-word">30–60 seconds</span> — tell us about your weekend.`
-                    : `Tap microphone to record <span class="live-word">'${TEST_WORDS[currentWordIndex]}'</span>.`;
+                if (live) live.innerHTML = probeCopy(curMeta, 'idle');
                 // Idle on the free-speech segment (incl. resume/jump straight to it) —
                 // surface the "this step is different" notice once.
                 if (isPassageProbe && !passageNoticeShown) showFreeSpeechNotice();
@@ -4268,7 +4506,7 @@
                 // Free-speech (passage): no VAD auto-stop — manual tap COMMITS the
                 // clip and advances. All other probes: manual tap discards (VAD
                 // onSpeechEnd is what commits + advances).
-                const isPassage = (TEST_WORD_META[currentWordIndex] || {}).type === 'passage';
+                const isPassage = probeIsFreeform(metaAt(currentWordIndex));
                 stopWordRecording(!isPassage);
             } else if (isWaitingForNext) {
                 // Advance to next word and start recording
@@ -4278,7 +4516,7 @@
                 renderWordPicker();
                 // Free-speech segment is unlike the read-aloud steps — warn once
                 // before recording so the user knows to improvise, not read.
-                if ((TEST_WORD_META[currentWordIndex] || {}).type === 'passage' && !passageNoticeShown) {
+                if (probeIsFreeform(metaAt(currentWordIndex)) && !passageNoticeShown) {
                     showFreeSpeechNotice();
                     return;
                 }
@@ -4312,6 +4550,8 @@
                     channelCount: 1
                 }
             });
+            // Once per page: parallel taps during the permission prompt each resolve getUserMedia.
+            if (!window.__asmtMicTracked) { window.__asmtMicTracked = true; asmtTrack('web_assessment_mic', { status: 'granted' }); }
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const source = audioContext.createMediaStreamSource(audioStream);
             analyserNode = audioContext.createAnalyser();
@@ -4369,6 +4609,100 @@
             // ensureMicStream rebuilds it rather than recording a closed graph.
             recorderStream = null;
         }
+
+        // ---------------------------------------------------------------------
+        // Optional full-face video (2026-09-20). One MediaRecorder for the whole
+        // recording step on a separate camera stream (video only — the audio path
+        // is untouched). Per-item marks (ms from video start) go into the manifest
+        // and to the backend so frames can be pulled at each /s/. Consent is a
+        // checkbox on the recording screen; declining changes nothing.
+        const CAM_CONSENT_VERSION = 'face-v1-2026-09-20';
+        const cam = { consent: false, stream: null, rec: null, chunks: [], t0: 0, marks: [], mime: '', width: 0, height: 0, fps: 0, blob: null, upload: null, path: '', manifest: '' };
+        function camSetStatus(t) { const el = document.getElementById('camStatus'); if (el) { el.textContent = t || ''; el.hidden = !t; } }
+        async function camStart() {
+            if (cam.rec || !cam.consent || !navigator.mediaDevices || !window.MediaRecorder) return;
+            try {
+                cam.stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } }, audio: false
+                });
+            } catch (e) {
+                cam.consent = false;
+                const cb = document.getElementById('camConsent'); if (cb) cb.checked = false;
+                camSetStatus('Camera unavailable — audio only');
+                asmtTrack('web_assessment_camera', { status: 'denied', error: (e && e.name) || String(e) });
+                return;
+            }
+            if (!cam.consent) { cam.stream.getTracks().forEach(t => t.stop()); cam.stream = null; return; } // unticked while prompting
+            const v = document.getElementById('camPreview'); if (v) { v.srcObject = cam.stream; v.hidden = false; }
+            const track = cam.stream.getVideoTracks()[0];
+            const st = track && track.getSettings ? track.getSettings() : {};
+            cam.width = st.width || 0; cam.height = st.height || 0; cam.fps = Math.round(st.frameRate || 0);
+            const mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].find(m => MediaRecorder.isTypeSupported(m)) || '';
+            try { cam.rec = mime ? new MediaRecorder(cam.stream, { mimeType: mime, videoBitsPerSecond: 1200000 }) : new MediaRecorder(cam.stream); }
+            catch (e) { cam.rec = new MediaRecorder(cam.stream); }
+            cam.mime = (cam.rec.mimeType || mime || 'video/webm').split(';')[0];
+            cam.chunks = []; cam.marks = [];
+            cam.rec.ondataavailable = e => { if (e.data && e.data.size) cam.chunks.push(e.data); };
+            cam.rec.start(1000);
+            cam.t0 = performance.now();
+            camSetStatus('REC face · ' + (cam.width ? cam.width + '×' + cam.height : ''));
+            asmtTrack('web_assessment_camera', { status: 'granted', width: cam.width, height: cam.height, fps: cam.fps });
+        }
+        function camMark(idx, phase) {
+            if (!cam.rec || cam.rec.state !== 'recording') return;
+            const t = Math.round(performance.now() - cam.t0);
+            if (phase === 'start') { const m = metaAt(idx); cam.marks.push({ idx, word: m.word, type: m.type || 'word', start: t, end: null, kept: false }); return; }
+            for (let i = cam.marks.length - 1; i >= 0; i--) { const mk = cam.marks[i]; if (mk.idx === idx && mk.end == null) { mk.end = t; mk.kept = phase === 'commit'; break; } }
+        }
+        function camStop() {
+            return new Promise(resolve => {
+                const rec = cam.rec; cam.rec = null;
+                const finish = () => {
+                    if (cam.chunks.length) cam.blob = new Blob(cam.chunks, { type: cam.mime }); cam.chunks = [];
+                    if (cam.stream) { cam.stream.getTracks().forEach(t => t.stop()); cam.stream = null; }
+                    const v = document.getElementById('camPreview'); if (v) { v.srcObject = null; v.hidden = true; }
+                    resolve(cam.blob);
+                };
+                if (!rec) return finish();
+                rec.onstop = finish;
+                try { rec.stop(); } catch (e) { finish(); }
+            });
+        }
+        async function camUpload() {
+            if (!cam.blob || cam.upload) return cam.upload;
+            cam.upload = (async () => {
+                try {
+                    if (typeof window.uploadFaceVideoToFirebase !== 'function') return null;
+                    camSetStatus('Saving face video…');
+                    const r = await window.uploadFaceVideoToFirebase(cam.blob, {
+                        marks: cam.marks, mime: cam.mime, width: cam.width, height: cam.height, fps: cam.fps,
+                        consentVersion: CAM_CONSENT_VERSION, protocol: PROTOCOL, durationMs: Math.round(performance.now() - cam.t0),
+                        recorderLatencyMs: 150
+                    });
+                    cam.path = (r && r.path) || ''; cam.manifest = (r && r.manifest) || '';
+                    camSetStatus(cam.path ? 'Face video saved' : 'Face video not saved');
+                    asmtTrack('web_assessment_camera', { status: cam.path ? 'uploaded' : 'upload_failed', bytes: cam.blob.size });
+                    return r;
+                } catch (e) { console.warn('[camera] upload failed', e); camSetStatus('Face video upload failed'); return null; }
+            })();
+            return cam.upload;
+        }
+        // Payload for the connected (part-2) call: waits for the upload up to 60 s.
+        async function camPayloadAwait() {
+            if (cam.upload) await Promise.race([cam.upload, new Promise(r => setTimeout(r, 60000))]);
+            if (!cam.path) return null;
+            return { path: cam.path, manifest: cam.manifest, mime: cam.mime, width: cam.width, height: cam.height, fps: cam.fps,
+                     consentVersion: CAM_CONSENT_VERSION, recorderLatencyMs: 150, marks: cam.marks.filter(m => m.kept) };
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const cb = document.getElementById('camConsent');
+            if (!cb) return;
+            cb.addEventListener('change', () => {
+                cam.consent = cb.checked;
+                asmtTrack('web_assessment_camera', { status: cam.consent ? 'consented' : 'declined' });
+                if (cam.consent) camStart(); else if (cam.rec) camStop();
+            });
+        });
 
         // Guard: not every browser accepts the opus mimeType option (older Safari).
         // Falls back to default MediaRecorder when unsupported.
@@ -4461,6 +4795,8 @@
                 mediaRecorder.start();
                 isRecording = true;
                 wordStartTime = Date.now();
+                if (cam.consent && !cam.rec) camStart();
+                camMark(currentWordIndex, 'start');
                 // Chime disabled: AEC is now off (needed for the sibilant band), so a
                 // speaker chime would bleed into the recording. Re-enable only with a
                 // non-audible cue (haptic/visual).
@@ -4475,6 +4811,7 @@
 
             } catch (err) {
                 console.error('Microphone error:', err);
+                asmtTrack('web_assessment_mic', { status: 'denied', error: (err && err.name) || String(err) });
                 updateRecordButton();
                 alert('Unable to access microphone. Please check permissions.');
             } finally {
@@ -4534,6 +4871,13 @@
                     if (lvl > maxLevel) maxLevel = lvl;
                 }
 
+                // Sustained "sss"/"zzz": Silero is trained on voiced speech and can
+                // stay silent on a hiss, so on these items the level itself counts as
+                // speech; the item timer (maxMs) commits the take.
+                if (isRecording && probeIsTimed(metaAt(currentWordIndex)) && maxLevel > SPEECH_THRESHOLD) {
+                    if (!speechDetected) { speechDetected = true; speechStartTime = Date.now(); silentRetryCount = 0; }
+                    lastSpeechTime = Date.now();
+                }
                 // Amplitude fallback: armed ONLY when Silero couldn't come up in
                 // time (CDN blocked / offline / slow first build) — in normal
                 // operation the take doesn't start until the VAD is live and
@@ -4547,11 +4891,12 @@
                         }
                         lastSpeechTime = Date.now();
                     }
-                    const fbType = (TEST_WORD_META[currentWordIndex] || {}).type;
-                    // Free-speech passage is manual-stop only — never auto-stop on
-                    // silence. Read sentences: ~1.4s. Single words: default.
-                    if (fbType !== 'passage') {
-                        const fbSilence = fbType === 'sentence' ? 1400 : SILENCE_DURATION;
+                    const fbMeta = metaAt(currentWordIndex);
+                    const fbType = fbMeta.type;
+                    // Freeform/timed items never auto-stop on silence (tap or timer
+                    // commits). Read sentences / rapid repeats: ~1.4s. Words: default.
+                    if (!probeNoVadStop(fbMeta)) {
+                        const fbSilence = (fbType === 'sentence' || fbType === 'rapid') ? 1400 : SILENCE_DURATION;
                         if (speechDetected && lastSpeechTime > 0 && (Date.now() - lastSpeechTime) > fbSilence) {
                             // Voiced span only (silence gap excluded). Requiring
                             // MIN_SPEECH_DURATION (400ms) here deadlocked word 1: a
@@ -4582,13 +4927,28 @@
 
         // Word timer (updates pill timer)
         function startWordTimer() {
+            const m = metaAt(currentWordIndex);
+            const maxMs = m.maxMs || 0;
             function tick() {
                 if (!isRecording) return;
-                const elapsed = (Date.now() - wordStartTime) / 1000;
-                const min = Math.floor(elapsed / 60);
-                const sec = Math.floor(elapsed % 60);
+                const elapsedMs = Date.now() - wordStartTime;
                 const timer = document.getElementById('pillTimer');
-                if (timer) timer.textContent = min + ':' + (sec < 10 ? '0' : '') + sec;
+                if (maxMs) {
+                    // Timed item: count DOWN, and commit the take when the clock ends
+                    // (sustained hold, quick-fire answer, passage cap, fast re-read cap).
+                    const rem = Math.max(0, maxMs - elapsedMs);
+                    if (timer) {
+                        timer.textContent = (rem / 1000).toFixed(rem < 10000 ? 1 : 0) + 's';
+                        timer.classList.add('countdown');
+                        timer.classList.toggle('ending', rem < 1500);
+                    }
+                    if (elapsedMs >= maxMs) { stopWordRecording(false); return; }
+                } else {
+                    const elapsed = elapsedMs / 1000;
+                    const min = Math.floor(elapsed / 60);
+                    const sec = Math.floor(elapsed % 60);
+                    if (timer) timer.textContent = min + ':' + (sec < 10 ? '0' : '') + sec;
+                }
                 wordTimer = requestAnimationFrame(tick);
             }
             tick();
@@ -4597,6 +4957,7 @@
         // Stop recording the current word
         function stopWordRecording(discard) {
             clearTimeout(silenceTimer);
+            if (isRecording) camMark(currentWordIndex, discard ? 'discard' : 'commit');
             if (wordTimer) cancelAnimationFrame(wordTimer);
             if (vuAnimFrame) cancelAnimationFrame(vuAnimFrame);
 
@@ -4665,7 +5026,7 @@
         // free-speech passage ~3s (95 frames) for think-pauses.
         function currentVadRedemption() {
             const curType = (TEST_WORD_META[currentWordIndex] || {}).type;
-            return curType === 'passage' ? 95 : curType === 'sentence' ? 45 : 12;
+            return (curType === 'passage' || curType === 'quickfire') ? 95 : (curType === 'sentence' || curType === 'rapid') ? 45 : 12;
         }
 
         function buildVad(stream, redemption) {
@@ -4699,7 +5060,7 @@
                     lastSpeechTime = Date.now();
                     // Free-speech (passage) is manual-stop only — VAD must NOT end it
                     // on a think-pause. The user taps to commit + advance.
-                    const isPassage = (TEST_WORD_META[currentWordIndex] || {}).type === 'passage';
+                    const isPassage = probeNoVadStop(metaAt(currentWordIndex));
                     if (!isPassage && vadSawSpeech && dur >= MIN_SPEECH_DURATION) {
                         stopWordRecording();
                     }
@@ -4844,6 +5205,25 @@
             const capturedWord = TEST_WORDS[capturedIdx];
             const capturedType = (TEST_WORD_META[capturedIdx] || {}).type;
 
+            if (lastTakePeakDbfs != null && lastTakePeakDbfs < QUIET_PEAK_DBFS && capturedIdx < 3 && !quietRetried[capturedIdx]) {
+                quietRetried[capturedIdx] = true;
+                console.warn('[capture] quiet take (' + lastTakePeakDbfs.toFixed(1) + ' dBFS) — asking for one closer retake');
+                asmtTrack('web_assessment_quiet_take', { idx: capturedIdx, peakDbfs: Math.round(lastTakePeakDbfs) });
+                audioChunks = [];
+                const retryIdx = currentWordIndex;
+                updateRecordButton();
+                const live = document.getElementById('liveInstruction');
+                if (live) live.innerHTML = `That was very quiet. Hold the phone closer and say <span class="live-word">'${probeDisplay(metaAt(retryIdx))}'</span> once more.`;
+                clearTimeout(autoChainTimer);
+                autoChainTimer = setTimeout(() => {
+                    autoChainTimer = null;
+                    if (isRecording || wordTimedOut || allWordsRecorded) return;
+                    if (currentStepNum !== 1 || currentWordIndex !== retryIdx) return;
+                    startWordRecording();
+                }, 1800);
+                return;
+            }
+
             wordRecordings.push(blob);
             wordRecordingsMime[capturedWord] = mime;
             triggerHaptic(40); // word capture — matches iOS heavy impact
@@ -4863,7 +5243,7 @@
                 // Any clip (re)capture invalidates ONLY the pending prewarm for that
                 // probe's group so the next send recomputes MFA+Praat against the current
                 // audio without discarding the other group's already-running align.
-                if (capturedType === 'sentence' || capturedType === 'passage') connectedAcousticsPromise = null;
+                if (CONNECTED_TYPES.has(capturedType)) connectedAcousticsPromise = null;
                 else wordAcousticsPromise = null;
 
                 // The moment the LAST single-word probe is captured (the next probe is a
@@ -4871,8 +5251,8 @@
                 // sentence + passage recording and the survey. Part 1 then needs only the
                 // Gemini wait. (Re-capturing the last word re-fires this after the null above.)
                 const _nextMeta = TEST_WORD_META[capturedIdx + 1] || {};
-                const _curIsWord = capturedType !== 'sentence' && capturedType !== 'passage';
-                if (_curIsWord && (_nextMeta.type === 'sentence' || _nextMeta.type === 'passage')) prewarmWordAcoustics();
+                const _curIsWord = !CONNECTED_TYPES.has(capturedType);
+                if (_curIsWord && CONNECTED_TYPES.has(_nextMeta.type)) prewarmWordAcoustics();
 
                 // Persist AFTER this clip's base64 exists so a refresh restores it.
                 saveSessionProgress();
@@ -4903,7 +5283,9 @@
                 // (handleRecordTap/startWordRecording clear the timer). The passage
                 // keeps its notice + manual start; skip if the tab is hidden or the
                 // user left the capture step.
-                if ((TEST_WORD_META[currentWordIndex] || {}).type !== 'passage') {
+                // Freeform items get their one-time notice + a manual start the
+                // first time; after that (2nd/3rd quick-fire) the chain continues.
+                if (!(probeIsFreeform(metaAt(currentWordIndex)) && !passageNoticeShown)) {
                     clearTimeout(autoChainTimer);
                     autoChainTimer = setTimeout(() => {
                         autoChainTimer = null;
@@ -4915,6 +5297,7 @@
             } else {
                 // All words recorded — release mic (capture done)
                 allWordsRecorded = true;
+                asmtTrack('web_assessment_recording_complete', { words: wordRecordings.length });
                 // Everything below (connected prewarm, playback persistence, and the
                 // later Gemini send) reads wordRecordingsB64 — wait for stragglers.
                 await Promise.all(pendingB64);
@@ -4923,6 +5306,9 @@
                 // was already prewarmed at the last word clip above. Neither needs
                 // voiceType — only Gemini does — so both are safe to fire pre-survey.
                 prewarmConnectedAcoustics();
+                // Face video: stop the session recorder and upload in the background
+                // (the part-2 send waits for it, capped — see camPayloadAwait).
+                if (cam.rec || cam.blob) camStop().then(() => camUpload());
                 releaseMic();
                 syncRecordingContinueButton();
                 updateRecordButton();
@@ -5080,7 +5466,8 @@
                 probes.push({
                     word: meta.word,
                     position: meta.position,
-                    type: meta.type === 'sentence' ? 'sentence' : meta.type === 'passage' ? 'passage' : 'word',
+                    type: meta.type || 'word',
+                    speed: meta.speed || undefined,
                     tier: meta.tier,
                     audio_base64: b64,
                     mime: wordRecordingsMime[meta.word] || 'audio/webm'
@@ -5101,9 +5488,18 @@
         // validated accurate, and skipping MFA removes its ~100-170s fixed latency
         // from the report. Backend keeps a dormant s/sh-ratio path (annotateRelativeCog)
         // if acoustics ever return. Flip to true to restore MFA+Praat.
+        // 2026-09-20: acoustics moved SERVER-SIDE (analyze-lisp-speech calls the
+        // Praat service itself, MFA-free, self-calibrated per speaker). The client
+        // path stays off; the prewarm hooks now only wake the Praat instance so the
+        // backend's call doesn't pay its cold start.
         const ACOUSTICS_ENABLED = false;
+        let part1Acoustics = null; // speaker-level summary returned with the part-1 rows
+        let part1Outcome = null;   // outcome tier returned with the part-1 rows (shadow mode)
         async function computeAcoustics(probes) {
-            if (!ACOUSTICS_ENABLED) return {};
+            if (!ACOUSTICS_ENABLED) {
+                try { fetch(PRAAT_URL, { method: 'OPTIONS', mode: 'cors', keepalive: true }).catch(() => {}); } catch (e) {}
+                return {};
+            }
             const alignProbes = probes.filter(p => p.type === 'word' || p.type === 'sentence' || p.type === 'passage');
             const windowsByWord = await fetchSibilantWindows(alignProbes);
             return await fetchPraatMetrics(alignProbes, windowsByWord);
@@ -5112,8 +5508,8 @@
         // Probe subsets: MFA+Praat is split so the slow single-word batch prewarms
         // early (at the last word clip) and the connected batch prewarms at
         // recording-complete. Both filter the SAME buildProbes() output by type.
-        function wordProbesOnly() { return buildProbes().filter(p => p.type === 'word'); }
-        function connectedProbesOnly() { return buildProbes().filter(p => p.type === 'sentence' || p.type === 'passage'); }
+        function wordProbesOnly() { return buildProbes().filter(p => !CONNECTED_TYPES.has(p.type)); }
+        function connectedProbesOnly() { return buildProbes().filter(p => CONNECTED_TYPES.has(p.type)); }
 
         // Kick off MFA+Praat for a probe group so its latency overlaps later recording
         // + the survey wizard instead of blocking the send. Idempotent; failures
@@ -5181,6 +5577,8 @@
                 test: retakeTestMode() // QA bypass: server allows the gated run
             };
             const res = await postToBackend(payload);
+            if (res && res.acoustics && typeof res.acoustics === 'object') part1Acoustics = res.acoustics;
+            if (res && res.outcome && typeof res.outcome === 'object') part1Outcome = res.outcome;
             const tierByWord = {};
             TEST_WORD_META.forEach(m => { tierByWord[m.word] = m.tier; });
             return (res.words || []).map(r => ({ ...r, tier: r.tier || tierByWord[r.word] || 1 }));
@@ -5202,7 +5600,11 @@
                 voiceType: userGender,
                 user: lispIdentityPayload(),
                 survey: lispSurveyPayload(),
-                part1: { words: wordRows || [] },
+                // Part-1 rows + the speaker's acoustic calibration so part 2 scores
+                // sentence /s/ tokens against the same reference.
+                part1: { words: wordRows || [], acoustics: part1Acoustics || null, outcome: part1Outcome || null },
+                // Consented face video (path + per-item marks) — null when declined.
+                video: await camPayloadAwait(),
                 test: retakeTestMode() // QA runs must not become HubSpot leads
             };
             const res = await postToBackend(payload);
@@ -5216,7 +5618,7 @@
             ASSESSMENT_TIERS.forEach(t => { tierLabel[t.id] = t.label; });
 
             const categories = [];
-            [1, 2].forEach(tid => {
+            [1, 2, 5].forEach(tid => {
                 const rows = (wordRows || []).filter(r => r.tier === tid);
                 if (!rows.length) return;
                 const avg = Math.round(rows.reduce((s, r) => s + (r.quality || 0), 0) / rows.length);
@@ -5231,8 +5633,9 @@
                 categories.push({ id: 4, title: tierLabel[4] || 'Spontaneous speech', type: 'spontaneous', spontaneous });
             }
 
-            // GRI uses scored probes only (words + sentences); spontaneous excluded.
-            const allQ = [].concat(wordRows || [], sentenceRows || []).map(r => r.quality || 0);
+            // GRI uses scored probes only (core words + sentences); the stress set
+            // (tier 5) and the spontaneous sample are excluded.
+            const allQ = [].concat((wordRows || []).filter(r => r.tier !== 5), sentenceRows || []).map(r => r.quality || 0);
             const gri = allQ.length ? Math.max(0, Math.min(100, Math.round(allQ.reduce((a, b) => a + b, 0) / allQ.length))) : 0;
 
             return { gri, categories, result: structuredToMarkdown(categories) };
@@ -5674,6 +6077,14 @@
         // PROCESSING & REDIRECT (Step 5)
         // =============================================
         async function startProcessing() {
+            // Kick off the analysis now: sign-in immediately precedes this step, so
+            // lispIdentityPayload() carries the uid/email the backend's retake gate
+            // keys on. Cleared after the first run so the supported back-from-
+            // analyzing path doesn't start a second analysis.
+            try {
+                if (window.startLispAnalysis) { const go = window.startLispAnalysis; window.startLispAnalysis = null; go(); }
+            } catch (e) { console.warn('analysis kickoff failed:', e); }
+
             // Submit final data to Google Sheets (non-blocking)
             submitFinalAssessment();
 
@@ -5755,6 +6166,12 @@
 
             // Assessment complete — drop the resume checkpoint.
             clearSessionProgress();
+            // Funnel end. Distinct from the backend's outcome-bearing
+            // 'assessment_completed' (see submitFinalAssessment) — this one only
+            // marks that the taker reached their results.
+            let asmtRes = null;
+            try { asmtRes = JSON.parse(localStorage.getItem('analysisResult') || 'null'); } catch (e) {}
+            asmtTrack('web_assessment_completed', { analysis_ok: !!(asmtRes && !asmtRes.partial), partial: !!(asmtRes && asmtRes.partial) });
             // Render results inline in the left panel (girl image stays on the right)
             setTimeout(renderInlineResults, 10);
         }
@@ -5763,14 +6180,9 @@
         // INLINE RESULTS (ported from assessment-results.html)
         // Renders the 4 tier accordions (all collapsed) into the step4 left panel.
         // =============================================
-        const TEST_SENTENCES = [
-            'Sam saw seven small sailboats on the sea.',
-            'The silly snake slid past the sunny sandbox.',
-            "Susan's sister keeps six pairs of scissors.",
-            'The zebra at the zoo has stripes and a buzzing nose.',
-            'She washed the shiny dishes and brushed the fish.',
-            'Jack chose a giant orange sandwich for lunch.'
-        ];
+        // Derived from the active protocol (incl. "(fast)" re-reads) so the
+        // results-table matcher stays in sync with what was recorded.
+        const TEST_SENTENCES = TEST_WORD_META.filter(m => m.type === 'sentence').map(m => m.word);
         function normalizeSentence(s) {
             return (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
         }
@@ -6866,6 +7278,11 @@
         // FORM SUBMISSIONS (Google Sheets via FormEasy)
         // =============================================
         async function registerEmail(email) {
+            // Reachable from wizFinish (returning user) AND obAfterSignIn (new user)
+            // now that the survey precedes sign-in — guard the FormEasy submit.
+            if (!email) return;
+            if (window.__asmtEmailRegistered === email) return;
+            window.__asmtEmailRegistered = email;
             localStorage.setItem('assessmentUserEmail', email);
             // Google/Apple give us the real name — use it. Only email-link users have
             // no provider profile, so only they get the local-part fallback.
@@ -7042,8 +7459,10 @@
             // Hash route: #login jumps straight to login step
             function maybeJumpToLogin() {
                 if (location.hash === '#login' || location.hash === '#/login') {
+                    const li = STEP_ORDER.indexOf(2);
+                    if (li === -1) return;              // login spliced out of this flow
                     document.getElementById('step' + currentStepNum).classList.remove('active');
-                    orderIdx = 0;
+                    orderIdx = li;
                     currentStepNum = STEP_ORDER[orderIdx];
                     document.getElementById('step2').classList.add('active');
                     updateProgress();
@@ -7280,9 +7699,13 @@
                 return true;
             }
 
-            if (!maybeShowSharedReport() && !maybeShowCompletedResults() && !maybeJumpToOnboarding() && !maybeSkipLogin() && !maybeResumeSession()) maybeJumpToLogin();
+            const asmtRouted = maybeShowSharedReport() || maybeShowCompletedResults();
+            if (!asmtRouted && !maybeJumpToOnboarding() && !maybeSkipLogin() && !maybeResumeSession()) maybeJumpToLogin();
             if (!new URLSearchParams(location.search).get('share')) rehydrateStoredReport();
             window.addEventListener('hashchange', maybeJumpToLogin);
+            // Funnel entry — after routing settles, so the step reported is the one
+            // actually shown. Report viewers aren't entering the funnel, so skip them.
+            if (!asmtRouted) asmtTrackStep();
 
             // ===== Step3 Wizard (comfort + age + source + phone) =====
             const WIZ_TOTAL = 4;
@@ -7576,6 +7999,11 @@
                 // window.part2Promise. It fills the deferred accordions in place and
                 // replaces the partial record with the full one. These sections are the
                 // clinically most important — deferred for UX, never dropped.
+                // Deferred to startProcessing() — i.e. until AFTER sign-in — because the
+                // backend answers 402 (paid retake required) based on the identity in
+                // lispIdentityPayload(), which is empty while the user is anonymous.
+                // Kicking this off here would hand every returning user a free retake.
+                window.startLispAnalysis = function () {
                 analysisPromise = (async () => {
                     let wordRows = null;
                     try {
@@ -7616,12 +8044,16 @@
                     }
                     return null;
                 })();
+                }; // end startLispAnalysis
                 wizCommitToHiddenInputs();
                 const email = ((window.obLoggedInUser && window.obLoggedInUser.email) || '').trim();
                 const foundOn = wizState.source === 'other' ? (wizState.sourceOther || '').trim() : wizState.source;
                 const phone = (wizState.phone || '').trim();
                 const cc = (wizState.cc || '+1').trim();
                 const fullPhone = phone ? `${cc} ${phone}` : '';
+                asmtTrack('web_assessment_survey_complete', { trouble: wizState.trouble || '', age: wizState.age || '', source: foundOn || '', has_phone: !!phone });
+                // Only a returning user has an email this early; obAfterSignIn
+                // registers everyone else.
                 registerEmail(email);
                 // Survey payload (found_on/phone/age/comfort) is sent exactly once by
                 // submitFinalAssessment() during startProcessing as 'assessment_survey_complete'.
@@ -7758,6 +8190,7 @@
                 if (window._obSignInHandled) return;
                 window._obSignInHandled = true;
                 window.obLoggedInUser = { email: user.email, uid: user.uid, provider };
+                asmtTrack('web_assessment_signin', { method: provider });
                 // Capture the real display name from Google/Apple so pages like the
                 // retake paywall can greet the user by their actual first name.
                 // Apple only returns the name on the FIRST authorization, so save it
@@ -7778,6 +8211,10 @@
                         window.posthog.capture('login_completed', { login_method: provider, user_email: user.email, user_name: name || '' });
                     }
                 } catch (e) {}
+                // Sign-in now follows the survey, so registerEmail hasn't run for a new
+                // taker — do it here (guarded) so every taker still reaches FormEasy
+                // with their email, and so lispSurveyPayload picks up first_name.
+                try { await registerEmail(user.email); } catch (e) {}
                 if (await serverRetakeGateBlocks(user, name)) return; // returning user → paywall
                 nextStep();
             }
