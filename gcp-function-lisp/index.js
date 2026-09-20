@@ -1888,6 +1888,7 @@ async function sendLeadAlert(user, survey, report, speakerContext) {
 
 // Test-only surface for local smoke scripts — not used by the service itself.
 module.exports._leadSync = { buildReportPdf, buildLeadNoteBody, normalizeParkedLead, postLeadAlert };
+module.exports._placement = { placementCheck, placementCandidates, ffmpegPath };
 
 // A word counts as a lisp hit when its judgment is a distortion type (matches the
 // results page Judgment column); Accurate/Unclear/Omitted are NOT hits.
@@ -2061,7 +2062,16 @@ const PLACEMENT_MAX_TOKENS = 6;
 let _ffmpegPath = null;
 function ffmpegPath() {
   if (_ffmpegPath !== null) return _ffmpegPath;
-  try { _ffmpegPath = require('@ffmpeg-installer/ffmpeg').path; } catch (e) { _ffmpegPath = ''; }
+  const fs = require('fs');
+  let p = '';
+  try { p = require('@ffmpeg-installer/ffmpeg').path || ''; } catch (e) { p = ''; }
+  if (!p || !fs.existsSync(p)) {
+    // Fallback: a system ffmpeg (local dev, or a base image that ships one).
+    try { p = require('child_process').execSync('command -v ffmpeg', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch (e) { p = ''; }
+    if (!p) p = ['/usr/local/bin/ffmpeg', '/opt/homebrew/bin/ffmpeg', '/usr/bin/ffmpeg'].find(x => fs.existsSync(x)) || '';
+  }
+  _ffmpegPath = p;
+  if (!p) console.warn('🎥 ffmpeg not found (installer package + PATH)');
   return _ffmpegPath;
 }
 function runFfmpeg(args, timeoutMs) {

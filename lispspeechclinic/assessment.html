@@ -4595,8 +4595,14 @@
                 stop.style.display = 'block';
                 btn.classList.add('recording');
                 badge.classList.add('visible');
-                // Free speech has no auto-stop — surface the tap-to-finish affordance.
-                if (isPassageProbe) label.textContent = 'TAP TO FINISH';
+                // The button is live: say so (the label otherwise keeps the
+                // 'GETTING READY…' text from the prep state). Freeform items keep
+                // the tap-to-finish affordance.
+                label.textContent = isPassageProbe ? 'RECORDING · TAP TO FINISH'
+                    : curMeta.type === 'sustained' ? 'RECORDING · HOLD THE SOUND'
+                    : curMeta.type === 'rapid' ? 'RECORDING · GO FAST'
+                    : curMeta.speed === 'fast' ? 'RECORDING · READ FAST'
+                    : 'RECORDING · SAY IT NOW';
                 if (live) {
                     live.classList.add('recording');
                     live.innerHTML = probeCopy(curMeta, 'recording');
@@ -4618,6 +4624,10 @@
                 mic.style.display = 'block';
                 label.textContent = 'TAP TO START RECORDING';
                 if (live) live.innerHTML = probeCopy(metaAt(0), 'idle');
+            } else if (framingWait && typeof camFramingBlocks === 'function' && camFramingBlocks()) {
+                mic.style.display = 'block';
+                label.textContent = 'FIX FRAMING TO CONTINUE';
+                if (live) live.innerHTML = `Adjust your position — the camera guide below says what to fix. <span class="live-word">'${probeDisplay(curMeta)}'</span> starts by itself once you are in frame.`;
             } else {
                 mic.style.display = 'block';
                 label.textContent = isPassageProbe ? 'TAP TO SPEAK FREELY' : 'TAP TO BEGIN CAPTURE';
@@ -4656,6 +4666,7 @@
             if (allWordsRecorded) return;
             // Any manual tap takes control back from the hands-free chain.
             if (autoChainTimer) { clearTimeout(autoChainTimer); autoChainTimer = null; }
+            framingWait = false; // a deliberate tap always proceeds
             silentRetryCount = 0;
             triggerHaptic(20); // tap tick — fires inside user gesture
             userGender = 'male';
@@ -4968,7 +4979,7 @@
             for (let i = 0; i < d.length; i += 4) sum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
             return sum / (d.length / 4);
         }
-        const CAM_HINT_TEXT = { ok: 'Good, hold it there', noface: "We can't see your face", closer: 'Move closer', back: 'Move back a little', center: 'Center your face', dark: 'Too dark, face a window or lamp', bright: 'Too bright, turn away from the light' };
+        const CAM_HINT_TEXT = { ok: 'Good, hold it there', noface: "We can't see your face", closer: 'Move closer', back: 'Move back a little', center: 'Center your face', lower: 'Lower the phone so your mouth is in frame', higher: 'Raise the phone a little', dark: 'Too dark, face a window or lamp', bright: 'Too bright, turn away from the light' };
         function camHintSet(code) {
             const el = document.getElementById('camHint'), txt = document.getElementById('camHintText');
             if (!el || !txt) return;
@@ -4997,10 +5008,15 @@
                     const fh = b.height / v.videoHeight;
                     const cx = (b.originX + b.width / 2) / v.videoWidth, cy = (b.originY + b.height / 2) / v.videoHeight;
                     const lum = camFaceLuminance(v, b);
-                    metrics = { fh: +fh.toFixed(2), cx: +cx.toFixed(2), cy: +cy.toFixed(2), lum: lum == null ? null : Math.round(lum) };
+                    // BlazeFace keypoints: 0 right eye, 1 left eye, 2 nose, 3 mouth centre, 4/5 ears.
+                    const kp = d.keypoints || [];
+                    const mouthY = kp[3] ? kp[3].y : (cy + fh * 0.3);
+                    metrics = { fh: +fh.toFixed(2), cx: +cx.toFixed(2), cy: +cy.toFixed(2), mouthY: +mouthY.toFixed(2), lum: lum == null ? null : Math.round(lum) };
                     if (fh < 0.28) code = 'closer';
-                    else if (fh > 0.85) code = 'back';
-                    else if (Math.abs(cx - 0.5) > 0.22 || cy < 0.18 || cy > 0.82) code = 'center';
+                    else if (fh > 0.72) code = 'back';                       // mouth needs margin below it
+                    else if (mouthY > 0.86) code = 'lower';                  // mouth at the bottom edge
+                    else if (cy < 0.2) code = 'higher';
+                    else if (Math.abs(cx - 0.5) > 0.22 || cy > 0.82) code = 'center';
                     else if (lum != null && lum < 70) code = 'dark';
                     else if (lum != null && lum > 225) code = 'bright';
                 }
@@ -5013,6 +5029,23 @@
             else if (now - cam.guide.pendingSince >= 600) camGuideSet(code);
             if (isRecording) { cam.guide.takeTicks++; if (code === 'ok') cam.guide.takeOk++; cam.guide.takeCodes[code] = (cam.guide.takeCodes[code] || 0) + 1; }
         }
+        // Framing gate: while the camera is on and the guide is not 'ok', the
+        // hands-free chain waits for the next take (never interrupts a running
+        // one). A manual tap still starts recording, so nobody is trapped by a
+        // camera that cannot see them.
+        let framingWait = false;
+        function camFramingBlocks() {
+            return cam.state === 'on' && !!cam.rec && !!cam.guide.detector && cam.guide.code !== 'off' && cam.guide.code !== 'ok';
+        }
+        window.addEventListener('cam-guidance', (e) => {
+            const code = e && e.detail && e.detail.code;
+            if (framingWait && code === 'ok' && !isRecording && !isStartingRecording && currentStepNum === 1 && !allWordsRecorded && !wordTimedOut) {
+                framingWait = false;
+                startWordRecording();
+            } else if (framingWait) {
+                updateRecordButton();
+            }
+        });
         function camGuideStart() {
             if (cam.guide.timer) return;
             camGuideLoad().then(() => { if (cam.stream && !cam.guide.timer) cam.guide.timer = setInterval(camGuideTick, 250); });
@@ -5605,6 +5638,9 @@
                         autoChainTimer = null;
                         if (isRecording || allWordsRecorded || wordTimedOut) return;
                         if (document.hidden || currentStepNum !== 1) return;
+                        // Face not framed (too far / off-centre / dark / missing): wait
+                        // for the guide to turn 'ok' before the next word starts.
+                        if (typeof camFramingBlocks === 'function' && camFramingBlocks()) { framingWait = true; updateRecordButton(); return; }
                         startWordRecording();
                     }, 500);
                 }
