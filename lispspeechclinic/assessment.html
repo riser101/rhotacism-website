@@ -1823,6 +1823,29 @@
         }
         .book-call-btn:hover { background: #f0f7ff; }
         .book-call-btn svg { flex: none; }
+        /* Results card: desktop-only parts hidden by default (phones/tablets unchanged). */
+        .book-call-card--results .bc-desk { display: none; }
+        @media (min-width: 960px) {
+            /* Two columns: report on the left, consult card top-right (330 px rail). */
+            #step4 .ob-panel-left.showing-results .asmt-results { max-width: 1080px; position: relative; padding-right: 358px; box-sizing: border-box; }
+            #asmtResults .book-call-card--results {
+                position: absolute; top: 0; right: 0; width: 330px; margin: 0;
+                display: flex; flex-direction: column; align-items: stretch; gap: 0;
+                background: #fff; border: 1px solid #dbe6f3; border-radius: 12px; padding: 18px 18px 16px;
+            }
+            #asmtResults .book-call-card--results .bc-mob { display: none; }
+            #asmtResults .book-call-card--results .bc-desk { display: block; }
+            #asmtResults .book-call-card--results .book-call-copy { order: 1; }
+            #asmtResults .book-call-card--results .book-call-btn { order: 2; width: 100%; height: 42px; margin-top: 14px; }
+            #asmtResults .book-call-card--results .book-call-next { order: 3; margin-top: 10px; text-align: center; font: 400 12.5px/1.4 'Inter', sans-serif; color: #64748b; }
+            #asmtResults .book-call-card--results .book-call-heads { order: 4; margin-top: 14px; padding-top: 12px; border-top: 1px solid #e8eef5; }
+            #asmtResults .book-call-card--results .book-call-eyebrow { font: 700 11px/1.2 'Inter', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: #D97706; margin-bottom: 6px; }
+            #asmtResults .book-call-card--results .book-call-title { font: 800 17px/1.25 'Inter', sans-serif; color: #0f172a; }
+            #asmtResults .book-call-card--results .book-call-lead { margin-top: 8px; font: 400 13px/1.5 'Inter', sans-serif; color: #475569; }
+            #asmtResults .book-call-card--results .book-call-checks { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+            #asmtResults .book-call-card--results .book-call-checks li { position: relative; padding-left: 22px; font: 500 13px/1.35 'Inter', sans-serif; color: #1e293b; }
+            #asmtResults .book-call-card--results .book-call-checks li::before { content: ''; position: absolute; left: 2px; top: 4px; width: 6px; height: 10px; border: solid #16a34a; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+        }
         /* Inline pricing view: card tracks the testimonial strip's width caps. */
         .asmt-pricing-view .book-call-card { max-width: 680px; margin: 14px auto 0; }
         #step4 .ob-panel-left.showing-pricing .book-call-card { max-width: 600px; }
@@ -3472,16 +3495,28 @@
                     </div>
                     <button type="button" class="asmt-results-cta" onclick="goToPricing()">Continue →</button>
                     <p class="asmt-results-subnote" id="asmtPlansSubnote">From $75/month &middot; Cancel anytime</p>
-                    <div class="book-call-card">
+                    <!-- Results-page consult card. Phones/tablets: unchanged row at the
+                         bottom. Desktop (>=960): the same card sits top-right beside the
+                         title (Claude Design "Results page", 2026-09-21) with the
+                         eyebrow, lead sentence, checklist and next-opening line. -->
+                    <div class="book-call-card book-call-card--results">
                       <div class="book-call-heads">
                         <img src="/lispspeechclinic/images/coach-3.jpg?v=20260831" alt="" width="44" height="44">
                         <img src="/lispspeechclinic/images/coach-sufi.jpg?v=20260831" alt="" width="44" height="44">
                         <img src="/lispspeechclinic/images/coach-jack.jpg?v=20260831" alt="" width="44" height="44">
                       </div>
                       <div class="book-call-copy">
-                        <div class="book-call-title">Not sure? Walk through your report with our speech coach</div>
-                        <div class="book-call-sub">Free 10-min call &middot; no commitment</div>
+                        <div class="book-call-eyebrow bc-desk">Not sure what this means?</div>
+                        <div class="book-call-title"><span class="bc-mob">Not sure? Walk through your report with our speech coach</span><span class="bc-desk">Walk through your report with a speech coach</span></div>
+                        <div class="book-call-sub bc-mob">Free 10-min call &middot; no commitment</div>
+                        <div class="book-call-lead bc-desk">A speech coach reads your results with you and tells you which sounds to work on first.</div>
+                        <ul class="book-call-checks bc-desk">
+                          <li>10 minutes, free</li>
+                          <li>No commitment, no card needed</li>
+                          <li>Leave with a practice plan</li>
+                        </ul>
                       </div>
+                      <div class="book-call-next bc-desk" id="bookCallNext" hidden></div>
                       <button type="button" class="book-call-btn" onclick="openBookCall('results')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="2.5"></rect><path d="M15.5 10.5l6-3v9l-6-3z"></path></svg>Book a call</button>
                     </div>
                   </div>
@@ -4918,6 +4953,33 @@
             dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.hidden = true; });
         }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', camBindConsent); else camBindConsent();
+
+        // ---- Consult card: "Next opening" line (desktop results card) ----
+        // Estimate from a fixed schedule in the visitor's local time — Mon–Sat,
+        // 09:00–19:00, every 30 min, at least 45 min from now. NOT live calendar
+        // data: replace with Calendly availability when that feed exists.
+        function bookCallNextOpening() {
+            const el = document.getElementById('bookCallNext');
+            if (!el) return;
+            const now = new Date();
+            let t = new Date(now.getTime() + 45 * 60000);
+            t.setSeconds(0, 0);
+            t.setMinutes(t.getMinutes() % 30 === 0 ? t.getMinutes() : t.getMinutes() + (30 - t.getMinutes() % 30));
+            for (let i = 0; i < 14; i++) {
+                const day = t.getDay(), h = t.getHours() + t.getMinutes() / 60;
+                if (day === 0 || h >= 19) { t.setDate(t.getDate() + 1); t.setHours(9, 0, 0, 0); continue; }
+                if (h < 9) { t.setHours(9, 0, 0, 0); }
+                break;
+            }
+            const sameDay = t.toDateString() === now.toDateString();
+            const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
+            const when = sameDay ? 'today' : t.toDateString() === tomorrow.toDateString() ? 'tomorrow' : t.toLocaleDateString(undefined, { weekday: 'long' });
+            const time = t.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+            el.textContent = `Next opening ${when}, ${time}`;
+            el.hidden = false;
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bookCallNextOpening); else bookCallNextOpening();
+        setInterval(bookCallNextOpening, 60000);
 
         // ---- Fit the recording panel to the viewport (strict responsive PWA) ----
         // The design's proportions are kept; when the viewport is shorter than the
