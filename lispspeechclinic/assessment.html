@@ -972,19 +972,56 @@
             text-transform: capitalize;
         }
         .pill-spacer { width: 48px; }
-        .cam-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin: 14px 4px 0; padding-top: 12px; border-top: 1px solid #E2E8F0; }
-        .cam-consent { display: flex; align-items: flex-start; gap: 9px; font-family: 'Inter', sans-serif; font-size: 12.5px; line-height: 1.4; color: #4A5568; cursor: pointer; }
-        .cam-consent input { margin: 3px 0 0; flex: 0 0 auto; }
-        .cam-consent em { font-style: normal; color: #94A3B8; }
-        .cam-side { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-        #camPreview { width: 96px; aspect-ratio: 4 / 3; border-radius: 4px; background: #000; transform: scaleX(-1); border: 1px solid #E2E8F0; }
-        .cam-status { font-family: monospace; font-size: 10.5px; color: #718096; }
-        @media (max-width: 640px) { .cam-row { flex-direction: column; } .cam-side { align-items: flex-start; } }
-        .pill-timer.countdown { color: #E2E8F0; }
-        .pill-timer.ending { color: #F87171; }
-        .pill-fast-tag { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); font-family: monospace; font-size: 10px; letter-spacing: .12em; padding: 1px 7px; border: 1px solid #E2E8F0; border-radius: 3px; background: #0F172A; color: #E2E8F0; }
-        .active-pill.is-fast { position: relative; }
-        .pill-hint { font-family: 'Inter', sans-serif; font-size: 13px; color: #64748B; text-align: center; margin: 6px 12px 0; line-height: 1.35; }
+        /* Face-video row + dialog — values from the approved Claude Design file
+           ("Lisp Assessment Recording.dc.html", 2026-09-20). Inter, cyan #22D3EE. */
+        .cam-row { margin: 0 20px; border-top: 1px solid rgba(255,255,255,0.1); padding: 14px 0 16px; display: flex; flex-direction: column; gap: 10px; text-align: left; font-family: 'Inter', system-ui, sans-serif; }
+        .cam-strip { display: flex; gap: 13px; align-items: flex-start; }
+        .cam-tilewrap { flex: 0 0 96px; display: flex; flex-direction: column; gap: 6px; }
+        .cam-tile { position: relative; width: 96px; height: 72px; border-radius: 6px; background: #000000; border: 1px solid rgba(255,255,255,0.16); overflow: hidden; }
+        .cam-tile video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: none; }
+        .cam-row[data-live="1"] .cam-tile video { display: block; }
+        .cam-dot { display: none; position: absolute; left: 6px; top: 6px; width: 5px; height: 5px; border-radius: 50%; background: #22D3EE; }
+        .cam-row[data-live="1"] .cam-dot { display: block; }
+        .cam-tile-label { position: absolute; inset: 0; display: grid; place-items: center; font: 700 8.5px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.12em; color: rgba(255,255,255,0.45); text-align: center; padding: 0 6px; }
+        .cam-row[data-live="1"] .cam-tile-label { display: none; }
+        .cam-row[data-state="off"] .cam-tile-label { font: 700 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.14em; color: rgba(255,255,255,0.3); }
+        .cam-row[data-state="blocked"] .cam-tile-label { color: rgba(255,255,255,0.4); }
+        .cam-corner { position: absolute; width: 16px; height: 16px; }
+        .cam-corner-tl { left: 8px; top: 8px; border-left: 1px solid rgba(34,211,238,0.5); border-top: 1px solid rgba(34,211,238,0.5); }
+        .cam-corner-br { right: 8px; bottom: 8px; border-right: 1px solid rgba(34,211,238,0.5); border-bottom: 1px solid rgba(34,211,238,0.5); }
+        .cam-row:not([data-state="on"]) .cam-corner, .cam-row[data-live="1"] .cam-corner { display: none; }
+        .cam-status { font: 500 9px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.06em; color: #22D3EE; }
+        .cam-row:not([data-state="on"]) .cam-status { color: rgba(255,255,255,0.42); }
+        .cam-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .cam-guide { display: flex; flex-direction: column; gap: 3px; }
+        .cam-guide span { font-size: 11.5px; line-height: 1.45; color: rgba(255,255,255,0.72); }
+        .cam-state { display: flex; flex-direction: column; gap: 4px; }
+        .cam-guide[hidden], .cam-state[hidden], .cam-btn[hidden] { display: none !important; }
+        .cam-state-title { font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.82); }
+        .cam-state-title-strong { color: #FFFFFF; }
+        .cam-state-sub { font-size: 11.5px; line-height: 1.5; color: rgba(255,255,255,0.56); text-wrap: pretty; }
+        .cam-btn-row { display: flex; gap: 8px; margin-top: 3px; }
+        .cam-btn { background: transparent; border: 1px solid rgba(255,255,255,0.22); border-radius: 6px; padding: 7px 11px; font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.82); cursor: pointer; line-height: 1.2; }
+        .cam-btn:hover { border-color: rgba(255,255,255,0.4); color: #FFFFFF; }
+        .cam-btn-primary { background: #22D3EE; border-color: #22D3EE; color: #06181C; font-weight: 700; padding: 7px 12px; }
+        .cam-btn-primary:hover { background: #67E8F9; border-color: #67E8F9; color: #06181C; }
+        .cam-btn-on { border-color: rgba(34,211,238,0.5); color: #22D3EE; }
+        .cam-btn-on:hover { border-color: #22D3EE; background: rgba(34,211,238,0.08); color: #22D3EE; }
+        .cam-side-btn { flex: 0 0 auto; align-self: flex-start; }
+        .cam-btn-lg { flex: 1; padding: 9px 12px; font-size: 12px; }
+        .cam-dialog { position: absolute; inset: 0; background: rgba(0,0,0,0.72); display: grid; place-items: center; padding: 22px; box-sizing: border-box; z-index: 30; }
+        .cam-dialog[hidden] { display: none; }
+        .cam-dialog-card { width: 100%; max-width: 306px; box-sizing: border-box; background: #121618; border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; padding: 17px 17px 15px; display: flex; flex-direction: column; gap: 8px; text-align: left; font-family: 'Inter', system-ui, sans-serif; }
+        .cam-dialog-title { font-size: 14px; font-weight: 600; color: #FFFFFF; letter-spacing: -0.005em; }
+        .cam-dialog-body { font-size: 11.5px; line-height: 1.55; color: rgba(255,255,255,0.62); text-wrap: pretty; }
+        .cam-dialog-btns { display: flex; gap: 8px; margin-top: 5px; }
+        @media (max-width: 640px) {
+            .cam-row { padding: 14px 0 16px; gap: 11px; }
+            .cam-strip { gap: 12px; flex-wrap: wrap; }
+            .cam-tile { height: 116px; }
+            .cam-guide { gap: 4px; }
+            .cam-side-btn { flex: 1 0 100%; width: 100%; align-self: stretch; padding: 10px 12px; font-size: 12px; }
+        }
 
         /* Word picker divider + dots */
         .word-picker-divider-line {
@@ -3114,15 +3151,53 @@
                         <div class="record-label" id="recordLabel"></div>
                         <div class="timeout-hint" id="timeoutHint" style="display:none;">No speech detected — try again</div>
                     </div>
-                    <!-- Optional face video (consent). Off by default; the test runs without it. -->
-                    <div class="cam-row" id="camRow">
-                        <label class="cam-consent">
-                            <input type="checkbox" id="camConsent">
-                            <span>Also record my face while I speak <em>(optional)</em>. Our speech coach uses it to check tongue and lip placement on the s sounds. Kept privately with your recordings.</span>
-                        </label>
-                        <div class="cam-side">
-                            <video id="camPreview" muted playsinline autoplay hidden></video>
-                            <div class="cam-status" id="camStatus" hidden></div>
+                    <!-- Face video row — Claude Design "Lisp Speech Clinic consent row"
+                         (approved 2026-09-20). Camera ON by default; "Turn off" opens the
+                         dialog below; states: on / off / blocked (see camRender). -->
+                    <div class="cam-row" id="camRow" data-state="on">
+                        <div class="cam-strip">
+                            <div class="cam-tilewrap">
+                                <div class="cam-tile" id="camTile">
+                                    <video id="camPreview" muted playsinline autoplay></video>
+                                    <span class="cam-dot" id="camDot"></span>
+                                    <span class="cam-tile-label" id="camTileLabel">CAMERA<br>PREVIEW</span>
+                                    <span class="cam-corner cam-corner-tl"></span>
+                                    <span class="cam-corner cam-corner-br"></span>
+                                </div>
+                                <span class="cam-status" id="camStatus">REC face</span>
+                            </div>
+                            <div class="cam-body">
+                                <div class="cam-guide" id="camGuide">
+                                    <span>Whole face in frame, forehead to chin.</span>
+                                    <span>Phone at eye level, about an arm's length away.</span>
+                                    <span>Light in front of you, not behind — window or lamp.</span>
+                                    <span>Mouth uncovered — no hand, mask or scarf.</span>
+                                </div>
+                                <div class="cam-state" id="camOffState" hidden>
+                                    <span class="cam-state-title">Face video is off</span>
+                                    <span class="cam-state-sub">Audio only. Your coach will hear the s sounds but cannot check tongue and lip placement.</span>
+                                </div>
+                                <div class="cam-state" id="camBlockedState" hidden>
+                                    <span class="cam-state-title cam-state-title-strong">Face video is blocked</span>
+                                    <span class="cam-state-sub">Your browser is blocking the camera, so no video is being recorded.</span>
+                                    <div class="cam-btn-row">
+                                        <button type="button" class="cam-btn cam-btn-primary" id="camAllowBtn">Allow camera</button>
+                                        <button type="button" class="cam-btn" id="camContinueBtn">Continue audio only</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="cam-btn cam-side-btn" id="camOffBtn">Turn off</button>
+                            <button type="button" class="cam-btn cam-btn-on cam-side-btn" id="camOnBtn" hidden>Turn on</button>
+                        </div>
+                    </div>
+                    <div class="cam-dialog" id="camDialog" hidden>
+                        <div class="cam-dialog-card" role="dialog" aria-labelledby="camDialogTitle">
+                            <span class="cam-dialog-title" id="camDialogTitle">Turn off the camera?</span>
+                            <span class="cam-dialog-body">Keeping the video on improves the accuracy of your result. It lets us see where your tongue sits on the s sounds, not just hear them.</span>
+                            <div class="cam-dialog-btns">
+                                <button type="button" class="cam-btn cam-btn-primary cam-btn-lg" id="camKeepBtn">Keep it on</button>
+                                <button type="button" class="cam-btn cam-btn-lg" id="camConfirmOffBtn">Turn off</button>
+                            </div>
                         </div>
                     </div>
                     </div>
@@ -3777,6 +3852,7 @@
         // Live-instruction copy per item type and phase ('idle' | 'recording' | 'next').
         function probeCopy(m, phase) {
             const w = `<span class="live-word">'${probeDisplay(m)}'</span>`;
+            if (m.hint && phase === 'idle') return `${m.hint}`;
             const secs = m.maxMs ? Math.round(m.maxMs / 1000) : 0;
             switch (m.type) {
                 case 'passage':
@@ -3941,13 +4017,14 @@
         const FORMEASY_URL = 'https://script.google.com/macros/s/AKfycbzKixpKPkJRuqIKj7p53JSholkMjkcvWrdlLh9Vv9kl1sX6wquSIdiTUqHg1NIG6GwkTA/exec';
         // Point this at the deployed lisp cloud function (analyzeLispSpeech).
         // For local dev run `npx functions-framework --target=analyzeLispSpeech` in gcp-function-lisp/.
-        const GCP_ANALYZE_URL = 'https://analyze-lisp-speech-653307587559.us-central1.run.app';
-        // const GCP_ANALYZE_URL = 'http://localhost:8082';  // LOCAL TEST — revert before commit
+        // ?backend=local (localhost only) → the locally running analyze-lisp-speech
+        // (functions-framework :8080) and Praat shim (:8081); prod otherwise.
+        const LOCAL_BACKEND = /[?&]backend=local(?:&|$)/.test(location.search) && /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+        const GCP_ANALYZE_URL = LOCAL_BACKEND ? 'http://127.0.0.1:8080' : 'https://analyze-lisp-speech-653307587559.us-central1.run.app';
         // Praat sibilant-metrics function (gcp-function-lisp-praat/main.py). Computes
         // CoG/kurtosis/energy-ratios per clip; results are merged into the Gemini
         // payload so Gemini can reason over the >8kHz band it cannot hear.
-        const PRAAT_URL = 'https://extract-sibilant-metrics-653307587559.us-central1.run.app';
-        // const PRAAT_URL = 'http://localhost:8081';  // LOCAL TEST — revert before commit
+        const PRAAT_URL = LOCAL_BACKEND ? 'http://127.0.0.1:8081' : 'https://extract-sibilant-metrics-653307587559.us-central1.run.app';
         // MFA forced-alignment service (mfa-align-service/server.py). Given the clip +
         // known transcript it returns WHERE each sibilant sits (start/end seconds), so
         // Praat measures those exact windows instead of guessing. Unlocks per-/s/
@@ -4318,19 +4395,16 @@
             const curMeta = metaAt(currentWordIndex);
             const isLong = probeIsLong(curMeta);
             const pill = document.createElement('div');
-            pill.className = 'active-pill' + (isLong ? ' is-long' : '') + (curMeta.speed === 'fast' ? ' is-fast' : '');
+            pill.className = 'active-pill' + (isLong ? ' is-long' : '');
             const wordSpan = document.createElement('span');
             wordSpan.className = 'pill-word' + (isLong ? ' is-long' : '');
             wordSpan.textContent = probeDisplay(curMeta);
             pill.innerHTML = '<span class="pill-timer" id="pillTimer">' + (curMeta.maxMs ? (curMeta.maxMs / 1000).toFixed(0) + 's' : '0:00') + '</span>';
-            if (curMeta.speed === 'fast') { const tag = document.createElement('span'); tag.className = 'pill-fast-tag'; tag.textContent = 'FAST'; pill.appendChild(tag); }
             pill.appendChild(wordSpan);
             const spacer = document.createElement('span');
             spacer.className = 'pill-spacer';
             pill.appendChild(spacer);
             wordsEl.appendChild(pill);
-            // One-line coaching for the non-standard items (hold, repeat, fast, answer).
-            if (curMeta.hint) { const hintEl = document.createElement('div'); hintEl.className = 'pill-hint'; hintEl.textContent = curMeta.hint; wordsEl.appendChild(hintEl); }
 
             // Context preview meta — long sentence/passage previews render smaller
             const nm1 = metaAt(next1);
@@ -4616,9 +4690,29 @@
         // is untouched). Per-item marks (ms from video start) go into the manifest
         // and to the backend so frames can be pulled at each /s/. Consent is a
         // checkbox on the recording screen; declining changes nothing.
-        const CAM_CONSENT_VERSION = 'face-v1-2026-09-20';
-        const cam = { consent: false, stream: null, rec: null, chunks: [], t0: 0, marks: [], mime: '', width: 0, height: 0, fps: 0, blob: null, upload: null, path: '', manifest: '' };
-        function camSetStatus(t) { const el = document.getElementById('camStatus'); if (el) { el.textContent = t || ''; el.hidden = !t; } }
+        const CAM_CONSENT_VERSION = 'face-v2-default-on-2026-09-20';
+        const cam = { state: 'on', consent: true, stream: null, rec: null, chunks: [], t0: 0, marks: [], mime: '', width: 0, height: 0, fps: 0, blob: null, upload: null, path: '', manifest: '' };
+        // Render the row for one of three states (design artboards): on (guide +
+        // "Turn off"), off ("Face video is off" + "Turn on"), blocked (browser
+        // denied the camera: "Allow camera" / "Continue audio only").
+        function camRender(state) {
+            const row = document.getElementById('camRow');
+            if (!row) return;
+            cam.state = state;
+            row.dataset.state = state;
+            row.dataset.live = (state === 'on' && cam.stream) ? '1' : '0';
+            const show = (id, on) => { const el = document.getElementById(id); if (el) el.hidden = !on; };
+            show('camGuide', state === 'on');
+            show('camOffState', state === 'off');
+            show('camBlockedState', state === 'blocked');
+            show('camOffBtn', state === 'on');
+            show('camOnBtn', state === 'off');
+            const label = document.getElementById('camTileLabel');
+            if (label) label.innerHTML = state === 'on' ? 'CAMERA<br>PREVIEW' : state === 'blocked' ? 'CAMERA<br>BLOCKED' : 'NO VIDEO';
+            const st = document.getElementById('camStatus');
+            if (st) st.textContent = state === 'on' ? ('REC face' + (cam.width ? ' ' + cam.width + '×' + cam.height : '')) : state === 'blocked' ? 'Camera blocked, audio only' : 'Camera off, audio only';
+        }
+        function camSetStatus() { camRender(cam.state || 'on'); }
         async function camStart() {
             if (cam.rec || !cam.consent || !navigator.mediaDevices || !window.MediaRecorder) return;
             try {
@@ -4627,13 +4721,12 @@
                 });
             } catch (e) {
                 cam.consent = false;
-                const cb = document.getElementById('camConsent'); if (cb) cb.checked = false;
-                camSetStatus('Camera unavailable — audio only');
+                camRender('blocked');
                 asmtTrack('web_assessment_camera', { status: 'denied', error: (e && e.name) || String(e) });
                 return;
             }
-            if (!cam.consent) { cam.stream.getTracks().forEach(t => t.stop()); cam.stream = null; return; } // unticked while prompting
-            const v = document.getElementById('camPreview'); if (v) { v.srcObject = cam.stream; v.hidden = false; }
+            if (!cam.consent) { cam.stream.getTracks().forEach(t => t.stop()); cam.stream = null; return; } // turned off while prompting
+            const v = document.getElementById('camPreview'); if (v) v.srcObject = cam.stream;
             const track = cam.stream.getVideoTracks()[0];
             const st = track && track.getSettings ? track.getSettings() : {};
             cam.width = st.width || 0; cam.height = st.height || 0; cam.fps = Math.round(st.frameRate || 0);
@@ -4645,7 +4738,7 @@
             cam.rec.ondataavailable = e => { if (e.data && e.data.size) cam.chunks.push(e.data); };
             cam.rec.start(1000);
             cam.t0 = performance.now();
-            camSetStatus('REC face · ' + (cam.width ? cam.width + '×' + cam.height : ''));
+            camRender('on');
             asmtTrack('web_assessment_camera', { status: 'granted', width: cam.width, height: cam.height, fps: cam.fps });
         }
         function camMark(idx, phase) {
@@ -4660,7 +4753,8 @@
                 const finish = () => {
                     if (cam.chunks.length) cam.blob = new Blob(cam.chunks, { type: cam.mime }); cam.chunks = [];
                     if (cam.stream) { cam.stream.getTracks().forEach(t => t.stop()); cam.stream = null; }
-                    const v = document.getElementById('camPreview'); if (v) { v.srcObject = null; v.hidden = true; }
+                    const v = document.getElementById('camPreview'); if (v) v.srcObject = null;
+                    camRender(cam.state === 'on' ? 'on' : cam.state);
                     resolve(cam.blob);
                 };
                 if (!rec) return finish();
@@ -4673,17 +4767,17 @@
             cam.upload = (async () => {
                 try {
                     if (typeof window.uploadFaceVideoToFirebase !== 'function') return null;
-                    camSetStatus('Saving face video…');
+                    const st = document.getElementById('camStatus'); if (st) st.textContent = 'Saving face video…';
                     const r = await window.uploadFaceVideoToFirebase(cam.blob, {
                         marks: cam.marks, mime: cam.mime, width: cam.width, height: cam.height, fps: cam.fps,
                         consentVersion: CAM_CONSENT_VERSION, protocol: PROTOCOL, durationMs: Math.round(performance.now() - cam.t0),
                         recorderLatencyMs: 150
                     });
                     cam.path = (r && r.path) || ''; cam.manifest = (r && r.manifest) || '';
-                    camSetStatus(cam.path ? 'Face video saved' : 'Face video not saved');
+                    if (st) st.textContent = cam.path ? 'Face video saved' : 'Face video not saved';
                     asmtTrack('web_assessment_camera', { status: cam.path ? 'uploaded' : 'upload_failed', bytes: cam.blob.size });
                     return r;
-                } catch (e) { console.warn('[camera] upload failed', e); camSetStatus('Face video upload failed'); return null; }
+                } catch (e) { console.warn('[camera] upload failed', e); const st2 = document.getElementById('camStatus'); if (st2) st2.textContent = 'Face video upload failed'; return null; }
             })();
             return cam.upload;
         }
@@ -4694,15 +4788,27 @@
             return { path: cam.path, manifest: cam.manifest, mime: cam.mime, width: cam.width, height: cam.height, fps: cam.fps,
                      consentVersion: CAM_CONSENT_VERSION, recorderLatencyMs: 150, marks: cam.marks.filter(m => m.kept) };
         }
-        document.addEventListener('DOMContentLoaded', () => {
-            const cb = document.getElementById('camConsent');
-            if (!cb) return;
-            cb.addEventListener('change', () => {
-                cam.consent = cb.checked;
-                asmtTrack('web_assessment_camera', { status: cam.consent ? 'consented' : 'declined' });
-                if (cam.consent) camStart(); else if (cam.rec) camStop();
+        // Camera is on by default. "Turn off" opens the dialog; only its "Turn off"
+        // confirms. "Turn on" (off state) and "Allow camera" (blocked state) start
+        // the camera again; "Continue audio only" settles on off.
+        function camBindConsent() {
+            const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+            const dialog = document.getElementById('camDialog');
+            if (!dialog) return;
+            camRender('on');
+            on('camOffBtn', () => { dialog.hidden = false; asmtTrack('web_assessment_camera', { status: 'dialog_shown' }); });
+            on('camKeepBtn', () => { dialog.hidden = true; asmtTrack('web_assessment_camera', { status: 'kept' }); });
+            on('camConfirmOffBtn', () => {
+                dialog.hidden = true; cam.consent = false; cam.state = 'off';
+                asmtTrack('web_assessment_camera', { status: 'declined' });
+                if (cam.rec) camStop().then(() => camRender('off')); else camRender('off');
             });
-        });
+            on('camOnBtn', () => { cam.consent = true; camRender('on'); asmtTrack('web_assessment_camera', { status: 'turned_on' }); camStart(); });
+            on('camAllowBtn', () => { cam.consent = true; camRender('on'); asmtTrack('web_assessment_camera', { status: 'retry_permission' }); camStart(); });
+            on('camContinueBtn', () => { cam.consent = false; camRender('off'); asmtTrack('web_assessment_camera', { status: 'declined_blocked' }); });
+            dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.hidden = true; });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', camBindConsent); else camBindConsent();
 
         // Guard: not every browser accepts the opus mimeType option (older Safari).
         // Falls back to default MediaRecorder when unsupported.
@@ -4937,11 +5043,7 @@
                     // Timed item: count DOWN, and commit the take when the clock ends
                     // (sustained hold, quick-fire answer, passage cap, fast re-read cap).
                     const rem = Math.max(0, maxMs - elapsedMs);
-                    if (timer) {
-                        timer.textContent = (rem / 1000).toFixed(rem < 10000 ? 1 : 0) + 's';
-                        timer.classList.add('countdown');
-                        timer.classList.toggle('ending', rem < 1500);
-                    }
+                    if (timer) timer.textContent = (rem / 1000).toFixed(rem < 10000 ? 1 : 0) + 's';
                     if (elapsedMs >= maxMs) { stopWordRecording(false); return; }
                 } else {
                     const elapsed = elapsedMs / 1000;
