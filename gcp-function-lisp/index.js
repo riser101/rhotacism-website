@@ -63,102 +63,404 @@ function stripDataUrlPrefix(b64) {
   return i >= 0 ? b64.slice(i + 1) : b64;
 }
 
+// ---------------------------------------------------------------------------
+// Acoustics. Praat service (gcp-function-lisp-praat) locates every sibilant
+// itself (MFA-free since 2026-09-20) and measures each window. EVERY rule below
+// is relative to the SAME speaker on the SAME microphone — a token's centre of
+// gravity vs the speaker's own /s/ median, its low-band leak vs their clean
+// tokens, its tonal narrowness — never an absolute Hz norm (the Aug 25 false
+// "Severe Interdental" came from absolute norms on uncalibrated mics). Numbers
+// never assert a verdict alone: they become per-clip HYPOTHESES the ear
+// (Gemini) confirms or rejects, plus a bounded post-hoc cap (fuseAcoustics)
+// when the ear called a token clean but the speaker-level pattern says
+// otherwise. Speakers with too few usable tokens fall back to ear-only.
+const AC_MIN_SNR_DB = 15;           // window rms above the clip noise floor
+const AC_MIN_DUR_MS = 40;
+const AC_MIN_CONNECTED_DUR_MS = 60;  // sentence windows: skip bursts / /f/ / /th/ slivers
+const AC_MIN_CALIB_TOKENS = 3;       // usable strict /s/ word tokens for a speaker median
+const AC_FRONTAL_ELO = 0.15;         // E(0.5-4k)/total effect-size floor (clean /s/ ≈ 0.00-0.06)
+const AC_FRONTAL_COG_RATIO = 0.85;   // CoG vs the speaker's own /s/ median
+const AC_FRONTAL_SIBVOW_DB = -18;    // /s/ level vs the speaker's vowels …
+const AC_FRONTAL_ELO_LEVEL = 0.25;   // … only counts with a stronger leak (final clusters are quiet anyway)
+const AC_MIN_CONNECTED_CALIB = 6;    // self-calibrate part 2 from its own /s/ tokens when no word median
+const AC_FRONTAL_TH_RATIO = 1.15;    // /s/ CoG within 15% of the speaker's own "th" = interdental signature
+const AC_MIN_HF_RATIO = 0.3;         // share of energy ≥4 kHz; below this the window is a vowel/nasal tail, not a sibilant
+const AC_MIN_EDGE_HZ = 12000;        // mic bandwidth guard: below this, skip the >8 kHz cues (E-hi, whistle)
+const AC_LATERAL_KURT = 1.0;
+const AC_LATERAL_MAX_SSH = 1.1;
+const AC_WHISTLE = { q: 35, promDb: 10, conc: 0.5, minHz: 6000, sustainedConc: 0.9, sustainedNarrowDb: 12, sustainedMs: 1000 };
+const AC_WORD_VERDICT_TOKENS = 2;    // ≥2 flagged single-word tokens → speaker-level pattern
+const AC_CONNECTED_RATE = 0.25;      // or ≥25% (and ≥3) of usable connected /s/ tokens
+const AC_CONNECTED_MIN = 3;
+const AC_CAP_QUALITY = 65;           // cap applied when the ear said clean but the pattern disagrees
+// AC_CAP_MODE=on lets a speaker-level acoustic pattern rewrite an ear-clean row to
+// Distorted/Whistling 65. Default OFF (design-panel rule: acoustics steer the ear,
+// lower confidence via the outcome tier, and add notes — they never assert alone).
+const AC_CAP_MODE = process.env.AC_CAP_MODE || 'off';
+const AC_QUIET_PEAK_DBFS = -30;
+
+function acNum(x) { const n = Number(x); return Number.isFinite(n) ? n : null; }
+function acCog(seg) { return acNum(seg && (seg.center_of_gravity ?? seg.centroid_hz)) || 0; }
+function acSegments(a) {
+  if (!a || typeof a !== 'object' || a.error) return [];
+  const segs = Array.isArray(a.segments) && a.segments.length ? a.segments : [a];
+  return segs.filter(s => s && typeof s === 'object');
+}
+// Usability gate. New service rows carry snr_db (relative); legacy client rows
+// (MFA path) only rms — keep the old absolute gate for those.
+function acUsable(seg) {
+  if (!seg || acCog(seg) <= 0) return false;
+  const dur = acNum(seg.duration_ms);
+  if (dur != null && dur < AC_MIN_DUR_MS) return false;
+  const hf = acNum(seg.hf_ratio);
+  if (hf != null && hf < AC_MIN_HF_RATIO) return false;
+  const snr = acNum(seg.snr_db);
+  if (snr != null) return snr >= AC_MIN_SNR_DB;
+  const rms = acNum(seg.rms);
+  return rms == null || rms >= 0.004;
+}
+function acMedian(arr) { const v = arr.slice().sort((x, y) => x - y); return v.length ? v[Math.floor(v.length / 2)] : null; }
+const AC_SH_WORDS = /^(shoe|watch|jump|fish|chair|bridge|wash|dish|ship|cheese|church|jam|judge|sheep|shop|chip|shirt|witch|jar)$/i;
+const AC_Z_WORDS = /^(zoo|music|nose|zebra|lazy|rose|buzz|zip|zero)$/i;
+const AC_TH_WORDS = /^(thumb|think|thin|bath|teeth|thick|three|mouth|math|tooth|thank|thing)$/i;
+function acLabelForWord(word, type) {
+  const w = String(word || '').trim();
+  if (type === 'th' || AC_TH_WORDS.test(w)) return 'TH';
+  if (type === 'sustained') return /^z/i.test(w) ? 'Z' : 'S';
+  if (/^(watch|chair|cheese|church|chip|witch)$/i.test(w)) return 'CH';
+  if (/^(jump|bridge|jam|judge|jar)$/i.test(w)) return 'JH';
+  if (AC_SH_WORDS.test(w)) return 'SH';
+  if (AC_Z_WORDS.test(w)) return 'Z';
+  return 'S';
+}
+// Sentences whose sibilants are ALL /s,z/ (no sh/ch/j) can be scored per token;
+// mixed sentences are measured but not rule-scored (label X).
+function acSentenceAllS(text) { return !/sh|ch|j|dg|g[ei]/i.test(String(text || '')); }
+// Probe types. Single-word-like (one /s/ window, scored as a word token):
+// word, sustained, th. Connected-like (many windows, scored per token):
+// sentence (normal or speed:'fast'), rapid (e.g. "Mississippi ×3"), passage,
+// quickfire (short timed answers).
+function acIsConnected(p) { return p && /^(sentence|passage|rapid|quickfire)$/.test(String(p.type || '')); }
+function acIsPassageLike(p) { return p && /^(passage|quickfire)$/.test(String(p.type || '')); }
+
 // Compact one-line acoustic summary for ONE measured sibilant window.
 function formatSegment(s) {
   const kHz = (hz) => (Number(hz) / 1000).toFixed(1) + 'kHz';
   const num = (x, d = 2) => (x == null ? '?' : Number(x).toFixed(d));
-  const cog = s.center_of_gravity ?? s.centroid_hz;
   return [
-    `CoG=${kHz(cog)}`,
-    s.spectral_std_dev != null ? `spread=${kHz(s.spectral_std_dev)}` : null,
-    s.spectral_skewness != null ? `skew=${num(s.spectral_skewness)}` : null,
-    s.spectral_kurtosis != null ? `kurtosis=${num(s.spectral_kurtosis)}` : null,
-    s.sibilant_peak_hz != null ? `peak(3-14k)=${kHz(s.sibilant_peak_hz)}` : null,
-    s.energy_ratio_hi != null ? `E(8-14/3-8)=${num(s.energy_ratio_hi)}` : null,
+    `CoG=${kHz(acCog(s))}` + (s.cog_ratio != null ? ` (${num(s.cog_ratio)}× own /s/ median)` : ''),
     s.energy_ratio_low != null ? `E(0.5-4/total)=${num(s.energy_ratio_low)}` : null,
-    s.duration_ms != null ? `dur=${Math.round(s.duration_ms)}ms` : null,
-    s.rms != null ? `rms=${num(s.rms, 4)}` : null,
+    s.spectral_kurtosis != null ? `kurtosis=${num(s.spectral_kurtosis, 1)}` : null,
     s.rel_to_sh != null ? `s/sh=${num(s.rel_to_sh)}` : null,
+    s.th_ratio != null ? `s/th=${num(s.th_ratio)}` : null,
+    s.welch_q != null ? `Q=${num(s.welch_q, 0)}@${kHz(s.welch_peak_hz)}` : null,
+    s.sib_vowel_db != null ? `level-vs-vowel=${num(s.sib_vowel_db, 0)}dB` : null,
+    s.duration_ms != null ? `dur=${Math.round(s.duration_ms)}ms` : null,
+    s.snr_db != null ? `snr=${num(s.snr_db, 0)}dB` : (s.rms != null ? `rms=${num(s.rms, 4)}` : null),
+    s.ac && s.ac.hypothesis ? `→ ${s.ac.hypothesis}` : null,
   ].filter(Boolean).join(', ');
 }
 
-// Acoustic summary from the Praat function (main.py), attached to each clip so
-// Gemini can reason over the >8 kHz band it cannot hear. MFA locates each /s/;
-// a word has one window, a sentence has one line per /s/ (its 'segments' list).
+// Acoustic summary attached to each clip so Gemini can reason over the band it
+// cannot hear. A word has one window (the loudest); a sentence one line per
+// usable /s/ window.
 function formatAcoustics(a) {
   if (!a || typeof a !== 'object') return '';
   if (a.error) return `[acoustics unavailable: ${a.error}]`;
-  // rms floor: a window measured at noise-floor level (very quiet capture) yields
-  // CoG/energy ratios that mathematically mimic an interdental lisp. Drop those
-  // measurements entirely so Gemini judges that clip by ear alone.
-  const MIN_RMS = 0.004;
-  const usable = (s) => s && (s.rms == null || Number(s.rms) >= MIN_RMS);
-  let segs = Array.isArray(a.segments) ? a.segments : [];
+  const segs = acSegments(a);
   if (segs.length > 1) {
-    const kept = segs.filter(usable);
+    const kept = segs.filter(acUsable);
     if (!kept.length) return '[acoustics unavailable: signal too quiet to measure reliably]';
-    // Sentence: one line per sibilant, tagged with its phone + time.
     return '\n' + kept.map((s) =>
       `  · ${s.label || 's'}@${num0(s.start)}s: ${formatSegment(s)}`
     ).join('\n');
   }
   const seg = segs[0] || a;
-  if (!usable(seg)) return '[acoustics unavailable: signal too quiet to measure reliably]';
+  if (!acUsable(seg)) return '[acoustics unavailable: signal too quiet to measure reliably]';
   return formatSegment(seg);
 }
 function num0(x) { return x == null ? '?' : Number(x).toFixed(2); }
 
-// Within-speaker calibration: absolute CoG norms are meaningless across
-// uncalibrated consumer mics (clean speakers measure anywhere from ~4.7 to
-// ~11 kHz), but the RATIO of each /s,z/ CoG to the same session's SH/CH/JH
-// CoG cancels the mic's transfer function. Normal /s/ sits clearly above the
-// same speaker's "sh"; an interdental /s/ collapses to ~1.0x or below.
-// Mutates the probes' acoustics segments in place (adds rel_to_sh).
+// Within-speaker calibration: the RATIO of each /s,z/ CoG to the same session's
+// SH/CH/JH CoG cancels the mic's transfer function. Mutates segments in place
+// (adds rel_to_sh). Returns the anchor (Hz) or null.
 function annotateRelativeCog(probes) {
-  const MIN_RMS = 0.004;
   const allSegs = [];
-  (probes || []).forEach(p => {
-    const a = p && p.acoustics;
-    if (!a || typeof a !== 'object' || a.error) return;
-    const segs = Array.isArray(a.segments) && a.segments.length ? a.segments : [a];
-    segs.forEach(seg => { if (seg && typeof seg === 'object') allSegs.push(seg); });
-  });
-  const cogOf = (seg) => Number(seg.center_of_gravity ?? seg.centroid_hz) || 0;
-  const usable = (seg) => cogOf(seg) > 0 && (seg.rms == null || Number(seg.rms) >= MIN_RMS);
-  const anchors = allSegs.filter(seg => /^(SH|ZH|CH|JH)$/i.test(String(seg.label || '')) && usable(seg))
-    .map(cogOf).sort((a, b) => a - b);
-  if (!anchors.length) return;
-  const anchor = anchors[Math.floor(anchors.length / 2)]; // median
+  (probes || []).forEach(p => acSegments(p && p.acoustics).forEach(seg => allSegs.push(seg)));
+  const anchors = allSegs.filter(seg => /^(SH|ZH|CH|JH)$/i.test(String(seg.label || '')) && acUsable(seg))
+    .map(acCog).sort((a, b) => a - b);
+  if (!anchors.length) return null;
+  const anchor = anchors[Math.floor(anchors.length / 2)];
   allSegs.forEach(seg => {
-    if (/^(S|Z)$/i.test(String(seg.label || '')) && usable(seg)) {
-      seg.rel_to_sh = Math.round((cogOf(seg) / anchor) * 100) / 100;
+    if (/^(S|Z)$/i.test(String(seg.label || '')) && acUsable(seg)) {
+      seg.rel_to_sh = Math.round((acCog(seg) / anchor) * 100) / 100;
     }
   });
+  return anchor;
 }
 
-// Interpretation guide injected once into the word prompt so Gemini knows how to
-// weigh the Praat numbers — especially the high-frequency band beyond its hearing.
-const ACOUSTIC_GUIDE = `## Acoustic measurements (Praat, computed on the 48 kHz recording)
-Each clip below is preceded by a [Praat acoustics] line. The recording captures the full spectrum up to 24 kHz, but your audio hearing rolls off around 8 kHz; the numbers describe the sibilant energy above that limit (peak searched in the 3–14 kHz range).
-IMPORTANT — these numbers come from uncalibrated consumer microphones at unknown angle and distance. Mic frequency response and off-axis placement alone shift CoG and high-band energy by several kHz, so absolute frequency norms are NOT reliable. Your trained ear is the PRIMARY evidence: judge each clip by listening first. Use the numbers only to CORROBORATE or refine a distortion you already hear — never to overturn a clip that sounds clean. Never transcribe a substitution (e.g. "th") that you did not actually hear in the audio.
-Reference patterns (directional cues, not thresholds):
-- CoG: an interdental (th-like) /s/ sits markedly LOWER than that same speaker's other sibilants. Self-calibrated check: a normal /s/ centres ABOVE the same speaker's "sh"; absolute values vary by mic.
-- s/sh (shown on /s,z/ lines when this session recorded a "sh"/"ch"/"j" reference): the speaker's OWN "sh" on the SAME mic is the reference, so this ratio cancels the microphone out — it is the most reliable number here. Normal /s/: ratio clearly above 1 (≈1.3+). A ratio near or below 1.0 on MOST /s/ words corroborates a frontal/interdental pattern; a single low word (especially word-final, or voiced /z/ which reads lower) is usually a measurement artifact, not a lisp.
-- kurtosis: low/flat = diffuse, smeared spectrum → lateral (slushy) cue. A sharp peak is normal.
-- E(8-14/3-8): a low value can mean frontal production — or simply mic high-frequency roll-off. Corroborating cue only.
-- E(0.5-4/total): elevated low-frequency energy = turbulence leaking low, a lateral cue.
-- dur/rms: reliability gate — if dur < 60 ms or rms < 0.01 the window was too weak to measure; IGNORE the numbers for that clip and judge purely by ear.`;
+// Per-token rule scores. `profile.sMedianHz` = this speaker's own clean-/s/
+// reference; without it (uncalibrated) only the whistle rule can fire.
+function acScoreToken(s, profile, sustained) {
+  const cog = acCog(s), elo = acNum(s.energy_ratio_low), kurt = acNum(s.spectral_kurtosis);
+  const sv = acNum(s.sib_vowel_db), ratio = profile.sMedianHz ? cog / profile.sMedianHz : null;
+  if (ratio != null) s.cog_ratio = Math.round(ratio * 100) / 100;
+  const thRatio = profile.thMedianHz ? cog / profile.thMedianHz : null;
+  if (thRatio != null) s.th_ratio = Math.round(thRatio * 100) / 100;
+  const out = { frontal: false, lateral: false, whistle: false, hypothesis: '' };
+  const cues = [];
+  const onTh = thRatio != null && thRatio <= AC_FRONTAL_TH_RATIO && elo != null && elo >= AC_FRONTAL_ELO;
+  if (profile.calibrated && elo != null && elo >= AC_FRONTAL_ELO &&
+      ((ratio != null && ratio <= AC_FRONTAL_COG_RATIO) || (elo >= AC_FRONTAL_ELO_LEVEL && sv != null && sv <= AC_FRONTAL_SIBVOW_DB) || onTh)) {
+    out.frontal = true;
+    cues.push(onTh ? 'frontal cue (this /s/ measures like this speaker\'s own "th")' : 'frontal cue (energy leaking low, centre well under this speaker\'s own /s/)');
+  } else if (profile.calibrated && elo != null && elo >= AC_FRONTAL_ELO && kurt != null && kurt <= AC_LATERAL_KURT &&
+      (s.rel_to_sh == null || s.rel_to_sh <= AC_LATERAL_MAX_SSH) && (sv == null || sv > -16)) {
+    out.lateral = true;
+    cues.push('lateral cue (diffuse, smeared spectrum with low-band leak at normal loudness)');
+  }
+  const q = acNum(s.welch_q), prom = acNum(s.welch_prom_db), conc = acNum(s.peak_conc), pk = acNum(s.welch_peak_hz);
+  const dur = acNum(s.duration_ms), nprom = acNum(s.narrow_prom_db);
+  const edge = acNum(s.spectral_edge_hz);
+  // A "peak" at or beyond the mic's own roll-off is the roll-off, not a whistle.
+  const inBand = edge == null || pk == null || pk <= edge - 500;
+  if (inBand && q != null && prom != null && conc != null && pk != null &&
+      q >= AC_WHISTLE.q && prom >= AC_WHISTLE.promDb && conc >= AC_WHISTLE.conc && pk >= AC_WHISTLE.minHz) {
+    out.whistle = true;
+    cues.push(`whistle cue (narrow stable tone near ${(pk / 1000).toFixed(1)} kHz inside the /s/)`);
+  } else if (sustained && dur != null && dur >= AC_WHISTLE.sustainedMs && conc != null && nprom != null &&
+      conc >= AC_WHISTLE.sustainedConc && nprom >= AC_WHISTLE.sustainedNarrowDb) {
+    out.whistle = true;
+    cues.push(`whistle cue (steady tone near ${((acNum(s.narrow_peak_hz) || pk) / 1000).toFixed(1)} kHz through the sustained /s/)`);
+  }
+  out.hypothesis = cues.length ? cues.join('; ') : 'clean (measures like this speaker\'s other /s/ sounds)';
+  return out;
+}
+
+// Speaker-level acoustic profile over one request's probes. Mutates segments
+// (rel_to_sh, cog_ratio, ac) and probes (acToken) so the prompt and the
+// post-hoc fuse read the same scores. Returns the profile summary.
+function acousticProfile(probes, opts) {
+  opts = opts || {};
+  const profile = {
+    calibrated: false, sMedianHz: null, anchorHz: null, coverage: 0, clips: 0,
+    usableTokens: 0, flags: { frontal: 0, lateral: 0, whistle: 0, weak: 0 },
+    verdicts: [], capture: { minPeakDbfs: null, quiet: false }, notes: []
+  };
+  const list = (probes || []).filter(p => p && typeof p === 'object');
+  profile.clips = list.length;
+  list.forEach(p => {
+    const a = p.acoustics;
+    if (!a || typeof a !== 'object') return;
+    const pk = acNum(a.capture && a.capture.peak_dbfs);
+    if (pk != null && (profile.capture.minPeakDbfs == null || pk < profile.capture.minPeakDbfs)) profile.capture.minPeakDbfs = pk;
+    if (!a.error) profile.coverage++;
+  });
+  if (profile.capture.minPeakDbfs != null && profile.capture.minPeakDbfs < AC_QUIET_PEAK_DBFS) profile.capture.quiet = true;
+  profile.anchorHz = annotateRelativeCog(list);
+
+  // Primary (loudest usable strict) /s/ window per single-word probe.
+  const wordTokens = [];
+  list.forEach(p => {
+    if (acIsConnected(p)) return;
+    const segs = acSegments(p.acoustics).filter(s => /^S$/i.test(String(s.label || '')) && acUsable(s));
+    const strict = segs.filter(s => s.kind !== 'weak');
+    const pick = (strict.length ? strict : segs).sort((x, y) => (acNum(y.rms) || 0) - (acNum(x.rms) || 0))[0];
+    if (pick) { p.acToken = pick; wordTokens.push(pick); }
+    else if (acLabelForWord(p.word) === 'S' && p.acoustics && typeof p.acoustics === 'object') {
+      // An /s/ word with nothing measurable while the capture itself is fine.
+      p.acWeak = true;
+    }
+  });
+  // The speaker's OWN "th" (reference words) = what an interdental /s/ would
+  // measure like on this mic. An /s/ that lands on it is the strongest frontal cue.
+  const thCogs = [];
+  list.forEach(p => { if (acIsConnected(p)) return; acSegments(p.acoustics).forEach(sg => { if (/^TH$/i.test(String(sg.label || '')) && acUsable(sg)) thCogs.push(acCog(sg)); }); });
+  if (thCogs.length) profile.thMedianHz = Math.round(acMedian(thCogs));
+  const cogs = wordTokens.filter(s => s.kind !== 'weak').map(acCog);
+  if (cogs.length >= AC_MIN_CALIB_TOKENS) { profile.calibrated = true; profile.sMedianHz = Math.round(acMedian(cogs)); }
+  else if (acNum(opts.sMedianHz) > 0) { profile.calibrated = true; profile.sMedianHz = Math.round(acNum(opts.sMedianHz)); profile.notes.push('calibrated from part 1'); }
+  else {
+    // Part 2 arrives without the single words: calibrate on the connected /s/
+    // tokens themselves (a consistent lisp is caught by part 1; this catches the
+    // inconsistent one, where most tokens are clean and a few are not).
+    const connCogs = [];
+    list.forEach(p => { if (!acIsConnected(p)) return; acSegments(p.acoustics).forEach(s => {
+      if (/^S$/i.test(String(s.label || '')) && acUsable(s) && (acNum(s.duration_ms) == null || acNum(s.duration_ms) >= AC_MIN_CONNECTED_DUR_MS)) connCogs.push(acCog(s)); }); });
+    if (connCogs.length >= AC_MIN_CONNECTED_CALIB) { profile.calibrated = true; profile.sMedianHz = Math.round(acMedian(connCogs)); profile.notes.push('calibrated from connected speech'); }
+  }
+  const sustainedProbe = (p) => /^(sustained|sss)/i.test(String(p.type || '')) || /^s{3,}$/i.test(String(p.word || ''));
+
+  // Score word tokens.
+  let wordFlags = { frontal: 0, lateral: 0, whistle: 0 };
+  list.forEach(p => {
+    if (!p.acToken) return;
+    const ac = acScoreToken(p.acToken, profile, sustainedProbe(p));
+    p.acToken.ac = ac;
+    if (ac.frontal) wordFlags.frontal++;
+    if (ac.lateral) wordFlags.lateral++;
+    if (ac.whistle) wordFlags.whistle++;
+    profile.usableTokens++;
+  });
+  // Weak/absent /s/ only counts once the speaker is calibrated (otherwise it is
+  // usually the capture, not the speaker).
+  list.forEach(p => { if (p.acWeak && profile.calibrated) profile.flags.weak++; else if (p.acWeak) p.acWeak = false; });
+
+  // Connected tokens: every usable all-/s/ window ≥ 60 ms.
+  let connTotal = 0, connFlags = { frontal: 0, lateral: 0, whistle: 0 };
+  list.forEach(p => {
+    if (!acIsConnected(p)) return;
+    acSegments(p.acoustics).forEach(s => {
+      if (!/^S$/i.test(String(s.label || '')) || !acUsable(s)) return;
+      const dur = acNum(s.duration_ms);
+      if (dur != null && dur < AC_MIN_CONNECTED_DUR_MS) return;
+      const ac = acScoreToken(s, profile, false);
+      s.ac = ac; connTotal++; profile.usableTokens++;
+      if (ac.frontal) connFlags.frontal++;
+      if (ac.lateral) connFlags.lateral++;
+      if (ac.whistle) connFlags.whistle++;
+    });
+  });
+  ['frontal', 'lateral', 'whistle'].forEach(t => {
+    profile.flags[t] = wordFlags[t] + connFlags[t];
+    const wordHit = wordFlags[t] >= AC_WORD_VERDICT_TOKENS;
+    // Sentence windows are labelled by a text heuristic (which sibilant is
+    // which is a guess), so place-of-articulation cues from connected speech
+    // corroborate a word-level cue rather than carry a verdict alone. A whistle
+    // is a tonal event that does not depend on the label.
+    const connHit = connTotal >= AC_CONNECTED_MIN && connFlags[t] >= AC_CONNECTED_MIN && connFlags[t] / connTotal >= AC_CONNECTED_RATE
+      && (t === 'whistle' || wordFlags[t] >= 1 || acNum(opts.wordFlags && opts.wordFlags[t]) >= 1);
+    if (wordHit || connHit) profile.verdicts.push(t);
+  });
+  if (profile.flags.weak >= AC_WORD_VERDICT_TOKENS) profile.verdicts.push('weak');
+  profile.connectedTokens = connTotal;
+  // Tell the ear whether a cue is part of a speaker-level pattern or a one-off
+  // (one odd token on an otherwise clean speaker is usually the capture).
+  const nWords = wordTokens.length;
+  const decorate = (ac) => {
+    if (!ac) return;
+    const t = ['frontal', 'lateral', 'whistle'].find(k => ac[k]);
+    if (!t) return;
+    const inPattern = profile.verdicts.includes(t);
+    const n = wordFlags[t] + connFlags[t], m = nWords + connTotal;
+    ac.hypothesis = (inPattern ? `PATTERN (${n} of ${m} measured /s/): ` : t === 'whistle' ? `isolated (${n} of ${m} measured /s/): ` : `isolated (only ${n} of ${m} measured /s/, the rest clean): `) + ac.hypothesis;
+  };
+  list.forEach(p => { if (p.acToken) decorate(p.acToken.ac); if (acIsConnected(p)) acSegments(p.acoustics).forEach(s => decorate(s.ac)); });
+  if (!profile.calibrated) profile.notes.push(`uncalibrated (${cogs.length} usable /s/ tokens)`);
+  if (profile.capture.quiet) profile.notes.push(`quiet capture (peak ${profile.capture.minPeakDbfs} dBFS)`);
+  return profile;
+}
+
+// Bounded post-hoc fuse. Only when the SPEAKER-LEVEL pattern exists (≥2 flagged
+// word tokens or ≥25% of connected tokens) and the ear still called a flagged
+// token clean: cap the quality and name the measurement in plain words. Never
+// raises severity, never rewrites a judgment the ear already gave.
+const AC_FUSE_NOTE = {
+  frontal: 'Measurement shows the tongue sitting further forward than on your other s-sounds — worth checking live.',
+  lateral: 'Measurement shows air spreading sideways on this s-sound — worth checking live.',
+  whistle: 'A faint high whistle was measured on this s-sound, above what the listener can hear — typical of a whistling lisp.',
+  weak: 'The s-sound here was too faint to measure against your other words.'
+};
+function fuseAcoustics(rows, probes, profile) {
+  if (!profile || !profile.verdicts.length || !Array.isArray(rows)) return 0;
+  let capped = 0;
+  const byKey = new Map();
+  (probes || []).forEach(p => { if (p && p.word != null) byKey.set(String(p.word).trim().toLowerCase(), p); });
+  // Rows come back in prompt order; when counts match, order is the reliable
+  // join (duplicate words, shortened sentences). Otherwise fall back to the word.
+  const byOrder = Array.isArray(probes) && probes.length === rows.length;
+  rows.forEach((row, i) => {
+    const key = String(row.word ?? row.sentence ?? '').trim().toLowerCase();
+    let p = byOrder ? probes[i] : byKey.get(key);
+    if (!p && row.sentence) { // model may shorten sentences — prefix match
+      for (const [k, v] of byKey) { if (acIsConnected(v) && (k.startsWith(key.replace(/…$/, '').slice(0, 20)) || key.startsWith(k.slice(0, 20)))) { p = v; break; } }
+    }
+    if (!p) return;
+    // Window of the measured /s/ (seconds into the clip) — lets the face-video
+    // pass pull frames at the right instant without re-running acoustics.
+    if (p.acToken && p.acToken.start != null) { row.s_start = p.acToken.start; row.s_end = p.acToken.end; }
+    if (acIsConnected(p)) {
+      const flagged = acSegments(p.acoustics).filter(sg => sg.ac && (sg.ac.frontal || sg.ac.lateral || sg.ac.whistle))
+        .map(sg => ({ start: sg.start, end: sg.end, type: sg.ac.frontal ? 'frontal' : sg.ac.lateral ? 'lateral' : 'whistle' }));
+      if (flagged.length) row.s_windows = flagged.slice(0, 6);
+    }
+    const types = new Set();
+    if (p.acToken && p.acToken.ac) ['frontal', 'lateral', 'whistle'].forEach(t => { if (p.acToken.ac[t]) types.add(t); });
+    if (p.acWeak) types.add('weak');
+    if (acIsConnected(p)) acSegments(p.acoustics).forEach(s => { if (s.ac) ['frontal', 'lateral', 'whistle'].forEach(t => { if (s.ac[t]) types.add(t); }); });
+    const hit = profile.verdicts.find(t => types.has(t));
+    if (!hit) {
+      // An isolated measured whistle is a real acoustic event (not mic colour):
+      // name it without touching the verdict, so the reader and the rep see it.
+      if (types.has('whistle') && !/whistl/i.test(String(row.observation || row.mistakes || ''))) {
+        const note = 'A faint high whistle was measured on one s-sound here — the kind that shows up on fast or repeated /s/ like "Mississippi".';
+        row.acoustic = 'whistle-isolated';
+        if (row.observation != null) row.observation = `${row.observation} ${note}`.trim();
+        else if (row.mistakes != null) row.mistakes = (/^none/i.test(row.mistakes) ? note : `${row.mistakes} ${note}`).trim();
+      }
+      return;
+    }
+    row.acoustic = hit;
+    const clean = !row.judgment || /^accurate$/i.test(row.judgment);
+    if (clean && (Number(row.quality) || 0) > AC_CAP_QUALITY) {
+      const note = AC_FUSE_NOTE[hit];
+      if (row.observation != null && !row.observation.includes(note)) row.observation = `${row.observation} ${note}`.trim();
+      else if (row.mistakes != null && !row.mistakes.includes(note)) row.mistakes = (/^none/i.test(row.mistakes) ? note : `${row.mistakes} ${note}`).trim();
+      if (AC_CAP_MODE === 'on') {
+        row.quality = AC_CAP_QUALITY;
+        row.judgment = hit === 'whistle' ? 'Whistling' : 'Distorted';
+        capped++;
+      } else {
+        row.acoustic_disagrees = true; // ear clean, speaker-level pattern present → outcome tier handles it
+      }
+    }
+  });
+  return capped;
+}
+
+// Compact, persistable/loggable view of a profile (no per-token data).
+function acousticSummary(profile, capped) {
+  if (!profile) return null;
+  return {
+    calibrated: profile.calibrated, sMedianHz: profile.sMedianHz, anchorHz: profile.anchorHz, thMedianHz: profile.thMedianHz || null,
+    coverage: profile.coverage, clips: profile.clips, usableTokens: profile.usableTokens,
+    connectedTokens: profile.connectedTokens || 0, flags: profile.flags, verdicts: profile.verdicts,
+    capture: profile.capture, notes: profile.notes, capped: capped || 0
+  };
+}
+
+// Interpretation guide injected once per prompt when at least one clip carries
+// measurements. Ear-primary; the hypotheses steer WHERE to listen again.
+const ACOUSTIC_GUIDE = `## Acoustic measurements (Praat, 48 kHz recording, self-calibrated)
+Each clip below carries a [Praat acoustics] line. Every number is RELATIVE to this same speaker on this same microphone (their own /s/ median, their own "sh", their own vowels) — there are no absolute norms, so microphone colour cancels out. Your audio hearing rolls off near 8 kHz; the measurements cover 0.5–16 kHz.
+Method: listen to the clip first, then read its "→ hypothesis" and listen AGAIN for that specific quality. Judge every clip on its own line: a cue on one clip is not evidence about another clip, and a clip marked "clean" is judged by ear alone.
+- "frontal cue": this /s/ leaks energy below 4 kHz and its centre sits well under this speaker's own /s/ median — the signature of the tongue too far forward (interdental or dentalized). Listen again for a th-like, dull or muffled /s/. If you hear even a subtle version, mark Interdental or Dentalized with quality 25–60 — do not call it Accurate. Only if the /s/ is clearly crisp on a second listen, keep Accurate.
+- "lateral cue": smeared, diffuse spectrum with low-band leak at normal loudness — air escaping over the sides of the tongue. Listen again for a slushy, wet /s/.
+- "whistle cue": a narrow, steady tone above 6 kHz inside the /s/ noise — a whistling /s/. It may sit above your hearing range. If you hear ANY whistle or over-sharp, piercing edge, mark Whistling (quality 40–65); if not, keep your judgment but say in the Observation that a faint high whistle was measured.
+- "clean": this /s/ measures like the speaker's other /s/ sounds. You remain the judge, but a distortion here must be clearly audible before you mark it.
+- "PATTERN" prefix: the same cue appears on several of this speaker's /s/ sounds — treat it as real unless the clip is clearly crisp. "isolated" prefix: only this token measures oddly while the rest are clean — usually the recording, not the speaker; only mark it if you can hear it.
+- Missing line: the /s/ was too faint or short to measure — judge by ear alone.
+Fields: CoG (centre of gravity and its ratio to this speaker's /s/ median; ≤0.85 is a frontal cue), E(0.5-4/total) (low-band leak; clean /s/ ≈ 0.00–0.06, ≥0.15 is a cue), kurtosis (peakedness; ≤1 is diffuse), s/sh (CoG vs their own sh/ch/j; ≈1.0 or below supports frontal), s/th (CoG vs their own "th" reference words; ≤1.15 = the /s/ sits where their th sits), Q (tonal narrowness; ≥35 whistle-like), level-vs-vowel, dur, snr.
+Never transcribe a substitution you did not hear. Never mention numbers or technical terms in the Observation.`;
 
 function buildLispPrompt(words, speakerContext) {
   // Acoustics are optional (client ships ear-only since 2026-08-26); only inject
   // the Praat interpretation guide when at least one clip actually carries numbers.
   const hasAcoustics = (words || []).some(w => w && w.acoustics && typeof w.acoustics === 'object' && !w.acoustics.error);
-  const wordList = words.map((w, i) => `${i + 1}. ${w.word}${w.position ? ' (' + w.position + ')' : ''}`).join(', ');
+  const tag = (w) => w.type === 'sustained' ? 'sustained ~3 s' : w.type === 'th' ? 'th-reference' : w.type === 'rapid' ? 'rapid ×3' : (w.position || '');
+  const wordList = words.map((w, i) => `${i + 1}. ${w.word}${tag(w) ? ' (' + tag(w) + ')' : ''}`).join(', ');
   const country = speakerContext.country || 'Unspecified';
   const region = speakerContext.region || 'Unspecified';
   const voiceType = speakerContext.voiceType || 'unspecified';
+  const has = (t) => (words || []).some(w => w && w.type === t);
+  const elicitation = (has('sustained') || has('th') || has('rapid')) ? `
 
-  return `You are a speech-language pathologist conducting a sigmatism (lisp) assessment. The patient said ${words.length} words in sequence: ${wordList}.
+Special items in this list:${has('sustained') ? `
+- "sustained ~3 s": the patient holds a long "sss" (or "zzz") for about three seconds. Judge steadiness and quality across the whole hold — a whistle, a wet/slushy leak, or a th-like dullness is easiest to hear here. Heard = "sss" / "zzz" (or what you actually hear).` : ''}${has('th') ? `
+- "th-reference": ordinary words that really contain a "th" sound (thumb, bath…). They are NOT /s/ words. Mark Accurate with quality 90+ when the "th" is normal; use them as the reference for what THIS speaker's tongue-between-teeth sound is like, and compare their /s/ words against it. Never mark a th-reference word as a lisp because it sounds like "th".` : ''}${has('rapid') ? `
+- "rapid ×3": a word repeated three times as fast as possible (e.g. Mississippi). Judge whether the /s/ sounds stay clean under speed — a lisp that only appears here is real and should be marked (usually Quality 40–65).` : ''}` : '';
+
+  return `You are a speech-language pathologist conducting a sigmatism (lisp) assessment. The patient said ${words.length} items in sequence: ${wordList}.${elicitation}
 
 Speaker context (use this to interpret accent and acoustic norms):
 - Country: ${country}
@@ -167,16 +469,16 @@ Speaker context (use this to interpret accent and acoustic norms):
 
 Account for regional accent and voice type. Some dialects produce a softer /s/ — do NOT penalise that if it matches the dialect's expected production.
 
-You are provided with per-word audio clips in order. Judge as an experienced clinician: listen BY EAR${hasAcoustics ? ' and cross-check the acoustic measurements below' : ''}. For each /s/ and /z/, listen for: crisp and well-placed vs. slipping toward "th" (interdental), slushy/sideways airflow (lateral), muffled/dentalized, or whistling. Trust your trained ear${hasAcoustics ? '; use the numbers below only as corroborating evidence, never to overturn what you clearly hear' : ''}.
+You are provided with per-word audio clips in order. Judge as an experienced clinician: listen BY EAR${hasAcoustics ? ' and cross-check the acoustic measurements below' : ''}. For each /s/ and /z/, listen for: crisp and well-placed vs. slipping toward "th" (interdental), slushy/sideways airflow (lateral), muffled/dentalized, or whistling. Trust your trained ear${hasAcoustics ? '; the measurements below tell you WHERE to listen again and what to listen for — a cue you cannot confirm on a careful second listen stays Accurate, a cue you can hear even subtly does not' : ''}.
 ${hasAcoustics ? '\n' + ACOUSTIC_GUIDE + '\n' : ''}
 ## Output format
 Return a single markdown table with exactly ${words.length} rows (one per word, in the listed order) and these columns:
 | Word | Position | Heard | Judgment | Quality | Observation |
 
-   - Word: The target word
-   - Position: initial / medial / final
+   - Word: The target word (or item) exactly as listed
+   - Position: initial / medial / final (or the item tag: sustained / th-reference / rapid)
    - Heard: Exact transcription of what you heard. If the /s/ is clean and crisp, write the target word as-is.
-   - Judgment: Accurate / Interdental / Lateral / Dentalized / Palatal / Distorted / Omitted
+   - Judgment: Accurate / Interdental / Lateral / Dentalized / Palatal / Whistling / Distorted / Omitted
    - Quality: /s/ sound quality score 0-100 (100 = perfect crisp /s/, 0 = no /s/ at all). Clean productions should score 85+.
    - Observation: Brief clinical note (10-15 words)
 
@@ -192,27 +494,31 @@ If a clip is silent or you do not actually hear the word, mark "—" Heard, "Omi
 // Simple connected-speech prompt. No FFT, no transcription — just listen and
 // tell the patient WHERE the lisp showed up in each sentence.
 function buildSentencePrompt(words, speakerContext) {
+  const hasAcoustics = (words || []).some(w => w && w.acoustics && typeof w.acoustics === 'object' && !w.acoustics.error);
   const sentenceList = words.map((w, i) => `${i + 1}. "${w.word}"`).join('\n');
+  const hasFast = (words || []).some(w => w && w.speed === 'fast');
   const country = speakerContext.country || 'Unspecified';
   const region = speakerContext.region || 'Unspecified';
   const voiceType = speakerContext.voiceType || 'unspecified';
 
   return `You are a speech-language pathologist assessing connected speech for a sigmatism (lisp). The patient read these sentences aloud — one audio clip each, in this order:
 ${sentenceList}
-
+${hasFast ? `
+Sentences ending in "(fast)" were read a second time as quickly as possible, under a countdown. Compare each fast reading with the normal reading of the same sentence: a distortion that appears only at speed is a real, mild lisp — mark it (Quality 45–70) and say which words slipped. Do not penalise mere rushing, dropped word endings or breathlessness.
+` : ''}
 Speaker context (use to interpret accent and acoustic norms):
 - Country: ${country}
 - Region: ${region}
 - Voice type: ${voiceType}
 
 Listen to each clip as a whole. Focus on the sibilant sounds: /s/, /z/, "sh", "ch", "j". Do NOT transcribe the sentence. Judge how clear and natural the sibilants are in running speech, allowing for the speaker's regional accent. Do NOT penalise a softer /s/ if it matches the dialect.
-
+${hasAcoustics ? '\n' + ACOUSTIC_GUIDE + '\nFor sentences the [Praat acoustics] block lists one line per measured /s/ with its time offset — use the offsets to find WHERE to listen again.\n' : ''}
 ## Output format
 Return a single markdown table with exactly ${words.length} rows (one per sentence, in the listed order) and these columns:
 | Sentence | Judgment | Quality | Mistakes |
 
-   - Sentence: the target sentence (you may shorten with … if long)
-   - Judgment: Accurate / Interdental / Lateral / Dentalized / Palatal / Distorted. If you hear more than one distortion type, judge by the most dominant one — never write "Mixed".
+   - Sentence: the target sentence exactly as listed, including a trailing "(fast)" where present
+   - Judgment: Accurate / Interdental / Lateral / Dentalized / Palatal / Whistling / Distorted. If you hear more than one distortion type, judge by the most dominant one — never write "Mixed".
    - Quality: overall sibilant clarity for the whole sentence, 0-100 (100 = every sibilant crisp, clean speech should score 85+)
    - Mistakes: plain-language note of WHERE the lisp showed up — name the specific words or sounds the patient struggled with (e.g. "the 's' in 'sells' and 'seashells' sounded slushy"). If the sentence is clean, write "None — all sounds clear".
 
@@ -225,12 +531,16 @@ IMPORTANT: Use everyday language. No technical terms (no Hz, FFT, formant, spect
 // Spontaneous (free-speech monologue) prompt. Highest ecological validity:
 // the patient speaks unscripted, so sibilant control reflects everyday speech.
 // This is FLAGGED QUALITATIVELY — no per-word scoring, no numeric quality.
-function buildSpontaneousPrompt(speakerContext) {
+function buildSpontaneousPrompt(speakerContext, passageProbes) {
   const country = speakerContext.country || 'Unspecified';
   const region = speakerContext.region || 'Unspecified';
   const voiceType = speakerContext.voiceType || 'unspecified';
+  const quick = (passageProbes || []).filter(p => p && p.type === 'quickfire');
+  const intro = quick.length
+    ? `The patient answered ${quick.length} rapid-fire question${quick.length > 1 ? 's' : ''} (${quick.map(p => `"${p.word}"`).join(', ')}) with a visible countdown — a few seconds each, no time to prepare. Speaking under time pressure is where a mild or well-hidden lisp shows, so treat these clips as the most revealing sample${(passageProbes || []).length > quick.length ? ', alongside the free monologue' : ''}.`
+    : `The patient was given an open prompt ("Tell me about your weekend" or "Describe your favourite meal") and spoke freely for roughly 30–60 seconds. This unscripted monologue is the highest-validity sample because it reflects how the patient's sibilants hold up in real, everyday conversation rather than careful word reading.`;
 
-  return `You are a speech-language pathologist reviewing a SPONTANEOUS speech sample for a sigmatism (lisp). The patient was given an open prompt ("Tell me about your weekend" or "Describe your favourite meal") and spoke freely for roughly 30–60 seconds. This unscripted monologue is the highest-validity sample because it reflects how the patient's sibilants hold up in real, everyday conversation rather than careful word reading.
+  return `You are a speech-language pathologist reviewing a SPONTANEOUS speech sample for a sigmatism (lisp). ${intro}
 
 Speaker context (use to interpret accent and acoustic norms):
 - Country: ${country}
@@ -273,14 +583,22 @@ async function callGemini(parts, attempt = 1) {
   };
 
   console.log(`🤖 Sending request to Gemini...${attempt > 1 ? ` (attempt ${attempt}/${MAX_ATTEMPTS})` : ''}`);
+  const geminiT0 = Date.now();
   let resp;
+  const geminiReq = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
   try {
-    resp = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      dispatcher: geminiDispatcher // explicit — overrides built-in 300s headersTimeout
-    });
+    try {
+      resp = await fetch(geminiUrl, { ...geminiReq, dispatcher: geminiDispatcher }); // explicit — overrides built-in 300s headersTimeout
+    } catch (dispErr) {
+      // The bundled undici Agent is not accepted by every Node's built-in fetch
+      // (Node 24+: "invalid onError method"). Fall back to the default dispatcher
+      // rather than failing the whole report; the 300 s default still covers a
+      // normal Gemini round-trip.
+      const msg = String((dispErr && dispErr.cause && dispErr.cause.message) || (dispErr && dispErr.message) || '');
+      if (!/onError|dispatcher|InvalidArgument/i.test(msg)) throw dispErr;
+      console.warn('⚠️ undici dispatcher rejected by this runtime — retrying Gemini with the default fetch dispatcher');
+      resp = await fetch(geminiUrl, geminiReq);
+    }
   } catch (netErr) {
     // Network/transport failure — retry as transient.
     if (attempt < MAX_ATTEMPTS) {
@@ -331,7 +649,7 @@ async function callGemini(parts, attempt = 1) {
   console.log(`📊 Tokens — input: ${promptTokens} (audio: ${audioInput}, text: ${textInput}${otherInput ? ', other: ' + otherInput : ''}), thinking: ${thinkingTokens}, output: ${outputTokens}, total: ${totalTokens}`);
   console.log(`🏁 finishReason: ${finishReason}${finishReason === 'MAX_TOKENS' ? '  ⚠️ TRUNCATED — output budget exhausted' : ''}`);
   console.log(`💰 Cost — input: $${inputCost.toFixed(5)}, output: $${outputCost.toFixed(5)}, total: $${reportCost.toFixed(5)}/report  (≈ $${(reportCost * 1000).toFixed(2)} / 1k reports)`);
-  console.log('✅ Gemini analysis completed');
+  console.log(`✅ Gemini analysis completed in ${Date.now() - geminiT0} ms`);
   // Full model output — so failed parses / odd scores are debuggable in Cloud Logging.
   console.log('📄 Gemini raw response:\n' + rawText);
   return { rawText, usage: { promptTokens, audioInput, textInput, thinkingTokens, outputTokens, totalTokens, finishReason, reportCost } };
@@ -353,6 +671,44 @@ function buildAudioParts(prompt, words) {
     parts.push({ inline_data: { mime_type: mimeType, data: b64 } });
   });
   return parts;
+}
+
+// Server-side acoustics: POST the clips that arrived without measurements to
+// the Praat service (it locates the sibilants itself). Fail-open: on any error
+// the request continues ear-only and the coverage log says so. Hints tell the
+// service which sibilant each word carries (S/Z/SH/CH/JH) and whether a
+// sentence's sibilants are all /s,z/ (then its windows can be rule-scored).
+const PRAAT_URL = process.env.PRAAT_URL || 'https://extract-sibilant-metrics-653307587559.us-central1.run.app';
+const PRAAT_TIMEOUT_MS = Number(process.env.PRAAT_TIMEOUT_MS) || 25000; // warm ≈ 5–8 s; budget keeps part 1 < 60 s
+async function ensureAcoustics(probes) {
+  if (process.env.ACOUSTICS_SERVER === '0') return;
+  const need = (probes || []).filter(p => p && p.audio_base64 &&
+    !(p.acoustics && typeof p.acoustics === 'object' && !p.acoustics.error && acSegments(p.acoustics).length));
+  if (!need.length) return;
+  const t0 = Date.now();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), PRAAT_TIMEOUT_MS);
+  try {
+    const body = { words: need.map(p => {
+      const connected = acIsConnected(p);
+      const allS = connected && ((p.type === 'sentence' && acSentenceAllS(p.word)) || p.type === 'rapid');
+      return {
+        word: p.word, position: p.position || '', audio_base64: stripDataUrlPrefix(p.audio_base64),
+        label: connected ? (allS ? 'S' : 'X') : acLabelForWord(p.word, p.type), all_s: allS, expect: true
+      };
+    }) };
+    const resp = await fetch(PRAAT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: ctrl.signal });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const rows = await resp.json();
+    let attached = 0;
+    (Array.isArray(rows) ? rows : []).forEach((r, i) => {
+      const p = need[i];
+      if (p && r && typeof r === 'object' && String(r.word) === String(p.word)) { p.acoustics = r; attached++; }
+    });
+    console.log(`🔬 Praat server-side: ${attached}/${need.length} clips measured in ${Date.now() - t0} ms`);
+  } catch (e) {
+    console.warn(`🔬 Praat server-side FAILED after ${Date.now() - t0} ms (ear-only for ${need.length} clips):`, e.name === 'AbortError' ? 'timeout' : e.message);
+  } finally { clearTimeout(timer); }
 }
 
 async function analyzeWithGemini(words, speakerContext) {
@@ -383,7 +739,7 @@ ${sentencePrompt}
 `;
 
   if (nP) {
-    let part3 = buildSpontaneousPrompt(speakerContext);
+    let part3 = buildSpontaneousPrompt(speakerContext, passageProbes);
     // The spontaneous clip is now MFA-aligned (via Cloud STT) + Praat-measured,
     // so it carries the same high-frequency sibilant evidence the words do. Feed
     // it in as ground-truth for the >8 kHz band Gemini cannot hear.
@@ -429,7 +785,7 @@ ${sentencePrompt}
 `;
 
   if (nP) {
-    let part2 = buildSpontaneousPrompt(speakerContext);
+    let part2 = buildSpontaneousPrompt(speakerContext, passageProbes);
     // Same passage acoustics aggregate line combined mode feeds in — the >8 kHz
     // sibilant evidence Gemini cannot hear. Kept identical so results match.
     const acLines = passageProbes.map(p => formatAcoustics(p.acoustics)).filter(Boolean);
@@ -547,13 +903,13 @@ function parseSentenceTable(rawText, expectedCount) {
 
 // Tier titles — must match the client's ASSESSMENT_TIERS labels so the persisted
 // categories are identical to what the results page renders.
-const LISP_TIER_LABELS = { 1: 'Core /s/ & /z/', 2: 'Extended sibilants', 3: 'Connected speech', 4: 'Spontaneous sample' };
+const LISP_TIER_LABELS = { 1: 'Core /s/ & /z/', 2: 'Extended sibilants', 3: 'Connected speech', 4: 'Spontaneous sample', 5: 'Fast & sustained /s/' };
 
 // Group word/sentence/spontaneous rows into the tier categories the results page
 // renders. Mirrors buildStructuredResult() in assessment.html.
 function buildLispCategories(wordRows, sentenceRows, spontaneous) {
   const categories = [];
-  [1, 2].forEach(tid => {
+  [1, 2, 5].forEach(tid => {
     const rows = (wordRows || []).filter(r => r.tier === tid);
     if (!rows.length) return;
     const avg = Math.round(rows.reduce((s, r) => s + (r.quality || 0), 0) / rows.length);
@@ -609,12 +965,23 @@ function lispIdentityFields(user) {
 
 // Persist the completed analysis to lisp-users/{uid}. Merge-write so app-owned
 // fields are preserved (same as the old browser write).
-async function writeLispUserRecord(user, analysis) {
+async function writeLispUserRecord(user, analysis, survey) {
   try {
     if (!firestore) { console.warn('Firestore unavailable — skipping record write'); return; }
     if (!user || !user.uid) { console.warn('No uid in payload — skipping Firestore record write'); return; }
+    const s = survey || {};
+    const surveyFields = (s.trouble_words_response || s.age_group || s.found_on || s.first_name)
+      ? { survey: {
+          trouble_words_response: s.trouble_words_response || '',
+          age_group: s.age_group || '',
+          found_on: s.found_on || '',
+          first_name: s.first_name || '',
+          at: new Date().toISOString()
+        } }
+      : {};
     await firestore.collection('lisp-users').doc(String(user.uid)).set({
       ...lispIdentityFields(user),
+      ...surveyFields,
       latestAssessment: {
         gri: analysis.gri ?? null,
         categories: analysis.categories ?? [],
@@ -624,6 +991,13 @@ async function writeLispUserRecord(user, analysis) {
         // (connected) write clears it — a merge-write deep-merges the map and would
         // otherwise leave a stale partial:true behind.
         partial: !!analysis.partial,
+        // Speaker-level acoustic profile summary (flags/verdicts/capture), no per-token data.
+        acoustics: analysis.acoustics ?? null,
+        // Consented face video pointer (Storage path + manifest) and the camera
+        // placement check result, when the user opted in.
+        ...(analysis.outcome !== undefined ? { outcome: analysis.outcome } : {}),
+        ...(analysis.video !== undefined ? { video: analysis.video } : {}),
+        ...(analysis.placement !== undefined ? { placement: analysis.placement } : {}),
         completedAt: new Date().toISOString()
       },
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -870,7 +1244,8 @@ function buildLeadNoteBody(user, survey, report, speakerContext) {
     (r.gri != null ? r.gri : '—') + '/100' +
     (sum.lispDetected
       ? `, lisp detected on ${sum.lispWordCount} probe${sum.lispWordCount === 1 ? '' : 's'}`
-      : ', no lisp detected') + '</p>');
+      : ', no lisp detected') +
+    (sum.outcome && sum.outcome.tier ? ` · outcome: <b>${escHtml(sum.outcome.tier)}</b>${sum.outcome.type ? ' (' + escHtml(sum.outcome.type) + ')' : ''}${sum.outcome.reasons && sum.outcome.reasons.length ? ' — ' + escHtml(sum.outcome.reasons.join('; ')) : ''}` : '') + '</p>');
   const opener = buildOpener(user, survey, r);
   const wa = waLink(u, opener);
   parts.push('<p><strong>First touch</strong><br>' + escHtml(opener) +
@@ -1182,7 +1557,9 @@ async function ensureHubspotProperties() {
         { label: 'Signed in — not completed', value: 'signed_in' },
         { label: 'Recorded words — report unfinished', value: 'recorded_words' },
         { label: 'Opened checkout — not paid', value: 'checkout_opened' },
-        { label: 'Completed', value: 'completed' }
+        { label: 'Completed', value: 'completed' },
+        { label: 'Asked for a human listen', value: 'review_requested' },
+        { label: 'Reviewed by a coach', value: 'reviewed' }
       ] },
     { name: LEAD_PRODUCT_PROP, label: 'Assessment product', type: 'enumeration', fieldType: 'select',
       groupName: 'contactinformation',
@@ -1214,7 +1591,7 @@ async function ensureHubspotProperties() {
 // The sales exec's owner id — resolved once so tasks land assigned (assigned
 // tasks push to the HubSpot mobile app; unassigned ones just sit in the index).
 // Needs crm.objects.owners.read; failure → unassigned tasks, never a lost lead.
-const HUBSPOT_OWNER_EMAIL = process.env.HUBSPOT_OWNER_EMAIL || 'sara@topspeech.health';
+const HUBSPOT_OWNER_EMAIL = process.env.HUBSPOT_OWNER_EMAIL || 'neil@topspeech.health';
 let _ownerId = '';
 async function resolveOwnerId() {
   // Cache only a SUCCESSFUL resolve — a 403 (scope missing) must retry on the
@@ -1224,7 +1601,7 @@ async function resolveOwnerId() {
     const r = await hubspotGet('/crm/v3/owners/?limit=100');
     if (!r.ok) console.warn('owner resolve failed (leads land unassigned):', r.status, r.text.slice(0, 700));
     const owners = (r.ok && r.json && r.json.results) || [];
-    const match = owners.find(o => (o.email || '').toLowerCase() === HUBSPOT_OWNER_EMAIL.toLowerCase()) || owners[0];
+    const match = owners.find(o => (o.email || '').toLowerCase() === HUBSPOT_OWNER_EMAIL.toLowerCase());
     if (match) _ownerId = String(match.id);
     else console.warn('owner resolve: no owner matched', HUBSPOT_OWNER_EMAIL, '— got', owners.length, 'owners; raw:', r.text.slice(0, 300));
   } catch (e) { console.warn('owner resolve error (leads land unassigned):', e.message); }
@@ -1514,12 +1891,86 @@ module.exports._leadSync = { buildReportPdf, buildLeadNoteBody, normalizeParkedL
 
 // A word counts as a lisp hit when its judgment is a distortion type (matches the
 // results page Judgment column); Accurate/Unclear/Omitted are NOT hits.
-const LISP_HIT_JUDGMENTS = ['Interdental', 'Dentalized', 'Lateral', 'Distorted'];
-function deriveLispSummary(categories, gri) {
-  let lispDetected = false, lispWordCount = 0;
+const LISP_HIT_JUDGMENTS = ['Interdental', 'Dentalized', 'Lateral', 'Whistling', 'Distorted'];
+
+// Outcome tier (design panel, 2026-09-20). Turns rows + acoustic profile +
+// self-report + capture quality into ONE honest verdict the page can act on,
+// instead of asserting "clear" from a single sensor. Tiers: lisp_confident,
+// lisp_mild, inconclusive, clear_likely, clear_confident. OUTCOME_MODE:
+// off = not computed; shadow (default) = computed, persisted, sent to PostHog,
+// returned to the client but not required to render; on = client renders the card.
+const OUTCOME_MODE = process.env.OUTCOME_MODE || 'shadow';
+function deriveOutcome(wordRows, sentenceRows, acoustics, survey, all95) {
+  if (OUTCOME_MODE === 'off') return null;
+  const words = (wordRows || []).filter(r => r && r.tier !== 5);
+  const sents = sentenceRows || [];
+  const hitW = words.filter(r => LISP_HIT_JUDGMENTS.includes(r.judgment));
+  const hitS = sents.filter(r => LISP_HIT_JUDGMENTS.includes(r.judgment));
+  const stress = (wordRows || []).filter(r => r && r.tier === 5 && LISP_HIT_JUDGMENTS.includes(r.judgment));
+  const ac = acoustics && typeof acoustics === 'object' ? acoustics : {};
+  const verdicts = Array.isArray(ac.verdicts) ? ac.verdicts : [];
+  const flags = ac.flags || {};
+  const self = String((survey && survey.trouble_words_response) || '');
+  const quiet = !!(ac.capture && ac.capture.quiet);
+  const mode = (arr) => { const c = {}; arr.forEach(r => { c[r.judgment] = (c[r.judgment] || 0) + 1; }); return Object.keys(c).sort((a, b) => c[b] - c[a])[0] || null; };
+  const out = { tier: null, type: null, reason: null, reasons: [], needs_live_check: false, self_report_conflict: false, capture_quiet: quiet, flat_report: !!all95, ear_hits: hitW.length + hitS.length, stress_hits: stress.length, acoustic_verdicts: verdicts };
+  if (hitW.length >= 3 || hitS.length >= 2) {
+    out.tier = 'lisp_confident'; out.type = mode(hitW.concat(hitS)); out.reason = 'ear'; out.reasons.push(`${hitW.length} word${hitW.length === 1 ? '' : 's'} and ${hitS.length} sentence${hitS.length === 1 ? '' : 's'} showed a distortion`);
+  } else if (hitW.length >= 1 || hitS.length >= 1 || stress.length >= 2) {
+    out.tier = 'lisp_mild'; out.type = mode(hitW.concat(hitS, stress)); out.reason = hitW.length || hitS.length ? 'ear' : 'stress'; out.reasons.push(stress.length && !hitW.length && !hitS.length ? 'clean on single words; slipped on the fast and sustained items' : 'a few sounds slipped');
+  } else if (verdicts.some(v => /frontal|lateral|weak/.test(v))) {
+    out.tier = 'inconclusive'; out.reason = 'acoustic'; out.needs_live_check = true; out.reasons.push('the listener heard clean sounds, but the recording measured a repeated forward or sideways airflow pattern');
+  } else if ((flags.whistle || 0) >= 2 || verdicts.includes('whistle')) {
+    out.tier = 'inconclusive'; out.reason = 'possible_whistle'; out.needs_live_check = true; out.reasons.push('a high whistle was measured on more than one s-sound');
+  } else if (/noticeable|significant/.test(self)) {
+    out.tier = 'inconclusive'; out.reason = 'self_report'; out.needs_live_check = true; out.self_report_conflict = true; out.reasons.push('you said you notice it; these recordings did not show it');
+  } else if (quiet || all95) {
+    out.tier = 'clear_likely'; out.reason = quiet ? 'quiet_capture' : 'flat_report'; out.reasons.push(quiet ? 'the recording was very quiet' : 'every item scored the same');
+  } else if (/slight|not_sure/.test(self)) {
+    out.tier = 'clear_likely'; out.reason = 'self_report_unsure'; out.reasons.push('nothing showed in these recordings');
+  } else {
+    out.tier = 'clear_confident'; out.reason = 'clean'; out.reasons.push('single words, fast items and sentences all stayed clear');
+  }
+  if (/^lisp_/.test(out.tier) && /none/.test(self)) out.self_report_conflict = true;
+  return out;
+}
+
+// "I can still hear it" — the results page's escape hatch. Marks the record for
+// a human listen, opens a rep task and fires PostHog. QA runs never create tasks.
+async function requestHumanReview(body) {
+  const user = body.user || {};
+  const uid = String(user.uid || body.uid || '').trim();
+  const email = String(user.email || body.email || '').trim().toLowerCase();
+  const reason = String(body.reason || 'user_disagrees').slice(0, 200);
+  const at = new Date().toISOString();
+  if (firestore && uid) {
+    await firestore.collection('lisp-users').doc(uid).set({ review: { status: 'requested', reason, requestedAt: at } }, { merge: true });
+  }
+  if (HUBSPOT_TOKEN && email && body.test !== true) {
+    try {
+      await ensureHubspotProperties();
+      const up = await upsertLeadContact(email, { email, [LEAD_STATUS_PROP]: 'review_requested', [LEAD_PRODUCT_PROP]: 'lisp' });
+      const contactId = leadContactId(up);
+      if (contactId) {
+        await attachLeadNote(contactId, `<p>👂 <b>Asked for a human listen</b> — "${escHtml(reason)}". Reply within 24 h with what you hear.</p>`);
+        await createLeadTask(contactId, `👂 ${email} says the test missed their lisp — listen and reply within 24 h`,
+          `Reason: ${reason}\nOpen the record in lisp-label-ui (uid ${uid}) and listen to the flagged clips; reply by email with what you hear and whether it is worth working on.`);
+      }
+    } catch (e) { console.warn('review_request HubSpot error:', e.message); }
+  }
+  try {
+    const distinctId = user.posthogId;
+    if (distinctId) await fetch(`${POSTHOG_HOST}/capture/`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: POSTHOG_KEY, event: 'review_requested', distinct_id: distinctId, properties: { reason, product: 'lisp' } }) });
+  } catch (e) { /* best-effort */ }
+  return { ok: true, status: 'requested' };
+}
+function deriveLispSummary(categories, gri, acoustics) {
+  let lispDetected = false, lispWordCount = 0, scored = 0, all95 = true;
   const lispWords = [];
   (categories || []).forEach(cat => {
     (cat.rows || []).forEach(row => {
+      if (typeof row.quality === 'number') { scored++; if (row.quality !== 95) all95 = false; }
       if (LISP_HIT_JUDGMENTS.includes(row.judgment)) {
         lispDetected = true;
         lispWordCount++;
@@ -1528,8 +1979,21 @@ function deriveLispSummary(categories, gri) {
       }
     });
   });
-  return { lispDetected, lispWordCount, lispWords, lispGri: (typeof gri === 'number' ? gri : null) };
+  const ac = acoustics && typeof acoustics === 'object' ? acoustics : null;
+  const flags = ac && ac.flags ? Object.values(ac.flags).reduce((a, b) => a + (Number(b) || 0), 0) : null;
+  return {
+    lispDetected, lispWordCount, lispWords, lispGri: (typeof gri === 'number' ? gri : null),
+    all95: scored > 0 && all95,
+    acousticVerdicts: ac ? (ac.verdicts || []) : null,
+    acousticFlagCount: flags,
+    acousticsCoverage: ac ? `${ac.coverage}/${ac.clips}` : null,
+    acousticsCalibrated: ac ? !!ac.calibrated : null,
+    capturePeakDbfs: ac && ac.capture ? ac.capture.minPeakDbfs : null,
+    faceVideo: !!(ac && ac.placement),
+    placementForward: ac && ac.placement ? (ac.placement.forward || 0) : null
+  };
 }
+function acousticsHasVideo(summary) { return !!(summary && summary.faceVideo); }
 
 // Fire the 'assessment_completed' PostHog event server-side. The browser used to do
 // this, but the Gemini call takes 1–2 min and users often leave first, so the client
@@ -1551,7 +2015,21 @@ async function sendPosthogAssessmentCompleted(user, survey, summary) {
       lisp_word_count: summary.lispWordCount,
       lisp_words: summary.lispWords,
       lisp_gri: summary.lispGri,
+      all_95: summary.all95,
+      acoustic_verdicts: summary.acousticVerdicts,
+      acoustic_flag_count: summary.acousticFlagCount,
+      acoustics_coverage: summary.acousticsCoverage,
+      acoustics_calibrated: summary.acousticsCalibrated,
+      capture_peak_dbfs: summary.capturePeakDbfs,
+      face_video: !!(acousticsHasVideo(summary)),
+      placement_forward: summary.placementForward,
+      outcome_tier: summary.outcome ? summary.outcome.tier : null,
+      outcome_type: summary.outcome ? summary.outcome.type : null,
+      outcome_reason: summary.outcome ? summary.outcome.reason : null,
+      self_report_conflict: summary.outcome ? summary.outcome.self_report_conflict : null,
+      needs_live_check: summary.outcome ? summary.outcome.needs_live_check : null,
       $set: {
+        ...(summary.outcome ? { outcome_tier: summary.outcome.tier } : {}),
         lisp_detected: summary.lispDetected,
         lisp_word_count: summary.lispWordCount,
         lisp_gri: summary.lispGri,
@@ -1568,6 +2046,139 @@ async function sendPosthogAssessmentCompleted(user, survey, summary) {
     else console.log('✅ PostHog assessment_completed sent for', distinctId);
   } catch (err) {
     console.error('❌ PostHog capture error:', err);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Face-video placement check ("placement classifier v1", 2026-09-20). The client
+// uploads one consented full-face video per session plus per-item marks. For the
+// tokens the acoustics flagged, pull three mouth frames at the /s/ instant and
+// ask Gemini vision where the tongue is. Camera evidence only ever ADDS a note
+// (or, when it agrees with the acoustics on ≥2 tokens, applies the same bounded
+// cap fuseAcoustics uses) — it never overrides the ear on its own.
+const FACE_BUCKET = process.env.FACE_VIDEO_BUCKET || 'rollr-academy.firebasestorage.app';
+const PLACEMENT_MAX_TOKENS = 6;
+let _ffmpegPath = null;
+function ffmpegPath() {
+  if (_ffmpegPath !== null) return _ffmpegPath;
+  try { _ffmpegPath = require('@ffmpeg-installer/ffmpeg').path; } catch (e) { _ffmpegPath = ''; }
+  return _ffmpegPath;
+}
+function runFfmpeg(args, timeoutMs) {
+  const { spawn } = require('child_process');
+  return new Promise((resolve, reject) => {
+    const bin = ffmpegPath();
+    if (!bin) return reject(new Error('ffmpeg unavailable'));
+    const child = spawn(bin, args, { stdio: ['ignore', 'ignore', 'pipe'] });
+    let err = '';
+    child.stderr.on('data', d => { err += d; });
+    const timer = setTimeout(() => { child.kill('SIGKILL'); reject(new Error('ffmpeg timeout')); }, timeoutMs || 20000);
+    child.on('error', e => { clearTimeout(timer); reject(e); });
+    child.on('close', code => { clearTimeout(timer); code === 0 ? resolve() : reject(new Error('ffmpeg exit ' + code + ': ' + err.slice(-200))); });
+  });
+}
+// Candidate tokens = acoustically flagged /s/ moments with a known clip window
+// and a video mark for that item. Time in the video = mark.start + recorder
+// latency + window midpoint.
+function placementCandidates(video, wordRows, sentenceProbes) {
+  const marks = new Map();
+  (video.marks || []).forEach(m => { if (m && m.word != null && m.start != null) marks.set(String(m.word), m); });
+  const lat = Number(video.recorderLatencyMs) || 150;
+  const out = [];
+  (wordRows || []).forEach(r => {
+    if (!r || !r.acoustic || /whistle/.test(r.acoustic) || r.s_start == null) return;
+    const m = marks.get(String(r.word)); if (!m) return;
+    const mid = (Number(r.s_start) + Number(r.s_end != null ? r.s_end : r.s_start)) / 2;
+    out.push({ key: 'w:' + r.word, label: r.word, kind: r.acoustic, tMs: m.start + lat + mid * 1000, row: r });
+  });
+  (sentenceProbes || []).forEach(p => {
+    const m = marks.get(String(p.word)); if (!m) return;
+    acSegments(p.acoustics).forEach(sg => {
+      if (!sg.ac || !(sg.ac.frontal || sg.ac.lateral) || sg.start == null) return;
+      const mid = (Number(sg.start) + Number(sg.end != null ? sg.end : sg.start)) / 2;
+      out.push({ key: 's:' + p.word + '@' + sg.start, label: `"${String(p.word).slice(0, 40)}" at ${Number(sg.start).toFixed(1)} s`, kind: sg.ac.frontal ? 'frontal' : 'lateral', tMs: m.start + lat + mid * 1000, probe: p, seg: sg });
+    });
+  });
+  out.sort((a, b) => (a.kind === 'frontal' ? 0 : 1) - (b.kind === 'frontal' ? 0 : 1));
+  return out.slice(0, PLACEMENT_MAX_TOKENS);
+}
+const PLACEMENT_PROMPT = `You are a speech-language pathologist reviewing still frames from a front-facing phone camera. Each token below shows three consecutive frames (about 80 ms apart) captured at the instant the speaker produced an /s/ sound in the word or sentence named. Look only at the mouth: tongue tip, front teeth, jaw and lips.
+Classify the tongue placement for each token:
+- "interdental": tongue tip visibly between or beyond the front teeth.
+- "dentalized": tongue tip pressed against the back of the upper front teeth, visible at the gum line through slightly parted teeth.
+- "behind-teeth": teeth close together, tongue not visible — normal /s/ posture.
+- "lateral-cue": clear jaw or lip asymmetry, or the tongue visible at one side.
+- "unclear": mouth not visible, blurred, hand or phone in the way, or the frames are not on an /s/.
+Return ONLY a JSON array, one object per token in order: [{"token": 1, "placement": "interdental|dentalized|behind-teeth|lateral-cue|unclear", "confidence": 0.0-1.0, "note": "at most 12 plain words"}]`;
+async function placementCheck(video, wordRows, sentenceProbes) {
+  const result = { checked: 0, forward: 0, normal: 0, unclear: 0, lateral: 0, tokens: [], error: null };
+  if (!video || !video.path) return null;
+  const cands = placementCandidates(video, wordRows, sentenceProbes);
+  if (!cands.length) { result.note = 'no flagged /s/ tokens with a video mark'; return result; }
+  const fs = require('fs'), os = require('os'), path = require('path');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'face-'));
+  const t0 = Date.now();
+  try {
+    const ext = /mp4/.test(String(video.mime || video.path)) ? 'mp4' : 'webm';
+    const local = path.join(dir, 'face.' + ext);
+    await admin.storage().bucket(FACE_BUCKET).file(String(video.path)).download({ destination: local });
+    const parts = [{ text: PLACEMENT_PROMPT }];
+    let n = 0;
+    for (const c of cands) {
+      const frames = [];
+      for (const off of [-80, 0, 80]) {
+        const t = Math.max(0, c.tMs + off) / 1000;
+        const out = path.join(dir, `f${n}_${off + 80}.jpg`);
+        try {
+          await runFfmpeg(['-y', '-loglevel', 'error', '-ss', t.toFixed(3), '-i', local, '-frames:v', '1', '-vf', 'scale=480:-2', '-q:v', '5', out], 15000);
+          if (fs.existsSync(out) && fs.statSync(out).size > 2000) frames.push(fs.readFileSync(out).toString('base64'));
+        } catch (e) { /* frame missing — token may still have others */ }
+      }
+      if (!frames.length) continue;
+      n++;
+      c.token = n;
+      parts.push({ text: `\nToken ${n}: /s/ in ${c.label} (acoustic cue: ${c.kind}) — ${frames.length} frame(s)` });
+      frames.forEach(b64 => parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64 } }));
+    }
+    if (!n) { result.note = 'no frames could be extracted'; return result; }
+    const { rawText } = await callGemini(parts);
+    const m = String(rawText || '').match(/\[[\s\S]*\]/);
+    const arr = m ? JSON.parse(m[0]) : [];
+    const byToken = new Map(); (Array.isArray(arr) ? arr : []).forEach(x => { if (x && x.token != null) byToken.set(Number(x.token), x); });
+    cands.filter(c => c.token).forEach(c => {
+      const v = byToken.get(c.token) || {};
+      const placement = String(v.placement || 'unclear').toLowerCase();
+      const conf = Math.max(0, Math.min(1, Number(v.confidence) || 0));
+      result.checked++;
+      const forward = (placement === 'interdental' || placement === 'dentalized') && conf >= 0.6;
+      const normal = placement === 'behind-teeth' && conf >= 0.7;
+      if (forward) result.forward++; else if (normal) result.normal++; else if (placement === 'lateral-cue' && conf >= 0.6) result.lateral++; else result.unclear++;
+      result.tokens.push({ label: c.label, cue: c.kind, placement, confidence: conf, note: String(v.note || '').slice(0, 120) });
+      const note = forward ? (placement === 'interdental' ? 'Camera: the tongue tip is visible between the teeth on this s-sound.' : 'Camera: the tongue is pressed against the front teeth on this s-sound.')
+        : normal ? 'Camera: tongue placement looked normal on this s-sound — worth checking live.' : '';
+      if (!note) return;
+      const target = c.row || null;
+      if (target) target.observation = `${target.observation || ''} ${note}`.trim();
+      else if (c.probe) { c.probe.placementNote = `${c.probe.placementNote || ''} ${note}`.trim(); }
+    });
+    // Camera + acoustics agreeing on ≥2 tokens is strong: apply the same bounded
+    // cap fuseAcoustics uses when the ear still says clean.
+    if (result.forward >= 2) {
+      cands.filter(c => c.row && c.token).forEach(c => {
+        const t = result.tokens.find(x => x.label === c.label);
+        if (!t || !/interdental|dentalized/.test(t.placement)) return;
+        if (/^accurate$/i.test(String(c.row.judgment || '')) && (Number(c.row.quality) || 0) > AC_CAP_QUALITY) { c.row.quality = AC_CAP_QUALITY; c.row.judgment = t.placement === 'interdental' ? 'Interdental' : 'Dentalized'; c.row.acoustic = (c.row.acoustic || '') + '+camera'; }
+      });
+    }
+    result.ms = Date.now() - t0;
+    console.log(`🎥 placement check: ${result.checked} tokens (forward ${result.forward}, normal ${result.normal}, unclear ${result.unclear}) in ${result.ms} ms`);
+    return result;
+  } catch (e) {
+    console.warn('🎥 placement check failed:', e.message);
+    result.error = e.message;
+    return result;
+  } finally {
+    try { fs.rmSync(dir, { recursive: true, force: true }); } catch (e) {}
   }
 }
 
@@ -1659,7 +2270,8 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         if (a && !a.partial && Array.isArray(a.categories) && a.categories.length) {
           return res.status(200).json({
             status: 'ready',
-            latestAssessment: { gri: a.gri ?? null, categories: a.categories, result: a.result || '', completedAt: a.completedAt || null }
+            latestAssessment: { gri: a.gri ?? null, categories: a.categories, result: a.result || '', completedAt: a.completedAt || null, outcome: a.outcome || null, acoustics: a.acoustics || null },
+            review: d.review || null
           });
         }
         // Report a genuine failure only when it's newer than the current partial write
@@ -1711,6 +2323,12 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         return res.status(200).json({ ok: true });
       }
 
+      // "I can still hear it" beacon from the results page → human review queue.
+      if (req.body && req.body.beacon === 'review_request') {
+        try { return res.status(200).json(await requestHumanReview(req.body)); }
+        catch (e) { console.error('review beacon error:', e.message); return res.status(200).json({ ok: false }); }
+      }
+
       const { words, voiceType, mode } = req.body || {};
       if (!Array.isArray(words) || !words.length) {
         return res.status(400).json({ error: 'words array required' });
@@ -1742,35 +2360,38 @@ functions.http('analyzeLispSpeech', async (req, res) => {
       // Praat coverage: shows in Cloud logs whether acoustic metrics reached Gemini,
       // how many clips carried them, and a sample line. If Praat was down the client
       // falls back to ear-only silently — this makes that visible here.
+      const acClient = words.filter(w => w.acoustics && !w.acoustics.error).length;
+      if (mode !== 'sentences') await ensureAcoustics(words);
+      const part1Ac = (req.body && req.body.part1 && req.body.part1.acoustics) || {};
+      const acProfile = acousticProfile(words, { sMedianHz: part1Ac.sMedianHz, wordFlags: part1Ac.flags });
       const acWith = words.filter(w => w.acoustics && !w.acoustics.error).length;
       const acErr = words.filter(w => w.acoustics && w.acoustics.error).length;
-      const acSample = words.find(w => w.acoustics && !w.acoustics.error);
       console.log(
         acWith
-          ? `🔬 Praat acoustics RECEIVED: ${acWith}/${words.length} clips` +
-            (acErr ? `, ${acErr} errored` : '') +
-            ` | sample: ${formatAcoustics(acSample.acoustics)}`
+          ? `🔬 Praat acoustics: ${acWith}/${words.length} clips (${acClient} from client${acErr ? `, ${acErr} errored` : ''}) | profile: ${JSON.stringify(acousticSummary(acProfile))}`
           : `🔬 Praat acoustics MISSING on all ${words.length} clips — Gemini running EAR-ONLY`
       );
 
       if (mode === 'combined') {
-        const wordProbes = words.filter(w => w.type !== 'sentence' && w.type !== 'passage');
+        const wordProbes = words.filter(w => !acIsConnected(w) || w.type === 'rapid');
         const sentenceProbes = words.filter(w => w.type === 'sentence');
-        const passageProbes = words.filter(w => w.type === 'passage');
+        const passageProbes = words.filter(w => acIsPassageLike(w));
         const { rawText, usage } = await analyzeCombinedWithGemini(wordProbes, sentenceProbes, passageProbes, speakerContext);
         const { wordPart, sentencePart, spontaneousPart } = splitCombinedResponse(rawText);
         const wordParsed = parseGeminiTable(wordPart, wordProbes.length);
         const sentenceParsed = parseSentenceTable(sentencePart, sentenceProbes.length);
         const spontaneous = passageProbes.length ? parseSpontaneous(spontaneousPart) : null;
-        // GRI from scored probes only (words + sentences); spontaneous excluded.
-        const allQ = wordParsed.words.concat(sentenceParsed.rows).map(r => r.quality || 0);
-        const gri = allQ.length ? Math.max(0, Math.min(100, Math.round(allQ.reduce((a, b) => a + b, 0) / allQ.length))) : 0;
-
+        const acCapped = fuseAcoustics(wordParsed.words, wordProbes, acProfile) + fuseAcoustics(sentenceParsed.rows, sentenceProbes, acProfile);
+        const acoustics = acousticSummary(acProfile, acCapped);
         // Attach each word's tier (from the probe metadata) so rows group into the
         // same category structure the results page renders and persists.
         const tierByWord = {};
         wordProbes.forEach(p => { if (p.word != null) tierByWord[p.word] = p.tier || 1; });
         const wordRows = wordParsed.words.map(r => ({ ...r, tier: tierByWord[r.word] || 1 }));
+        // GRI from scored probes only (core words + sentences); the stress set
+        // (tier 5) and the spontaneous sample are excluded.
+        const allQ = wordRows.filter(r => r.tier !== 5).concat(sentenceParsed.rows).map(r => r.quality || 0);
+        const gri = allQ.length ? Math.max(0, Math.min(100, Math.round(allQ.reduce((a, b) => a + b, 0) / allQ.length))) : 0;
         const categories = buildLispCategories(wordRows, sentenceParsed.rows, spontaneous);
         const result = lispStructuredToMarkdown(categories);
 
@@ -1778,8 +2399,10 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         // both land even if the user already closed the tab — the browser no longer
         // does either. Awaited before the response so they complete regardless of the
         // client still listening.
-        const lispSummary = deriveLispSummary(categories, gri);
-        await writeLispUserRecord(req.body && req.body.user, { gri, categories, result });
+        const lispSummary = deriveLispSummary(categories, gri, acoustics);
+        const outcome = deriveOutcome(wordRows, sentenceParsed.rows, acoustics, req.body && req.body.survey, lispSummary.all95);
+        lispSummary.outcome = outcome;
+        await writeLispUserRecord(req.body && req.body.user, { gri, categories, result, acoustics, outcome }, req.body && req.body.survey);
         await sendPosthogAssessmentCompleted(req.body && req.body.user, req.body && req.body.survey, lispSummary);
         // Consume the assessment (combined delivers part 1 in one shot).
         await recordPersonAssessment(req.body && req.body.user, personId, entTier, { gri, partial: false });
@@ -1792,7 +2415,7 @@ functions.http('analyzeLispSpeech', async (req, res) => {
             { gri, categories, result, summary: lispSummary }, speakerContext);
         }
 
-        return res.status(200).json({ words: wordRows, rows: sentenceParsed.rows, spontaneous, gri, mode: 'combined', usage });
+        return res.status(200).json({ words: wordRows, rows: sentenceParsed.rows, spontaneous, gri, acoustics, outcome, mode: 'combined', usage });
       }
 
       // Part 2 of the split flow: connected speech (sentences) + spontaneous sample.
@@ -1803,23 +2426,44 @@ functions.http('analyzeLispSpeech', async (req, res) => {
       // sentence-informed summary.
       if (mode === 'connected') {
         const sentenceProbes = words.filter(w => w.type === 'sentence');
-        const passageProbes = words.filter(w => w.type === 'passage');
+        const passageProbes = words.filter(w => acIsPassageLike(w));
         const { rawText, usage } = await analyzeConnectedWithGemini(sentenceProbes, passageProbes, speakerContext);
         const { sentencePart, spontaneousPart } = splitCombinedResponse(rawText);
         const sentenceParsed = parseSentenceTable(sentencePart, sentenceProbes.length);
         const spontaneous = passageProbes.length ? parseSpontaneous(spontaneousPart) : null;
+        const acCapped = fuseAcoustics(sentenceParsed.rows, sentenceProbes, acProfile);
+        const acoustics = acousticSummary(acProfile, acCapped);
+        // Part-1 acoustics summary (words) rides along from the client so the
+        // persisted record carries both halves.
+        if (req.body.part1 && req.body.part1.acoustics && typeof req.body.part1.acoustics === 'object') acoustics.part1 = req.body.part1.acoustics;
 
         const part1Rows = (req.body.part1 && Array.isArray(req.body.part1.words)) ? req.body.part1.words : [];
+        // Consented face video: keep the pointer, then (if anything was flagged)
+        // look at the mouth at those instants. Best-effort, never blocks the report.
+        const videoIn = req.body.video && typeof req.body.video === 'object' && req.body.video.path ? req.body.video : null;
+        const video = videoIn ? { path: String(videoIn.path), manifest: String(videoIn.manifest || ''), mime: String(videoIn.mime || ''), width: videoIn.width || null, height: videoIn.height || null, fps: videoIn.fps || null, consentVersion: String(videoIn.consentVersion || ''), marks: Array.isArray(videoIn.marks) ? videoIn.marks.length : 0 } : null;
+        let placement = null;
+        if (videoIn) {
+          placement = await placementCheck(videoIn, part1Rows, sentenceProbes);
+          // Sentence-level camera notes land in the Mistakes column.
+          sentenceProbes.forEach((p, i) => { const r = sentenceParsed.rows[i]; if (p.placementNote && r) r.mistakes = (/^none/i.test(r.mistakes || '') ? p.placementNote : `${r.mistakes || ''} ${p.placementNote}`).trim(); });
+          if (acoustics) acoustics.placement = placement;
+        }
         const categories = buildLispCategories(part1Rows, sentenceParsed.rows, spontaneous);
-        // GRI over scored probes (words + sentences); spontaneous excluded.
-        const allQ = part1Rows.concat(sentenceParsed.rows).map(r => r.quality || 0);
+        // GRI over scored probes (core words + sentences); stress set + spontaneous excluded.
+        const allQ = part1Rows.filter(r => r && r.tier !== 5).concat(sentenceParsed.rows).map(r => r.quality || 0);
         const gri = allQ.length ? Math.max(0, Math.min(100, Math.round(allQ.reduce((a, b) => a + b, 0) / allQ.length))) : 0;
         const result = lispStructuredToMarkdown(categories);
 
+        const lispSummary = deriveLispSummary(categories, gri, acoustics);
+        // Part 2 re-derives the outcome with sentences + camera evidence; the
+        // client can show "updated" when the tier moved.
+        const outcome = deriveOutcome(part1Rows, sentenceParsed.rows, acoustics, req.body && req.body.survey, lispSummary.all95);
+        if (outcome && req.body.part1 && req.body.part1.outcome && req.body.part1.outcome.tier) outcome.changedFromPart1 = req.body.part1.outcome.tier !== outcome.tier;
+        lispSummary.outcome = outcome;
         // Full record — clears the partial flag set by the mode:'words' persist write.
-        await writeLispUserRecord(req.body && req.body.user, { gri, categories, result });
+        await writeLispUserRecord(req.body && req.body.user, { gri, categories, result, acoustics, outcome, video, placement }, req.body && req.body.survey);
         // PostHog fires HERE (part-2 completion) with sentence-level detections included.
-        const lispSummary = deriveLispSummary(categories, gri);
         await sendPosthogAssessmentCompleted(req.body && req.body.user, req.body && req.body.survey, lispSummary);
         // HubSpot lead sync: contact + report note + PDF. Self-swallowing — see
         // sendLeadAlert. QA runs (?test=1 / replay suite) are never leads.
@@ -1828,7 +2472,7 @@ functions.http('analyzeLispSpeech', async (req, res) => {
             { gri, categories, result, summary: lispSummary }, speakerContext);
         }
 
-        return res.status(200).json({ rows: sentenceParsed.rows, spontaneous, gri, mode: 'connected', usage });
+        return res.status(200).json({ rows: sentenceParsed.rows, spontaneous, gri, acoustics, placement, outcome, words: part1Rows, mode: 'connected', usage });
       }
 
       if (mode === 'sentences') {
@@ -1840,11 +2484,19 @@ functions.http('analyzeLispSpeech', async (req, res) => {
       // Words mode (default) — part 1 of the split flow (single words, tiers 1–2).
       const { rawText, usage } = await analyzeWithGemini(words, speakerContext);
       const parsed = parseGeminiTable(rawText, words.length);
+      const acCapped = fuseAcoustics(parsed.words, words, acProfile);
+      const acoustics = acousticSummary(acProfile, acCapped);
       // Attach each word's tier from the probe metadata so rows group into the same
       // tier categories the results page renders (mirrors the combined branch).
       const tierByWord = {};
       words.forEach(p => { if (p.word != null) tierByWord[p.word] = p.tier || 1; });
       const wordRows = parsed.words.map(r => ({ ...r, tier: tierByWord[r.word] || 1 }));
+      // Part-1 GRI over core words only (stress set excluded), recomputed after the fuse.
+      {
+        const q = wordRows.filter(r => r.tier !== 5).map(r => r.quality || 0);
+        parsed.gri = q.length ? Math.max(0, Math.min(100, Math.round(q.reduce((a, b) => a + b, 0) / q.length))) : parsed.gri;
+      }
+      const outcome = deriveOutcome(wordRows, [], acoustics, req.body && req.body.survey, wordRows.length > 0 && wordRows.every(r => r.quality === 95));
 
       // Opt-in persist: write a PARTIAL Firestore record now so a record exists even
       // if the user bails before the deferred part-2 (connected) call completes. The
@@ -1858,8 +2510,10 @@ functions.http('analyzeLispSpeech', async (req, res) => {
           gri: wgri,
           categories: wordsOnlyCategories,
           result: lispStructuredToMarkdown(wordsOnlyCategories),
+          acoustics,
+          outcome,
           partial: true
-        });
+        }, req.body && req.body.survey);
       }
 
       // PART 1 delivered (words + clusters) → the agreed "assessment consumed"
@@ -1876,7 +2530,7 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         await setLeadStatus(req.body && req.body.user, 'recorded_words');
       }
 
-      res.status(200).json({ ...parsed, words: wordRows, mode: 'words', usage });
+      res.status(200).json({ ...parsed, words: wordRows, acoustics, outcome, mode: 'words', usage });
     } catch (err) {
       // Attach request context so failures are traceable (req.body vars are out of catch scope).
       const { mode: failMode, words: failWords, voiceType: failVoice } = req.body || {};
