@@ -4502,7 +4502,7 @@
             updateRecordButton();
             // Camera is on by default (approved design): open the preview as soon as the
             // recording step shows so the live framing hint runs before the first tap.
-            setTimeout(() => { try { if (cam.consent && !cam.rec && !cam.starting) camStart(); } catch (e) {} }, 0);
+            setTimeout(() => { try { if (cam.consent && !cam.stream && !cam.starting) camStart({ record: false }); } catch (e) {} }, 0);
         }
 
         // Build the VU meter bars
@@ -4875,12 +4875,20 @@
             if (st) st.textContent = state === 'on' ? ('REC face' + (cam.width ? ' ' + cam.width + '×' + cam.height : '')) : state === 'blocked' ? 'Camera blocked, audio only' : 'Camera off, audio only';
         }
         function camSetStatus() { camRender(cam.state || 'on'); }
-        async function camStart() {
-            if (cam.rec || cam.starting || !cam.consent || !navigator.mediaDevices || !window.MediaRecorder) return cam.starting;
-            cam.starting = camStartInner().finally(() => { cam.starting = null; });
-            return cam.starting;
+        // camStart(): opens the preview (getUserMedia + live framing hint). With
+        // record !== false it also starts the MediaRecorder — the recording step
+        // opens the preview on entry and the first tap starts the recorder, so the
+        // saved video begins with the first take rather than idle framing time.
+        async function camStart(opts) {
+            const record = !(opts && opts.record === false);
+            if (cam.rec || !cam.consent || !navigator.mediaDevices || !window.MediaRecorder) return;
+            if (!cam.stream) {
+                if (!cam.starting) cam.starting = camOpenPreview().finally(() => { cam.starting = null; });
+                await cam.starting;
+            }
+            if (record && cam.stream && !cam.rec && cam.consent) camRecordStart();
         }
-        async function camStartInner() {
+        async function camOpenPreview() {
             try {
                 cam.stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } }, audio: false
@@ -4891,11 +4899,18 @@
                 asmtTrack('web_assessment_camera', { status: 'denied', error: (e && e.name) || String(e) });
                 return;
             }
-            if (!cam.consent || cam.rec) { cam.stream.getTracks().forEach(t => t.stop()); cam.stream = null; return; } // turned off (or already recording) while prompting
-            const v = document.getElementById('camPreview'); if (v) v.srcObject = cam.stream;
+            if (!cam.consent) { cam.stream.getTracks().forEach(t => t.stop()); cam.stream = null; return; } // turned off while prompting
+            const v = document.getElementById('camPreview');
+            if (v) { v.srcObject = cam.stream; const p = v.play(); if (p && p.catch) p.catch(() => {}); }
             const track = cam.stream.getVideoTracks()[0];
             const st = track && track.getSettings ? track.getSettings() : {};
             cam.width = st.width || 0; cam.height = st.height || 0; cam.fps = Math.round(st.frameRate || 0);
+            camRender('on');
+            camGuideStart();
+            asmtTrack('web_assessment_camera', { status: 'granted', width: cam.width, height: cam.height, fps: cam.fps });
+        }
+        function camRecordStart() {
+            if (cam.rec || !cam.stream) return;
             const mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].find(m => MediaRecorder.isTypeSupported(m)) || '';
             const recOpts = { videoBitsPerSecond: 1200000, videoKeyFrameIntervalDuration: 1000 };
             try { cam.rec = mime ? new MediaRecorder(cam.stream, { mimeType: mime, ...recOpts }) : new MediaRecorder(cam.stream, recOpts); }
@@ -4906,8 +4921,6 @@
             cam.rec.start(1000);
             cam.t0 = performance.now();
             camRender('on');
-            camGuideStart();
-            asmtTrack('web_assessment_camera', { status: 'granted', width: cam.width, height: cam.height, fps: cam.fps });
         }
         function camMark(idx, phase) {
             if (!cam.rec || cam.rec.state !== 'recording') return;
@@ -5137,7 +5150,7 @@
         // camera that cannot see them.
         let framingWait = false;
         function camFramingBlocks() {
-            return cam.state === 'on' && !!cam.rec && !!cam.guide.detector && cam.guide.code !== 'off' && cam.guide.code !== 'ok';
+            return cam.state === 'on' && !!cam.stream && !!cam.guide.detector && cam.guide.code !== 'off' && cam.guide.code !== 'ok';
         }
         window.addEventListener('cam-guidance', (e) => {
             const code = e && e.detail && e.detail.code;
