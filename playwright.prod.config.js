@@ -4,6 +4,7 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
     testDir: './tests',
+    testIgnore: '**/replay/**', // long-running paid replay suite: playwright.replay.config.js
     timeout: 45_000,
     reporter: 'list',
     use: {

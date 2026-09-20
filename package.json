@@ -6,6 +6,7 @@
     "@playwright/test": "^1.62.1"
   },
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "test:replay": "node build.js && playwright test --config=playwright.replay.config.js"
   }
 }

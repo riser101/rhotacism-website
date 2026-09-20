@@ -1,0 +1,370 @@
+{
+  "capturedAt": "2026-08-27T04:10:55.734Z",
+  "source": "localStorage.wordRecordings (real user assessment run, prod, desktop Chrome)",
+  "url": "https://topspeech.health/lispspeechclinic/assessment.html",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
+  "identity": {
+    "userAuth": {
+      "email": "sy.yousuf9106@gmail.com",
+      "id": "I0qvSJg0Hadnx8eCdltiOSmfsG62",
+      "provider": "google",
+      "name": "Yousuf Syed"
+    },
+    "assessmentUserEmail": "sy.yousuf9106@gmail.com",
+    "name": "Yousuf",
+    "posthogDistinctId": "113436820203993976126"
+  },
+  "progress": null,
+  "testWordMeta": [
+    {
+      "word": "sun",
+      "position": "initial",
+      "sound": "/s/",
+      "tier": 1,
+      "tierName": "Core Sounds"
+    },
+    {
+      "word": "sock",
+      "position": "initial",
+      "sound": "/s/",
+      "tier": 1,
+      "tierName": "Core Sounds"
+    },
+    {
+      "word": "pencil",
+      "position": "medial",
+      "sound": "/s/",
+      "tier": 1,
+      "tierName": "Core Sounds"
+    },
+    {
+      "word": "bicycle",
+      "position": "medial",
+      "sound": "/s/",
+      "tier": 1,
+      "tierName": "Core Sounds"
+    },
+    {
+      "word": "bus",
+      "position": "final",
+      "sound": "/s/",
+      "tier": 1,
+      "tierName": "Core Sounds"
+    },
+    {
+      "word": "mouse",
+      "position": "final",
+      "sound": "/s/",
+      "tier": 1,
+      "tierName": "Core Sounds"
+    },
+    {
+      "word": "zoo",
+      "position": "initial",
+      "sound": "/z/",
+      "tier": 1,
+      "tierName": "Core Sounds"
+    },
+    {
+      "word": "music",
+      "position": "medial",
+      "sound": "/z/",
+      "tier": 1,
+      "tierName": "Core Sounds"
+    },
+    {
+      "word": "nose",
+      "position": "final",
+      "sound": "/z/",
+      "tier": 1,
+      "tierName": "Core Sounds"
+    },
+    {
+      "word": "spoon",
+      "position": "cluster",
+      "sound": "/sp/",
+      "tier": 1,
+      "tierName": "Core Sounds"
+    },
+    {
+      "word": "star",
+      "position": "cluster",
+      "sound": "/st/",
+      "tier": 1,
+      "tierName": "Core Sounds"
+    },
+    {
+      "word": "slide",
+      "position": "cluster",
+      "sound": "/sl/",
+      "tier": 1,
+      "tierName": "Core Sounds"
+    },
+    {
+      "word": "box",
+      "position": "cluster",
+      "sound": "/ks/",
+      "tier": 1,
+      "tierName": "Core Sounds"
+    },
+    {
+      "word": "nest",
+      "position": "cluster",
+      "sound": "/st/",
+      "tier": 1,
+      "tierName": "Core Sounds"
+    },
+    {
+      "word": "shoe",
+      "position": "initial",
+      "sound": "/ʃ/",
+      "tier": 2,
+      "tierName": "More Sounds"
+    },
+    {
+      "word": "watch",
+      "position": "final",
+      "sound": "/tʃ/",
+      "tier": 2,
+      "tierName": "More Sounds"
+    },
+    {
+      "word": "jump",
+      "position": "initial",
+      "sound": "/dʒ/",
+      "tier": 2,
+      "tierName": "More Sounds"
+    },
+    {
+      "word": "Sam saw seven small sailboats on the sea.",
+      "position": "connected",
+      "sound": "sentence",
+      "type": "sentence",
+      "tier": 3,
+      "tierName": "Sentences"
+    },
+    {
+      "word": "The silly snake slid past the sunny sandbox.",
+      "position": "connected",
+      "sound": "sentence",
+      "type": "sentence",
+      "tier": 3,
+      "tierName": "Sentences"
+    },
+    {
+      "word": "Susan's sister keeps six pairs of scissors.",
+      "position": "connected",
+      "sound": "sentence",
+      "type": "sentence",
+      "tier": 3,
+      "tierName": "Sentences"
+    },
+    {
+      "word": "The zebra at the zoo has stripes and a buzzing nose.",
+      "position": "connected",
+      "sound": "sentence",
+      "type": "sentence",
+      "tier": 3,
+      "tierName": "Sentences"
+    },
+    {
+      "word": "She washed the shiny dishes and brushed the fish.",
+      "position": "connected",
+      "sound": "sentence",
+      "type": "sentence",
+      "tier": 3,
+      "tierName": "Sentences"
+    },
+    {
+      "word": "Jack chose a giant orange sandwich for lunch.",
+      "position": "connected",
+      "sound": "sentence",
+      "type": "sentence",
+      "tier": 3,
+      "tierName": "Sentences"
+    },
+    {
+      "word": "Tell me about your weekend. Speak naturally for 30–60 seconds.",
+      "position": "spontaneous",
+      "sound": "spontaneous",
+      "type": "passage",
+      "prompt": "spontaneous",
+      "tier": 4,
+      "tierName": "Free Speech"
+    }
+  ],
+  "takes": [
+    {
+      "idx": 0,
+      "word": "sun",
+      "file": "00-sun.webm",
+      "mime": "audio/webm",
+      "bytes": 71558
+    },
+    {
+      "idx": 1,
+      "word": "sock",
+      "file": "01-sock.webm",
+      "mime": "audio/webm",
+      "bytes": 38816
+    },
+    {
+      "idx": 2,
+      "word": "pencil",
+      "file": "02-pencil.webm",
+      "mime": "audio/webm",
+      "bytes": 46520
+    },
+    {
+      "idx": 3,
+      "word": "bicycle",
+      "file": "03-bicycle.webm",
+      "mime": "audio/webm",
+      "bytes": 40742
+    },
+    {
+      "idx": 4,
+      "word": "bus",
+      "file": "04-bus.webm",
+      "mime": "audio/webm",
+      "bytes": 27260
+    },
+    {
+      "idx": 5,
+      "word": "mouse",
+      "file": "05-mouse.webm",
+      "mime": "audio/webm",
+      "bytes": 27260
+    },
+    {
+      "idx": 6,
+      "word": "zoo",
+      "file": "06-zoo.webm",
+      "mime": "audio/webm",
+      "bytes": 27260
+    },
+    {
+      "idx": 7,
+      "word": "music",
+      "file": "07-music.webm",
+      "mime": "audio/webm",
+      "bytes": 31112
+    },
+    {
+      "idx": 8,
+      "word": "nose",
+      "file": "08-nose.webm",
+      "mime": "audio/webm",
+      "bytes": 25334
+    },
+    {
+      "idx": 9,
+      "word": "spoon",
+      "file": "09-spoon.webm",
+      "mime": "audio/webm",
+      "bytes": 27260
+    },
+    {
+      "idx": 10,
+      "word": "star",
+      "file": "10-star.webm",
+      "mime": "audio/webm",
+      "bytes": 31112
+    },
+    {
+      "idx": 11,
+      "word": "slide",
+      "file": "11-slide.webm",
+      "mime": "audio/webm",
+      "bytes": 33038
+    },
+    {
+      "idx": 12,
+      "word": "box",
+      "file": "12-box.webm",
+      "mime": "audio/webm",
+      "bytes": 31112
+    },
+    {
+      "idx": 13,
+      "word": "nest",
+      "file": "13-nest.webm",
+      "mime": "audio/webm",
+      "bytes": 27260
+    },
+    {
+      "idx": 14,
+      "word": "shoe",
+      "file": "14-shoe.webm",
+      "mime": "audio/webm",
+      "bytes": 23408
+    },
+    {
+      "idx": 15,
+      "word": "watch",
+      "file": "15-watch.webm",
+      "mime": "audio/webm",
+      "bytes": 25334
+    },
+    {
+      "idx": 16,
+      "word": "jump",
+      "file": "16-jump.webm",
+      "mime": "audio/webm",
+      "bytes": 31112
+    },
+    {
+      "idx": 17,
+      "word": "Sam saw seven small sailboats on the sea.",
+      "file": "17-sam_saw_seven_small_sailboats_on_the_sea.webm",
+      "mime": "audio/webm",
+      "bytes": 152450,
+      "type": "sentence"
+    },
+    {
+      "idx": 18,
+      "word": "The silly snake slid past the sunny sandbox.",
+      "file": "18-the_silly_snake_slid_past_the_sunny_sand.webm",
+      "mime": "audio/webm",
+      "bytes": 223712,
+      "type": "sentence"
+    },
+    {
+      "idx": 19,
+      "word": "Susan's sister keeps six pairs of scissors.",
+      "file": "19-susan_s_sister_keeps_six_pairs_of_scisso.webm",
+      "mime": "audio/webm",
+      "bytes": 152450,
+      "type": "sentence"
+    },
+    {
+      "idx": 20,
+      "word": "The zebra at the zoo has stripes and a buzzing nose.",
+      "file": "20-the_zebra_at_the_zoo_has_stripes_and_a_b.webm",
+      "mime": "audio/webm",
+      "bytes": 173636,
+      "type": "sentence"
+    },
+    {
+      "idx": 21,
+      "word": "She washed the shiny dishes and brushed the fish.",
+      "file": "21-she_washed_the_shiny_dishes_and_brushed_.webm",
+      "mime": "audio/webm",
+      "bytes": 162080,
+      "type": "sentence"
+    },
+    {
+      "idx": 22,
+      "word": "Jack chose a giant orange sandwich for lunch.",
+      "file": "22-jack_chose_a_giant_orange_sandwich_for_l.webm",
+      "mime": "audio/webm",
+      "bytes": 196748,
+      "type": "sentence"
+    },
+    {
+      "idx": 23,
+      "word": "Tell me about your weekend. Speak naturally for 30–60 seconds.",
+      "missing": true
+    }
+  ]
+}
