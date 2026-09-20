@@ -660,7 +660,7 @@
             gap: 16px;
             margin-bottom: 20px;
         }
-        @media (min-width: 1100px) {
+        @media (min-width: 960px) {
             .rec-aside {
                 position: absolute;
                 top: 0;
@@ -672,6 +672,13 @@
             .recording-section-wrap {
                 transform: translateX(calc(25vw - 136px));
             }
+        }
+        /* Tablets in landscape / small laptops (960–1279): keep the two-column
+           layout but shift the WHOLE row right so the 320 px aside never leaves
+           the viewport (aside left = layout left − 352 px). */
+        @media (min-width: 960px) and (max-width: 1279px) {
+            .recording-section-wrap { transform: none; }
+            .rec-layout { transform: translateX(max(0px, calc(368px - (100vw - 440px) / 2))); }
         }
         .aside-box {
             background: #fff;
@@ -975,6 +982,13 @@
         /* Face-video row + dialog — values from the approved Claude Design file
            ("Lisp Assessment Recording.dc.html", 2026-09-20). Inter, cyan #22D3EE. */
         .cam-row { margin: 0 20px; border-top: 1px solid rgba(255,255,255,0.1); padding: 14px 0 16px; display: flex; flex-direction: column; gap: 11px; text-align: left; font-family: 'Inter', system-ui, sans-serif; }
+        .cam-hint { height: 30px; box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: 8px; padding: 0 11px; border-radius: 6px; border: 1px solid rgba(34,211,238,0.35); background: rgba(34,211,238,0.08); color: #22D3EE; font: 700 9.5px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; }
+        .cam-hint-dot { flex: 0 0 auto; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+        .cam-hint-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+        .cam-hint[data-state="off"] { visibility: hidden; }
+        .cam-hint[data-state="act"] { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.1); color: #F5A524; }
+        .cam-hint[data-state="noface"] { border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.78); }
+        .cam-row:not([data-state="on"]) .cam-hint { display: none; }
         .cam-strip { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
         .cam-tilewrap { flex: 0 0 96px; display: flex; flex-direction: column; gap: 6px; }
         .cam-tile { position: relative; width: 96px; height: 116px; border-radius: 6px; background: #000000; border: 1px solid rgba(255,255,255,0.16); overflow: hidden; }
@@ -2594,7 +2608,7 @@
             display: none !important;
         }
         /* Mobile reorder: HOW IT WORKS → Recording Session → NOTE */
-        @media (max-width: 1099px) {
+        @media (max-width: 959px) {
             .rec-layout {
                 display: flex;
                 flex-direction: column;
@@ -2608,7 +2622,7 @@
             .rec-aside .aside-box:nth-child(2) { order: 3; }
         }
         /* Tablet / large mobile: vertically center content */
-        @media (min-width: 601px) and (max-width: 1099px) {
+        @media (min-width: 601px) and (max-width: 959px) {
             .assessment-page {
                 min-height: 100vh;
                 min-height: 100dvh;
@@ -2943,7 +2957,7 @@
         .proto-segs { font-family: monospace; font-size: 11px; color: #A0AEC0; margin-top: 2px; }
 
         /* Protocol box ordering on mobile (after HOW IT WORKS / card / NOTE) */
-        @media (max-width: 1099px) {
+        @media (max-width: 959px) {
             .rec-aside .aside-box.proto-box { order: 4; }
         }
     
@@ -2956,68 +2970,68 @@
            ===================================================================== */
         @media (min-width: 769px) {
             .rec-layout { max-width: 440px; }
-            .clinical-header { padding: 22px 20px 0; }
+            .clinical-header { padding: 18px 20px 0; }
             .clinical-label { font-size: 10px; letter-spacing: 0.17em; }
-            .clinical-title { font-size: 22px; margin-top: 12px; letter-spacing: -0.01em; }
+            .clinical-title { font-size: 22px; margin-top: 10px; letter-spacing: -0.01em; }
             .recording-panel { gap: 0; padding: 0; }
-            .seg-block { margin: 20px 20px 0; padding: 11px 12px 13px; border-radius: 10px; }
-            .seg-header { margin-bottom: 11px; gap: 9px; }
+            .seg-block { margin: 16px 20px 0; padding: 10px 12px 11px; border-radius: 10px; }
+            .seg-header { margin-bottom: 10px; gap: 9px; }
             .tier-badge { font-size: 9.5px; padding: 4px 6px; letter-spacing: 0.1em; }
             .seg-phoneme { font-size: 13px; }
             .seg-position { font-size: 9.5px; letter-spacing: 0.12em; }
             .seg-counter { font-size: 9.5px; letter-spacing: 0.1em; }
             .seg-strip { gap: 5px; }
             .seg-pip { height: 3px; }
-            .word-picker { margin: 18px 20px 0; }
-            .word-picker-words { padding: 14px 0; }
-            .active-pill { height: 53px; margin: 0 14px; width: calc(100% - 28px); padding: 0 14px; }
+            .word-picker { margin: 14px 20px 0; }
+            .word-picker-words { padding: 11px 0; }
+            .active-pill { height: 50px; margin: 0 14px; width: calc(100% - 28px); padding: 0 14px; }
             .pill-timer { font-size: 12px; width: 46px; }
             .pill-spacer { width: 46px; }
             .pill-word { font-size: 26px; }
             .pill-word.is-long { font-size: 16px; }
-            .context-word { font-size: 15px; height: 26px; line-height: 26px; }
-            .word-progress { margin: 15px 20px 0; }
+            .context-word { font-size: 15px; height: 23px; line-height: 23px; }
+            .word-progress { margin: 12px 20px 0; }
             .word-count-label { font-size: 9.5px; }
             .word-dot { width: 5px; height: 5px; }
-            .vu-meter { height: 40px; margin: 6px 0 0; gap: 6px; }
+            .vu-meter { height: 30px; margin: 4px 0 0; gap: 6px; }
             .vu-bar { width: 4px; min-height: 4px; }
-            .record-btn-area { padding: 8px 0 0; }
+            .record-btn-area { padding: 6px 0 0; }
             .record-circle-btn { width: 68px; height: 68px; }
             .record-circle-inner { width: 58px; height: 58px; }
-            .record-label { margin-top: 13px; font-size: 9.5px; letter-spacing: 0.14em; }
-            .cam-row { margin: 20px 20px 0; }
+            .record-label { margin-top: 10px; font-size: 9.5px; letter-spacing: 0.14em; }
+            .cam-row { margin: 14px 20px 0; padding: 11px 0 12px; gap: 9px; }
         }
         @media (max-width: 768px) {
-            .clinical-header { padding: 20px 16px 0; }
+            .clinical-header { padding: 16px 16px 0; }
             .clinical-label { font-size: 9.5px; letter-spacing: 0.17em; }
-            .clinical-title { font-size: 20px; margin-top: 11px; letter-spacing: -0.01em; }
+            .clinical-title { font-size: 20px; margin-top: 9px; letter-spacing: -0.01em; }
             .recording-panel { gap: 0; padding: 0; }
-            .seg-block { margin: 18px 16px 0; padding: 11px 11px 13px; border-radius: 10px; }
-            .seg-header { margin-bottom: 11px; gap: 8px; }
+            .seg-block { margin: 14px 16px 0; padding: 10px 11px 11px; border-radius: 10px; }
+            .seg-header { margin-bottom: 10px; gap: 8px; }
             .tier-badge { font-size: 9px; padding: 4px 6px; letter-spacing: 0.1em; }
             .seg-phoneme { font-size: 12.5px; }
             .seg-position { font-size: 9px; letter-spacing: 0.12em; }
             .seg-counter { font-size: 9px; letter-spacing: 0.1em; }
             .seg-strip { gap: 4px; }
             .seg-pip { height: 3px; }
-            .word-picker { margin: 15px 16px 0; }
-            .word-picker-words { padding: 11px 0; }
-            .active-pill { height: 50px; margin: 0 13px; width: calc(100% - 26px); padding: 0 12px; }
+            .word-picker { margin: 12px 16px 0; }
+            .word-picker-words { padding: 9px 0; }
+            .active-pill { height: 48px; margin: 0 13px; width: calc(100% - 26px); padding: 0 12px; }
             .pill-timer { font-size: 11.5px; width: 44px; }
             .pill-spacer { width: 44px; }
             .pill-word { font-size: 24px; }
             .pill-word.is-long { font-size: 15px; }
-            .context-word { font-size: 14.5px; height: 24px; line-height: 24px; }
-            .word-progress { margin: 14px 16px 0; }
+            .context-word { font-size: 14.5px; height: 22px; line-height: 22px; }
+            .word-progress { margin: 11px 16px 0; }
             .word-count-label { font-size: 9px; }
             .word-dot { width: 5px; height: 5px; }
-            .vu-meter { height: 32px; margin: 4px 0 0; gap: 6px; }
+            .vu-meter { height: 26px; margin: 4px 0 0; gap: 6px; }
             .vu-bar { width: 4px; min-height: 4px; }
-            .record-btn-area { padding: 6px 0 0; }
+            .record-btn-area { padding: 4px 0 0; }
             .record-circle-btn { width: 66px; height: 66px; }
             .record-circle-inner { width: 56px; height: 56px; }
-            .record-label { margin-top: 11px; font-size: 9px; letter-spacing: 0.14em; }
-            .cam-row { margin: 16px 16px 0; padding: 12px 0 14px; }
+            .record-label { margin-top: 9px; font-size: 9px; letter-spacing: 0.14em; }
+            .cam-row { margin: 12px 16px 0; padding: 10px 0 12px; gap: 9px; }
         }
 </style>
     <link rel="stylesheet" href="css/nav.css?v=20260825">
@@ -3222,6 +3236,7 @@
                          (approved 2026-09-20). Camera ON by default; "Turn off" opens the
                          dialog below; states: on / off / blocked (see camRender). -->
                     <div class="cam-row" id="camRow" data-state="on">
+                        <div class="cam-hint" id="camHint" data-state="off" aria-live="polite"><span class="cam-hint-dot"></span><span class="cam-hint-text" id="camHintText">Good, hold it there</span></div>
                         <div class="cam-strip">
                             <div class="cam-tilewrap">
                                 <div class="cam-tile" id="camTile">
@@ -4419,6 +4434,7 @@
         }
 
         function initWordRecording() {
+            if (typeof fitRecordingPanel === 'function') setTimeout(fitRecordingPanel, 0); // step just became active
             if (retakeGateBlocks()) return;
             prewarmVadAssets();
             currentWordIndex = 0;
@@ -4892,6 +4908,34 @@
         }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', camBindConsent); else camBindConsent();
 
+        // ---- Fit the recording panel to the viewport (strict responsive PWA) ----
+        // The design's proportions are kept; when the viewport is shorter than the
+        // panel (short laptops, tablets in landscape, small phones) the whole panel
+        // is scaled down with CSS zoom (transform fallback) down to 0.78, so the
+        // capture screen never needs scrolling. Re-evaluated on resize/rotation.
+        function fitRecordingPanel() {
+            const sec = document.querySelector('.recording-section');
+            const wrap = sec && sec.parentElement;
+            if (!sec || !wrap || !document.getElementById('step1') || !document.getElementById('step1').classList.contains('active')) return;
+            const useZoom = (typeof CSS !== 'undefined' && CSS.supports && CSS.supports('zoom', '1'));
+            if (useZoom) sec.style.zoom = ''; else { sec.style.transform = ''; wrap.style.height = ''; }
+            const natural = sec.offsetHeight;
+            const top = sec.getBoundingClientRect().top + window.scrollY;
+            const avail = window.innerHeight - top - 12;
+            const scale = Math.max(0.72, Math.min(1, avail / natural));
+            if (scale >= 0.995) return;
+            if (useZoom) sec.style.zoom = String(scale);
+            else { sec.style.transform = 'scale(' + scale + ')'; sec.style.transformOrigin = 'top center'; wrap.style.height = Math.round(natural * scale) + 'px'; }
+        }
+        (function () {
+            let t = null;
+            const run = () => { clearTimeout(t); t = setTimeout(fitRecordingPanel, 60); };
+            window.addEventListener('resize', run);
+            window.addEventListener('orientationchange', run);
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run();
+            window.fitRecordingPanel = fitRecordingPanel;
+        })();
+
         // ---- Live framing guidance (MediaPipe Face Detector, short-range) ----
         // Runs ~4×/s on the preview while the camera is on and derives ONE code:
         // ok | noface | closer | back | center | dark | bright. The code is stored
@@ -4924,9 +4968,18 @@
             for (let i = 0; i < d.length; i += 4) sum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
             return sum / (d.length / 4);
         }
+        const CAM_HINT_TEXT = { ok: 'Good, hold it there', noface: "We can't see your face", closer: 'Move closer', back: 'Move back a little', center: 'Center your face', dark: 'Too dark, face a window or lamp', bright: 'Too bright, turn away from the light' };
+        function camHintSet(code) {
+            const el = document.getElementById('camHint'), txt = document.getElementById('camHintText');
+            if (!el || !txt) return;
+            if (!code || code === 'off' || !CAM_HINT_TEXT[code]) { el.dataset.state = 'off'; return; }
+            txt.textContent = CAM_HINT_TEXT[code];
+            el.dataset.state = code === 'ok' ? 'ok' : code === 'noface' ? 'noface' : 'act';
+        }
         function camGuideSet(code) {
             if (code === cam.guide.code) return;
             cam.guide.code = code;
+            camHintSet(code);
             const row = document.getElementById('camRow'); if (row) row.dataset.guide = code;
             try { window.dispatchEvent(new CustomEvent('cam-guidance', { detail: { code, metrics: cam.guide.metrics } })); } catch (e) {}
         }
