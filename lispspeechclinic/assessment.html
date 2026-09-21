@@ -171,7 +171,9 @@
         // /s/. Stored under recordings/lispv3-video with NO expiration (owner
         // decision 2026-09-20); the bucket has no lifecycle rule. Resumable upload
         // — a 4-minute 640×480 clip is ~30 MB.
-        window.uploadFaceVideoToFirebase = async function(blob, info) {
+        window.uploadFaceVideoToFirebase = async function(segmentsOrBlob, info) {
+            // Segments (one per camera life) or a single Blob for older callers.
+            const segments = Array.isArray(segmentsOrBlob) ? segmentsOrBlob : [{ blob: segmentsOrBlob, startMs: 0, durationMs: Number(info.durationMs) || 0 }];
             const userAuth = JSON.parse(localStorage.getItem('userAuth') || 'null');
             const sessionId = getAssessmentSessionId();
             const posthogId = getPosthogId();
@@ -189,14 +191,21 @@
                 durationMs: String(info.durationMs || ''), protocol: info.protocol || '', assessmentDate: new Date().toISOString()
             };
             const videoPath = `${base}.${ext}`;
-            const task = uploadBytesResumable(ref(storage, videoPath), blob, { contentType: info.mime || 'video/webm', customMetadata: common });
-            await new Promise((resolve, reject) => task.on('state_changed', null, reject, resolve));
-            const manifest = { ...info, sessionId, userId, video: videoPath, uploadedAt: new Date().toISOString() };
+            const uploaded = [];
+            for (let i = 0; i < segments.length; i++) {
+                const sg = segments[i];
+                const p = i === 0 ? videoPath : `${base}-${i}.${ext}`;
+                const task = uploadBytesResumable(ref(storage, p), sg.blob, { contentType: info.mime || 'video/webm',
+                    customMetadata: { ...common, segment: String(i), segmentStartMs: String(sg.startMs || 0), segmentDurationMs: String(sg.durationMs || 0) } });
+                await new Promise((resolve, reject) => task.on('state_changed', null, reject, resolve));
+                uploaded.push({ path: p, startMs: sg.startMs || 0, durationMs: sg.durationMs || 0, bytes: sg.blob.size });
+            }
+            const manifest = { ...info, sessionId, userId, video: videoPath, segments: uploaded.map((u, i) => ({ index: i, file: u.path, startMs: u.startMs, durationMs: u.durationMs, bytes: u.bytes })), uploadedAt: new Date().toISOString() };
             const manifestPath = `${base}.json`;
             await uploadBytes(ref(storage, manifestPath), new Blob([JSON.stringify(manifest)], { type: 'application/json' }),
                 { contentType: 'application/json', customMetadata: { ...common, kind: 'face-video-manifest' } });
-            console.log('Uploaded face video:', videoPath);
-            return { path: videoPath, manifest: manifestPath };
+            console.log('Uploaded face video:', videoPath, uploaded.length > 1 ? `(+${uploaded.length - 1} more segment(s))` : '');
+            return { path: videoPath, manifest: manifestPath, segments: uploaded.map(u => ({ path: u.path, startMs: u.startMs, durationMs: u.durationMs })) };
         };
 
         // Identity block sent to the analysis backend so the SERVER writes the
@@ -4827,7 +4836,11 @@
         // and to the backend so frames can be pulled at each /s/. Consent is a
         // checkbox on the recording screen; declining changes nothing.
         const CAM_CONSENT_VERSION = 'face-v2-default-on-2026-09-20';
-        const cam = { state: 'on', consent: true, finish: null, starting: null, stream: null, rec: null, chunks: [], t0: 0, marks: [], mime: '', width: 0, height: 0, fps: 0, blob: null, upload: null, path: '', manifest: '' };
+        const cam = { state: 'on', consent: true, finish: null, starting: null, stream: null, rec: null, chunks: [], t0: 0, marks: [], mime: '', width: 0, height: 0, fps: 0, blob: null, upload: null, path: '', manifest: '',
+                      // Segments: one recording per camera life. A phone that backgrounds the
+                      // page or locks its screen ends the camera track; the recorder stops and
+                      // the next take start (or the page coming back) opens a new segment.
+                      segments: [], segPaths: [], sessT0: 0, segT0: 0, stopping: false };
         // Render the row for one of three states (design artboards): on (guide +
         // "Turn off"), off ("Face video is off" + "Turn on"), blocked (browser
         // denied the camera: "Allow camera" / "Continue audio only").
@@ -4856,6 +4869,7 @@
         async function camStart(opts) {
             const record = !(opts && opts.record === false);
             if (cam.rec || !cam.consent || !navigator.mediaDevices || !window.MediaRecorder) return;
+            cam.stopping = false;
             if (!cam.stream) {
                 if (!cam.starting) cam.starting = camOpenPreview().finally(() => { cam.starting = null; });
                 await cam.starting;
@@ -4890,12 +4904,45 @@
             try { cam.rec = mime ? new MediaRecorder(cam.stream, { mimeType: mime, ...recOpts }) : new MediaRecorder(cam.stream, recOpts); }
             catch (e) { cam.rec = new MediaRecorder(cam.stream); }
             cam.mime = (cam.rec.mimeType || mime || 'video/webm').split(';')[0];
-            cam.chunks = []; cam.marks = [];
-            cam.rec.ondataavailable = e => { if (e.data && e.data.size) cam.chunks.push(e.data); };
-            cam.rec.start(1000);
-            cam.t0 = performance.now();
+            cam.chunks = [];
+            if (!cam.sessT0) { cam.sessT0 = performance.now(); cam.marks = []; cam.segments = []; }
+            cam.segT0 = performance.now();
+            cam.t0 = cam.sessT0; // marks are measured from the first recorder start, across segments
+            const rec = cam.rec;
+            rec.ondataavailable = e => { if (e.data && e.data.size) cam.chunks.push(e.data); };
+            // Any stop closes the current segment. An unrequested one (track ended, page
+            // backgrounded, recorder error) drops the dead stream so the next take start —
+            // or the page coming back to the foreground — reopens the camera and records
+            // a new segment; the manifest lists every segment with its session offset.
+            rec.onstop = () => camSegmentClose(rec, !cam.stopping);
+            rec.onerror = () => { try { rec.stop(); } catch (e) { camSegmentClose(rec, true); } };
+            const track = cam.stream.getVideoTracks()[0];
+            if (track) track.addEventListener('ended', () => { if (cam.rec === rec && rec.state !== 'inactive') { try { rec.stop(); } catch (e) { camSegmentClose(rec, true); } } }, { once: true });
+            rec.start(1000);
             camRender('on');
         }
+        function camSegmentClose(rec, unexpected) {
+            if (cam.chunks.length) cam.segments.push({ blob: new Blob(cam.chunks, { type: cam.mime }), startMs: Math.round(cam.segT0 - cam.sessT0), durationMs: Math.round(performance.now() - cam.segT0) });
+            cam.chunks = [];
+            if (cam.rec === rec) cam.rec = null;
+            if (!unexpected) return;
+            if (cam.stream) { try { cam.stream.getTracks().forEach(t => t.stop()); } catch (e) {} cam.stream = null; }
+            camGuideStop();
+            const v = document.getElementById('camPreview'); if (v) v.srcObject = null;
+            camRender('on');
+            asmtTrack('web_assessment_camera', { status: 'interrupted', segments: cam.segments.length });
+            camResume();
+        }
+        // Reopen the camera after an interruption while the recording step is still
+        // running and the page is visible; otherwise the next take start does it.
+        function camResume() {
+            if (cam.stopping || !cam.consent || cam.state !== 'on' || cam.rec || cam.starting) return;
+            if (typeof currentStepNum !== 'undefined' && currentStepNum !== 1) return;
+            if (typeof allWordsRecorded !== 'undefined' && allWordsRecorded) return;
+            if (document.visibilityState === 'hidden') return;
+            camStart({ record: true }).catch(() => {});
+        }
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(camResume, 300); });
         function camMark(idx, phase) {
             if (!cam.rec || cam.rec.state !== 'recording') return;
             const t = Math.round(performance.now() - cam.t0);
@@ -4911,34 +4958,39 @@
         }
         function camStop() {
             return new Promise(resolve => {
-                const rec = cam.rec; cam.rec = null;
+                cam.stopping = true;
+                const rec = cam.rec;
                 camGuideStop();
                 const finish = () => {
-                    if (cam.chunks.length) cam.blob = new Blob(cam.chunks, { type: cam.mime }); cam.chunks = [];
+                    if (cam.rec === rec) cam.rec = null;
+                    if (cam.chunks.length) camSegmentClose(rec, false);
                     if (cam.stream) { cam.stream.getTracks().forEach(t => t.stop()); cam.stream = null; }
                     const v = document.getElementById('camPreview'); if (v) v.srcObject = null;
                     camRender(cam.state === 'on' ? 'on' : cam.state);
-                    resolve(cam.blob);
+                    cam.blob = cam.segments.length ? cam.segments[0].blob : null;
+                    resolve(cam.segments);
                 };
-                if (!rec) return finish();
-                rec.onstop = finish;
+                if (!rec || rec.state === 'inactive') return finish();
+                rec.onstop = () => { camSegmentClose(rec, false); finish(); };
                 try { rec.stop(); } catch (e) { finish(); }
             });
         }
         async function camUpload() {
-            if (!cam.blob || cam.upload) return cam.upload;
+            if (!cam.segments.length || cam.upload) return cam.upload;
             cam.upload = (async () => {
                 try {
                     if (typeof window.uploadFaceVideoToFirebase !== 'function') return null;
                     const st = document.getElementById('camStatus'); if (st) st.textContent = 'Saving face video…';
-                    const r = await window.uploadFaceVideoToFirebase(cam.blob, {
+                    const bytes = cam.segments.reduce((a, sg) => a + sg.blob.size, 0);
+                    const r = await window.uploadFaceVideoToFirebase(cam.segments, {
                         marks: cam.marks, mime: cam.mime, width: cam.width, height: cam.height, fps: cam.fps,
                         consentVersion: CAM_CONSENT_VERSION, protocol: PROTOCOL, durationMs: Math.round(performance.now() - cam.t0),
-                        recorderLatencyMs: 150
+                        recorderLatencyMs: 150,
+                        segments: cam.segments.map((sg, i) => ({ index: i, startMs: sg.startMs, durationMs: sg.durationMs, bytes: sg.blob.size }))
                     });
-                    cam.path = (r && r.path) || ''; cam.manifest = (r && r.manifest) || '';
+                    cam.path = (r && r.path) || ''; cam.manifest = (r && r.manifest) || ''; cam.segPaths = (r && r.segments) || [];
                     if (st) st.textContent = cam.path ? 'Face video saved' : 'Face video not saved';
-                    asmtTrack('web_assessment_camera', { status: cam.path ? 'uploaded' : 'upload_failed', bytes: cam.blob.size });
+                    asmtTrack('web_assessment_camera', { status: cam.path ? 'uploaded' : 'upload_failed', bytes, segments: cam.segments.length });
                     return r;
                 } catch (e) { console.warn('[camera] upload failed', e); const st2 = document.getElementById('camStatus'); if (st2) st2.textContent = 'Face video upload failed'; return null; }
             })();
@@ -4950,7 +5002,8 @@
             if (pending) await Promise.race([pending, new Promise(r => setTimeout(r, 60000))]);
             if (!cam.path) return null;
             return { path: cam.path, manifest: cam.manifest, mime: cam.mime, width: cam.width, height: cam.height, fps: cam.fps,
-                     consentVersion: CAM_CONSENT_VERSION, recorderLatencyMs: 150, marks: cam.marks.filter(m => m.kept) };
+                     consentVersion: CAM_CONSENT_VERSION, recorderLatencyMs: 150, marks: cam.marks.filter(m => m.kept),
+                     segments: cam.segPaths };
         }
         // Camera is on by default. "Turn off" opens the dialog; only its "Turn off"
         // confirms. "Turn on" (off state) and "Allow camera" (blocked state) start
@@ -5747,7 +5800,7 @@
                 prewarmConnectedAcoustics();
                 // Face video: stop the session recorder and upload in the background
                 // (the part-2 send waits for it, capped — see camPayloadAwait).
-                if (cam.rec || cam.blob) cam.finish = camStop().then(() => camUpload());
+                if (cam.rec || cam.segments.length) cam.finish = camStop().then(() => camUpload());
                 releaseMic();
                 syncRecordingContinueButton();
                 updateRecordButton();

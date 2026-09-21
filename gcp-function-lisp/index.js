@@ -2211,11 +2211,20 @@ async function placementCheck(video, wordRows, sentenceProbes) {
   const t0 = Date.now();
   try {
     const ext = /mp4/.test(String(video.mime || video.path)) ? 'mp4' : 'webm';
-    const local = path.join(dir, 'face.' + ext);
-    // PLACEMENT_LOCAL_VIDEO: offline evaluation (eval-vision.js) — read a file
-    // instead of the bucket. Never set in production.
-    if (process.env.PLACEMENT_LOCAL_VIDEO) fs.copyFileSync(process.env.PLACEMENT_LOCAL_VIDEO, local);
-    else await admin.storage().bucket(FACE_BUCKET).file(String(video.path)).download({ destination: local });
+    // The session video may be several segments (the camera track ends when a phone
+    // backgrounds the page; the client records a new segment when it returns). Each
+    // take's instant is measured from the first recorder start; map it to the
+    // segment that was recording then.
+    const segs = (Array.isArray(video.segments) && video.segments.length ? video.segments : [{ path: video.path, startMs: 0, durationMs: 0 }])
+      .map((sg, i) => ({ i, path: String((sg && sg.path) || video.path), startMs: Number(sg && sg.startMs) || 0, durationMs: Number(sg && sg.durationMs) || 0, local: path.join(dir, `face-${i}.${ext}`), wants: [] }));
+    const segFor = tMs => { let best = null; for (const sg of segs) { if (tMs >= sg.startMs - 500) best = sg; } return best || segs[0]; };
+    const fetchSegment = async sg => {
+      // PLACEMENT_LOCAL_VIDEO: offline evaluation (eval-vision.js) — a file, or a
+      // directory holding the segments by basename. Never set in production.
+      const lv = process.env.PLACEMENT_LOCAL_VIDEO;
+      if (lv) { const src = fs.existsSync(lv) && fs.statSync(lv).isDirectory() ? path.join(lv, path.basename(sg.path)) : lv; fs.copyFileSync(src, sg.local); }
+      else await admin.storage().bucket(FACE_BUCKET).file(sg.path).download({ destination: sg.local });
+    };
     const parts = [{ text: PLACEMENT_PROMPT }];
     // One linear decode: pick the frame nearest each wanted instant (t-80, t, t+80 ms)
     // for every candidate. Output files are numbered in time order, so sort the
@@ -2230,19 +2239,25 @@ async function placementCheck(video, wordRows, sentenceProbes) {
       cands.push({ key: 'ctl:' + k, label: String(m.word || 'take'), kind: 'none', flagged: false, control: true, tMs: m.start + lat + 120, row: null, mark: m });
     });
     const wants = [];
-    cands.forEach((c, ci) => (c.control ? [0, 80] : [-80, 0, 80]).forEach(off => wants.push({ ci, t: Math.max(0, c.tMs + off) / 1000 })));
-    wants.sort((a, b) => a.t - b.t);
-    const expr = wants.map(w => `lt(abs(t-${w.t.toFixed(3)})\\,0.02)`).join('+');
-    try {
-      await runFfmpeg(['-y', '-loglevel', 'error', '-err_detect', 'ignore_err', '-i', local, '-vf', `select='${expr}',scale=480:-2`, '-vsync', 'vfr', '-q:v', '5', path.join(dir, 'f%03d.jpg')], 120000);
-    } catch (e) { console.warn('🎥 frame extraction failed:', e.message); }
-    const produced = fs.readdirSync(dir).filter(f => /^f\d{3}\.jpg$/.test(f)).sort();
+    cands.forEach((c, ci) => { const sg = segFor(c.tMs); (c.control ? [0, 80] : [-80, 0, 80]).forEach(off => { const w = { ci, sg, t: Math.max(0, c.tMs - sg.startMs + off) / 1000 }; wants.push(w); sg.wants.push(w); }); });
+    // One linear decode per segment: pick the frame nearest each wanted instant.
     // ffmpeg emits at most one frame per matched instant, in order; align by index.
+    const assigned = [];
+    for (const sg of segs.filter(x => x.wants.length)) {
+      sg.wants.sort((a, b) => a.t - b.t);
+      try {
+        await fetchSegment(sg);
+        const expr = sg.wants.map(w => `lt(abs(t-${w.t.toFixed(3)})\\,0.02)`).join('+');
+        await runFfmpeg(['-y', '-loglevel', 'error', '-err_detect', 'ignore_err', '-i', sg.local, '-vf', `select='${expr}',scale=480:-2`, '-vsync', 'vfr', '-q:v', '5', path.join(dir, `f${sg.i}_%03d.jpg`)], 120000);
+      } catch (e) { console.warn(`🎥 frame extraction failed (segment ${sg.i}):`, e.message); continue; }
+      const produced = fs.readdirSync(dir).filter(f => f.startsWith(`f${sg.i}_`) && /\.jpg$/.test(f) && !/m\.jpg$/.test(f)).sort();
+      produced.forEach((f, k) => { if (sg.wants[k]) assigned.push({ w: sg.wants[k], f }); });
+    }
     // Each kept frame is then cropped to the mouth (framing metrics of that take).
     const byCand = new Map();
     let context = null;
-    for (let i = 0; i < produced.length; i++) {
-      const f = produced[i], w = wants[i]; if (!w) break;
+    for (let i = 0; i < assigned.length; i++) {
+      const { w, f } = assigned[i];
       const full = path.join(dir, f);
       if (fs.statSync(full).size <= 2000) continue;
       if (!context) context = fs.readFileSync(full).toString('base64');
@@ -2275,7 +2290,7 @@ async function placementCheck(video, wordRows, sentenceProbes) {
         fs.writeFileSync(path.join(dir, 'vision-reply.txt'), String(rawText || ''));
         // Which extracted frames went with which token (for contact sheets / audits).
         const fileByCand = new Map();
-        produced.forEach((f, i) => { const w = wants[i]; if (!w) return; if (!fileByCand.has(w.ci)) fileByCand.set(w.ci, []); fileByCand.get(w.ci).push(fs.existsSync(path.join(dir, f.replace(/\.jpg$/, 'm.jpg'))) ? f.replace(/\.jpg$/, 'm.jpg') : f); });
+        assigned.forEach(({ w, f }) => { if (!fileByCand.has(w.ci)) fileByCand.set(w.ci, []); fileByCand.get(w.ci).push(fs.existsSync(path.join(dir, f.replace(/\.jpg$/, 'm.jpg'))) ? f.replace(/\.jpg$/, 'm.jpg') : f); });
         fs.writeFileSync(path.join(dir, 'tokens.json'), JSON.stringify(cands.filter(c => c.token).map(c => ({ token: c.token, label: c.label, control: !!c.control, tMs: Math.round(c.tMs), files: fileByCand.get(cands.indexOf(c)) || [] })), null, 1));
       } catch (e) {}
     }
@@ -2613,7 +2628,8 @@ functions.http('analyzeLispSpeech', async (req, res) => {
         // Consented face video: keep the pointer, then (if anything was flagged)
         // look at the mouth at those instants. Best-effort, never blocks the report.
         const videoIn = req.body.video && typeof req.body.video === 'object' && req.body.video.path ? req.body.video : null;
-        const video = videoIn ? { path: String(videoIn.path), manifest: String(videoIn.manifest || ''), mime: String(videoIn.mime || ''), width: videoIn.width || null, height: videoIn.height || null, fps: videoIn.fps || null, consentVersion: String(videoIn.consentVersion || ''), marks: Array.isArray(videoIn.marks) ? videoIn.marks.length : 0 } : null;
+        const video = videoIn ? { path: String(videoIn.path), manifest: String(videoIn.manifest || ''), mime: String(videoIn.mime || ''), width: videoIn.width || null, height: videoIn.height || null, fps: videoIn.fps || null, consentVersion: String(videoIn.consentVersion || ''), marks: Array.isArray(videoIn.marks) ? videoIn.marks.length : 0,
+          segments: Array.isArray(videoIn.segments) ? videoIn.segments.slice(0, 20).map(sg => ({ path: String((sg && sg.path) || ''), startMs: Number(sg && sg.startMs) || 0, durationMs: Number(sg && sg.durationMs) || 0 })) : [] } : null;
         let placement = null;
         if (videoIn) {
           placement = await placementCheck(videoIn, part1Rows, sentenceProbes);

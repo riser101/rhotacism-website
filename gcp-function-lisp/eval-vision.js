@@ -32,7 +32,8 @@ const has = k => args.includes('--' + k);
     manifest = JSON.parse(buf.toString('utf8'));
   }
   const marks = (manifest.marks || []).filter(m => m && m.kept !== false && m.start != null);
-  const video = { path: videoPath, mime: manifest.mime || 'video/webm', recorderLatencyMs: manifest.recorderLatencyMs || 150, marks };
+  const video = { path: videoPath, mime: manifest.mime || 'video/webm', recorderLatencyMs: manifest.recorderLatencyMs || 150, marks,
+    segments: Array.isArray(manifest.segments) ? manifest.segments.map(sg => ({ path: sg.file || sg.path, startMs: sg.startMs, durationMs: sg.durationMs })) : [] };
   const rows = marks.filter(m => (m.type || 'word') !== 'sentence' && !/passage|quickfire|rapid_sentence/.test(m.type || ''))
     .map(m => ({ word: m.word, type: m.type || 'word', position: m.position || '', judgment: 'Accurate', quality: 95 }));
   const t0 = Date.now();
