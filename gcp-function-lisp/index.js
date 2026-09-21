@@ -1888,7 +1888,7 @@ async function sendLeadAlert(user, survey, report, speakerContext) {
 
 // Test-only surface for local smoke scripts — not used by the service itself.
 module.exports._leadSync = { buildReportPdf, buildLeadNoteBody, normalizeParkedLead, postLeadAlert };
-module.exports._placement = { placementCheck, placementCandidates, ffmpegPath };
+module.exports._placement = { placementCheck, placementCandidates, placementCropFilter, ffmpegPath };
 
 // A word counts as a lisp hit when its judgment is a distortion type (matches the
 // results page Judgment column); Accurate/Unclear/Omitted are NOT hits.
@@ -1923,6 +1923,9 @@ function deriveOutcome(wordRows, sentenceRows, acoustics, survey, all95) {
     out.tier = 'inconclusive'; out.reason = 'acoustic'; out.needs_live_check = true; out.reasons.push('the listener heard clean sounds, but the recording measured a repeated forward or sideways airflow pattern');
   } else if ((flags.whistle || 0) >= 2 || verdicts.includes('whistle')) {
     out.tier = 'inconclusive'; out.reason = 'possible_whistle'; out.needs_live_check = true; out.reasons.push('a high whistle was measured on more than one s-sound');
+  } else if (ac.placement && /^(forward|lateral)$/.test(ac.placement.signal || '')) {
+    out.tier = 'inconclusive'; out.reason = 'camera'; out.needs_live_check = true;
+    out.reasons.push(ac.placement.signal === 'forward' ? `the camera saw the tongue forward on ${ac.placement.forward} of ${ac.placement.checked} s-sounds it checked, though they sounded clean` : `the camera saw a sideways mouth posture on ${ac.placement.lateral} of ${ac.placement.checked} s-sounds it checked`);
   } else if (/noticeable|significant/.test(self)) {
     out.tier = 'inconclusive'; out.reason = 'self_report'; out.needs_live_check = true; out.self_report_conflict = true; out.reasons.push('you said you notice it; these recordings did not show it');
   } else if (quiet || all95) {
@@ -1991,7 +1994,9 @@ function deriveLispSummary(categories, gri, acoustics) {
     acousticsCalibrated: ac ? !!ac.calibrated : null,
     capturePeakDbfs: ac && ac.capture ? ac.capture.minPeakDbfs : null,
     faceVideo: !!(ac && ac.placement),
-    placementForward: ac && ac.placement ? (ac.placement.forward || 0) : null
+    placementForward: ac && ac.placement ? (ac.placement.forward || 0) : null,
+    placementChecked: ac && ac.placement ? (ac.placement.checked || 0) : null,
+    placementSignal: ac && ac.placement ? (ac.placement.signal || null) : null
   };
 }
 function acousticsHasVideo(summary) { return !!(summary && summary.faceVideo); }
@@ -2024,6 +2029,8 @@ async function sendPosthogAssessmentCompleted(user, survey, summary) {
       capture_peak_dbfs: summary.capturePeakDbfs,
       face_video: !!(acousticsHasVideo(summary)),
       placement_forward: summary.placementForward,
+      placement_checked: summary.placementChecked,
+      placement_signal: summary.placementSignal,
       outcome_tier: summary.outcome ? summary.outcome.tier : null,
       outcome_type: summary.outcome ? summary.outcome.type : null,
       outcome_reason: summary.outcome ? summary.outcome.reason : null,
@@ -2095,7 +2102,11 @@ async function calendlyNextOpening() {
 // (or, when it agrees with the acoustics on ≥2 tokens, applies the same bounded
 // cap fuseAcoustics uses) — it never overrides the ear on its own.
 const FACE_BUCKET = process.env.FACE_VIDEO_BUCKET || 'rollr-academy.firebasestorage.app';
-const PLACEMENT_MAX_TOKENS = 6;
+// VISION_MODE: 'all' (default) looks at every /s,z/ word take that has a video
+// mark — the camera is an independent signal next to the ear and the acoustics,
+// not just a confirmation of flagged tokens. 'flagged' restores the v1 behaviour.
+const VISION_MODE = (process.env.VISION_MODE || 'all').toLowerCase();
+const PLACEMENT_MAX_TOKENS = Math.max(1, Number(process.env.VISION_MAX_TAKES) || (VISION_MODE === 'all' ? 12 : 6));
 let _ffmpegPath = null;
 function ffmpegPath() {
   if (_ffmpegPath !== null) return _ffmpegPath;
@@ -2133,10 +2144,21 @@ function placementCandidates(video, wordRows, sentenceProbes) {
   const lat = Number(video.recorderLatencyMs) || 150;
   const out = [];
   (wordRows || []).forEach(r => {
-    if (!r || !r.acoustic || /whistle/.test(r.acoustic) || r.s_start == null) return;
+    if (!r || r.word == null) return;
     const m = marks.get(String(r.word)); if (!m) return;
-    const mid = (Number(r.s_start) + Number(r.s_end != null ? r.s_end : r.s_start)) / 2;
-    out.push({ key: 'w:' + r.word, label: r.word, kind: r.acoustic, tMs: m.start + lat + mid * 1000, row: r });
+    const flagged = !!(r.acoustic && !/whistle/.test(r.acoustic));
+    if (VISION_MODE !== 'all' && !flagged) return;
+    // Only /s/ and /z/ targets are informative for placement; th/sh/ch/j words are not.
+    if (!flagged && !/^[SZ]$/.test(acLabelForWord(r.word, r.type))) return;
+    let sec;
+    if (r.s_start != null) sec = (Number(r.s_start) + Number(r.s_end != null ? r.s_end : r.s_start)) / 2;
+    else if (m.end != null && m.end > m.start) {
+      // No measured window: the /s/ of an initial word sits early in the take, a
+      // final one late; the take starts ~0.3 s before the word (VAD lead-in).
+      const dur = (m.end - m.start) / 1000, pos = String(r.position || '').toLowerCase();
+      sec = pos === 'final' ? Math.max(0.3, dur * 0.7) : pos === 'medial' ? Math.max(0.3, dur * 0.5) : Math.min(dur * 0.45, 0.3 + 0.15);
+    } else sec = 0.4;
+    out.push({ key: 'w:' + r.word, label: String(r.word), kind: flagged ? r.acoustic : 'none', flagged, tMs: m.start + lat + sec * 1000, row: r, mark: m });
   });
   (sentenceProbes || []).forEach(p => {
     const m = marks.get(String(p.word)); if (!m) return;
@@ -2146,10 +2168,30 @@ function placementCandidates(video, wordRows, sentenceProbes) {
       out.push({ key: 's:' + p.word + '@' + sg.start, label: `"${String(p.word).slice(0, 40)}" at ${Number(sg.start).toFixed(1)} s`, kind: sg.ac.frontal ? 'frontal' : 'lateral', tMs: m.start + lat + mid * 1000, probe: p, seg: sg });
     });
   });
-  out.sort((a, b) => (a.kind === 'frontal' ? 0 : 1) - (b.kind === 'frontal' ? 0 : 1));
-  return out.slice(0, PLACEMENT_MAX_TOKENS);
+  // Flagged tokens first (frontal before lateral), then the unflagged /s,z/ takes
+  // spread across the list so the sample covers the whole session.
+  const rank = c => c.kind === 'frontal' ? 0 : c.kind === 'lateral' ? 1 : c.flagged ? 2 : 3;
+  const flaggedC = out.filter(c => c.flagged).sort((a, b) => rank(a) - rank(b));
+  const rest = out.filter(c => !c.flagged);
+  const room = Math.max(0, PLACEMENT_MAX_TOKENS - flaggedC.length);
+  let pick = rest;
+  if (rest.length > room) { const step = rest.length / Math.max(1, room); pick = Array.from({ length: room }, (_, i) => rest[Math.floor(i * step)]); }
+  return flaggedC.slice(0, PLACEMENT_MAX_TOKENS).concat(pick);
 }
-const PLACEMENT_PROMPT = `You are a speech-language pathologist reviewing still frames from a front-facing phone camera. Each token below shows three consecutive frames (about 80 ms apart) captured at the instant the speaker produced an /s/ sound in the word or sentence named. Look only at the mouth: tongue tip, front teeth, jaw and lips.
+// Mouth crop from the live framing metrics the client stores per take
+// (MediaPipe box: face height fh, centre cx/cy, mouth y — all normalised).
+// Falls back to the lower-middle of the frame when no metrics were kept.
+function placementCropFilter(mark) {
+  const f = mark && mark.framing && mark.framing.last ? mark.framing.last : null;
+  let cx = 0.5, my = 0.68, fh = 0.55;
+  if (f && Number.isFinite(f.cx) && Number.isFinite(f.fh)) { cx = f.cx; fh = Math.max(0.25, Math.min(0.9, f.fh)); my = Number.isFinite(f.mouthY) ? f.mouthY : (Number.isFinite(f.cy) ? f.cy + fh * 0.3 : 0.68); }
+  // Crop box ≈ 0.95 face widths × 0.5 face heights around the mouth (face width ≈ 0.75 × face height in pixels).
+  const wN = Math.min(0.9, Math.max(0.3, fh * 0.75 * 0.95 * 0.75)); // in frame-width units (assumes 4:3)
+  const hN = Math.min(0.7, Math.max(0.25, fh * 0.5));
+  const x0 = Math.max(0, Math.min(1 - wN, cx - wN / 2)), y0 = Math.max(0, Math.min(1 - hN, my - hN * 0.55));
+  return `crop=iw*${wN.toFixed(3)}:ih*${hN.toFixed(3)}:iw*${x0.toFixed(3)}:ih*${y0.toFixed(3)},scale=360:-2:flags=lanczos`;
+}
+const PLACEMENT_PROMPT = `You are a speech-language pathologist reviewing still frames from a front-facing phone camera. The first image is one full frame for context. Each token below then shows three consecutive frames (about 80 ms apart), cropped to the mouth and enlarged, captured at the instant the speaker produced an /s/ (or /z/) sound in the word or sentence named. Look only at the mouth: tongue tip, front teeth, jaw and lips. Most tokens are NOT flagged by the audio; judge each on what you see and prefer "unclear" over a guess.
 Classify the tongue placement for each token:
 - "interdental": tongue tip visibly between or beyond the front teeth.
 - "dentalized": tongue tip pressed against the back of the upper front teeth, visible at the gum line through slightly parted teeth.
@@ -2170,7 +2212,10 @@ async function placementCheck(video, wordRows, sentenceProbes) {
   try {
     const ext = /mp4/.test(String(video.mime || video.path)) ? 'mp4' : 'webm';
     const local = path.join(dir, 'face.' + ext);
-    await admin.storage().bucket(FACE_BUCKET).file(String(video.path)).download({ destination: local });
+    // PLACEMENT_LOCAL_VIDEO: offline evaluation (eval-vision.js) — read a file
+    // instead of the bucket. Never set in production.
+    if (process.env.PLACEMENT_LOCAL_VIDEO) fs.copyFileSync(process.env.PLACEMENT_LOCAL_VIDEO, local);
+    else await admin.storage().bucket(FACE_BUCKET).file(String(video.path)).download({ destination: local });
     const parts = [{ text: PLACEMENT_PROMPT }];
     // One linear decode: pick the frame nearest each wanted instant (t-80, t, t+80 ms)
     // for every candidate. Output files are numbered in time order, so sort the
@@ -2184,15 +2229,33 @@ async function placementCheck(video, wordRows, sentenceProbes) {
     } catch (e) { console.warn('🎥 frame extraction failed:', e.message); }
     const produced = fs.readdirSync(dir).filter(f => /^f\d{3}\.jpg$/.test(f)).sort();
     // ffmpeg emits at most one frame per matched instant, in order; align by index.
+    // Each kept frame is then cropped to the mouth (framing metrics of that take).
     const byCand = new Map();
-    produced.forEach((f, i) => { const w = wants[i]; if (!w) return; const st = fs.statSync(path.join(dir, f)); if (st.size > 2000) { if (!byCand.has(w.ci)) byCand.set(w.ci, []); byCand.get(w.ci).push(fs.readFileSync(path.join(dir, f)).toString('base64')); } });
+    let context = null;
+    for (let i = 0; i < produced.length; i++) {
+      const f = produced[i], w = wants[i]; if (!w) break;
+      const full = path.join(dir, f);
+      if (fs.statSync(full).size <= 2000) continue;
+      if (!context) context = fs.readFileSync(full).toString('base64');
+      const c = cands[w.ci];
+      const cropped = path.join(dir, f.replace(/\.jpg$/, 'm.jpg'));
+      let b64 = null;
+      // Crop only when the take carries live framing metrics (a blind crop can miss
+      // the mouth entirely); otherwise the model gets the full frame.
+      const hasBox = !!(c.mark && c.mark.framing && c.mark.framing.last && Number.isFinite(c.mark.framing.last.cx));
+      if (hasBox) { try { await runFfmpeg(['-y', '-loglevel', 'error', '-i', full, '-vf', placementCropFilter(c.mark), '-q:v', '4', cropped], 15000); b64 = fs.readFileSync(cropped).toString('base64'); } catch (e) { b64 = null; } }
+      if (!b64) b64 = fs.readFileSync(full).toString('base64');
+      if (!byCand.has(w.ci)) byCand.set(w.ci, []);
+      byCand.get(w.ci).push(b64);
+    }
+    if (context) { parts.push({ text: '\nContext: one full frame from this session.' }); parts.push({ inline_data: { mime_type: 'image/jpeg', data: context } }); }
     let n = 0;
     cands.forEach((c, ci) => {
       const frames = byCand.get(ci) || [];
       if (!frames.length) return;
       n++;
       c.token = n;
-      parts.push({ text: `\nToken ${n}: /s/ in ${c.label} (acoustic cue: ${c.kind}) — ${frames.length} frame(s)` });
+      parts.push({ text: `\nToken ${n}: /s/ in ${c.label}` + (c.flagged ? ` (audio cue: ${c.kind})` : ' (no audio cue)') + ` — ${frames.length} mouth frame(s)` });
       frames.forEach(b64 => parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64 } }));
     });
     if (!n) { result.note = 'no frames could be extracted'; return result; }
@@ -2210,25 +2273,35 @@ async function placementCheck(video, wordRows, sentenceProbes) {
       const forward = (placement === 'interdental' || placement === 'dentalized') && conf >= 0.6;
       const normal = placement === 'behind-teeth' && conf >= 0.7;
       if (forward) result.forward++; else if (normal) result.normal++; else if (placement === 'lateral-cue' && conf >= 0.6) result.lateral++; else result.unclear++;
-      result.tokens.push({ label: c.label, cue: c.kind, placement, confidence: conf, note: String(v.note || '').slice(0, 120) });
+      result.tokens.push({ label: c.label, cue: c.kind, flagged: !!c.flagged, placement, confidence: conf, note: String(v.note || '').slice(0, 120) });
+      // Row notes: forward placement is always worth naming; "looked normal" only
+      // matters where the audio flagged the token (it argues against the flag).
       const note = forward ? (placement === 'interdental' ? 'Camera: the tongue tip is visible between the teeth on this s-sound.' : 'Camera: the tongue is pressed against the front teeth on this s-sound.')
-        : normal ? 'Camera: tongue placement looked normal on this s-sound — worth checking live.' : '';
+        : (normal && c.flagged) ? 'Camera: tongue placement looked normal on this s-sound — worth checking live.' : '';
       if (!note) return;
       const target = c.row || null;
       if (target) target.observation = `${target.observation || ''} ${note}`.trim();
       else if (c.probe) { c.probe.placementNote = `${c.probe.placementNote || ''} ${note}`.trim(); }
     });
-    // Camera + acoustics agreeing on ≥2 tokens is strong: apply the same bounded
-    // cap fuseAcoustics uses when the ear still says clean.
+    // Speaker-level camera signal. 'forward' needs at least two forward tokens
+    // and a quarter of what was checked; 'normal' needs a clear majority of
+    // readable tokens with at most one forward reading.
+    const readable = result.forward + result.normal + result.lateral;
+    result.signal = (result.forward >= 2 && result.forward >= Math.ceil(result.checked * 0.25)) ? 'forward'
+      : (result.lateral >= 2 && result.lateral >= Math.ceil(result.checked * 0.25)) ? 'lateral'
+      : (readable >= 3 && result.normal >= Math.ceil(readable * 0.6) && result.forward <= 1) ? 'normal' : 'unclear';
+    // Bounded cap (same as fuseAcoustics) only where camera AND acoustics agree on
+    // the same token and the ear still said clean. Camera alone never rewrites a
+    // row; it surfaces through the outcome (needs a live check) instead.
     if (result.forward >= 2) {
-      cands.filter(c => c.row && c.token).forEach(c => {
+      cands.filter(c => c.row && c.token && c.flagged && /frontal/.test(c.kind)).forEach(c => {
         const t = result.tokens.find(x => x.label === c.label);
         if (!t || !/interdental|dentalized/.test(t.placement)) return;
         if (/^accurate$/i.test(String(c.row.judgment || '')) && (Number(c.row.quality) || 0) > AC_CAP_QUALITY) { c.row.quality = AC_CAP_QUALITY; c.row.judgment = t.placement === 'interdental' ? 'Interdental' : 'Dentalized'; c.row.acoustic = (c.row.acoustic || '') + '+camera'; }
       });
     }
     result.ms = Date.now() - t0;
-    console.log(`🎥 placement check: ${result.checked} tokens (forward ${result.forward}, normal ${result.normal}, unclear ${result.unclear}) in ${result.ms} ms`);
+    console.log(`🎥 placement check: ${result.checked} tokens (forward ${result.forward}, normal ${result.normal}, lateral ${result.lateral}, unclear ${result.unclear}) → ${result.signal} in ${result.ms} ms`);
     return result;
   } catch (e) {
     console.warn('🎥 placement check failed:', e.message);
