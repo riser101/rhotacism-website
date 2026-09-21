@@ -892,12 +892,14 @@
             text-overflow: ellipsis;
             max-width: 88%;
         }
-        .active-pill.is-long { height: auto; min-height: 56px; padding: 12px; }
         .pill-word.is-long {
-            font-size: 17px;
-            font-weight: 600;
-            line-height: 1.35;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.3;
+            letter-spacing: -0.005em;
             text-transform: none;
+            white-space: normal;
+            text-wrap: pretty;
         }
 
         /* Word picker — glass card */
@@ -906,11 +908,16 @@
             color: rgba(255,255,255,0.6);
             margin-bottom: 8px;
         }
+        /* Word card — values from the exported Claude Design file (section 3A,
+           2026-09-21): #15191B card r14 p13, cyan 1.5px pill r10, 24px word,
+           11.5px mono timer in a 44px column, 14.5px next words at 0.4 / 0.2. */
         .word-picker {
-            margin: 0 80px 16px;
-            background: rgba(255,255,255,0.06);
-            border-radius: 28px;
-            border: 1px solid rgba(255,255,255,0.1);
+            margin: 16px 20px 0;
+            background: #15191B;
+            border-radius: 14px;
+            border: 0;
+            padding: 13px;
+            box-sizing: border-box;
             display: flex;
             overflow: hidden;
             position: relative;
@@ -921,80 +928,76 @@
             display: flex;
             flex-direction: column;
             align-items: stretch;
-            padding: 10px 0;
+            gap: 10px;
+            padding: 0;
         }
         .context-word {
-            height: 32px;
-            line-height: 32px;
+            height: auto;
+            line-height: 1.25;
             display: block;
             text-align: center;
-            font-size: 16px;
+            font-size: 14.5px;
             font-weight: 400;
-            color: rgba(255,255,255,0.35);
+            color: rgba(255,255,255,0.4);
             font-family: 'Inter', sans-serif;
             width: 100%;
             max-width: 100%;
             margin: 0 auto;
             box-sizing: border-box;
-            padding: 0 24px;
+            padding: 0 8px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             transition: color 0.3s;
             text-transform: capitalize;
         }
-        .context-word.below { color: rgba(255,255,255,0.45); }
+        .context-word.below { color: rgba(255,255,255,0.4); }
         .context-word.far { color: rgba(255,255,255,0.2); }
-        /* Long sentence previews shrink so they don't crowd the pill */
-        .context-word.preview-long { font-size: 13px; letter-spacing: 0.01em; }
+        .context-word.preview-long { text-transform: none; }
 
         /* Active pill — stretches across picker with breathing room */
         .active-pill {
-            height: 56px;
-            margin: 4px 10px;
-            width: calc(100% - 20px);
+            width: 100%;
+            margin: 0;
+            height: auto;
             box-sizing: border-box;
-            border: 2px solid var(--asmt-cyan);
-            border-radius: 36px;
+            border: 1.5px solid var(--asmt-cyan);
+            border-radius: 10px;
+            padding: 10px 12px 11px;
             display: flex;
-            align-items: center;
-            padding: 0 12px;
+            flex-direction: column;
+            gap: 7px;
             position: relative;
         }
+        .pill-row { width: 100%; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; }
         .pill-timer {
-            font-size: 15px;
-            font-weight: 500;
-            font-family: monospace;
+            font: 500 11.5px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
             color: var(--asmt-cyan);
-            width: 48px;
             text-align: left;
         }
         .pill-word {
-            flex: 1;
-            font-size: 26px;
+            min-width: 0;
+            font-size: 24px;
             font-weight: 700;
             color: #ffffff;
             text-align: center;
             font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
             text-transform: capitalize;
         }
-        .pill-spacer { width: 48px; }
-        .pill-center { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
-        .pill-center .pill-word { flex: 0 0 auto; width: 100%; }
-        .active-pill.has-how { height: auto; padding-top: 9px; padding-bottom: 9px; }
-        .active-pill.has-how .pill-timer, .active-pill.has-how .pill-spacer { align-self: flex-start; margin-top: 5px; }
-        .pill-how { font: 400 11.5px/1.35 'Inter', sans-serif; color: rgba(255,255,255,0.68); text-align: center; text-transform: none; white-space: normal; padding: 0 4px; }
+        .pill-spacer { display: block; }
+        .pill-how { font: 500 11.5px/1.3 'Inter', sans-serif; color: rgba(255,255,255,0.68); text-align: center; text-transform: none; white-space: normal; text-wrap: pretty; }
         /* Face-video row + dialog — values from the approved Claude Design file
            ("Lisp Assessment Recording.dc.html", 2026-09-20). Inter, cyan #22D3EE. */
-        .cam-row { margin: 0 20px; border-top: 1px solid rgba(255,255,255,0.1); padding: 14px 0 16px; display: flex; flex-direction: column; gap: 12px; text-align: left; font-family: 'Inter', system-ui, sans-serif; }
-        .cam-hint { height: 30px; box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: 9px; padding: 0 12px; border-radius: 7px; border: 1px solid rgba(34,211,238,0.5); background: rgba(34,211,238,0.12); color: #22D3EE; font: 700 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; }
-        .cam-hint-dot { flex: 0 0 auto; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+        .cam-row { margin: 0 20px; border-top: 1px solid rgba(255,255,255,0.1); padding: 14px 0 16px; display: flex; flex-direction: column; gap: 11px; text-align: left; font-family: 'Inter', system-ui, sans-serif; }
+        .cam-hint { height: 30px; box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: 8px; padding: 0 10px; border-radius: 6px; border: 1px solid rgba(34,211,238,0.38); background: rgba(34,211,238,0.09); color: #22D3EE; font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; }
+        .cam-hint-dot { flex: 0 0 auto; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
         .cam-hint-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
         .cam-hint[data-state="off"] { visibility: hidden; }
-        .cam-hint[data-state="act"] { border-color: rgba(245,158,11,0.5); background: rgba(245,158,11,0.12); color: #F5A524; }
-                .cam-hint[data-state="noface"] { border-color: rgba(255,255,255,0.22); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.82); }
+        .cam-hint[data-state="act"] { border-color: rgba(255,139,66,0.42); background: rgba(255,139,66,0.11); color: #FF8B42; }
+                .cam-hint[data-state="noface"] { border-color: rgba(255,255,255,0.28); background: rgba(255,255,255,0.06); color: #FFFFFF; }
                 .cam-row:not([data-state="on"]) .cam-hint { display: none; }
-        .cam-strip { display: flex; gap: 13px; align-items: flex-start; flex-wrap: wrap; }
+        .cam-strip { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
         .cam-tilewrap { flex: 0 0 96px; display: flex; flex-direction: column; gap: 6px; }
         .cam-tile { position: relative; width: 96px; height: 116px; border-radius: 6px; background: #000000; border: 1px solid rgba(255,255,255,0.16); overflow: hidden; }
         .cam-tile video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: none; }
@@ -1021,6 +1024,8 @@
         .cam-state-title-strong { color: #FFFFFF; }
         .cam-state-sub { font-size: 11.5px; line-height: 1.5; color: rgba(255,255,255,0.56); text-wrap: pretty; }
         .cam-btn-row { display: flex; gap: 8px; margin-top: 3px; }
+        .cam-btn-row .cam-btn { flex: 1; padding: 10px 10px; font-size: 12px; }
+        .cam-btn-row .cam-btn-primary { padding: 10px 12px; }
         .cam-btn { background: transparent; border: 1px solid rgba(255,255,255,0.22); border-radius: 6px; padding: 7px 11px; font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.82); cursor: pointer; line-height: 1.2; }
         .cam-btn:hover { border-color: rgba(255,255,255,0.4); color: #FFFFFF; }
         .cam-btn-primary { background: #22D3EE; border-color: #22D3EE; color: #06181C; font-weight: 700; padding: 7px 12px; }
@@ -1068,12 +1073,7 @@
         .picker-dot.next   { background: var(--asmt-cyan); }
         .picker-dot.done   { background: rgba(34,211,238,0.55); }
 
-        .word-divider {
-            height: 1px;
-            background: rgba(0,0,0,0.12);
-            margin: 0 32px;
-            width: calc(100% - 64px);
-        }
+        .word-divider { display: none; }
 
         /* VU Meter — centered pill bars */
         .vu-meter {
@@ -1379,7 +1379,6 @@
         /* Hide right-side dots column + divider — original word-picker is clean */
         .word-picker-divider-line,
         .word-picker-dots { display: none !important; }
-        .word-picker-words { padding: 16px 0; }
 
         /* ========================================================
            PWA-style white background override (match Lisp-pwa)
@@ -2714,13 +2713,7 @@
             .clinical-label { font-size: 10px; }
             .clinical-title { margin-top: 6px; font-size: 17px; padding-left: 0; }
             .recording-panel { gap: 8px; padding: 6px 0 2px; }
-            .word-picker { margin: 0 28px 6px; }
             .tier-progress { margin: 0 28px 10px; }
-            .pill-word.is-long { font-size: 14px; }
-            .word-picker-words { padding: 8px 0; }
-            .active-pill { height: 44px; margin: 4px 10px; width: calc(100% - 20px); }
-            .pill-word { font-size: 19px; }
-            .context-word { height: 22px; font-size: 14px; }
             .context-word:empty { display: none; }
             .vu-meter { height: 28px; margin-bottom: 4px; }
             .record-btn-area { padding: 4px 0 10px; }
@@ -2752,12 +2745,6 @@
             .seg-position { font-size: 10px; }
             .seg-counter { font-size: 11px; }
             .seg-pip { height: 4px; }
-            .word-picker { margin: 0 28px 12px; }
-            .word-picker-words { padding: 12px 0; }
-            .active-pill { height: 54px; }
-            .pill-word { font-size: 24px; }
-            .pill-word.is-long { font-size: 16px; }
-            .context-word { height: 30px; font-size: 16px; }
             .vu-meter { height: 40px; margin-bottom: 8px; }
             .record-btn-area { padding: 10px 0 16px; }
             .record-circle-btn { width: 68px; height: 68px; }
@@ -2769,7 +2756,6 @@
             .rec-aside .aside-box:nth-child(1) { margin-bottom: 18px; }
             .recording-panel { gap: 18px; }
             .seg-block { padding: 14px 22px 16px; }
-            .active-pill { height: 58px; }
             .vu-meter { height: 48px; }
             .record-btn-area { padding: 14px 0 20px; }
         }
@@ -3021,15 +3007,7 @@
             .seg-counter { font-size: 9.5px; letter-spacing: 0.1em; }
             .seg-strip { gap: 5px; }
             .seg-pip { height: 3px; }
-            .word-picker { margin: 14px 20px 0; }
-            .word-picker-words { padding: 11px 0; }
-            .active-pill { height: 50px; margin: 0 14px; width: calc(100% - 28px); padding: 0 14px; }
-            .active-pill.has-how { height: auto; min-height: 50px; padding: 9px 14px; }
-            .pill-timer { font-size: 12px; width: 46px; }
-            .pill-spacer { width: 46px; }
-            .pill-word { font-size: 26px; }
-            .pill-word.is-long { font-size: 16px; }
-            .context-word { font-size: 15px; height: 23px; line-height: 23px; }
+            .word-picker { margin: 16px 20px 0; }
             .word-progress { margin: 12px 20px 0; }
             .word-count-label { font-size: 9.5px; }
             .word-dot { width: 5px; height: 5px; }
@@ -3054,15 +3032,7 @@
             .seg-counter { font-size: 9px; letter-spacing: 0.1em; }
             .seg-strip { gap: 4px; }
             .seg-pip { height: 3px; }
-            .word-picker { margin: 12px 16px 0; }
-            .word-picker-words { padding: 9px 0; }
-            .active-pill { height: 48px; margin: 0 13px; width: calc(100% - 26px); padding: 0 12px; }
-            .active-pill.has-how { height: auto; min-height: 48px; padding: 8px 12px; }
-            .pill-timer { font-size: 11.5px; width: 44px; }
-            .pill-spacer { width: 44px; }
-            .pill-word { font-size: 24px; }
-            .pill-word.is-long { font-size: 15px; }
-            .context-word { font-size: 14.5px; height: 22px; line-height: 22px; }
+            .word-picker { margin: 16px 16px 0; }
             .word-progress { margin: 11px 16px 0; }
             .word-count-label { font-size: 9px; }
             .word-dot { width: 5px; height: 5px; }
@@ -3982,7 +3952,9 @@
         function probeIsTimed(m) { return !!m && m.type === 'sustained'; }
         function probeNoVadStop(m) { return probeIsFreeform(m) || probeIsTimed(m); }
         function probeIsConnected(m) { return !!m && CONNECTED_TYPES.has(m.type); }
-        function probeIsLong(m) { return !!m && (m.type === 'sentence' || probeIsFreeform(m) || (m.type === 'rapid' && /\s/.test(probeDisplay(m)))); }
+        // Design 3A: short items ("Mississippi x 3", "Sssssss") keep the 24px word; sentences,
+        // questions and rapid phrases longer than ~16 characters use the 16px wrapped style.
+        function probeIsLong(m) { return !!m && (m.type === 'sentence' || probeIsFreeform(m) || (m.type === 'rapid' && probeDisplay(m).length > 16)); }
         function probeDisplay(m) { return (m && (m.display || m.word)) || ''; }
         // Live-instruction copy per item type and phase ('idle' | 'recording' | 'next').
         function probeCopy(m, phase) {
@@ -4537,24 +4509,21 @@
             const wordSpan = document.createElement('span');
             wordSpan.className = 'pill-word' + (isLong ? ' is-long' : '');
             wordSpan.textContent = probeDisplay(curMeta);
-            pill.innerHTML = '<span class="pill-timer" id="pillTimer">' + (curMeta.maxMs ? (curMeta.maxMs / 1000).toFixed(0) + 's' : '0:00') + '</span>';
-            // Approved design 3A (final iteration): the how-to line sits INSIDE the
-            // cyan pill, under the word, for items that need one; plain words keep
-            // the standard pill.
-            const center = document.createElement('span');
-            center.className = 'pill-center';
-            center.appendChild(wordSpan);
+            // Approved design 3A (final): a 44px | 1fr | 44px row (timer, word, spacer)
+            // and, for items that need one, the how-to line under it spanning the pill.
+            pill.innerHTML = '<span class="pill-row"><span class="pill-timer" id="pillTimer">' + (curMeta.maxMs ? (curMeta.maxMs / 1000).toFixed(curMeta.maxMs < 10000 ? 1 : 0) + 's' : '0:00') + '</span></span>';
+            const row = pill.firstChild;
+            row.appendChild(wordSpan);
+            const spacer = document.createElement('span');
+            spacer.className = 'pill-spacer';
+            row.appendChild(spacer);
             if (curMeta.how) {
                 const how = document.createElement('span');
                 how.className = 'pill-how';
                 how.textContent = curMeta.how;
-                center.appendChild(how);
+                pill.appendChild(how);
                 pill.classList.add('has-how');
             }
-            pill.appendChild(center);
-            const spacer = document.createElement('span');
-            spacer.className = 'pill-spacer';
-            pill.appendChild(spacer);
             wordsEl.appendChild(pill);
 
             // Context preview meta — long sentence/passage previews render smaller
