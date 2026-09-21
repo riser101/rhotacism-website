@@ -73,8 +73,12 @@ test('replay recorded assessment and check the generated report', async ({ page 
         });
     }
     if (blockUploads) {
+        // A 403 makes the Storage SDK fail fast; an aborted request is treated as a
+        // network blip and retried for up to 10 minutes, which left every upload
+        // "pending" and timed out the settle check (2026-09-21).
         await page.route('**/*firebasestorage.googleapis.com/**', route =>
-            route.request().method() === 'GET' ? route.continue() : route.abort());
+            route.request().method() === 'GET' ? route.continue()
+                : route.fulfill({ status: 403, contentType: 'text/plain', body: 'upload blocked by replay harness' }));
     }
 
     // Watch backend calls so failures point at the right layer.
@@ -207,7 +211,11 @@ test('replay recorded assessment and check the generated report', async ({ page 
     await page.waitForFunction(
         n => window.__replay.uploads.length >= n && window.__replay.uploads.every(u => u.ok !== null),
         N_TAKES, { timeout: 60_000 },
-    );
+    ).catch(async () => {
+        // Name the stuck upload(s) instead of a bare timeout.
+        const st = await page.evaluate(() => window.__replay.uploads.map(u => `${u.wordIndex}:${u.size}B:${u.ok === null ? 'pending' : u.ok ? 'ok' : 'FAIL ' + (u.err || '')}`).join(' | '));
+        throw new Error(`uploads not settled after 60 s (${await page.evaluate(() => window.__replay.uploads.length)} of ${N_TAKES}): ${st}`);
+    });
     const uploads = await page.evaluate(() => window.__replay.uploads);
     for (const u of uploads) {
         expect(u.size, `upload for take ${u.wordIndex} is empty`).toBeGreaterThan(5000);
