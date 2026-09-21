@@ -19,7 +19,7 @@ export default defineConfig({
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',
         trace: 'retain-on-failure',
-        launchOptions: { args: ['--autoplay-policy=no-user-gesture-required', '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] }, // never open the real camera from a test run
+        launchOptions: { args: ['--autoplay-policy=no-user-gesture-required', '--use-fake-device-for-media-stream'] }, // fake camera if ever granted; never the real one, never auto-granted
     },
     ...(remote ? {} : {
         webServer: {

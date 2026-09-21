@@ -1,8 +1,11 @@
 // Book-a-call consult card (assessment.html) — layout contract on BOTH views
 // (results + inline pricing) across phone / tablet / desktop viewports.
 //
-// Desktop/tablet: single row — avatar stack, copy, outlined button on the right.
-// ≤640px: heads+copy row with a full-width button underneath (mobile design).
+// Phones/tablets (touch): the production card — single row with the outlined button
+// on the right, or ≤640px heads+copy row with a full-width button underneath.
+// Laptops/desktops (mouse, ≥960px): the results card sits top-right of the report in a
+// rail (approved Claude Design, 2026-09-21) — eyebrow, lead, checklist, full-width
+// button, next opening, coach heads with the availability note.
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
@@ -15,12 +18,12 @@ const baseline = JSON.parse(
 );
 
 const VIEWPORTS = [
-    { name: 'phone (iPhone 14)', width: 390, height: 844, stacked: true },
-    { name: 'phone landscape', width: 740, height: 390, stacked: false },
-    { name: 'tablet portrait (iPad Air)', width: 820, height: 1180, stacked: false },
-    { name: 'tablet landscape (iPad Air)', width: 1180, height: 820, stacked: false },
-    { name: 'small laptop', width: 1280, height: 800, stacked: false },
-    { name: 'desktop', width: 1467, height: 812, stacked: false },
+    { name: 'phone (iPhone 14)', width: 390, height: 844, stacked: true, touch: true },
+    { name: 'phone landscape', width: 740, height: 390, stacked: false, touch: true },
+    { name: 'tablet portrait (iPad Air)', width: 820, height: 1180, stacked: false, touch: true },
+    { name: 'tablet landscape (iPad Air)', width: 1180, height: 820, stacked: false, touch: true },
+    { name: 'small laptop', width: 1280, height: 800, stacked: false, rail: true },
+    { name: 'desktop', width: 1467, height: 812, stacked: false, rail: true },
 ];
 
 async function openPricing(page) {
@@ -34,14 +37,20 @@ async function openPricing(page) {
     await expect(page.locator('#asmtPricing')).toBeVisible();
 }
 
-async function assertCardShape(page, card, stacked) {
+async function assertCardShape(page, card, stacked, rail) {
     await expect(card).toBeVisible();
     const btn = card.locator('.book-call-btn');
     await expect(btn).toBeVisible();
     await expect(card.locator('.book-call-heads img')).toHaveCount(3);
     const cardBox = await card.boundingBox();
     const btnBox = await btn.boundingBox();
-    if (stacked) {
+    if (rail) {
+        // Desktop rail card: full-width button, eyebrow + checklist + heads note visible.
+        expect(btnBox.width).toBeGreaterThan(cardBox.width * 0.8);
+        await expect(card.locator('.book-call-eyebrow')).toBeVisible();
+        await expect(card.locator('.book-call-checks li')).toHaveCount(3);
+        await expect(card.locator('.book-call-heads-note')).toHaveText('3 speech coaches available this week');
+    } else if (stacked) {
         // Full-width button on its own line below the copy.
         expect(btnBox.width).toBeGreaterThan(cardBox.width * 0.8);
     } else {
@@ -59,7 +68,7 @@ async function assertCardShape(page, card, stacked) {
 
 for (const vp of VIEWPORTS) {
     test.describe(`${vp.name} ${vp.width}x${vp.height}`, () => {
-        test.use({ viewport: { width: vp.width, height: vp.height } });
+        test.use({ viewport: { width: vp.width, height: vp.height }, hasTouch: vp.touch === true });
 
         test.beforeEach(async ({ page }) => {
             await page.addInitScript((r) => {
@@ -75,20 +84,32 @@ for (const vp of VIEWPORTS) {
             await expect(results).toBeVisible();
             const card = results.locator('.book-call-card');
             await card.scrollIntoViewIfNeeded();
-            await assertCardShape(page, card, vp.stacked);
-            await expect(card.locator('.book-call-title')).toHaveText('Not sure? Walk through your report with our speech coach');
-            // Order: Continue CTA above the card, subnote below it.
+            await assertCardShape(page, card, vp.stacked, vp.rail);
+            // Hidden variant spans (bc-mob / bc-desk) must not leak into the visible title.
+            await expect(card.locator('.book-call-title')).toHaveText(
+                vp.rail ? 'Walk through your report with a speech coach' : 'Not sure? Walk through your report with our speech coach',
+                { useInnerText: true });
             const ctaBox = await results.locator('.asmt-results-cta').boundingBox();
             const cardBox = await card.boundingBox();
-            expect(cardBox.y).toBeGreaterThan(ctaBox.y);
-            // Plans subnote: desktop-only (hidden ≤640px), sits between CTA and card.
             const subnote = results.locator('#asmtPlansSubnote');
-            if (vp.stacked) {
-                await expect(subnote).toBeHidden();
-            } else {
+            if (vp.rail) {
+                // Top-right rail: card starts at the top of the report, right of the content column.
+                const resultsBox = await results.boundingBox();
+                expect(cardBox.y).toBeLessThan(ctaBox.y);
+                expect(cardBox.x).toBeGreaterThan(resultsBox.x + resultsBox.width * 0.5);
                 const noteBox = await subnote.boundingBox();
                 expect(noteBox.y).toBeGreaterThan(ctaBox.y);
-                expect(noteBox.y).toBeLessThan(cardBox.y);
+            } else {
+                // Order: Continue CTA above the card, subnote below it.
+                expect(cardBox.y).toBeGreaterThan(ctaBox.y);
+                // Plans subnote: desktop-only (hidden ≤640px), sits between CTA and card.
+                if (vp.stacked) {
+                    await expect(subnote).toBeHidden();
+                } else {
+                    const noteBox = await subnote.boundingBox();
+                    expect(noteBox.y).toBeGreaterThan(ctaBox.y);
+                    expect(noteBox.y).toBeLessThan(cardBox.y);
+                }
             }
             // Retake link is gone from the results view entirely.
             await expect(results.locator('.asmt-results-retake')).toHaveCount(0);

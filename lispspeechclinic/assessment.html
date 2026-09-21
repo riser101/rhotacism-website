@@ -1830,7 +1830,9 @@
         .book-call-btn svg { flex: none; }
         /* Results card: desktop-only parts hidden by default (phones/tablets unchanged). */
         .book-call-card--results .bc-desk { display: none; }
-        @media (min-width: 960px) {
+        /* Desktop only = wide AND a mouse/trackpad. Tablets (coarse pointer) keep the
+           production card at every width, per the owner (2026-09-21). */
+        @media (min-width: 960px) and (hover: hover) and (pointer: fine) {
             /* Two columns: report on the left, consult card top-right (330 px rail). */
             #step4 .ob-panel-left.showing-results .asmt-results { max-width: 1080px; position: relative; padding-right: 358px; box-sizing: border-box; }
             #asmtResults .book-call-card--results {
@@ -1925,12 +1927,12 @@
         #step4 .ob-split:has(.ob-panel-left.showing-results) .ob-panel-right { display: none; }
         #step4 .ob-panel-left.showing-results .asmt-results { width: 100%; max-width: 960px; margin-left: auto; margin-right: auto; }
         /* Wide desktops: use the viewport. Report column grows, rail stays fixed. */
-        @media (min-width: 960px) {
+        @media (min-width: 960px) and (hover: hover) and (pointer: fine) {
             .assessment-container:has(#step4.active) { max-width: min(1560px, 100vw - 64px); width: 100%; }
             #step4 .ob-panel-left.showing-results .asmt-results { max-width: 1480px; padding-right: 388px; }
             #asmtResults .book-call-card--results { width: 360px; }
         }
-        @media (min-width: 1280px) {
+        @media (min-width: 1280px) and (hover: hover) and (pointer: fine) {
             #step4 .ob-panel-left.showing-results .asmt-results { padding-right: 420px; }
             #asmtResults .book-call-card--results { width: 380px; padding: 18px 20px 20px; }
         }
