@@ -2192,12 +2192,12 @@ function placementCropFilter(mark) {
   return `crop=iw*${wN.toFixed(3)}:ih*${hN.toFixed(3)}:iw*${x0.toFixed(3)}:ih*${y0.toFixed(3)},scale=360:-2:flags=lanczos`;
 }
 const PLACEMENT_PROMPT = `You are a speech-language pathologist reviewing still frames from a front-facing phone camera. The first image is one full frame for context. Each token below then shows three consecutive frames (about 80 ms apart), cropped to the mouth and enlarged, captured at the instant the speaker produced an /s/ (or /z/) sound in the word or sentence named. Look only at the mouth: tongue tip, front teeth, jaw and lips. Most tokens are NOT flagged by the audio; judge each on what you see and prefer "unclear" over a guess.
-Classify the tongue placement for each token:
-- "interdental": tongue tip visibly between or beyond the front teeth.
-- "dentalized": tongue tip pressed against the back of the upper front teeth, visible at the gum line through slightly parted teeth.
-- "behind-teeth": teeth close together, tongue not visible — normal /s/ posture.
+Classify the tongue placement for each token. Most speakers, including most of the people in this test, show "behind-teeth"; judge every token separately and on visible evidence only.
+- "interdental": the tongue tip is clearly visible between or in front of the upper and lower front teeth. Do not use this when the tongue is merely close to the teeth or you are inferring it.
+- "dentalized": teeth slightly apart and the tongue tip visibly pressed against the back of the upper front teeth at the gum line. Use this only when the tongue itself is visible.
+- "behind-teeth": teeth close together or slightly apart, tongue not visible — normal /s/ posture.
 - "lateral-cue": clear jaw or lip asymmetry, or the tongue visible at one side.
-- "unclear": mouth not visible, blurred, hand or phone in the way, or the frames are not on an /s/.
+- "unclear": mouth not visible, blurred, hand or phone in the way, closed lips, or the frames are not on an /s/.
 Return ONLY a JSON array, one object per token in order: [{"token": 1, "placement": "interdental|dentalized|behind-teeth|lateral-cue|unclear", "confidence": 0.0-1.0, "note": "at most 12 plain words"}]`;
 async function placementCheck(video, wordRows, sentenceProbes) {
   const result = { checked: 0, forward: 0, normal: 0, unclear: 0, lateral: 0, tokens: [], error: null };
@@ -2220,8 +2220,17 @@ async function placementCheck(video, wordRows, sentenceProbes) {
     // One linear decode: pick the frame nearest each wanted instant (t-80, t, t+80 ms)
     // for every candidate. Output files are numbered in time order, so sort the
     // wanted instants and map them back.
+    // Negative controls: the first 120 ms of two takes (the lead-in before the word,
+    // mouth at rest) go in as ordinary tokens. A model that calls those "interdental"
+    // is not reading the frames, and the whole pass is marked unreliable.
+    const lat = Number(video.recorderLatencyMs) || 150;
+    const ctlMarks = (video.marks || []).filter(m => m && m.start != null && m.end != null && m.end - m.start > 600).slice(0, 8);
+    [ctlMarks[1], ctlMarks[Math.min(6, ctlMarks.length - 1)]].filter(Boolean).forEach((m, k) => {
+      if (cands.some(c => c.control && c.mark === m)) return;
+      cands.push({ key: 'ctl:' + k, label: String(m.word || 'take'), kind: 'none', flagged: false, control: true, tMs: m.start + lat + 120, row: null, mark: m });
+    });
     const wants = [];
-    cands.forEach((c, ci) => [-80, 0, 80].forEach(off => wants.push({ ci, t: Math.max(0, c.tMs + off) / 1000 })));
+    cands.forEach((c, ci) => (c.control ? [0, 80] : [-80, 0, 80]).forEach(off => wants.push({ ci, t: Math.max(0, c.tMs + off) / 1000 })));
     wants.sort((a, b) => a.t - b.t);
     const expr = wants.map(w => `lt(abs(t-${w.t.toFixed(3)})\\,0.02)`).join('+');
     try {
@@ -2256,11 +2265,20 @@ async function placementCheck(video, wordRows, sentenceProbes) {
       n++;
       c.token = n;
       parts.push({ text: `\nToken ${n}: /s/ in ${c.label}` + (c.flagged ? ` (audio cue: ${c.kind})` : ' (no audio cue)') + ` — ${frames.length} mouth frame(s)` });
+      if (c.control) c.label = c.label + ' (control)';
       frames.forEach(b64 => parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64 } }));
     });
     if (!n) { result.note = 'no frames could be extracted'; return result; }
     const { rawText } = await callGemini(parts);
-    if (DEBUG_DIR) { try { fs.writeFileSync(path.join(dir, 'vision-reply.txt'), String(rawText || '')); } catch (e) {} }
+    if (DEBUG_DIR) {
+      try {
+        fs.writeFileSync(path.join(dir, 'vision-reply.txt'), String(rawText || ''));
+        // Which extracted frames went with which token (for contact sheets / audits).
+        const fileByCand = new Map();
+        produced.forEach((f, i) => { const w = wants[i]; if (!w) return; if (!fileByCand.has(w.ci)) fileByCand.set(w.ci, []); fileByCand.get(w.ci).push(fs.existsSync(path.join(dir, f.replace(/\.jpg$/, 'm.jpg'))) ? f.replace(/\.jpg$/, 'm.jpg') : f); });
+        fs.writeFileSync(path.join(dir, 'tokens.json'), JSON.stringify(cands.filter(c => c.token).map(c => ({ token: c.token, label: c.label, control: !!c.control, tMs: Math.round(c.tMs), files: fileByCand.get(cands.indexOf(c)) || [] })), null, 1));
+      } catch (e) {}
+    }
     console.log('🎥 vision reply:', String(rawText || '').replace(/\s+/g, ' ').slice(0, 600));
     const m = String(rawText || '').match(/\[[\s\S]*\]/);
     const arr = m ? JSON.parse(m[0]) : [];
@@ -2269,14 +2287,25 @@ async function placementCheck(video, wordRows, sentenceProbes) {
       const v = byToken.get(c.token) || {};
       const placement = String(v.placement || 'unclear').toLowerCase();
       const conf = Math.max(0, Math.min(1, Number(v.confidence) || 0));
+      if (c.control) {
+        // Rest-mouth frames: anything but behind-teeth/unclear here is a hallucination.
+        result.controls = (result.controls || 0) + 1;
+        if (/interdental|dentalized|lateral/.test(placement) && conf >= 0.5) result.controlFails = (result.controlFails || 0) + 1;
+        return;
+      }
       result.checked++;
-      const forward = (placement === 'interdental' || placement === 'dentalized') && conf >= 0.6;
+      // Only a tongue visibly between the teeth counts as forward evidence; the
+      // "dentalized" reading is too easy to over-apply to a normal /s/ and is kept
+      // as a note-level observation.
+      const forward = placement === 'interdental' && conf >= 0.6;
+      const dental = placement === 'dentalized' && conf >= 0.6;
       const normal = placement === 'behind-teeth' && conf >= 0.7;
-      if (forward) result.forward++; else if (normal) result.normal++; else if (placement === 'lateral-cue' && conf >= 0.6) result.lateral++; else result.unclear++;
+      if (forward) result.forward++; else if (dental) result.dental = (result.dental || 0) + 1; else if (normal) result.normal++; else if (placement === 'lateral-cue' && conf >= 0.6) result.lateral++; else result.unclear++;
       result.tokens.push({ label: c.label, cue: c.kind, flagged: !!c.flagged, placement, confidence: conf, note: String(v.note || '').slice(0, 120) });
       // Row notes: forward placement is always worth naming; "looked normal" only
       // matters where the audio flagged the token (it argues against the flag).
-      const note = forward ? (placement === 'interdental' ? 'Camera: the tongue tip is visible between the teeth on this s-sound.' : 'Camera: the tongue is pressed against the front teeth on this s-sound.')
+      const note = forward ? 'Camera: the tongue tip is visible between the teeth on this s-sound.'
+        : (dental && c.flagged) ? 'Camera: the tongue looks pressed against the front teeth on this s-sound.'
         : (normal && c.flagged) ? 'Camera: tongue placement looked normal on this s-sound — worth checking live.' : '';
       if (!note) return;
       const target = c.row || null;
@@ -2286,22 +2315,31 @@ async function placementCheck(video, wordRows, sentenceProbes) {
     // Speaker-level camera signal. 'forward' needs at least two forward tokens
     // and a quarter of what was checked; 'normal' needs a clear majority of
     // readable tokens with at most one forward reading.
-    const readable = result.forward + result.normal + result.lateral;
-    result.signal = (result.forward >= 2 && result.forward >= Math.ceil(result.checked * 0.25)) ? 'forward'
+    const readable = result.forward + result.normal + result.lateral + (result.dental || 0);
+    const notes = result.tokens.map(t => t.note.toLowerCase().trim()).filter(Boolean);
+    // A blanket verdict is only suspicious when it is a positive claim: twelve
+    // identical "behind-teeth, tongue not visible" readings are what a normal
+    // speaker looks like; twelve identical "interdental" readings with the same
+    // note are a model that stopped looking.
+    const blanket = result.tokens.length >= 8 && new Set(result.tokens.map(t => t.placement + '|' + t.note.toLowerCase().trim())).size === 1 && /interdental|dentalized|lateral/.test(result.tokens[0].placement);
+    result.reliable = !(result.controlFails > 0) && !blanket;
+    if (!result.reliable) console.warn(`🎥 placement pass unreliable: controls failed ${result.controlFails || 0}/${result.controls || 0}${blanket ? ', identical verdict on every token' : ''}`);
+    result.signal = !result.reliable ? 'unclear'
+      : (result.forward >= 2 && result.forward >= Math.ceil(result.checked * 0.25)) ? 'forward'
       : (result.lateral >= 2 && result.lateral >= Math.ceil(result.checked * 0.25)) ? 'lateral'
-      : (readable >= 3 && result.normal >= Math.ceil(readable * 0.6) && result.forward <= 1) ? 'normal' : 'unclear';
+      : (readable >= 3 && (result.normal + (result.dental || 0)) >= Math.ceil(readable * 0.6) && result.forward <= 1) ? 'normal' : 'unclear';
     // Bounded cap (same as fuseAcoustics) only where camera AND acoustics agree on
     // the same token and the ear still said clean. Camera alone never rewrites a
     // row; it surfaces through the outcome (needs a live check) instead.
-    if (result.forward >= 2) {
+    if (result.reliable && result.forward >= 2) {
       cands.filter(c => c.row && c.token && c.flagged && /frontal/.test(c.kind)).forEach(c => {
         const t = result.tokens.find(x => x.label === c.label);
-        if (!t || !/interdental|dentalized/.test(t.placement)) return;
+        if (!t || !/interdental/.test(t.placement)) return;
         if (/^accurate$/i.test(String(c.row.judgment || '')) && (Number(c.row.quality) || 0) > AC_CAP_QUALITY) { c.row.quality = AC_CAP_QUALITY; c.row.judgment = t.placement === 'interdental' ? 'Interdental' : 'Dentalized'; c.row.acoustic = (c.row.acoustic || '') + '+camera'; }
       });
     }
     result.ms = Date.now() - t0;
-    console.log(`🎥 placement check: ${result.checked} tokens (forward ${result.forward}, normal ${result.normal}, lateral ${result.lateral}, unclear ${result.unclear}) → ${result.signal} in ${result.ms} ms`);
+    console.log(`🎥 placement check: ${result.checked} tokens (forward ${result.forward}, dental ${result.dental || 0}, normal ${result.normal}, lateral ${result.lateral}, unclear ${result.unclear}; controls ${result.controls || 0}, failed ${result.controlFails || 0}) → ${result.signal}${result.reliable ? '' : ' (unreliable)'} in ${result.ms} ms`);
     return result;
   } catch (e) {
     console.warn('🎥 placement check failed:', e.message);

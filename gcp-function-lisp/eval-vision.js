@@ -38,7 +38,7 @@ const has = k => args.includes('--' + k);
   const t0 = Date.now();
   const res = await placementCheck(video, rows, []);
   if (!res) { console.log('no result'); process.exit(2); }
-  console.log('\n%s  takes=%d checked=%d  forward=%d normal=%d lateral=%d unclear=%d  signal=%s  %d ms', videoPath.split('/').pop(), marks.length, res.checked, res.forward, res.normal, res.lateral || 0, res.unclear, res.signal, Date.now() - t0);
+  console.log('\n%s  takes=%d checked=%d  forward=%d dental=%d normal=%d lateral=%d unclear=%d  controls=%d failed=%d  reliable=%s  signal=%s  %d ms', videoPath.split('/').pop(), marks.length, res.checked, res.forward, res.dental || 0, res.normal, res.lateral || 0, res.unclear, res.controls || 0, res.controlFails || 0, res.reliable, res.signal, Date.now() - t0);
   console.log('token'.padEnd(22), 'cue'.padEnd(9), 'placement'.padEnd(13), 'conf', 'note');
   (res.tokens || []).forEach(t => console.log(String(t.label).slice(0, 21).padEnd(22), String(t.cue).padEnd(9), t.placement.padEnd(13), t.confidence.toFixed(2), t.note));
   if (res.error) console.log('error:', res.error);
