@@ -1836,20 +1836,21 @@
             #asmtResults .book-call-card--results {
                 position: absolute; top: 0; right: 0; width: 330px; margin: 0;
                 display: flex; flex-direction: column; align-items: stretch; gap: 0;
-                background: #fff; border: 1px solid #dbe6f3; border-radius: 12px; padding: 18px 18px 16px;
+                background: #fff; border: 1px solid #dbe6f3; border-radius: 12px; padding: 16px 18px 18px;
             }
             #asmtResults .book-call-card--results .bc-mob { display: none; }
             #asmtResults .book-call-card--results .bc-desk { display: block; }
             #asmtResults .book-call-card--results .book-call-copy { order: 1; }
             #asmtResults .book-call-card--results .book-call-btn { order: 2; width: 100%; height: 42px; margin-top: 14px; }
-            #asmtResults .book-call-card--results .book-call-next { order: 3; margin-top: 10px; text-align: center; font: 400 12.5px/1.4 'Inter', sans-serif; color: #64748b; }
-            #asmtResults .book-call-card--results .book-call-heads { order: 4; margin-top: 14px; padding-top: 12px; border-top: 1px solid #e8eef5; }
-            #asmtResults .book-call-card--results .book-call-eyebrow { font: 700 11px/1.2 'Inter', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: #D97706; margin-bottom: 6px; }
-            #asmtResults .book-call-card--results .book-call-title { font: 800 17px/1.25 'Inter', sans-serif; color: #0f172a; }
-            #asmtResults .book-call-card--results .book-call-lead { margin-top: 8px; font: 400 13px/1.5 'Inter', sans-serif; color: #475569; }
-            #asmtResults .book-call-card--results .book-call-checks { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-            #asmtResults .book-call-card--results .book-call-checks li { position: relative; padding-left: 22px; font: 500 13px/1.35 'Inter', sans-serif; color: #1e293b; }
-            #asmtResults .book-call-card--results .book-call-checks li::before { content: ''; position: absolute; left: 2px; top: 4px; width: 6px; height: 10px; border: solid #16a34a; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+            /* Added elements — values from the exported Claude Design "Results page.dc.html" (2026-09-21). */
+            #asmtResults .book-call-card--results .book-call-next { order: 3; margin-top: 14px; text-align: center; font: 400 11.5px/1.35 'Inter', sans-serif; color: #6B7280; }
+            #asmtResults .book-call-card--results .book-call-heads { order: 4; margin-top: 14px; padding-top: 13px; border-top: 1px solid #EEF0F2; }
+            #asmtResults .book-call-card--results .book-call-eyebrow { font: 600 10px/1 'Inter', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: #96590F; margin-bottom: 5px; }
+            #asmtResults .book-call-card--results .book-call-title { font: 700 16px/1.3 'Inter', sans-serif; letter-spacing: -0.01em; color: #111318; text-wrap: pretty; }
+            #asmtResults .book-call-card--results .book-call-lead { margin-top: 5px; font: 400 12.5px/1.45 'Inter', sans-serif; color: #6B7280; text-wrap: pretty; }
+            #asmtResults .book-call-card--results .book-call-checks { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+            #asmtResults .book-call-card--results .book-call-checks li { display: flex; gap: 8px; font: 400 12.5px/1.35 'Inter', sans-serif; color: #3F4750; }
+            #asmtResults .book-call-card--results .book-call-checks li::before { content: '\2713'; flex: none; font-weight: 700; color: #1F7A3F; }
         }
         /* Inline pricing view: card tracks the testimonial strip's width caps. */
         .asmt-pricing-view .book-call-card { max-width: 680px; margin: 14px auto 0; }
@@ -1930,7 +1931,7 @@
         }
         @media (min-width: 1280px) {
             #step4 .ob-panel-left.showing-results .asmt-results { padding-right: 420px; }
-            #asmtResults .book-call-card--results { width: 380px; padding: 22px 22px 18px; }
+            #asmtResults .book-call-card--results { width: 380px; padding: 18px 20px 20px; }
         }
 
         /* ===== Inline pricing (light theme — matches the white assessment panel) =====
