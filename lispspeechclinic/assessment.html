@@ -4899,10 +4899,20 @@
         }
         function camRecordStart() {
             if (cam.rec || !cam.stream) return;
-            const mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].find(m => MediaRecorder.isTypeSupported(m)) || '';
-            const recOpts = { videoBitsPerSecond: 1200000, videoKeyFrameIntervalDuration: 1000 };
-            try { cam.rec = mime ? new MediaRecorder(cam.stream, { mimeType: mime, ...recOpts }) : new MediaRecorder(cam.stream, recOpts); }
-            catch (e) { cam.rec = new MediaRecorder(cam.stream); }
+            // Voice in the face video, for human review: a clone of the same mic the
+            // takes record (no second permission prompt, the per-take clips are
+            // untouched). Video-only when the mic isn't open yet.
+            const micSrc = preferRawCapture ? audioStream : (recorderStream || audioStream);
+            const micTrack = micSrc && micSrc.getAudioTracks()[0];
+            cam.micTrack = micTrack && micTrack.readyState === 'live' ? micTrack.clone() : null;
+            const recStream = cam.micTrack ? new MediaStream([...cam.stream.getVideoTracks(), cam.micTrack]) : cam.stream;
+            const mimes = cam.micTrack
+                ? ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4']
+                : ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
+            const mime = mimes.find(m => MediaRecorder.isTypeSupported(m)) || '';
+            const recOpts = { videoBitsPerSecond: 1200000, videoKeyFrameIntervalDuration: 1000, ...(cam.micTrack ? { audioBitsPerSecond: 64000 } : {}) };
+            try { cam.rec = mime ? new MediaRecorder(recStream, { mimeType: mime, ...recOpts }) : new MediaRecorder(recStream, recOpts); }
+            catch (e) { cam.rec = new MediaRecorder(recStream); }
             cam.mime = (cam.rec.mimeType || mime || 'video/webm').split(';')[0];
             cam.chunks = [];
             if (!cam.sessT0) { cam.sessT0 = performance.now(); cam.marks = []; cam.segments = []; }
@@ -4924,7 +4934,7 @@
         function camSegmentClose(rec, unexpected) {
             if (cam.chunks.length) cam.segments.push({ blob: new Blob(cam.chunks, { type: cam.mime }), startMs: Math.round(cam.segT0 - cam.sessT0), durationMs: Math.round(performance.now() - cam.segT0) });
             cam.chunks = [];
-            if (cam.rec === rec) cam.rec = null;
+            if (cam.rec === rec) { cam.rec = null; if (cam.micTrack) { try { cam.micTrack.stop(); } catch (e) {} cam.micTrack = null; } }
             if (!unexpected) return;
             if (cam.stream) { try { cam.stream.getTracks().forEach(t => t.stop()); } catch (e) {} cam.stream = null; }
             camGuideStop();
