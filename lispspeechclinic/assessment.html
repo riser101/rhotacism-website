@@ -4140,16 +4140,16 @@
         // ?backend=local (localhost only) → the locally running analyze-lisp-speech
         // (functions-framework :8080) and Praat shim (:8081); prod otherwise.
         const LOCAL_BACKEND = /[?&]backend=local(?:&|$)/.test(location.search) && /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-        const GCP_ANALYZE_URL = LOCAL_BACKEND ? 'http://127.0.0.1:8080' : 'https://analyze-lisp-speech-653307587559.us-central1.run.app';
+        const GCP_ANALYZE_URL = LOCAL_BACKEND ? 'http://127.0.0.1:8080' : 'https://analyze-lisp-speech-9267895976.us-central1.run.app';
         // Praat sibilant-metrics function (gcp-function-lisp-praat/main.py). Computes
         // CoG/kurtosis/energy-ratios per clip; results are merged into the Gemini
         // payload so Gemini can reason over the >8kHz band it cannot hear.
-        const PRAAT_URL = LOCAL_BACKEND ? 'http://127.0.0.1:8081' : 'https://extract-sibilant-metrics-653307587559.us-central1.run.app';
+        const PRAAT_URL = LOCAL_BACKEND ? 'http://127.0.0.1:8081' : 'https://extract-sibilant-metrics-9267895976.us-central1.run.app';
         // MFA forced-alignment service (mfa-align-service/server.py). Given the clip +
         // known transcript it returns WHERE each sibilant sits (start/end seconds), so
         // Praat measures those exact windows instead of guessing. Unlocks per-/s/
         // scoring for sentences too.
-        const MFA_URL = 'https://mfa-align-653307587559.us-central1.run.app';
+        const MFA_URL = 'https://mfa-align-9267895976.us-central1.run.app';
         // const MFA_URL = 'http://localhost:8080';
         // Recording state
         let mediaRecorder = null;

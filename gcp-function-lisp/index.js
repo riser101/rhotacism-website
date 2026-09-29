@@ -678,7 +678,7 @@ function buildAudioParts(prompt, words) {
 // the request continues ear-only and the coverage log says so. Hints tell the
 // service which sibilant each word carries (S/Z/SH/CH/JH) and whether a
 // sentence's sibilants are all /s,z/ (then its windows can be rule-scored).
-const PRAAT_URL = process.env.PRAAT_URL || 'https://extract-sibilant-metrics-653307587559.us-central1.run.app';
+const PRAAT_URL = process.env.PRAAT_URL || 'https://extract-sibilant-metrics-9267895976.us-central1.run.app';
 const PRAAT_TIMEOUT_MS = Number(process.env.PRAAT_TIMEOUT_MS) || 25000; // warm ≈ 5–8 s; budget keeps part 1 < 60 s
 async function ensureAcoustics(probes) {
   if (process.env.ACOUSTICS_SERVER === '0') return;

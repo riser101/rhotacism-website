@@ -21,7 +21,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIX_DIR = path.join(__dirname, '..', 'fixtures', 'lisp-run-20260827');
-const ANALYZE_HOST = 'analyze-lisp-speech-653307587559.us-central1.run.app';
+const ANALYZE_HOST = 'analyze-lisp-speech-9267895976.us-central1.run.app';
 
 const manifest = JSON.parse(fs.readFileSync(path.join(FIX_DIR, 'manifest.json'), 'utf8'));
 const baseline = JSON.parse(fs.readFileSync(path.join(FIX_DIR, 'analysisResult.json'), 'utf8'));

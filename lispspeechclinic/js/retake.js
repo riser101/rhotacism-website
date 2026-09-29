@@ -22,7 +22,7 @@
   // Elapsed time is computed from a real timestamp (server `completedAt` is the
   // source of truth; the localStorage full-ISO stamp is the instant-paint / offline
   // fallback), so sub-day gaps render as minutes/hours instead of a floored "1 day".
-  var GCP_ANALYZE_URL = 'https://analyze-lisp-speech-653307587559.us-central1.run.app';
+  var GCP_ANALYZE_URL = 'https://analyze-lisp-speech-9267895976.us-central1.run.app';
   // Days-since-baseline still keyed off the (date-only) baseline label below.
   var lastDateStr = localStorage.getItem('lispLastAssessmentDate') || '2026-07-07';
   var lastDate = new Date(lastDateStr + 'T00:00:00');
