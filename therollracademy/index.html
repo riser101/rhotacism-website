@@ -26,6 +26,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&#x26;family=Inter:wght@300;400;500;600;700&#x26;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/therollracademy/css/login-modal.css?v=20260908">
     <link rel="stylesheet" href="/therollracademy/css/progress-recordings.css?v=20260915">
+    <!-- WAVEWORD (footer band) head: fonts + styles; remove with the WAVEWORD block after the footer -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&#x26;family=JetBrains+Mono:wght@400;500&#x26;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/therollracademy/css/waveword.css?v=20261116">
 
     <!-- WebSite Schema for Brand Name -->
     <script type="application/ld+json">
@@ -2223,6 +2226,28 @@ padding: 1px 3px !important;
     </section>
 
     <!-- FOOTER_PLACEHOLDER -->
+
+    <!-- WAVEWORD: footer closing band ("TopSpeech" drawn as waveform bars) + this page's copyright row.
+         To remove: delete this block, the WAVEWORD head lines, css/waveword.css and js/waveword.js. -->
+    <section class="ww-band" aria-label="TopSpeech">
+        <div class="ww-top">
+            <span><span class="ww-lab-l">Fig. 01 · TopSpeech · 9 graphemes / 7 phonemes</span><span class="ww-lab-s">Fig. 01 · 7 phonemes</span></span>
+            <span class="ww-ipa">/ˈtɑp.spitʃ/</span>
+            <span class="ww-d"></span>
+        </div>
+        <canvas class="ww-canvas" role="img" aria-label="TopSpeech"></canvas>
+        <div class="ww-bottom">
+            <p class="ww-head">Every sound, measured.</p>
+            <div class="ww-ro"><span class="ww-ro-k">Model</span><span class="ww-time" data-ro="time">t — s</span><span class="ww-phon" data-ro="phon">/—/</span></div>
+            <button type="button" class="ww-trace" data-trace><span class="ww-d">Tap to trace · Move to inspect</span><span class="ww-m">Tap to trace</span></button>
+        </div>
+        <div class="ww-legal">
+            <div class="ww-copy">© <span data-ww-year>2026</span> Top Speech Health. All rights reserved.</div>
+            <div class="ww-tm">Apple and the Apple logo are trademarks of Apple Inc. App Store is a service mark of Apple Inc. Google Play and the Google Play logo are trademarks of Google LLC.</div>
+        </div>
+    </section>
+    <script src="/therollracademy/js/waveword.js?v=20261116" defer></script>
+    <!-- /WAVEWORD -->
 
 
 

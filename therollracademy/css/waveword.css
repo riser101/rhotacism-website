@@ -1,0 +1,145 @@
+/* Homepage footer band: "TopSpeech" wordmark drawn as waveform bars (js/waveword.js).
+   Values from the approved Claude Design "Footer Waveword" (1a desktop 1440, 1b mobile 390).
+   Loaded only by therollracademy/index.html. To remove: delete the two WAVEWORD blocks in
+   index.html, js/waveword.js and this file. */
+
+/* The band carries its own copyright row, so the shared footer's one is hidden on this page.
+   2px (not 0) keeps the last block's 30px margin inside the black footer: 32px to the band. */
+footer:has(#copyrightYear) { padding-bottom: 2px !important; }
+footer div:has(> #copyrightYear) { display: none !important; }
+
+.ww-band {
+    --ww-pad: max(40px, calc((100% - 1680px) / 2 + 40px));
+    --ww-mono: 'JetBrains Mono', ui-monospace, monospace;
+    background: #000;
+    color: #fff;
+    border-top: 1px solid #222;
+    font-family: 'Inter', sans-serif;
+    line-height: normal;
+    -webkit-font-smoothing: antialiased;
+}
+.ww-band *, .ww-band *::before, .ww-band *::after { box-sizing: border-box; }
+
+.ww-top {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 22px var(--ww-pad) 12px;
+    font: 400 11px/1 var(--ww-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8c8c8c;
+}
+.ww-ipa { text-transform: none; letter-spacing: 0.02em; font-size: 13px; color: #d6d6d6; }
+
+.ww-canvas {
+    display: block;
+    width: 100%;
+    height: 430px;
+    touch-action: pan-y;
+    cursor: crosshair;
+}
+
+.ww-bottom {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-areas: "head ro btn";
+    align-items: end;
+    gap: 24px;
+    padding: 18px var(--ww-pad) 22px;
+    border-top: 1px solid #222;
+}
+.ww-head {
+    grid-area: head;
+    margin: 0;
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-weight: 400;
+    font-size: 44px;
+    line-height: 1.05;
+    color: #fff;
+}
+.ww-ro {
+    grid-area: ro;
+    display: flex;
+    gap: 20px;
+    font: 400 11px/1 var(--ww-mono);
+    letter-spacing: 0.06em;
+    color: #bdbdbd;
+}
+.ww-ro-k { color: #8c8c8c; text-transform: uppercase; letter-spacing: 0.08em; }
+.ww-time { min-width: 64px; }
+.ww-phon { min-width: 40px; }
+.ww-trace {
+    grid-area: btn;
+    justify-self: end;
+    margin: -6px 0;
+    padding: 6px 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    cursor: pointer;
+    font: 400 11px/1 var(--ww-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8c8c8c;
+    -webkit-appearance: none;
+    appearance: none;
+}
+.ww-trace:focus { outline: none; }
+.ww-trace:focus-visible { outline: 1px solid #fff; outline-offset: 4px; }
+
+.ww-legal {
+    border-top: 1px solid #222;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 18px var(--ww-pad) 22px;
+    text-align: center;
+}
+.ww-copy { font-size: 14px; color: #ddd; }
+.ww-tm { font-size: 11px; color: #8a8a8a; }
+
+.ww-m, .ww-lab-s { display: none; }
+
+/* Tablet (no artboard): keep 1a, but stop the label and headline wrapping */
+@media (max-width: 899px) {
+    .ww-lab-l { display: none; }
+    .ww-lab-s { display: inline; }
+}
+@media (min-width: 760px) and (max-width: 1279px) {
+    .ww-bottom { grid-template-columns: 1fr auto; grid-template-areas: "head head" "ro btn"; row-gap: 14px; }
+}
+
+@media (max-width: 759px) {
+    .ww-d { display: none; }
+    .ww-m { display: inline; }
+    .ww-top {
+        display: flex;
+        justify-content: space-between;
+        padding: 18px 16px 8px;
+        font-size: 10px;
+    }
+    .ww-ipa { font-size: 11px; }
+    .ww-canvas { height: 150px; cursor: default; }
+    .ww-bottom {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+        padding: 14px 16px 18px;
+    }
+    /* Readouts show only while tracing/touching (js toggles display) */
+    .ww-ro { display: none; gap: 16px; margin-bottom: 16px; font-size: 10px; letter-spacing: 0.04em; }
+    .ww-head { font-size: 32px; }
+    .ww-trace {
+        justify-self: auto;
+        min-height: 44px;
+        margin: 2px 0 0;
+        padding: 0;
+        font-size: 10px;
+    }
+    .ww-legal { gap: 8px; padding: 16px 24px 22px; }
+    .ww-copy { font-size: 13px; }
+    .ww-tm { line-height: 1.5; }
+}
