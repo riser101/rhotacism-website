@@ -28,7 +28,6 @@
         active: true,
         code: '',                       // no code: store prices are already cut
         percent: 50,
-        upTo: true,
         ends: '2026-12-01T04:59:59Z',   // Mon Nov 30 2026 (Cyber Monday), 11:59 pm ET
         title: 'Black Friday Sale',
         appleAppId: '6751569088',
