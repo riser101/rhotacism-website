@@ -19,15 +19,18 @@
        applies automatically for new subscribers — no code needed in-app. The
        old trial-only offer carries the `rc-ignore-offer` tag for the sale's
        duration so the SDK picks laborday20. rollrAndroid:false hides the bar
-       for Android visitors on Rollr pages (use when no Play offer is live). */
+       for Android visitors on Rollr pages (use when no Play offer is live).
+     • code:'' runs the bar with no code chip (prices already cut in the
+       stores) — checkout pages then apply nothing. */
 (function () {
     var PROMO = {
-        id: 'laborday2026',
+        id: 'blackfriday2026',
         active: true,
-        code: 'LABORDAY20',
-        percent: 20,
-        ends: '2026-09-10T03:59:59Z',   // Tue Sep 9 2026, 11:59 pm ET
-        title: 'Labor Day Sale',
+        code: '',                       // no code: store prices are already cut
+        percent: 50,
+        upTo: true,
+        ends: '2026-12-01T04:59:59Z',   // Mon Nov 30 2026 (Cyber Monday), 11:59 pm ET
+        title: 'Black Friday Sale',
         appleAppId: '6751569088',
         rollrAndroid: true
     };
@@ -55,14 +58,16 @@
     try { if (sessionStorage.getItem('tsPromoClosed') === PROMO.id) return; } catch (e) {}
 
     var appleRedeem = 'https://apps.apple.com/redeem?ctx=offercodes&id=' + PROMO.appleAppId + '&code=' + PROMO.code;
-    var pct = PROMO.percent + '% Off';
+    var pct = (PROMO.upTo ? 'Up to ' : '') + PROMO.percent + '% Off';
     // Copy mirrors the reference bar: bold lead | plain pills | Use Code chip | countdown.
     // No CTA button — the page's own buttons do the selling.
     var copy;
     if (product === 'lisp') {
         copy = { lead: PROMO.title + ': ' + pct, tail: ' All Programs!', pills: ['7-day Money-Back Guarantee', 'Try Risk-Free'], drop: 0 }; // drop = pill hidden first on narrow laptops
     } else if (product === 'rollr') {
-        if (isAndroid) {
+        if (!PROMO.code) {
+            copy = { lead: PROMO.title + ': ' + pct, tail: ' The Rollr Academy!', pills: ['Try Risk-Free', 'Discount applied automatically'] };
+        } else if (isAndroid) {
             // Play offer applies itself at checkout — nothing to enter.
             copy = { lead: PROMO.title + ': ' + pct, tail: ' The Rollr Academy!', pills: ['Try Risk-Free', '20% off applied automatically in the app'], noCode: true };
         } else {
@@ -72,6 +77,7 @@
     } else {
         copy = { lead: PROMO.title + ': ' + pct, tail: ' Top Speech Programs!', pills: ['Try Risk-Free'] };
     }
+    if (!PROMO.code) copy.noCode = true;
 
     function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
     function unit(k, label) { return '<span class="ts-promo__unit"><b data-u="' + k + '">00</b><i>' + label + '</i></span>'; }
@@ -170,7 +176,7 @@
     // during the sale every "Get the app" App Store link on the page points at
     // the redemption sheet instead — it installs the app and applies the offer.
     // Runs after nav.js's own store routing (DOMContentLoaded + a tick, and load).
-    if (product === 'rollr' && isIOS) {
+    if (product === 'rollr' && isIOS && PROMO.code) {
         var rewrite = function () {
             document.querySelectorAll('a[href*="apps.apple.com"][href*="' + PROMO.appleAppId + '"]').forEach(function (a) {
                 if (a.id === 'tsPromoCode' || a.getAttribute('href') === appleRedeem) return;
