@@ -202,12 +202,15 @@ window.lispHandoffOnStart = function (resume) {
     if (lispPlatform() === 'android') document.documentElement.classList.add('is-android');
 })();
 document.addEventListener('click', function (e) {
-    var btn = e.target && e.target.closest ? e.target.closest('a.desktop-download-btn') : null;
+    var btn = e.target && e.target.closest ? e.target.closest('a.desktop-download-btn, a.app-store-cta') : null;
     if (!btn) return;
-    lispHandoffTrack('nav_download_click', { platform: lispPlatform(), page: location.pathname });
+    var where = btn.classList.contains('app-store-cta') ? 'features_section' : 'nav';
+    lispHandoffTrack('nav_download_click', { platform: lispPlatform(), page: location.pathname, source: where });
     if (lispPlatform() === 'ios') return;
     e.preventDefault();
-    lispOpenHandoff('nav_download', function () { window.location.href = lispAssessmentDest(); });
+    // Android: no Lisp app, so "Get it Now" runs the web test.
+    if (lispPlatform() === 'android') { window.location.href = lispAssessmentDest(); return; }
+    lispOpenHandoff(where === 'nav' ? 'nav_download' : 'get_it_now', function () { window.location.href = lispAssessmentDest(); });
 });
 
 // Used by the nav "Free Assessment" <button>s (no href to fall back on).
@@ -258,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
             initializeNavigation();
         } else {
             // Fallback: Load navigation dynamically if not in DOM
-            fetch(basePath + '/includes/nav.html?v=20261121')
+            fetch(basePath + '/includes/nav.html?v=20261121b')
                 .then(response => response.text())
                 .then(html => {
                     document.body.insertAdjacentHTML('afterbegin', html);
