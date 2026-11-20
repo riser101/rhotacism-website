@@ -210,8 +210,45 @@ document.addEventListener('click', function (e) {
     e.preventDefault();
     // Android: no Lisp app, so "Get it Now" runs the web test.
     if (lispPlatform() === 'android') { window.location.href = lispAssessmentDest(); return; }
-    lispOpenHandoff(where === 'nav' ? 'nav_download' : where, function () { window.location.href = lispAssessmentDest(); });
+    lispOpenDownloadQr(where);
 });
+
+// Desktop app-download screen: the same full-screen QR page as Rollr's nav button
+// (no test pitch, just the download). QR → /lispspeechclinic/app.html?src=download → Lisp CPP.
+function lispOpenDownloadQr(source) {
+    var o = document.getElementById('lispQrModal');
+    if (!o) {
+        o = document.createElement('div');
+        o.className = 'qr-modal-overlay';
+        o.id = 'lispQrModal';
+        o.setAttribute('role', 'dialog');
+        o.setAttribute('aria-modal', 'true');
+        o.setAttribute('aria-labelledby', 'lispQrTitle');
+        o.innerHTML = '<button type="button" class="qr-modal-back" aria-label="Back">\u2190</button>'
+            + '<div class="qr-modal-content">'
+            + '<h2 class="qr-modal-title" id="lispQrTitle">Scan the QR code with your phone to download instantly.</h2>'
+            + '<p class="qr-modal-sub">Personalized exercises. Track your progress.</p>'
+            + '<div class="qr-modal-card"><img src="/lispspeechclinic/images/lisp-app-download-qr.svg?v=20261121" alt="QR code to download the TopSpeech app on the App Store" class="qr-modal-img"></div>'
+            + '<div class="qr-modal-stores"><a href="' + LISP_APP_URL + '" target="_blank" rel="noopener" data-store="apple"><img src="/lispspeechclinic/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store"></a></div>'
+            + '<p class="qr-modal-foot">Scan to download the app for iPhone</p>'
+            + '</div>';
+        document.body.appendChild(o);
+        var close = function () {
+            o.classList.remove('open');
+            o.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        };
+        o.querySelector('.qr-modal-back').addEventListener('click', close);
+        o.addEventListener('click', function (e) { if (e.target === o) close(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && o.classList.contains('open')) close(); });
+    }
+    o.classList.add('open');
+    o.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    try { o.querySelector('.qr-modal-back').focus({ preventScroll: true }); } catch (e) {}
+    lispHandoffTrack('app_download_qr_view', { source: source, page: location.pathname });
+}
+window.lispOpenDownloadQr = lispOpenDownloadQr;
 
 // Used by the nav "Free Assessment" <button>s (no href to fall back on).
 window.lispStartAssessment = function () {
