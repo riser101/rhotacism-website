@@ -10,7 +10,7 @@
     },
     {
       "source": "/app",
-      "destination": "https://apps.apple.com/id/app/rollrapp/id6751569088",
+      "destination": "https://apps.apple.com/app/id6751569088?ppid=edfc2a77-9d52-4790-8b5d-7c204fa7d0d4",
       "permanent": false,
       "has": [{"type": "header", "key": "user-agent", "value": ".*(iPhone|iPad|iPod).*"}]
     },

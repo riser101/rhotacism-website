@@ -230,7 +230,7 @@ Where the discount is actually honoured (all keyed on `PROMO.code`):
 | Surface | Mechanism |
 | --- | --- |
 | Lisp web app (Dodo) | Percentage discount code in Dodo (create via dashboard or `POST /discounts`, restricted to the six program products, `expires_at` = sale end). `pricing.html` shows struck-through prices and routes the CTA through `dodowebhook /checkout` with `discount_code` (hosted session; static links can't carry a code). The assessment's inline checkout pre-applies the code and falls back to no code if Dodo rejects it. |
-| Rollr iOS (App Store) | Custom **offer code** on the subscription (App Store Connect → app → Subscriptions → subscription → Offer Codes → create offer, then Custom Codes = `PROMO.code`). The bar links iPhone visitors to `https://apps.apple.com/redeem?ctx=offercodes&id=6751569088&code=CODE`; no app change needed (RevenueCat picks the transaction up). **During the sale** the `/app` iPhone redirect in `vercel.json` and the iOS branch of `get-app.html` also point at that redemption URL (QR code path) — revert both to `https://apps.apple.com/id/app/rollrapp/id6751569088` when the sale ends. |
+| Rollr iOS (App Store) | Custom **offer code** on the subscription (App Store Connect → app → Subscriptions → subscription → Offer Codes → create offer, then Custom Codes = `PROMO.code`). The bar links iPhone visitors to `https://apps.apple.com/redeem?ctx=offercodes&id=6751569088&code=CODE`; no app change needed (RevenueCat picks the transaction up). **During the sale** the `/app` iPhone redirect in `vercel.json` and the iOS branch of `get-app.html` also point at that redemption URL (QR code path) — revert both to the Rollr custom product page URL (below) when the sale ends. |
 | Rollr Android (Google Play) | Play promo codes can't do %-off on subscriptions (they only grant free-trial days), so the sale is a Play **offer** on base plan `p3m` of `com.rollr.trial_12week` (offer `laborday20`: 3-day free trial → one 3-month payment at 20% off, eligibility "new customer"). The app buys RevenueCat's `defaultOption`, which picks the *longest free trial*; because the standing `free-trial-3d` offer ties at 3 days, it carries the tag `rc-ignore-offer` for the sale so the SDK picks `laborday20`. No code is entered in-app; the bar tells Android visitors the discount is automatic. **After the sale:** deactivate `laborday20` and remove the `rc-ignore-offer` tag from `free-trial-3d` (Play Console → Monetise → Subscriptions → 16-Week Program). Set `rollrAndroid: false` to hide the bar for Android visitors when no Play offer is live. |
 
 ## Cache Busting (IMPORTANT)
@@ -271,7 +271,11 @@ code in the nav download modal encodes it. Firebase Dynamic Links was shut down
 - `vercel.json` → two `redirects` on `/app` gated on the `user-agent` header:
   Android → Play listing (`com.rollr.academy`, with a `referrer=utm_…` for Play
   Console attribution), iPhone/iPad/iPod → App Store. Both are temporary (302)
-  so browsers re-evaluate per device. Verify after deploy:
+  so browsers re-evaluate per device. The iOS target is the **"Rhotacism Program"
+  custom product page** (`?ppid=edfc2a77-…`, deep link `rollr://open?program=rhotacism`),
+  not the default page; every Rollr App Store button uses the same URL. Lisp has its
+  own page (`?ppid=25953659-1662-49e0-9bf3-036161ce27df`, `program=lisp`). The default
+  App Store page stays unlinked. Verify after deploy:
   ```bash
   curl -sI -A "Mozilla/5.0 (Linux; Android 14) Chrome/120 Mobile" https://topspeech.health/app | grep -i location
   curl -sI -A "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)" https://topspeech.health/app | grep -i location
