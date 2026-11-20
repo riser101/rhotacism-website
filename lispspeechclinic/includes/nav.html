@@ -57,9 +57,15 @@
             <li class="login-nav">
                 <button class="login-nav-button" onclick="lispStartAssessment()">Free Assessment</button>
             </li>
+            <li class="download-nav"><a href="https://apps.apple.com/app/id6751569088?ppid=25953659-1662-49e0-9bf3-036161ce27df" target="_blank" rel="noopener" class="desktop-download-btn" data-download-label="nav_menu" aria-label="Get the TopSpeech app on your iPhone">
+                    <svg width="24" height="30" viewBox="0 0 24 30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.2" y="1.6" width="15.6" height="26.8" rx="3.4"></rect><path d="M10.2 4.4h3.6"></path><path d="M12 10.4v8.4M8.7 15.4l3.3 3.4 3.3-3.4"></path><path d="M8.4 23.4h7.2"></path></svg>
+                    <span class="desktop-download-text"><span class="desktop-download-small">Mobile Practice Portal</span><span class="desktop-download-big">Scan to download</span></span>
+                </a></li>
+            <!-- Login to the web app hidden 2026-11-21 (app-first: practice happens in the TopSpeech app).
             <li class="user-login-nav">
                 <button class="login-nav-button user-login-button" onclick="window.location.href='https://lsc.topspeech.health/#/login'">Login</button>
             </li>
+            -->
             <li class="profile-dropdown">
                 <div class="profile-circle" onclick="toggleProfileDropdown()">
                     <span id="profileInitial">U</span>
@@ -73,7 +79,7 @@
         <!-- Mobile Navigation -->
         <div class="mobile-nav">
             <button class="mobile-get-started" onclick="lispStartAssessment()">Free Assessment</button>
-            <button class="mobile-get-started user-login-nav" onclick="window.location.href='https://lsc.topspeech.health/#/login'">Login</button>
+            <!-- <button class="mobile-get-started user-login-nav" onclick="window.location.href='https://lsc.topspeech.health/#/login'">Login</button> (hidden 2026-11-21, app-first) -->
             <!-- Mobile hamburger menu for Company dropdown -->
             <div class="mobile-hamburger-menu">
                 <button class="mobile-hamburger-toggle" onclick="toggleMobileCompanyMenu()" aria-label="Company menu">

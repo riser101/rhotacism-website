@@ -195,6 +195,21 @@ window.lispHandoffOnStart = function (resume) {
     return true;
 };
 
+// Nav "Scan to download" (same button as Rollr): desktop opens the app-first modal
+// with the QR code; iPhone/iPad follow the link to the Lisp App Store page; the
+// button is hidden on Android (no Lisp app). Delegated: nav markup may be injected later.
+(function () {
+    if (lispPlatform() === 'android') document.documentElement.classList.add('is-android');
+})();
+document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest('a.desktop-download-btn') : null;
+    if (!btn) return;
+    lispHandoffTrack('nav_download_click', { platform: lispPlatform(), page: location.pathname });
+    if (lispPlatform() === 'ios') return;
+    e.preventDefault();
+    lispOpenHandoff('nav_download', function () { window.location.href = lispAssessmentDest(); });
+});
+
 // Used by the nav "Free Assessment" <button>s (no href to fall back on).
 window.lispStartAssessment = function () {
     var dest = lispAssessmentDest();
@@ -243,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
             initializeNavigation();
         } else {
             // Fallback: Load navigation dynamically if not in DOM
-            fetch(basePath + '/includes/nav.html?v=20260912')
+            fetch(basePath + '/includes/nav.html?v=20261121')
                 .then(response => response.text())
                 .then(html => {
                     document.body.insertAdjacentHTML('afterbegin', html);
