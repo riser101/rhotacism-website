@@ -62,7 +62,7 @@
     // No CTA button — the page's own buttons do the selling.
     var copy;
     if (product === 'lisp') {
-        copy = { lead: PROMO.title + ': ' + pct, tail: ' All Programs!', pills: ['7-day Money-Back Guarantee', 'Try Risk-Free'], drop: 0 }; // drop = pill hidden first on narrow laptops
+        copy = { lead: PROMO.title + ': ' + pct, tail: ' All Programs!', pills: ['3-Day Free Trial', 'Try Risk-Free'], drop: 1 }; // drop = pill hidden first on narrow laptops
     } else if (product === 'rollr') {
         if (!PROMO.code) {
             copy = { lead: PROMO.title + ': ' + pct, tail: ' The Rollr Academy!', pills: ['Try Risk-Free', 'Discount applied automatically'] };
