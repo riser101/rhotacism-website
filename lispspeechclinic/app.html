@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Opening the App Store&hellip;</title>
+<style>
+  html, body { height: 100%; margin: 0; background: #000; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15px; color: #999;
+  }
+  a { color: #FF8B42; }
+</style>
+</head>
+<body>
+  <p id="msg">Opening the App Store&hellip;</p>
+  <script>
+    !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.crossOrigin = "anonymous", p.async = !0, p.src = s.api_host.replace(".i.posthog.com", "-assets.i.posthog.com") + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "init capture register register_once identify setPersonProperties reset get_distinct_id opt_in_capturing opt_out_capturing".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
+    posthog.init('phc_WFJFjSjFujXoTr85nd8fyZ6BdKtdo27RTADMbvnJn2O', { api_host: 'https://us.i.posthog.com', defaults: '2025-11-30' });
+
+    // Target of the QR code in the desktop "Free Assessment" modal (nav.js).
+    // iPhone/iPad → the Lisp Program custom product page; anything else → the web test.
+    (function () {
+      var APP = 'https://apps.apple.com/app/id6751569088?ppid=25953659-1662-49e0-9bf3-036161ce27df';
+      var WEB = '/lispspeechclinic/assessment.html?web=1';
+      var ua = navigator.userAgent || '';
+      var ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      var src = new URLSearchParams(location.search).get('src') || 'direct';
+      posthog.capture('app_qr_scan', { src: src, platform: ios ? 'ios' : (/Android/i.test(ua) ? 'android' : 'other'), dest: ios ? 'app_store' : 'web_test' }, { transport: 'sendBeacon' });
+      if (!ios) document.getElementById('msg').textContent = 'Opening the free test…';
+      // Give the beacon a beat, then go. Fallback covers a blocked PostHog.
+      setTimeout(function () { location.replace(ios ? APP : WEB); }, 250);
+    })();
+  </script>
+  <noscript>
+    <p><a href="https://apps.apple.com/app/id6751569088?ppid=25953659-1662-49e0-9bf3-036161ce27df">Open the App Store</a></p>
+  </noscript>
+</body>
+</html>
