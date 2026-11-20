@@ -202,15 +202,15 @@ window.lispHandoffOnStart = function (resume) {
     if (lispPlatform() === 'android') document.documentElement.classList.add('is-android');
 })();
 document.addEventListener('click', function (e) {
-    var btn = e.target && e.target.closest ? e.target.closest('a.desktop-download-btn, a.app-store-cta') : null;
+    var btn = e.target && e.target.closest ? e.target.closest('a.desktop-download-btn, a.app-store-cta, a[data-lisp-app]') : null;
     if (!btn) return;
-    var where = btn.classList.contains('app-store-cta') ? 'features_section' : 'nav';
+    var where = btn.getAttribute('data-lisp-app') || (btn.classList.contains('app-store-cta') ? 'features_section' : 'nav');
     lispHandoffTrack('nav_download_click', { platform: lispPlatform(), page: location.pathname, source: where });
     if (lispPlatform() === 'ios') return;
     e.preventDefault();
     // Android: no Lisp app, so "Get it Now" runs the web test.
     if (lispPlatform() === 'android') { window.location.href = lispAssessmentDest(); return; }
-    lispOpenHandoff(where === 'nav' ? 'nav_download' : 'get_it_now', function () { window.location.href = lispAssessmentDest(); });
+    lispOpenHandoff(where === 'nav' ? 'nav_download' : where, function () { window.location.href = lispAssessmentDest(); });
 });
 
 // Used by the nav "Free Assessment" <button>s (no href to fall back on).
